@@ -95,7 +95,12 @@ func NewGame() *Game {
 	g.setVsyncEnabled(true)
 
 	// load map
-	g.mapObj = model.NewMap()
+	var err error
+	g.mapObj, err = model.LoadMap("arena.yaml")
+	if err != nil {
+		log.Println(err)
+		exit(1)
+	}
 
 	// load texture handler
 	g.tex = NewTextureHandler(g.mapObj, 32)
