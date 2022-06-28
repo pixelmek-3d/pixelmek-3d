@@ -5,18 +5,13 @@ import (
 	"image/color"
 	"log"
 	"path/filepath"
+	"sort"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 )
-
-// loadContent will be called once per game and is the place to load
-// all of your content.
-func (g *Game) loadContent() {
-
-	// TODO: make resource management better
-}
 
 func getRGBAFromFile(texFile string) *image.RGBA {
 	var rgba *image.RGBA
@@ -55,6 +50,36 @@ func getSpriteFromFile(sFile string) *ebiten.Image {
 		log.Fatal(err)
 	}
 	return eImg
+}
+
+// loadContent will be called once per game and is the place to load
+// all of your content.
+func (g *Game) loadContent() {
+	if floor, ok := g.mapObj.Textures["floor"]; ok {
+		g.tex.floorTex = getRGBAFromFile(floor.Image)
+	}
+
+	// find highest texture index to determine texture slice length
+	textureIndices := make([]int, len(g.mapObj.Textures))
+	for k := range g.mapObj.Textures {
+		if texIndex, err := strconv.Atoi(k); err == nil {
+			textureIndices = append(textureIndices, texIndex)
+		}
+	}
+
+	sort.Ints(textureIndices)
+	highestIndex := textureIndices[len(textureIndices)-1]
+	g.tex.textures = make([]*ebiten.Image, highestIndex+1)
+
+	for _, i := range textureIndices {
+		k := strconv.Itoa(i)
+		kTex := g.mapObj.Textures[k]
+		if len(kTex.Image) == 0 {
+			continue
+		}
+
+		g.tex.textures[i] = getTextureFromFile(kTex.Image)
+	}
 }
 
 func (g *Game) loadSprites() {

@@ -11,20 +11,20 @@ import (
 )
 
 type Map struct {
-	Levels   [][][]int             `yaml: levels`
-	Textures map[string]MapTexture `yaml: textures`
-	FloorBox MapTexture            `yaml: floorBox`
-	SkyBox   MapTexture            `yaml: skyBox`
-	Sprites  []MapSprite           `yaml: sprites`
+	Levels   [][][]int
+	Textures map[string]MapTexture
+	FloorBox MapTexture
+	SkyBox   MapTexture
+	Sprites  []MapSprite
 }
 
 type MapTexture struct {
-	Image string `yaml: image`
+	Image string
 }
 
 type MapSprite struct {
-	Image    string     `yaml: image`
-	Position [2]float64 `yaml: position`
+	Image    string
+	Position [2]float64
 }
 
 func (m *Map) NumLevels() int {

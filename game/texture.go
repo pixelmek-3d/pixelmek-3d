@@ -15,10 +15,9 @@ type TextureHandler struct {
 	renderFloorTex bool
 }
 
-func NewTextureHandler(mapObj *model.Map, textureCapacity int) *TextureHandler {
+func NewTextureHandler(mapObj *model.Map) *TextureHandler {
 	t := &TextureHandler{
 		mapObj:         mapObj,
-		textures:       make([]*ebiten.Image, textureCapacity),
 		renderFloorTex: true,
 	}
 	return t
@@ -42,31 +41,10 @@ func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
 	}
 
 	if x >= 0 && x < mapWidth && y >= 0 && y < mapHeight {
-		texNum = mapLevel[x][y] - 1 // 1 subtracted from it so that texture 0 can be used
+		texNum = mapLevel[x][y]
 	}
 
-	if side == 0 {
-		//--some supid hacks to make the houses render correctly--//
-		// this corrects textures on two sides of house since the textures are not symmetrical
-		if texNum == 3 {
-			texNum = 4
-		} else if texNum == 4 {
-			texNum = 3
-		}
-
-		if texNum == 1 {
-			texNum = 4
-		} else if texNum == 2 {
-			texNum = 3
-		}
-
-		// make the ebitengine splash only show on one side
-		if texNum == 5 {
-			texNum = 0
-		}
-	}
-
-	if texNum < 0 {
+	if texNum <= 0 {
 		return nil
 	}
 	return t.textures[texNum]

@@ -103,7 +103,7 @@ func NewGame() *Game {
 	}
 
 	// load texture handler
-	g.tex = NewTextureHandler(g.mapObj, 32)
+	g.tex = NewTextureHandler(g.mapObj)
 
 	g.collisionMap = g.mapObj.GetCollisionLines(clipDistance)
 	worldMap := g.mapObj.Level(0)
