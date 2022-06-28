@@ -128,8 +128,13 @@ func NewGame() *Game {
 
 	//--init camera and renderer--//
 	g.camera = raycaster.NewCamera(g.width, g.height, texWidth, g.mapObj, g.tex)
-	g.camera.SetFloorTexture(getTextureFromFile("floor_tan.png"))
-	g.camera.SetSkyTexture(getTextureFromFile("sky_blue.png"))
+
+	if len(g.mapObj.FloorBox.Image) > 0 {
+		g.camera.SetFloorTexture(getTextureFromFile(g.mapObj.FloorBox.Image))
+	}
+	if len(g.mapObj.SkyBox.Image) > 0 {
+		g.camera.SetSkyTexture(getTextureFromFile(g.mapObj.SkyBox.Image))
+	}
 
 	// initialize camera to player position
 	g.updatePlayerCamera(true)

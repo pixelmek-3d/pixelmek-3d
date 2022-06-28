@@ -11,11 +11,12 @@ import (
 )
 
 type Map struct {
-	Levels   [][][]int
-	Textures map[string]MapTexture
-	FloorBox MapTexture
-	SkyBox   MapTexture
-	Sprites  []MapSprite
+	NumRaycastLevels int                   `yaml:"numRaycastLevels"`
+	Levels           [][][]int             `yaml:"levels"`
+	Textures         map[string]MapTexture `yaml:"textures"`
+	FloorBox         MapTexture            `yaml:"floorBox"`
+	SkyBox           MapTexture            `yaml:"skyBox"`
+	Sprites          []MapSprite           `yaml:"sprites"`
 }
 
 type MapTexture struct {
@@ -28,7 +29,7 @@ type MapSprite struct {
 }
 
 func (m *Map) NumLevels() int {
-	return 3
+	return m.NumRaycastLevels
 }
 
 func (m *Map) Level(levelNum int) [][]int {
@@ -57,6 +58,11 @@ func LoadMap(mapFile string) (*Map, error) {
 	}
 	if len(m.Textures) == 0 || len(m.Levels) == 0 {
 		return m, fmt.Errorf("one or more entry in textures and levels are required")
+	}
+
+	if m.NumRaycastLevels == 0 {
+		// default to number of levels provided in levels array
+		m.NumRaycastLevels = len(m.Levels)
 	}
 
 	return m, nil
