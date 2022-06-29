@@ -52,9 +52,13 @@ func getSpriteFromFile(sFile string) *ebiten.Image {
 	return eImg
 }
 
-// loadContent will be called once per game and is the place to load
-// all of your content.
+// loadContent loads all map texture and static sprite resources
 func (g *Game) loadContent() {
+	g.projectiles = make(map[*model.Projectile]struct{}, 1024)
+	g.effects = make(map[*model.Effect]struct{}, 1024)
+	g.sprites = make(map[*model.Sprite]struct{}, 128)
+
+	// load textured flooring
 	if floor, ok := g.mapObj.Textures["floor"]; ok {
 		g.tex.floorTex = getRGBAFromFile(floor.Image)
 	}
@@ -80,10 +84,32 @@ func (g *Game) loadContent() {
 
 		g.tex.textures[i] = getTextureFromFile(kTex.Image)
 	}
+
+	// load static sprites
+	spriteMap := make(map[string]*ebiten.Image, len(g.mapObj.Sprites))
+	for _, s := range g.mapObj.Sprites {
+		if len(s.Image) == 0 {
+			continue
+		}
+
+		var spriteImg *ebiten.Image
+		if eImg, ok := spriteMap[s.Image]; ok {
+			spriteImg = eImg
+		} else {
+			spriteImg = getSpriteFromFile(s.Image)
+			spriteMap[s.Image] = spriteImg
+		}
+
+		sprite := model.NewSprite(
+			s.Position[0], s.Position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, texWidth, 0, 0,
+		)
+		g.addSprite(sprite)
+	}
 }
 
+// loadSprites loads all mission sprite reources
 func (g *Game) loadSprites() {
-	// TODO: load some sprites
+	// TODO: load mission sprites
 }
 
 func (g *Game) addSprite(sprite *model.Sprite) {

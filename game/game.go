@@ -113,13 +113,13 @@ func NewGame() *Game {
 	// load content once when first run
 	g.loadContent()
 
+	// init the sprites
+	g.loadSprites()
+
 	// init player model
 	angleDegrees := 60.0
 	g.player = model.NewPlayer(8.5, 3.5, geom.Radians(angleDegrees), 0)
 	g.player.CollisionRadius = clipDistance
-
-	// init the sprites
-	g.loadSprites()
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)

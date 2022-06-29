@@ -61,5 +61,7 @@ floorBox:
 skyBox:
   image: "skies/sky_blue.png"
 sprites:
-- image: "tree_bare.png"
-  position: [9, 12]
+- image: "shrubbery/tree_bare.png"
+  position: [8.5, 24.5]
+- image: "shrubbery/tree_bare.png"
+  position: [10.5, 24.5]
