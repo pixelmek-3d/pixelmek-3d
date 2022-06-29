@@ -21,6 +21,7 @@ type Map struct {
 
 type MapTexture struct {
 	Image string
+	Side  int
 }
 
 type MapSprite struct {
@@ -87,4 +88,8 @@ func (m *Map) GetCollisionLines(clipDistance float64) []geom.Line {
 	}
 
 	return lines
+}
+
+func (m *Map) GetMapTexture(texIndex string) MapTexture {
+	return m.Textures[texIndex]
 }

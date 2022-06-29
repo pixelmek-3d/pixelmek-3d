@@ -35,8 +35,8 @@ func getRGBAFromFile(texFile string) *image.RGBA {
 }
 
 func getTextureFromFile(texFile string) *ebiten.Image {
-	resourcePath := filepath.Join("game", "resources", "textures")
-	eImg, _, err := ebitenutil.NewImageFromFile(filepath.Join(resourcePath, texFile))
+	resourcePath := filepath.Join("game", "resources", "textures", texFile)
+	eImg, _, err := ebitenutil.NewImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,8 +44,8 @@ func getTextureFromFile(texFile string) *ebiten.Image {
 }
 
 func getSpriteFromFile(sFile string) *ebiten.Image {
-	resourcePath := filepath.Join("game", "resources", "sprites")
-	eImg, _, err := ebitenutil.NewImageFromFile(filepath.Join(resourcePath, sFile))
+	resourcePath := filepath.Join("game", "resources", "sprites", sFile)
+	eImg, _, err := ebitenutil.NewImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,6 +2,7 @@ package game
 
 import (
 	"image"
+	"strconv"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 
@@ -43,10 +44,18 @@ func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
 	if x >= 0 && x < mapWidth && y >= 0 && y < mapHeight {
 		texNum = mapLevel[x][y]
 	}
-
 	if texNum <= 0 {
 		return nil
 	}
+
+	// check if it has a side texture
+	if side != 0 {
+		texObj := t.mapObj.GetMapTexture(strconv.Itoa(texNum))
+		if texObj.Side > 0 {
+			texNum = texObj.Side
+		}
+	}
+
 	return t.textures[texNum]
 }
 
