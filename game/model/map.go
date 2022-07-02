@@ -20,8 +20,20 @@ type Map struct {
 }
 
 type MapTexture struct {
-	Image string
-	Side  int
+	Image string `yaml:"image"`
+	SideX string `yaml:"sideX"`
+	SideY string `yaml:"sideY"`
+}
+
+func (m MapTexture) GetImage(side int) string {
+	switch {
+	case side == 0 && m.SideY != "":
+		return m.SideY
+	case side == 1 && m.SideX != "":
+		return m.SideX
+	default:
+		return m.Image
+	}
 }
 
 type MapSprite struct {

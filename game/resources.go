@@ -5,8 +5,6 @@ import (
 	"image/color"
 	"log"
 	"path/filepath"
-	"sort"
-	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -58,46 +56,47 @@ func (g *Game) loadContent() {
 	g.effects = make(map[*model.Effect]struct{}, 1024)
 	g.sprites = make(map[*model.Sprite]struct{}, 128)
 
+	// keep a map of textures by name to only load duplicate entries once
+	g.tex.texMap = make(map[string]*ebiten.Image, 128)
+
 	// load textured flooring
 	if floor, ok := g.mapObj.Textures["floor"]; ok {
 		g.tex.floorTex = getRGBAFromFile(floor.Image)
 	}
 
-	// find highest texture index to determine texture slice length
-	textureIndices := make([]int, len(g.mapObj.Textures))
-	for k := range g.mapObj.Textures {
-		if texIndex, err := strconv.Atoi(k); err == nil {
-			textureIndices = append(textureIndices, texIndex)
-		}
-	}
-
-	sort.Ints(textureIndices)
-	highestIndex := textureIndices[len(textureIndices)-1]
-	g.tex.textures = make([]*ebiten.Image, highestIndex+1)
-
-	for _, i := range textureIndices {
-		k := strconv.Itoa(i)
-		kTex := g.mapObj.Textures[k]
-		if len(kTex.Image) == 0 {
-			continue
+	// load textures mapped by path
+	for _, tex := range g.mapObj.Textures {
+		if tex.Image != "" {
+			if _, ok := g.tex.texMap[tex.Image]; !ok {
+				g.tex.texMap[tex.Image] = getTextureFromFile(tex.Image)
+			}
 		}
 
-		g.tex.textures[i] = getTextureFromFile(kTex.Image)
+		if tex.SideX != "" {
+			if _, ok := g.tex.texMap[tex.SideX]; !ok {
+				g.tex.texMap[tex.SideX] = getTextureFromFile(tex.SideX)
+			}
+		}
+
+		if tex.SideY != "" {
+			if _, ok := g.tex.texMap[tex.SideY]; !ok {
+				g.tex.texMap[tex.SideY] = getTextureFromFile(tex.SideY)
+			}
+		}
 	}
 
 	// load static sprites
-	spriteMap := make(map[string]*ebiten.Image, len(g.mapObj.Sprites))
 	for _, s := range g.mapObj.Sprites {
 		if len(s.Image) == 0 {
 			continue
 		}
 
 		var spriteImg *ebiten.Image
-		if eImg, ok := spriteMap[s.Image]; ok {
+		if eImg, ok := g.tex.texMap[s.Image]; ok {
 			spriteImg = eImg
 		} else {
 			spriteImg = getSpriteFromFile(s.Image)
-			spriteMap[s.Image] = spriteImg
+			g.tex.texMap[s.Image] = spriteImg
 		}
 
 		sprite := model.NewSprite(

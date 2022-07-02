@@ -11,9 +11,9 @@ import (
 
 type TextureHandler struct {
 	mapObj         *model.Map
-	textures       []*ebiten.Image
 	floorTex       *image.RGBA
 	renderFloorTex bool
+	texMap         map[string]*ebiten.Image
 }
 
 func NewTextureHandler(mapObj *model.Map) *TextureHandler {
@@ -22,6 +22,13 @@ func NewTextureHandler(mapObj *model.Map) *TextureHandler {
 		renderFloorTex: true,
 	}
 	return t
+}
+
+func (t *TextureHandler) textureImage(texturePath string) *ebiten.Image {
+	if img, ok := t.texMap[texturePath]; ok {
+		return img
+	}
+	return nil
 }
 
 func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
@@ -49,14 +56,9 @@ func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
 	}
 
 	// check if it has a side texture
-	if side != 0 {
-		texObj := t.mapObj.GetMapTexture(strconv.Itoa(texNum))
-		if texObj.Side > 0 {
-			texNum = texObj.Side
-		}
-	}
+	texObj := t.mapObj.GetMapTexture(strconv.Itoa(texNum))
 
-	return t.textures[texNum]
+	return t.textureImage(texObj.GetImage(side))
 }
 
 func (t *TextureHandler) FloorTexture() *image.RGBA {

@@ -6,8 +6,8 @@ textures:
   "1":
     image: "walls/tech_0e.png"
   "2":
-    image: "walls/tech_0f.png"
-    side: 3
+    sideX: "walls/tech_3i.png"
+    sideY: "walls/tech_0f.png"
   "3":
     image: "walls/tech_3i.png"
   "4":
@@ -65,3 +65,7 @@ sprites:
   position: [8.5, 24.5]
 - image: "shrubbery/tree_bare.png"
   position: [10.5, 24.5]
+- image: "mechs/timberwolf_static.png"
+  position: [8.5, 24.0]
+- image: "mechs/timberwolf_static.png"
+  position: [10.5, 24.0]
