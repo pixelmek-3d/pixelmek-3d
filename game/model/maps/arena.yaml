@@ -1,3 +1,8 @@
+lighting:
+  falloff: -100
+  illumination: 500
+  minLightRGB: [100, 125, 150]
+  maxLightRGB: [255, 255, 255]
 textures:
   floor:
     image: "floors/grass.png"

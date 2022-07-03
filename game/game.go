@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 
+	"image/color"
 	_ "image/png"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -59,6 +60,12 @@ type Game struct {
 	// zoom settings
 	zoomFovDegrees float64
 	zoomFovDepth   float64
+
+	// lighting settings
+	lightFalloff       float64
+	globalIllumination float64
+	minLightRGB        color.NRGBA
+	maxLightRGB        color.NRGBA
 
 	//--array of levels, levels refer to "floors" of the world--//
 	mapObj       *model.Map
@@ -135,6 +142,15 @@ func NewGame() *Game {
 	if len(g.mapObj.SkyBox.Image) > 0 {
 		g.camera.SetSkyTexture(getTextureFromFile(g.mapObj.SkyBox.Image))
 	}
+
+	// init camera lighting from map settings
+	g.lightFalloff = g.mapObj.Lighting.Falloff
+	g.globalIllumination = g.mapObj.Lighting.Illumination
+	g.minLightRGB, g.maxLightRGB = g.mapObj.Lighting.LightRGB()
+
+	g.camera.SetLightFalloff(g.lightFalloff)
+	g.camera.SetGlobalIllumination(g.globalIllumination)
+	g.camera.SetLightRGB(g.minLightRGB, g.maxLightRGB)
 
 	// initialize camera to player position
 	g.updatePlayerCamera(true)

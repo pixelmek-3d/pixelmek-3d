@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"image/color"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 type Map struct {
 	NumRaycastLevels int                   `yaml:"numRaycastLevels"`
 	Levels           [][][]int             `yaml:"levels"`
+	Lighting         MapLighting           `yaml:"lighting"`
 	Textures         map[string]MapTexture `yaml:"textures"`
 	FloorBox         MapTexture            `yaml:"floorBox"`
 	SkyBox           MapTexture            `yaml:"skyBox"`
@@ -37,8 +39,21 @@ func (m MapTexture) GetImage(side int) string {
 }
 
 type MapSprite struct {
-	Image    string
-	Position [2]float64
+	Image    string     `yaml:"image"`
+	Position [2]float64 `yaml:"position"`
+}
+
+type MapLighting struct {
+	Falloff      float64  `yaml:"falloff"`
+	Illumination float64  `yaml:"illumination"`
+	MinLightRGB  [3]uint8 `yaml:"minLightRGB"`
+	MaxLightRGB  [3]uint8 `yaml:"maxLightRGB"`
+}
+
+func (m MapLighting) LightRGB() (min, max color.NRGBA) {
+	min.R, min.G, min.B = m.MinLightRGB[0], m.MinLightRGB[1], m.MinLightRGB[2]
+	max.R, max.G, max.B = m.MaxLightRGB[0], m.MaxLightRGB[1], m.MaxLightRGB[2]
+	return min, max
 }
 
 func (m *Map) NumLevels() int {

@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/gabstv/ebiten-imgui/renderer"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,6 +18,11 @@ type DemoMenu struct {
 	newRenderHeight int32
 	newRenderScale  float32
 	newFovDegrees   float32
+
+	newGlobalIllumination float32
+	newLightFalloff       float32
+	newMinLightRGB        [3]float32
+	newMaxLightRGB        [3]float32
 }
 
 func mainMenu() DemoMenu {
@@ -38,6 +44,17 @@ func (g *Game) openMenu() {
 	g.menu.newRenderHeight = int32(g.screenHeight)
 	g.menu.newRenderScale = float32(g.renderScale)
 	g.menu.newFovDegrees = float32(g.fovDegrees)
+
+	g.menu.newLightFalloff = float32(g.lightFalloff)
+	g.menu.newGlobalIllumination = float32(g.globalIllumination)
+
+	// for color menu items [1, 1, 1] represents NRGBA{255, 255, 255}
+	g.menu.newMinLightRGB = [3]float32{
+		float32(g.minLightRGB.R) * 1 / 255, float32(g.minLightRGB.G) * 1 / 255, float32(g.minLightRGB.B) * 1 / 255,
+	}
+	g.menu.newMaxLightRGB = [3]float32{
+		float32(g.maxLightRGB.R) * 1 / 255, float32(g.maxLightRGB.G) * 1 / 255, float32(g.maxLightRGB.B) * 1 / 255,
+	}
 }
 
 func (g *Game) closeMenu() {
@@ -115,6 +132,40 @@ func (m *DemoMenu) update(g *Game) {
 		}
 
 		imgui.Checkbox("Floor Texturing", &g.tex.renderFloorTex)
+
+		// New section for lighting options
+		imgui.Separator()
+
+		imgui.Text("Lighting:")
+
+		if imgui.SliderFloatV("Light Falloff", &m.newLightFalloff, -500, 500, "%.0f", imgui.SliderFlagsNone) {
+			g.lightFalloff = float64(m.newLightFalloff)
+			g.camera.SetLightFalloff(g.lightFalloff)
+		}
+
+		if imgui.SliderFloatV("Global Illumination", &m.newGlobalIllumination, 0, 1000, "%.0f", imgui.SliderFlagsNone) {
+			g.globalIllumination = float64(m.newGlobalIllumination)
+			g.camera.SetGlobalIllumination(g.globalIllumination)
+		}
+
+		lightColorChanged := false
+		if imgui.ColorEdit3("Min Lighting", &m.newMinLightRGB) {
+			lightColorChanged = true
+		}
+		if imgui.ColorEdit3("Max Lighting", &m.newMaxLightRGB) {
+			lightColorChanged = true
+		}
+
+		if lightColorChanged {
+			// need to handle menu derived value as a fraction of 1/255
+			g.minLightRGB = color.NRGBA{
+				R: byte(m.newMinLightRGB[0] * 255), G: byte(m.newMinLightRGB[1] * 255), B: byte(m.newMinLightRGB[2] * 255),
+			}
+			g.maxLightRGB = color.NRGBA{
+				R: byte(m.newMaxLightRGB[0] * 255), G: byte(m.newMaxLightRGB[1] * 255), B: byte(m.newMaxLightRGB[2] * 255),
+			}
+			g.camera.SetLightRGB(g.minLightRGB, g.maxLightRGB)
+		}
 
 		// Just some extra spacing
 		imgui.Dummy(imgui.Vec2{X: 10, Y: 10})
