@@ -54,7 +54,8 @@ func getSpriteFromFile(sFile string) *ebiten.Image {
 func (g *Game) loadContent() {
 	g.projectiles = make(map[*model.Projectile]struct{}, 1024)
 	g.effects = make(map[*model.Effect]struct{}, 1024)
-	g.sprites = make(map[*model.Sprite]struct{}, 128)
+	g.sprites = make(map[*model.Sprite]struct{}, 512)
+	g.mechSprites = make(map[*model.MechSprite]struct{}, 128)
 
 	// keep a map of textures by name to only load duplicate entries once
 	g.tex.texMap = make(map[string]*ebiten.Image, 128)
@@ -108,11 +109,26 @@ func (g *Game) loadContent() {
 
 // loadSprites loads all mission sprite reources
 func (g *Game) loadSprites() {
-	// TODO: load mission sprites
+
+	// TODO: load mission sprites from yaml file
+
+	mechImg := getSpriteFromFile("mechs/timberwolf.png")
+	mechTemplate := model.NewMechSprite(0, 0, mechImg, texWidth, 0.01)
+
+	for i := 1.0; i < 20; i++ {
+		for j := 16.0; j < 24; j++ {
+			mech := model.NewMechSpriteFromMech(i, j, mechTemplate)
+			g.addMechSprite(mech)
+		}
+	}
 }
 
 func (g *Game) addSprite(sprite *model.Sprite) {
 	g.sprites[sprite] = struct{}{}
+}
+
+func (g *Game) addMechSprite(mech *model.MechSprite) {
+	g.mechSprites[mech] = struct{}{}
 }
 
 // func (g *Game) deleteSprite(sprite *model.Sprite) {

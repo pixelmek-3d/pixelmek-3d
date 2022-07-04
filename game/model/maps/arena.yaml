@@ -70,7 +70,3 @@ sprites:
   position: [8.5, 24.5]
 - image: "shrubbery/tree_bare.png"
   position: [10.5, 24.5]
-- image: "mechs/timberwolf_static.png"
-  position: [8.5, 24.0]
-- image: "mechs/timberwolf_static.png"
-  position: [10.5, 24.0]

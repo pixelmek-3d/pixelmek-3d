@@ -74,6 +74,7 @@ type Game struct {
 	collisionMap []geom.Line
 
 	sprites     map[*model.Sprite]struct{}
+	mechSprites map[*model.MechSprite]struct{}
 	projectiles map[*model.Projectile]struct{}
 	effects     map[*model.Effect]struct{}
 
@@ -274,11 +275,15 @@ func (g *Game) Update() error {
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Put projectiles together with sprites for raycasting both as sprites
-	numSprites, numProjectiles, numEffects := len(g.sprites), len(g.projectiles), len(g.effects)
-	raycastSprites := make([]raycaster.Sprite, numSprites+numProjectiles+numEffects)
+	numSprites := len(g.sprites) + len(g.mechSprites) + len(g.projectiles) + len(g.effects)
+	raycastSprites := make([]raycaster.Sprite, numSprites)
 	index := 0
 	for sprite := range g.sprites {
 		raycastSprites[index] = sprite
+		index += 1
+	}
+	for mech := range g.mechSprites {
+		raycastSprites[index] = mech
 		index += 1
 	}
 	for projectile := range g.projectiles {
@@ -516,6 +521,18 @@ func (g *Game) updateProjectiles() {
 	}
 }
 
+func (g *Game) AllEntities() map[*model.Entity]struct{} {
+	numEntities := len(g.sprites) + len(g.mechSprites)
+	entities := make(map[*model.Entity]struct{}, numEntities)
+	for s := range g.sprites {
+		entities[s.Entity] = struct{}{}
+	}
+	for s := range g.mechSprites {
+		entities[s.Entity] = struct{}{}
+	}
+	return entities
+}
+
 func (g *Game) updateSprites() {
 	// Testing animated sprite movement
 	for s := range g.sprites {
@@ -536,6 +553,9 @@ func (g *Game) updateSprites() {
 		}
 		s.Update(g.player.Position)
 	}
+
+	// TODO: update mech sprites
+
 }
 
 func randFloat(min, max float64) float64 {

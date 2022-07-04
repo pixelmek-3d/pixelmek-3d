@@ -59,25 +59,25 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 	}
 
 	// check sprite collisions
-	for sprite := range g.sprites {
+	for sEntity := range g.AllEntities() {
 		// TODO: only check intersection of nearby sprites instead of all of them
-		if entity == sprite.Entity || entity.Parent == sprite.Entity || entity.CollisionRadius <= 0 || sprite.CollisionRadius <= 0 {
+		if entity == sEntity || entity.Parent == sEntity || entity.CollisionRadius <= 0 || sEntity.CollisionRadius <= 0 {
 			continue
 		}
 
 		// check if movement line intersects with combined collision radii
-		combinedCircle := geom.Circle{X: sprite.Position.X, Y: sprite.Position.Y, Radius: sprite.CollisionRadius + entity.CollisionRadius}
+		combinedCircle := geom.Circle{X: sEntity.Position.X, Y: sEntity.Position.Y, Radius: sEntity.CollisionRadius + entity.CollisionRadius}
 		combinedIntersects := geom.LineCircleIntersection(moveLine, combinedCircle, true)
 
 		if len(combinedIntersects) > 0 {
-			spriteCircle := geom.Circle{X: sprite.Position.X, Y: sprite.Position.Y, Radius: sprite.CollisionRadius}
+			spriteCircle := geom.Circle{X: sEntity.Position.X, Y: sEntity.Position.Y, Radius: sEntity.CollisionRadius}
 			for _, chkPoint := range combinedIntersects {
 				// intersections from combined circle radius indicate center point to check intersection toward sprite collision circle
-				chkLine := geom.Line{X1: chkPoint.X, Y1: chkPoint.Y, X2: sprite.Position.X, Y2: sprite.Position.Y}
+				chkLine := geom.Line{X1: chkPoint.X, Y1: chkPoint.Y, X2: sEntity.Position.X, Y2: sEntity.Position.Y}
 				intersectPoints = append(intersectPoints, geom.LineCircleIntersection(chkLine, spriteCircle, true)...)
 
 				for _, intersect := range intersectPoints {
-					collisionEntities = append(collisionEntities, &EntityCollision{entity: sprite.Entity, collision: &intersect})
+					collisionEntities = append(collisionEntities, &EntityCollision{entity: sEntity, collision: &intersect})
 				}
 			}
 		}
