@@ -61,6 +61,8 @@ type Game struct {
 	zoomFovDegrees float64
 	zoomFovDepth   float64
 
+	renderDistance float64
+
 	// lighting settings
 	lightFalloff       float64
 	globalIllumination float64
@@ -135,6 +137,7 @@ func NewGame() *Game {
 
 	//--init camera and renderer--//
 	g.camera = raycaster.NewCamera(g.width, g.height, texWidth, g.mapObj, g.tex)
+	g.camera.SetRenderDistance(g.renderDistance)
 
 	if len(g.mapObj.FloorBox.Image) > 0 {
 		g.camera.SetFloorTexture(getTextureFromFile(g.mapObj.FloorBox.Image))
@@ -183,6 +186,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault("screen.width", 1024)
 	viper.SetDefault("screen.height", 768)
 	viper.SetDefault("screen.renderScale", 1.0)
+	viper.SetDefault("screen.renderDistance", -1)
 
 	err := viper.ReadInConfig()
 	if err != nil && g.debug {
@@ -193,6 +197,7 @@ func (g *Game) initConfig() {
 	g.screenWidth = viper.GetInt("screen.width")
 	g.screenHeight = viper.GetInt("screen.height")
 	g.renderScale = viper.GetFloat64("screen.renderScale")
+	g.renderDistance = viper.GetFloat64("screen.renderDistance")
 	g.debug = viper.GetBool("debug")
 }
 
