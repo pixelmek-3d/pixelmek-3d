@@ -66,9 +66,9 @@ type MapGenerateLevels struct {
 }
 
 type MapGeneratePrefabs struct {
-	Name      string       `yaml:"name"`
-	Levels    [][][]int    `yaml:"levels"`
-	Positions [][2]float64 `yaml:"positions"`
+	Name      string    `yaml:"name"`
+	Levels    [][][]int `yaml:"levels"`
+	Positions [][2]int  `yaml:"positions"`
 }
 
 func (m *Map) NumLevels() int {
@@ -129,18 +129,18 @@ func LoadMap(mapFile string) (*Map, error) {
 
 func (m *Map) generateMapLevels() error {
 	gen := m.GenerateLevels
-	sizeX, sizeY := gen.MapSize[0], gen.MapSize[1]
+	mapSizeX, mapSizeY := gen.MapSize[0], gen.MapSize[1]
 
-	if sizeX <= 0 || sizeY <= 0 {
+	if mapSizeX <= 0 || mapSizeY <= 0 {
 		return fmt.Errorf("map X/Y size must both be greater than zero")
 	}
 
 	// initialize map level slices
 	m.Levels = make([][][]int, m.NumRaycastLevels)
 	for i := 0; i < m.NumRaycastLevels; i++ {
-		m.Levels[i] = make([][]int, sizeX)
-		for x := 0; x < sizeX; x++ {
-			m.Levels[i][x] = make([]int, sizeY)
+		m.Levels[i] = make([][]int, mapSizeX)
+		for x := 0; x < mapSizeX; x++ {
+			m.Levels[i][x] = make([]int, mapSizeY)
 		}
 	}
 
@@ -154,16 +154,49 @@ func (m *Map) generateMapLevels() error {
 		boundaryTex := math.MaxInt16
 		m.Textures[strconv.Itoa(boundaryTex)] = gen.BoundaryWall
 
-		for x := 0; x < sizeX; x++ {
-			for y := 0; y < sizeY; y++ {
-				if x == 0 || y == 0 || x == sizeX-1 || y == sizeY-1 {
+		for x := 0; x < mapSizeX; x++ {
+			for y := 0; y < mapSizeY; y++ {
+				if x == 0 || y == 0 || x == mapSizeX-1 || y == mapSizeY-1 {
 					level[x][y] = boundaryTex
 				}
 			}
 		}
 	}
 
-	// TODO next: create "prefab" structures
+	// populate "prefab" structures
+	for _, prefab := range gen.Prefabs {
+		pLevels := len(prefab.Levels)
+		if pLevels == 0 || len(prefab.Positions) == 0 {
+			return fmt.Errorf("prefab must have at least one level and one position: %v", prefab.Name)
+		}
+
+		if pLevels > m.NumRaycastLevels {
+			return fmt.Errorf(
+				"prefab cannot have more levels (%v) than numRaycastLevels (%v): %v",
+				pLevels, m.NumRaycastLevels, prefab.Name,
+			)
+		}
+
+		pSizeX, pSizeY := len(prefab.Levels[0]), len(prefab.Levels[0][0])
+		if pSizeX == 0 || pSizeY == 0 {
+			return fmt.Errorf("prefab level X/Y length must both be greater than zero: %v", prefab.Name)
+		}
+
+		for _, pos := range prefab.Positions {
+			posX, posY := pos[0], pos[1]
+
+			for i := 0; i < pLevels; i++ {
+				for x := 0; x < pSizeX; x++ {
+					for y := 0; y < pSizeY; y++ {
+						if x+posX >= mapSizeX || y+posY >= mapSizeY {
+							continue
+						}
+						m.Levels[i][x+posX][y+posY] = prefab.Levels[i][x][y]
+					}
+				}
+			}
+		}
+	}
 
 	return nil
 }

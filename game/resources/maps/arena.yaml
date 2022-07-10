@@ -25,7 +25,7 @@ textures:
   "4":
     image: "walls/support_1a.png"
 numRaycastLevels: 3
-levels: [] # Using generated level maps
+levels: [] # Using generated map levels
 generateLevels:
   mapSize: [25, 50]
   boundaryWall:
