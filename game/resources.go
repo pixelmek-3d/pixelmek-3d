@@ -115,7 +115,7 @@ func (g *Game) loadSprites() {
 	mechImg := getSpriteFromFile("mechs/timberwolf.png")
 	mechTemplate := model.NewMechSprite(0, 0, mechImg, texWidth, 0.01)
 
-	for i := 1.0; i < 20; i++ {
+	for i := 1.5; i <= 19.5; i++ {
 		for j := 16.0; j < 24; j++ {
 			mech := model.NewMechSpriteFromMech(i, j, mechTemplate)
 			g.addMechSprite(mech)

@@ -70,7 +70,7 @@ func (m *Map) Level(levelNum int) [][]int {
 }
 
 func LoadMap(mapFile string) (*Map, error) {
-	mapsPath := filepath.Join("game", "model", "maps", mapFile)
+	mapsPath := filepath.Join("game", "resources", "maps", mapFile)
 
 	mapsYaml, err := ioutil.ReadFile(mapsPath)
 	if err != nil {
