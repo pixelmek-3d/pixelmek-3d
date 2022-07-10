@@ -5,7 +5,9 @@ import (
 	"image/color"
 	"io/ioutil"
 	"log"
+	"math"
 	"path/filepath"
+	"strconv"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
@@ -14,6 +16,7 @@ import (
 type Map struct {
 	NumRaycastLevels int                   `yaml:"numRaycastLevels"`
 	Levels           [][][]int             `yaml:"levels"`
+	GenerateLevels   MapGenerateLevels     `yaml:"generateLevels"`
 	Lighting         MapLighting           `yaml:"lighting"`
 	Textures         map[string]MapTexture `yaml:"textures"`
 	FloorBox         MapTexture            `yaml:"floorBox"`
@@ -56,6 +59,18 @@ func (m MapLighting) LightRGB() (min, max color.NRGBA) {
 	return min, max
 }
 
+type MapGenerateLevels struct {
+	MapSize      [2]int               `yaml:"mapSize"`
+	BoundaryWall MapTexture           `yaml:"boundaryWall"`
+	Prefabs      []MapGeneratePrefabs `yaml:"prefabs"`
+}
+
+type MapGeneratePrefabs struct {
+	Name      string       `yaml:"name"`
+	Levels    [][][]int    `yaml:"levels"`
+	Positions [][2]float64 `yaml:"positions"`
+}
+
 func (m *Map) NumLevels() int {
 	return m.NumRaycastLevels
 }
@@ -84,8 +99,24 @@ func LoadMap(mapFile string) (*Map, error) {
 		log.Fatal(err)
 		return nil, err
 	}
-	if len(m.Textures) == 0 || len(m.Levels) == 0 {
-		return m, fmt.Errorf("one or more entry in textures and levels are required")
+	if len(m.Textures) == 0 {
+		return m, fmt.Errorf("one or more entry in textures is required")
+	}
+
+	if len(m.Levels) == 0 && len(m.GenerateLevels.MapSize) != 2 {
+		return m, fmt.Errorf("levels or generateLevels is required")
+	}
+
+	if len(m.Levels) > 0 && len(m.GenerateLevels.MapSize) == 2 {
+		return m, fmt.Errorf("use of levels or generateLevels is mutually exclusive")
+	}
+
+	// generate levels array
+	if len(m.GenerateLevels.MapSize) == 2 {
+		err := m.generateMapLevels()
+		if err != nil {
+			return m, err
+		}
 	}
 
 	if m.NumRaycastLevels == 0 {
@@ -94,6 +125,47 @@ func LoadMap(mapFile string) (*Map, error) {
 	}
 
 	return m, nil
+}
+
+func (m *Map) generateMapLevels() error {
+	gen := m.GenerateLevels
+	sizeX, sizeY := gen.MapSize[0], gen.MapSize[1]
+
+	if sizeX <= 0 || sizeY <= 0 {
+		return fmt.Errorf("map X/Y size must both be greater than zero")
+	}
+
+	// initialize map level slices
+	m.Levels = make([][][]int, m.NumRaycastLevels)
+	for i := 0; i < m.NumRaycastLevels; i++ {
+		m.Levels[i] = make([][]int, sizeX)
+		for x := 0; x < sizeX; x++ {
+			m.Levels[i][x] = make([]int, sizeY)
+		}
+	}
+
+	// if provided, create boundary wall
+	if len(gen.BoundaryWall.Image) > 0 {
+		// at this time boundary walls only supported on first elevation level
+		level := m.Levels[0]
+
+		// store boundary wall map texture as its own index (for now just very large int not likely to be in use)
+		// TODO: create a function to generate unused index to make sure its not in use
+		boundaryTex := math.MaxInt16
+		m.Textures[strconv.Itoa(boundaryTex)] = gen.BoundaryWall
+
+		for x := 0; x < sizeX; x++ {
+			for y := 0; y < sizeY; y++ {
+				if x == 0 || y == 0 || x == sizeX-1 || y == sizeY-1 {
+					level[x][y] = boundaryTex
+				}
+			}
+		}
+	}
+
+	// TODO next: create "prefab" structures
+
+	return nil
 }
 
 func (m *Map) GetCollisionLines(clipDistance float64) []geom.Line {
