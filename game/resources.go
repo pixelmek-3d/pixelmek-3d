@@ -101,7 +101,7 @@ func (g *Game) loadContent() {
 		}
 
 		sprite := model.NewSprite(
-			s.Position[0], s.Position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, texWidth, 0, 0,
+			s.Position[0], s.Position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, 0, 0,
 		)
 		g.addSprite(sprite)
 	}
@@ -113,7 +113,7 @@ func (g *Game) loadSprites() {
 	// TODO: load mission sprites from yaml file
 
 	mechImg := getSpriteFromFile("mechs/timberwolf.png")
-	mechTemplate := model.NewMechSprite(0, 0, mechImg, texWidth, 0.01)
+	mechTemplate := model.NewMechSprite(0, 0, mechImg, 0.01)
 
 	for i := 1.5; i <= 19.5; i++ {
 		for j := 16.0; j < 24; j++ {

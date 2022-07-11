@@ -42,8 +42,7 @@ func (s *Sprite) TextureRect() image.Rectangle {
 }
 
 func NewSprite(
-	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
-	uSize int, vOffset, collisionRadius float64,
+	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA, vOffset, collisionRadius float64,
 ) *Sprite {
 	s := &Sprite{
 		Entity: &Entity{
@@ -72,7 +71,7 @@ func NewSprite(
 
 func NewSpriteFromSheet(
 	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
-	columns, rows, spriteIndex int, uSize int, vOffset, collisionRadius float64,
+	columns, rows, spriteIndex int, vOffset, collisionRadius float64,
 ) *Sprite {
 	s := &Sprite{
 		Entity: &Entity{
@@ -117,7 +116,7 @@ func NewSpriteFromSheet(
 
 func NewAnimatedSprite(
 	x, y, scale float64, animationRate int, img *ebiten.Image, mapColor color.RGBA,
-	columns, rows int, uSize int, vOffset, collisionRadius float64,
+	columns, rows int, vOffset, collisionRadius float64,
 ) *Sprite {
 	s := &Sprite{
 		Entity: &Entity{

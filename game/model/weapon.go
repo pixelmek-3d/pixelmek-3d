@@ -23,7 +23,7 @@ func NewAnimatedWeapon(
 ) *Weapon {
 	mapColor := color.RGBA{0, 0, 0, 0}
 	w := &Weapon{
-		Sprite: NewAnimatedSprite(x, y, scale, animationRate, img, mapColor, columns, rows, 0, 0, 0),
+		Sprite: NewAnimatedSprite(x, y, scale, animationRate, img, mapColor, columns, rows, 0, 0),
 	}
 	w.projectile = projectile
 	w.projectileVelocity = projectileVelocity

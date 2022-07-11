@@ -50,11 +50,11 @@ func (s *MechSprite) TextureRect() image.Rectangle {
 }
 
 func NewMechSprite(
-	x, y float64, img *ebiten.Image, uSize int, collisionRadius float64,
+	x, y float64, img *ebiten.Image, collisionRadius float64,
 ) *MechSprite {
 	// all mech sprite sheets have 6 columns of images in the sheet:
 	// [full, torso, left arm, right arm, left leg, right leg]
-	p := NewSpriteFromSheet(x, y, 1.0, img, color.RGBA{}, 6, 1, 0, uSize, 0, collisionRadius)
+	p := NewSpriteFromSheet(x, y, 1.0, img, color.RGBA{}, 6, 1, 0, 0, collisionRadius)
 
 	// mech texture for raycasting must be square
 	tSize := p.W
