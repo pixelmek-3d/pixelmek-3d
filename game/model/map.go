@@ -150,7 +150,7 @@ func (m *Map) generateMapLevels() error {
 		level := m.Levels[0]
 
 		// store boundary wall map texture as its own index (for now just very large int not likely to be in use)
-		// TODO: create a function to generate unused index to make sure its not in use
+		// TODO: create a function to generate unused index to make sure it's not in use?
 		boundaryTex := math.MaxInt16
 		m.Textures[strconv.Itoa(boundaryTex)] = gen.BoundaryWall
 

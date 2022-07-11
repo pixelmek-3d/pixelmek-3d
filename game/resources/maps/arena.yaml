@@ -27,7 +27,7 @@ textures:
 numRaycastLevels: 3
 levels: [] # Using generated map levels
 generateLevels:
-  mapSize: [25, 50]
+  mapSize: [500, 500] # TODO: add max render distance here instead of just as config setting or set default to not inf?
   boundaryWall:
     image: "walls/boundary_green.png"
   prefabs:
@@ -60,6 +60,7 @@ generateLevels:
     positions:
     - [8, 30]
     - [8, 40]
+    - [490, 490]
 sprites:
 - image: "shrubbery/tree_bare.png"
   position: [8.5, 24.5]
