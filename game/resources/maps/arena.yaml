@@ -1,0 +1,68 @@
+# For proper mech scale:
+#   1 unit cell   = 20 meters (in each direction)
+#   50 unit cells = 1 kilometer across
+lighting:
+  falloff: -100
+  illumination: 500
+  minLightRGB: [100, 125, 150]
+  maxLightRGB: [255, 255, 255]
+floorBox:
+  image: "floors/floor_green.png"
+skyBox:
+  image: "skies/sky_blue.png"
+textures:
+  floor:
+    image: "floors/grass.png"
+  "0":
+    image: ""
+  "1":
+    image: "walls/tech_0e.png"
+  "2":
+    sideX: "walls/tech_3i.png"
+    sideY: "walls/tech_0f.png"
+  "3":
+    image: "walls/tech_3i.png"
+  "4":
+    image: "walls/support_1a.png"
+numRaycastLevels: 3
+levels: [] # Using generated map levels
+generateLevels:
+  mapSize: [500, 500] # TODO: add max render distance here instead of just as config setting or set default to not inf?
+  boundaryWall:
+    image: "walls/boundary_green.png"
+  prefabs:
+  - name: "PlusTower"
+    levels:
+    -
+      - [0,1,0]
+      - [2,1,2]
+      - [0,1,0]
+    -
+      - [0,4,0]
+      - [0,4,0]
+      - [0,4,0]
+    positions:
+    - [8, 24]
+  - name: "MinusTower"
+    levels:
+    -
+      - [1]
+      - [1]
+      - [1]
+    -
+      - [1]
+      - [1]
+      - [1]
+    -
+      - [0]
+      - [1]
+      - [0]
+    positions:
+    - [8, 30]
+    - [8, 40]
+    - [490, 490]
+sprites:
+- image: "shrubbery/tree_bare.png"
+  position: [8.5, 24.5]
+- image: "shrubbery/tree_bare.png"
+  position: [10.5, 24.5]
