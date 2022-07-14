@@ -61,8 +61,28 @@ func (g *Game) loadContent() {
 	g.tex.texMap = make(map[string]*ebiten.Image, 128)
 
 	// load textured flooring
-	if floor, ok := g.mapObj.Textures["floor"]; ok {
-		g.tex.floorTex = getRGBAFromFile(floor.Image)
+	if g.mapObj.Flooring.Default != "" {
+		g.tex.floorTexDefault = getRGBAFromFile(g.mapObj.Flooring.Default)
+	}
+
+	// load texture floor pathing
+	if len(g.mapObj.Flooring.Pathing) > 0 {
+		g.tex.floorTexMap = make([][]*image.RGBA, g.mapWidth)
+		for x := 0; x < g.mapWidth; x++ {
+			g.tex.floorTexMap[x] = make([]*image.RGBA, g.mapHeight)
+		}
+		// create map grid of path image textures for the X/Y coords indicated
+		for _, pathing := range g.mapObj.Flooring.Pathing {
+			tex := getRGBAFromFile(pathing.Image)
+			for _, rect := range pathing.Rects {
+				x0, y0, x1, y1 := rect[0], rect[1], rect[2], rect[3]
+				for x := x0; x <= x1; x++ {
+					for y := y0; y <= y1; y++ {
+						g.tex.floorTexMap[x][y] = tex
+					}
+				}
+			}
+		}
 	}
 
 	// load textures mapped by path
@@ -100,10 +120,12 @@ func (g *Game) loadContent() {
 			g.tex.texMap[s.Image] = spriteImg
 		}
 
-		sprite := model.NewSprite(
-			s.Position[0], s.Position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, 0, 0,
-		)
-		g.addSprite(sprite)
+		for _, position := range s.Positions {
+			sprite := model.NewSprite(
+				position[0], position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, 0, 0,
+			)
+			g.addSprite(sprite)
+		}
 	}
 }
 

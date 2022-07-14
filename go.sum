@@ -129,8 +129,10 @@ github.com/hajimehoshi/file2byteslice v0.0.0-20210813153925-5340248a8f41/go.mod 
 github.com/hajimehoshi/go-mp3 v0.3.3/go.mod h1:qMJj/CSDxx6CGHiZeCgbiq2DSUkbK0UbtXShQcnfyMM=
 github.com/hajimehoshi/oto v0.6.1/go.mod h1:0QXGEkbuJRohbJaxr7ZQSxnju7hEhseiPx2hrh6raOI=
 github.com/hajimehoshi/oto/v2 v2.1.0/go.mod h1:9i0oYbpJ8BhVGkXDKdXKfFthX1JUNfXjeTp944W8TGM=
-github.com/harbdog/raycaster-go v1.0.9 h1:cMRbI3RYjCHrC1Hz0qJ2fj6soOLz3zQnP4eH251R6gQ=
-github.com/harbdog/raycaster-go v1.0.9/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
+github.com/harbdog/raycaster-go v1.1.0 h1:7H4+6yqTNgsSrafwLhM1mZyk8GhrPj7qDQpBn3M+QhQ=
+github.com/harbdog/raycaster-go v1.1.0/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
+github.com/harbdog/raycaster-go v1.1.1 h1:3osGf5Uuye358LNeVNpVPu/u8mzjTLuPioAqOsgrwpU=
+github.com/harbdog/raycaster-go v1.1.1/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=

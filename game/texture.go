@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"strconv"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 
@@ -10,10 +9,11 @@ import (
 )
 
 type TextureHandler struct {
-	mapObj         *model.Map
-	floorTex       *image.RGBA
-	renderFloorTex bool
-	texMap         map[string]*ebiten.Image
+	mapObj          *model.Map
+	texMap          map[string]*ebiten.Image
+	renderFloorTex  bool
+	floorTexDefault *image.RGBA
+	floorTexMap     [][]*image.RGBA
 }
 
 func NewTextureHandler(mapObj *model.Map) *TextureHandler {
@@ -56,14 +56,23 @@ func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
 	}
 
 	// check if it has a side texture
-	texObj := t.mapObj.GetMapTexture(strconv.Itoa(texNum))
+	texObj := t.mapObj.GetMapTexture(texNum)
 
 	return t.textureImage(texObj.GetImage(side))
 }
 
-func (t *TextureHandler) FloorTexture() *image.RGBA {
+func (t *TextureHandler) FloorTextureAt(x, y int) *image.RGBA {
+	if x < 0 || y < 0 {
+		return nil
+	}
 	if t.renderFloorTex {
-		return t.floorTex
+		if len(t.floorTexMap) > 0 {
+			tex := t.floorTexMap[x][y]
+			if tex != nil {
+				return tex
+			}
+		}
+		return t.floorTexDefault
 	}
 	return nil
 }

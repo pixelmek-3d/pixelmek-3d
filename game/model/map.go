@@ -7,21 +7,21 @@ import (
 	"log"
 	"math"
 	"path/filepath"
-	"strconv"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
 )
 
 type Map struct {
-	NumRaycastLevels int                   `yaml:"numRaycastLevels"`
-	Levels           [][][]int             `yaml:"levels"`
-	GenerateLevels   MapGenerateLevels     `yaml:"generateLevels"`
-	Lighting         MapLighting           `yaml:"lighting"`
-	Textures         map[string]MapTexture `yaml:"textures"`
-	FloorBox         MapTexture            `yaml:"floorBox"`
-	SkyBox           MapTexture            `yaml:"skyBox"`
-	Sprites          []MapSprite           `yaml:"sprites"`
+	NumRaycastLevels int                `yaml:"numRaycastLevels"`
+	Levels           [][][]int          `yaml:"levels"`
+	GenerateLevels   MapGenerateLevels  `yaml:"generateLevels"`
+	Lighting         MapLighting        `yaml:"lighting"`
+	Textures         map[int]MapTexture `yaml:"textures"`
+	FloorBox         MapTexture         `yaml:"floorBox"`
+	SkyBox           MapTexture         `yaml:"skyBox"`
+	Flooring         MapFlooring        `yaml:"flooring"`
+	Sprites          []MapSprite        `yaml:"sprites"`
 }
 
 type MapTexture struct {
@@ -41,9 +41,19 @@ func (m MapTexture) GetImage(side int) string {
 	}
 }
 
+type MapFlooring struct {
+	Default string            `yaml:"default"`
+	Pathing []MapFloorPathing `yaml:"pathing"`
+}
+
+type MapFloorPathing struct {
+	Image string   `yaml:"image"`
+	Rects [][4]int `yaml:"rects"`
+}
+
 type MapSprite struct {
-	Image    string     `yaml:"image"`
-	Position [2]float64 `yaml:"position"`
+	Image     string       `yaml:"image"`
+	Positions [][2]float64 `yaml:"positions"`
 }
 
 type MapLighting struct {
@@ -152,7 +162,7 @@ func (m *Map) generateMapLevels() error {
 		// store boundary wall map texture as its own index (for now just very large int not likely to be in use)
 		// TODO: create a function to generate unused index to make sure it's not in use?
 		boundaryTex := math.MaxInt16
-		m.Textures[strconv.Itoa(boundaryTex)] = gen.BoundaryWall
+		m.Textures[boundaryTex] = gen.BoundaryWall
 
 		for x := 0; x < mapSizeX; x++ {
 			for y := 0; y < mapSizeY; y++ {
@@ -222,6 +232,6 @@ func (m *Map) GetCollisionLines(clipDistance float64) []geom.Line {
 	return lines
 }
 
-func (m *Map) GetMapTexture(texIndex string) MapTexture {
+func (m *Map) GetMapTexture(texIndex int) MapTexture {
 	return m.Textures[texIndex]
 }
