@@ -62,11 +62,8 @@ func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
 }
 
 func (t *TextureHandler) FloorTextureAt(x, y int) *image.RGBA {
-	if x < 0 || y < 0 {
-		return nil
-	}
 	if t.renderFloorTex {
-		if len(t.floorTexMap) > 0 && x < len(t.floorTexMap) && y < len(t.floorTexMap[0]) {
+		if len(t.floorTexMap) > 0 {
 			tex := t.floorTexMap[x][y]
 			if tex != nil {
 				return tex
