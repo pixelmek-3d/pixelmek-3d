@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go/geom"
 )
 
 func getRGBAFromFile(texFile string) *image.RGBA {
@@ -74,12 +75,37 @@ func (g *Game) loadContent() {
 		// create map grid of path image textures for the X/Y coords indicated
 		for _, pathing := range g.mapObj.Flooring.Pathing {
 			tex := getRGBAFromFile(pathing.Image)
+
+			// create filled rectangle paths
 			for _, rect := range pathing.Rects {
-				x0, y0, x1, y1 := rect[0], rect[1], rect[2], rect[3]
+				x0, y0, x1, y1 := rect[0][0], rect[0][1], rect[1][0], rect[1][1]
 				for x := x0; x <= x1; x++ {
 					for y := y0; y <= y1; y++ {
 						g.tex.floorTexMap[x][y] = tex
 					}
+				}
+			}
+
+			// create line segment paths
+			for _, segments := range pathing.Lines {
+				var prevPoint *geom.Vector2
+				for _, seg := range segments {
+					point := &geom.Vector2{X: float64(seg[0]), Y: float64(seg[1])}
+
+					if prevPoint != nil {
+						// fill in path for line segment from previous to next point
+						line := geom.Line{X1: prevPoint.X, Y1: prevPoint.Y, X2: point.X, Y2: point.Y}
+
+						// use the angle of the line to then find every coordinate along the line path
+						angle := line.Angle()
+						dist := geom.Distance(line.X1, line.Y1, line.X2, line.Y2)
+						for d := 0.0; d <= dist; d += 0.1 {
+							nLine := geom.LineFromAngle(line.X1, line.Y1, angle, d)
+							g.tex.floorTexMap[int(nLine.X2)][int(nLine.Y2)] = tex
+						}
+					}
+
+					prevPoint = point
 				}
 			}
 		}

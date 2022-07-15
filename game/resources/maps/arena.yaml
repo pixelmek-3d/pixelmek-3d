@@ -62,9 +62,12 @@ generateLevels:
 flooring:
   default: "floors/grass.png"
   pathing:
-  - image: "floors/floor_tan.png"
+  - image: "floors/floor_1a.png"
     rects:
-    - [1,15, 19,24]
+    - [[1,15], [19,23]]
+    lines:
+    - [[19,24], [24, 24], [24, 50]]
+    - [[19, 15], [24, 1], [50, 1], [50, 50], [24, 50]]
 sprites:
 - image: "shrubbery/tree_bare.png"
   positions:

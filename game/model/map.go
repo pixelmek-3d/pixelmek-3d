@@ -47,8 +47,9 @@ type MapFlooring struct {
 }
 
 type MapFloorPathing struct {
-	Image string   `yaml:"image"`
-	Rects [][4]int `yaml:"rects"`
+	Image string      `yaml:"image"`
+	Rects [][2][2]int `yaml:"rects"`
+	Lines [][][2]int  `yaml:"lines"`
 }
 
 type MapSprite struct {

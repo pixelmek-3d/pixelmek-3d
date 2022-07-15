@@ -5,7 +5,7 @@
 ## ./floors
 
 - `floor_tan`: "Owlzy" - https://github.com/Owlzy/OwlRaycastEngine
-
+- `floor_xx`: Craig Smith "Little Martian" - https://little-martian.itch.io/retro-texture-pack
 - `grass`: "p0ss" - https://opengameart.org/content/30-grass-textures-tilable
 
 ## ./skies
