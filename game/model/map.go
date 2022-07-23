@@ -21,6 +21,7 @@ type Map struct {
 	FloorBox         MapTexture         `yaml:"floorBox"`
 	SkyBox           MapTexture         `yaml:"skyBox"`
 	Flooring         MapFlooring        `yaml:"flooring"`
+	Clutter          []MapClutter       `yaml:"clutter"`
 	Sprites          []MapSprite        `yaml:"sprites"`
 }
 
@@ -50,6 +51,13 @@ type MapFloorPathing struct {
 	Image string      `yaml:"image"`
 	Rects [][2][2]int `yaml:"rects"`
 	Lines [][][2]int  `yaml:"lines"`
+}
+
+type MapClutter struct {
+	Image          string  `yaml:"image"`
+	FloorPathMatch string  `yaml:"floorPathMatch"`
+	Frequency      float64 `yaml:"frequency"`
+	Scale          float64 `yaml:"scale"`
 }
 
 type MapSprite struct {

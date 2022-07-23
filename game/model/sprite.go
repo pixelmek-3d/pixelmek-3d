@@ -5,6 +5,7 @@ import (
 	"image/color"
 	_ "image/png"
 
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,7 +14,8 @@ import (
 
 type Sprite struct {
 	*Entity
-	scale, vOffset float64
+	scale          float64
+	anchor         raycaster.SpriteAnchor
 	W, H           int
 	AnimationRate  int
 	animReversed   bool
@@ -29,8 +31,8 @@ func (s *Sprite) Scale() float64 {
 	return s.scale
 }
 
-func (s *Sprite) VerticalOffset() float64 {
-	return s.vOffset
+func (s *Sprite) VerticalAnchor() raycaster.SpriteAnchor {
+	return s.anchor
 }
 
 func (s *Sprite) Texture() *ebiten.Image {
@@ -42,7 +44,7 @@ func (s *Sprite) TextureRect() image.Rectangle {
 }
 
 func NewSprite(
-	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA, vOffset, collisionRadius float64,
+	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA, anchor raycaster.SpriteAnchor, collisionRadius float64,
 ) *Sprite {
 	s := &Sprite{
 		Entity: &Entity{
@@ -55,7 +57,7 @@ func NewSprite(
 		},
 	}
 	s.scale = scale
-	s.vOffset = vOffset
+	s.anchor = anchor
 
 	s.texNum = 0
 	s.lenTex = 1
@@ -71,7 +73,7 @@ func NewSprite(
 
 func NewSpriteFromSheet(
 	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
-	columns, rows, spriteIndex int, vOffset, collisionRadius float64,
+	columns, rows, spriteIndex int, anchor raycaster.SpriteAnchor, collisionRadius float64,
 ) *Sprite {
 	s := &Sprite{
 		Entity: &Entity{
@@ -84,7 +86,7 @@ func NewSpriteFromSheet(
 		},
 	}
 	s.scale = scale
-	s.vOffset = vOffset
+	s.anchor = anchor
 
 	s.texNum = spriteIndex
 	s.columns, s.rows = columns, rows
@@ -116,7 +118,7 @@ func NewSpriteFromSheet(
 
 func NewAnimatedSprite(
 	x, y, scale float64, animationRate int, img *ebiten.Image, mapColor color.RGBA,
-	columns, rows int, vOffset, collisionRadius float64,
+	columns, rows int, anchor raycaster.SpriteAnchor, collisionRadius float64,
 ) *Sprite {
 	s := &Sprite{
 		Entity: &Entity{
@@ -129,7 +131,7 @@ func NewAnimatedSprite(
 		},
 	}
 	s.scale = scale
-	s.vOffset = vOffset
+	s.anchor = anchor
 
 	s.AnimationRate = animationRate
 	s.animCounter = 0

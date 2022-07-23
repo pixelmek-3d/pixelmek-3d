@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
 
@@ -56,6 +57,7 @@ func (g *Game) loadContent() {
 	g.projectiles = make(map[*model.Projectile]struct{}, 1024)
 	g.effects = make(map[*model.Effect]struct{}, 1024)
 	g.sprites = make(map[*model.Sprite]struct{}, 512)
+	g.clutterSprites = make(map[*model.Sprite]struct{}, 2048)
 	g.mechSprites = make(map[*model.MechSprite]struct{}, 128)
 
 	// keep a map of textures by name to only load duplicate entries once
@@ -66,11 +68,16 @@ func (g *Game) loadContent() {
 		g.tex.floorTexDefault = getRGBAFromFile(g.mapObj.Flooring.Default)
 	}
 
+	// keep track of floor texture positions by name so they can be matched on later
+	var floorTexNames [][]string
+
 	// load texture floor pathing
 	if len(g.mapObj.Flooring.Pathing) > 0 {
 		g.tex.floorTexMap = make([][]*image.RGBA, g.mapWidth)
+		floorTexNames = make([][]string, g.mapWidth)
 		for x := 0; x < g.mapWidth; x++ {
 			g.tex.floorTexMap[x] = make([]*image.RGBA, g.mapHeight)
+			floorTexNames[x] = make([]string, g.mapHeight)
 		}
 		// create map grid of path image textures for the X/Y coords indicated
 		for _, pathing := range g.mapObj.Flooring.Pathing {
@@ -82,6 +89,7 @@ func (g *Game) loadContent() {
 				for x := x0; x <= x1; x++ {
 					for y := y0; y <= y1; y++ {
 						g.tex.floorTexMap[x][y] = tex
+						floorTexNames[x][y] = pathing.Image
 					}
 				}
 			}
@@ -106,6 +114,31 @@ func (g *Game) loadContent() {
 					}
 
 					prevPoint = point
+				}
+			}
+		}
+	}
+
+	// load clutter sprites and randomly distribute as needed
+	if len(g.mapObj.Clutter) > 0 { // 0.25 // 0.05 // 0.5  //0.07
+		for _, clutter := range g.mapObj.Clutter {
+			var clutterImg *ebiten.Image
+			if eImg, ok := g.tex.texMap[clutter.Image]; ok {
+				clutterImg = eImg
+			} else {
+				clutterImg = getSpriteFromFile(clutter.Image)
+				g.tex.texMap[clutter.Image] = clutterImg
+			}
+
+			// FIXME: this will create too many to loop through (500x500 map = 250,000 cells!)
+			//        instead may need to have some dynamic feature where a certain number are made
+			//        and then just update their position as player moves?
+			for x := 1; x < 25; x += 1 {
+				for y := 1; y < 25; y += 1 {
+					cSprite := model.NewSprite(
+						float64(x), float64(y), clutter.Scale, clutterImg, color.RGBA{}, raycaster.AnchorBottom, 0,
+					)
+					g.addClutterSprite(cSprite)
 				}
 			}
 		}
@@ -148,7 +181,7 @@ func (g *Game) loadContent() {
 
 		for _, position := range s.Positions {
 			sprite := model.NewSprite(
-				position[0], position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, 0, 0,
+				position[0], position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, 0,
 			)
 			g.addSprite(sprite)
 		}
@@ -160,19 +193,27 @@ func (g *Game) loadSprites() {
 
 	// TODO: load mission sprites from yaml file
 
-	mechImg := getSpriteFromFile("mechs/timberwolf.png")
-	mechTemplate := model.NewMechSprite(0, 0, mechImg, 0.01)
+	// mechImg := getSpriteFromFile("mechs/timberwolf.png")
+	// mechTemplate := model.NewMechSprite(0, 0, mechImg, 0.01)
 
-	for i := 1.5; i <= 19.5; i++ {
-		for j := 16.0; j < 24; j++ {
-			mech := model.NewMechSpriteFromMech(i, j, mechTemplate)
-			g.addMechSprite(mech)
-		}
-	}
+	// // for i := 1.5; i <= 19.5; i++ {
+	// // 	for j := 16.0; j < 24; j++ {
+	// // 		mech := model.NewMechSpriteFromMech(i, j, mechTemplate)
+	// // 		g.addMechSprite(mech)
+	// // 	}
+	// // }
+	// mech := model.NewMechSpriteFromMech(5, 18, mechTemplate)
+	// g.addMechSprite(mech)
+	// mech2 := model.NewMechSpriteFromMech(7, 18, mechTemplate)
+	// g.addMechSprite(mech2)
 }
 
 func (g *Game) addSprite(sprite *model.Sprite) {
 	g.sprites[sprite] = struct{}{}
+}
+
+func (g *Game) addClutterSprite(clutter *model.Sprite) {
+	g.clutterSprites[clutter] = struct{}{}
 }
 
 func (g *Game) addMechSprite(mech *model.MechSprite) {

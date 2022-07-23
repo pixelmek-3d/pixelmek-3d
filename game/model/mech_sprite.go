@@ -6,6 +6,7 @@ import (
 	_ "image/png"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
 )
@@ -37,8 +38,8 @@ func (s *MechSprite) Scale() float64 {
 	return s.scale
 }
 
-func (s *MechSprite) VerticalOffset() float64 {
-	return s.vOffset
+func (s *MechSprite) VerticalAnchor() raycaster.SpriteAnchor {
+	return s.anchor
 }
 
 func (s *MechSprite) Texture() *ebiten.Image {

@@ -73,10 +73,11 @@ type Game struct {
 	mapObj       *model.Map
 	collisionMap []geom.Line
 
-	sprites     map[*model.Sprite]struct{}
-	mechSprites map[*model.MechSprite]struct{}
-	projectiles map[*model.Projectile]struct{}
-	effects     map[*model.Effect]struct{}
+	sprites        map[*model.Sprite]struct{}
+	clutterSprites map[*model.Sprite]struct{}
+	mechSprites    map[*model.MechSprite]struct{}
+	projectiles    map[*model.Projectile]struct{}
+	effects        map[*model.Effect]struct{}
 
 	mapWidth, mapHeight int
 
@@ -274,12 +275,29 @@ func (g *Game) Update() error {
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
+	// for clutter sprites, only adding those in vicinity of player
+	var raycastClutter map[*model.Sprite]struct{}
+	if len(g.clutterSprites) > 0 {
+		raycastClutter = make(map[*model.Sprite]struct{}, len(g.clutterSprites)/10)
+		for clutter := range g.clutterSprites {
+			diffX, diffY := math.Abs(clutter.Position.X-g.player.Position.X), math.Abs(clutter.Position.Y-g.player.Position.Y)
+			if diffX <= 20 && diffY <= 20 {
+				raycastClutter[clutter] = struct{}{}
+			}
+		}
+	}
+
 	// Put projectiles together with sprites for raycasting both as sprites
-	numSprites := len(g.sprites) + len(g.mechSprites) + len(g.projectiles) + len(g.effects)
+	numSprites := len(g.sprites) + len(g.mechSprites) + len(g.projectiles) + len(g.effects) + len(raycastClutter)
 	raycastSprites := make([]raycaster.Sprite, numSprites)
 	index := 0
+
 	for sprite := range g.sprites {
 		raycastSprites[index] = sprite
+		index += 1
+	}
+	for clutter := range raycastClutter {
+		raycastSprites[index] = clutter
 		index += 1
 	}
 	for mech := range g.mechSprites {
