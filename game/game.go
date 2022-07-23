@@ -73,11 +73,12 @@ type Game struct {
 	mapObj       *model.Map
 	collisionMap []geom.Line
 
-	sprites        map[*model.Sprite]struct{}
-	clutterSprites map[*model.Sprite]struct{}
-	mechSprites    map[*model.MechSprite]struct{}
-	projectiles    map[*model.Projectile]struct{}
-	effects        map[*model.Effect]struct{}
+	sprites     map[*model.Sprite]struct{}
+	mechSprites map[*model.MechSprite]struct{}
+	projectiles map[*model.Projectile]struct{}
+	effects     map[*model.Effect]struct{}
+
+	clutter *ClutterHandler
 
 	mapWidth, mapHeight int
 
@@ -164,6 +165,11 @@ func NewGame() *Game {
 
 	g.zoomFovDepth = 2.0
 	g.zoomFovDegrees = g.fovDegrees / g.zoomFovDepth
+
+	// initialize clutter
+	if g.clutter != nil {
+		g.clutter.Update(g, true)
+	}
 
 	// init menu system
 	g.menu = mainMenu()
@@ -262,6 +268,10 @@ func (g *Game) Update() error {
 		g.updateProjectiles()
 		g.updateSprites()
 
+		if g.clutter != nil {
+			g.clutter.Update(g, false)
+		}
+
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 	}
@@ -275,20 +285,8 @@ func (g *Game) Update() error {
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
-	// for clutter sprites, only adding those in vicinity of player
-	var raycastClutter map[*model.Sprite]struct{}
-	if len(g.clutterSprites) > 0 {
-		raycastClutter = make(map[*model.Sprite]struct{}, len(g.clutterSprites)/10)
-		for clutter := range g.clutterSprites {
-			diffX, diffY := math.Abs(clutter.Position.X-g.player.Position.X), math.Abs(clutter.Position.Y-g.player.Position.Y)
-			if diffX <= 20 && diffY <= 20 {
-				raycastClutter[clutter] = struct{}{}
-			}
-		}
-	}
-
 	// Put projectiles together with sprites for raycasting both as sprites
-	numSprites := len(g.sprites) + len(g.mechSprites) + len(g.projectiles) + len(g.effects) + len(raycastClutter)
+	numSprites := len(g.sprites) + len(g.mechSprites) + len(g.projectiles) + len(g.effects) + len(g.clutter.sprites)
 	raycastSprites := make([]raycaster.Sprite, numSprites)
 	index := 0
 
@@ -296,7 +294,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		raycastSprites[index] = sprite
 		index += 1
 	}
-	for clutter := range raycastClutter {
+	for clutter := range g.clutter.sprites {
 		raycastSprites[index] = clutter
 		index += 1
 	}

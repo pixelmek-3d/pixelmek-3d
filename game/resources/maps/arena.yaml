@@ -1,6 +1,7 @@
 # For proper mech scale:
 #   1 unit cell   = 20 meters (in each direction)
 #   50 unit cells = 1 kilometer across
+seed: 12345
 lighting:
   falloff: -100
   illumination: 500
@@ -72,7 +73,11 @@ clutter:
 - image: "rocks/rock_0.png"
   scale: 0.05
   floorPathMatch: "grass"
-  frequency: 0.1
+  frequency: 0.3
+- image: "shrubbery/bush_0.png"
+  scale: 0.05
+  floorPathMatch: "grass"
+  frequency: 0.5
 sprites:
 - image: "shrubbery/tree_bare.png"
   positions:

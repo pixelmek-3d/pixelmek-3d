@@ -57,7 +57,6 @@ func (g *Game) loadContent() {
 	g.projectiles = make(map[*model.Projectile]struct{}, 1024)
 	g.effects = make(map[*model.Effect]struct{}, 1024)
 	g.sprites = make(map[*model.Sprite]struct{}, 512)
-	g.clutterSprites = make(map[*model.Sprite]struct{}, 2048)
 	g.mechSprites = make(map[*model.MechSprite]struct{}, 128)
 
 	// keep a map of textures by name to only load duplicate entries once
@@ -119,27 +118,16 @@ func (g *Game) loadContent() {
 		}
 	}
 
-	// load clutter sprites and randomly distribute as needed
-	if len(g.mapObj.Clutter) > 0 { // 0.25 // 0.05 // 0.5  //0.07
+	// load clutter sprites mapped by path
+	if len(g.mapObj.Clutter) > 0 {
+		// TODO: make clutter max draw distance configurable
+		g.clutter = NewClutterHandler(10)
+
 		for _, clutter := range g.mapObj.Clutter {
 			var clutterImg *ebiten.Image
-			if eImg, ok := g.tex.texMap[clutter.Image]; ok {
-				clutterImg = eImg
-			} else {
+			if _, ok := g.tex.texMap[clutter.Image]; !ok {
 				clutterImg = getSpriteFromFile(clutter.Image)
 				g.tex.texMap[clutter.Image] = clutterImg
-			}
-
-			// FIXME: this will create too many to loop through (500x500 map = 250,000 cells!)
-			//        instead may need to have some dynamic feature where a certain number are made
-			//        and then just update their position as player moves?
-			for x := 1; x < 25; x += 1 {
-				for y := 1; y < 25; y += 1 {
-					cSprite := model.NewSprite(
-						float64(x), float64(y), clutter.Scale, clutterImg, color.RGBA{}, raycaster.AnchorBottom, 0,
-					)
-					g.addClutterSprite(cSprite)
-				}
 			}
 		}
 	}
@@ -210,10 +198,6 @@ func (g *Game) loadSprites() {
 
 func (g *Game) addSprite(sprite *model.Sprite) {
 	g.sprites[sprite] = struct{}{}
-}
-
-func (g *Game) addClutterSprite(clutter *model.Sprite) {
-	g.clutterSprites[clutter] = struct{}{}
 }
 
 func (g *Game) addMechSprite(mech *model.MechSprite) {

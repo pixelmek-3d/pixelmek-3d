@@ -23,6 +23,7 @@ type Map struct {
 	Flooring         MapFlooring        `yaml:"flooring"`
 	Clutter          []MapClutter       `yaml:"clutter"`
 	Sprites          []MapSprite        `yaml:"sprites"`
+	Seed             int64              `yaml:"seed"`
 }
 
 type MapTexture struct {
