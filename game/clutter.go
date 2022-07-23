@@ -3,6 +3,7 @@ package game
 import (
 	"image/color"
 	"math/rand"
+	"strings"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go"
@@ -45,9 +46,17 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 		for d := 0.0; d <= c.maxClutterDistance; d++ {
 			line := geom.LineFromAngle(camX, camY, a, d)
 			x, y := int64(line.X2), int64(line.Y2)
+			if x < 0 || y < 0 || x >= int64(g.mapWidth) || y >= int64(g.mapHeight) {
+				continue
+			}
 
 			// create x/y position ID for tracking and use in seed
 			posId := (x-1)*int64(g.mapWidth) + y
+
+			// make sure there's not a wall here
+			if g.mapObj.IsWallAt(0, int(x), int(y)) {
+				continue
+			}
 
 			// remove entry from pastPositions so remainders can be cleaned after the loop
 			delete(pastPositions, posId)
@@ -57,15 +66,19 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 				continue
 			}
 
+			floorTexPath := g.tex.floorTexturePathAt(int(x), int(y))
+
 			// store sprite objects by position ID to make it easy to remove clutter when it goes outside of view
 			c.spritesByPosition[posId] = make([]*model.Sprite, numClutter)
 
-			// position based seed to produce consistent clutter positioning each time the coordinate is in view
+			// use position based seed to produce consistent clutter positioning each time the coordinate is in view
 			rand.Seed(g.mapObj.Seed + posId)
 
 			for i, clutter := range g.mapObj.Clutter {
-
-				// TODO: look up floor texture name for floorPathMatch to determine if this clutter is appropriate for this coordinate
+				// use floorPathMatch to determine if this clutter is for this coordinate based on floor texture
+				if clutter.FloorPathMatch != "" && !strings.Contains(floorTexPath, clutter.FloorPathMatch) {
+					continue
+				}
 
 				chanceToAppear := rand.Float64() <= clutter.Frequency
 				if !chanceToAppear {
@@ -78,6 +91,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 					color.RGBA{}, raycaster.AnchorBottom, 0,
 				)
 
+				// store clutter sprites and which coordinate position id they are in
 				c.sprites[cSprite] = struct{}{}
 				c.spritesByPosition[posId][i] = cSprite
 			}

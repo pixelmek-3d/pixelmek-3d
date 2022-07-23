@@ -242,6 +242,11 @@ func (m *Map) GetCollisionLines(clipDistance float64) []geom.Line {
 	return lines
 }
 
+func (m *Map) IsWallAt(levelNum, x, y int) bool {
+	level := m.Level(levelNum)
+	return level[x][y] > 0
+}
+
 func (m *Map) GetMapTexture(texIndex int) MapTexture {
 	return m.Textures[texIndex]
 }

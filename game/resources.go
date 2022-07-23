@@ -64,7 +64,7 @@ func (g *Game) loadContent() {
 
 	// load textured flooring
 	if g.mapObj.Flooring.Default != "" {
-		g.tex.floorTexDefault = getRGBAFromFile(g.mapObj.Flooring.Default)
+		g.tex.floorTexDefault = newFloorTexture(g.mapObj.Flooring.Default)
 	}
 
 	// keep track of floor texture positions by name so they can be matched on later
@@ -72,15 +72,15 @@ func (g *Game) loadContent() {
 
 	// load texture floor pathing
 	if len(g.mapObj.Flooring.Pathing) > 0 {
-		g.tex.floorTexMap = make([][]*image.RGBA, g.mapWidth)
+		g.tex.floorTexMap = make([][]*FloorTexture, g.mapWidth)
 		floorTexNames = make([][]string, g.mapWidth)
 		for x := 0; x < g.mapWidth; x++ {
-			g.tex.floorTexMap[x] = make([]*image.RGBA, g.mapHeight)
+			g.tex.floorTexMap[x] = make([]*FloorTexture, g.mapHeight)
 			floorTexNames[x] = make([]string, g.mapHeight)
 		}
 		// create map grid of path image textures for the X/Y coords indicated
 		for _, pathing := range g.mapObj.Flooring.Pathing {
-			tex := getRGBAFromFile(pathing.Image)
+			tex := newFloorTexture(pathing.Image)
 
 			// create filled rectangle paths
 			for _, rect := range pathing.Rects {

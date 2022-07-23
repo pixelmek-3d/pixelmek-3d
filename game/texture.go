@@ -12,8 +12,13 @@ type TextureHandler struct {
 	mapObj          *model.Map
 	texMap          map[string]*ebiten.Image
 	renderFloorTex  bool
-	floorTexDefault *image.RGBA
-	floorTexMap     [][]*image.RGBA
+	floorTexDefault *FloorTexture
+	floorTexMap     [][]*FloorTexture
+}
+
+type FloorTexture struct {
+	image *image.RGBA
+	path  string
 }
 
 func NewTextureHandler(mapObj *model.Map) *TextureHandler {
@@ -66,10 +71,28 @@ func (t *TextureHandler) FloorTextureAt(x, y int) *image.RGBA {
 		if len(t.floorTexMap) > 0 {
 			tex := t.floorTexMap[x][y]
 			if tex != nil {
-				return tex
+				return tex.image
 			}
 		}
-		return t.floorTexDefault
+		return t.floorTexDefault.image
 	}
 	return nil
+}
+
+func newFloorTexture(texture string) *FloorTexture {
+	f := &FloorTexture{
+		image: getRGBAFromFile(texture),
+		path:  texture,
+	}
+	return f
+}
+
+func (t *TextureHandler) floorTexturePathAt(x, y int) string {
+	if len(t.floorTexMap) > 0 {
+		tex := t.floorTexMap[x][y]
+		if tex != nil {
+			return tex.path
+		}
+	}
+	return t.floorTexDefault.path
 }
