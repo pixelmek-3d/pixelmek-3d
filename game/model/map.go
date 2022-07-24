@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"path/filepath"
+	"regexp"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
@@ -56,9 +57,24 @@ type MapFloorPathing struct {
 
 type MapClutter struct {
 	Image          string  `yaml:"image"`
-	FloorPathMatch string  `yaml:"floorPathMatch"`
+	FloorPathMatch *RegExp `yaml:"floorPathMatch"`
 	Frequency      float64 `yaml:"frequency"`
 	Scale          float64 `yaml:"scale"`
+}
+
+type RegExp struct {
+	*regexp.Regexp
+}
+
+// Unmarshals into compiled regex
+func (r *RegExp) UnmarshalText(b []byte) error {
+	regex, err := regexp.Compile(string(b))
+	if err != nil {
+		return err
+	}
+
+	r.Regexp = regex
+	return nil
 }
 
 type MapSprite struct {

@@ -61,7 +61,8 @@ type Game struct {
 	zoomFovDegrees float64
 	zoomFovDepth   float64
 
-	renderDistance float64
+	renderDistance  float64
+	clutterDistance float64
 
 	// lighting settings
 	lightFalloff       float64
@@ -195,6 +196,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault("screen.height", 768)
 	viper.SetDefault("screen.renderScale", 1.0)
 	viper.SetDefault("screen.renderDistance", -1)
+	viper.SetDefault("screen.clutterDistance", 10.0)
 
 	err := viper.ReadInConfig()
 	if err != nil && g.debug {
@@ -206,6 +208,7 @@ func (g *Game) initConfig() {
 	g.screenHeight = viper.GetInt("screen.height")
 	g.renderScale = viper.GetFloat64("screen.renderScale")
 	g.renderDistance = viper.GetFloat64("screen.renderDistance")
+	g.clutterDistance = viper.GetFloat64("screen.clutterDistance")
 	g.debug = viper.GetBool("debug")
 }
 

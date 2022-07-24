@@ -120,8 +120,7 @@ func (g *Game) loadContent() {
 
 	// load clutter sprites mapped by path
 	if len(g.mapObj.Clutter) > 0 {
-		// TODO: make clutter max draw distance configurable
-		g.clutter = NewClutterHandler(10)
+		g.clutter = NewClutterHandler()
 
 		for _, clutter := range g.mapObj.Clutter {
 			var clutterImg *ebiten.Image

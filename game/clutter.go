@@ -3,7 +3,6 @@ package game
 import (
 	"image/color"
 	"math/rand"
-	"strings"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go"
@@ -11,16 +10,14 @@ import (
 )
 
 type ClutterHandler struct {
-	sprites            map[*model.Sprite]struct{}
-	spritesByPosition  map[int64][]*model.Sprite
-	maxClutterDistance float64
+	sprites           map[*model.Sprite]struct{}
+	spritesByPosition map[int64][]*model.Sprite
 }
 
-func NewClutterHandler(maxClutterDistance float64) *ClutterHandler {
+func NewClutterHandler() *ClutterHandler {
 	c := &ClutterHandler{
-		sprites:            make(map[*model.Sprite]struct{}, 256),
-		spritesByPosition:  make(map[int64][]*model.Sprite, 256),
-		maxClutterDistance: maxClutterDistance,
+		sprites:           make(map[*model.Sprite]struct{}, 256),
+		spritesByPosition: make(map[int64][]*model.Sprite, 256),
 	}
 	return c
 }
@@ -32,6 +29,9 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 	}
 
 	numClutter := len(g.mapObj.Clutter)
+	if numClutter == 0 || g.clutterDistance <= 0 {
+		return
+	}
 
 	pastPositions := make(map[int64]struct{}, len(c.spritesByPosition))
 	for posId := range c.spritesByPosition {
@@ -43,7 +43,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 	viewAngle := g.player.Angle
 	viewFOV := geom.Radians(g.fovDegrees)
 	for a := viewAngle - viewFOV/2; a <= viewAngle+viewFOV/2; a += viewFOV / 20 {
-		for d := 0.0; d <= c.maxClutterDistance; d++ {
+		for d := 0.0; d <= g.clutterDistance; d++ {
 			line := geom.LineFromAngle(camX, camY, a, d)
 			x, y := int64(line.X2), int64(line.Y2)
 			if x < 0 || y < 0 || x >= int64(g.mapWidth) || y >= int64(g.mapHeight) {
@@ -76,7 +76,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 
 			for i, clutter := range g.mapObj.Clutter {
 				// use floorPathMatch to determine if this clutter is for this coordinate based on floor texture
-				if clutter.FloorPathMatch != "" && !strings.Contains(floorTexPath, clutter.FloorPathMatch) {
+				if clutter.FloorPathMatch != nil && !clutter.FloorPathMatch.MatchString(floorTexPath) {
 					continue
 				}
 

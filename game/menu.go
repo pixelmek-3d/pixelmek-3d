@@ -14,11 +14,12 @@ type DemoMenu struct {
 	active bool
 
 	// held vars that should not get updated in real-time
-	newRenderWidth    int32
-	newRenderHeight   int32
-	newRenderScale    float32
-	newFovDegrees     float32
-	newRenderDistance float32
+	newRenderWidth     int32
+	newRenderHeight    int32
+	newRenderScale     float32
+	newFovDegrees      float32
+	newRenderDistance  float32
+	newClutterDistance float32
 
 	newGlobalIllumination float32
 	newLightFalloff       float32
@@ -46,6 +47,7 @@ func (g *Game) openMenu() {
 	g.menu.newRenderScale = float32(g.renderScale)
 	g.menu.newFovDegrees = float32(g.fovDegrees)
 	g.menu.newRenderDistance = float32(g.renderDistance)
+	g.menu.newClutterDistance = float32(g.clutterDistance)
 
 	g.menu.newLightFalloff = float32(g.lightFalloff)
 	g.menu.newGlobalIllumination = float32(g.globalIllumination)
@@ -128,6 +130,11 @@ func (m *DemoMenu) update(g *Game) {
 		if imgui.SliderFloatV("Render Distance", &m.newRenderDistance, -1, 1000, "%.0f", imgui.SliderFlagsNone) {
 			g.renderDistance = float64(m.newRenderDistance)
 			g.camera.SetRenderDistance(g.renderDistance)
+		}
+
+		if imgui.SliderFloatV("Clutter Distance", &m.newClutterDistance, 0, 20, "%.0f", imgui.SliderFlagsNone) {
+			g.clutterDistance = float64(m.newClutterDistance)
+			g.clutter.Update(g, true)
 		}
 
 		if imgui.Checkbox("Fullscreen", &g.fullscreen) {
