@@ -18,5 +18,5 @@
 - `bush_0`: Hansjörg Malthaner - http://opengameart.org/users/varkalandar
   - https://opengameart.org/content/sci-fi-plants-and-crystal-things-isometric
 
-- `tree_bare`: "Bleed" - http://remusprites.carbonmade.com/
+- `tree_0`, `tree_1`: "Bleed" - http://remusprites.carbonmade.com/
   - https://opengameart.org/content/tree-collection-v26-bleeds-game-art

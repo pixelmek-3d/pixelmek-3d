@@ -24,6 +24,7 @@ type Map struct {
 	Flooring         MapFlooring        `yaml:"flooring"`
 	Clutter          []MapClutter       `yaml:"clutter"`
 	Sprites          []MapSprite        `yaml:"sprites"`
+	SpriteStamps     []MapSpriteStamp   `yaml:"spriteStamps"`
 	Seed             int64              `yaml:"seed"`
 }
 
@@ -80,6 +81,12 @@ func (r *RegExp) UnmarshalText(b []byte) error {
 type MapSprite struct {
 	Image     string       `yaml:"image"`
 	Positions [][2]float64 `yaml:"positions"`
+	Stamp     string       `yaml:"stamp"`
+}
+
+type MapSpriteStamp struct {
+	Id      string      `yaml:"id"`
+	Sprites []MapSprite `yaml:"sprites"`
 }
 
 type MapLighting struct {
@@ -160,7 +167,54 @@ func LoadMap(mapFile string) (*Map, error) {
 		m.NumRaycastLevels = len(m.Levels)
 	}
 
+	// generate additional sprites using sprite stamps
+	if len(m.SpriteStamps) > 0 {
+		err := m.generateSpritesFromStamps()
+		if err != nil {
+			return m, err
+		}
+	}
+
 	return m, nil
+}
+
+func (m *Map) generateSpritesFromStamps() error {
+	nSprites := make([]MapSprite, len(m.Sprites))
+
+	stampsById := make(map[string]MapSpriteStamp, len(m.SpriteStamps))
+	for _, stamp := range m.SpriteStamps {
+		stampsById[stamp.Id] = stamp
+	}
+
+	for _, sprite := range m.Sprites {
+		if sprite.Image != "" {
+			nSprites = append(nSprites, sprite)
+		}
+		if sprite.Stamp != "" {
+			if stamp, ok := stampsById[sprite.Stamp]; ok {
+				for _, position := range sprite.Positions {
+					x, y := position[0], position[1]
+					for _, stampSprite := range stamp.Sprites {
+						mapPositions := make([][2]float64, len(stampSprite.Positions))
+						for i, stampPosition := range stampSprite.Positions {
+							mapPositions[i] = [2]float64{x + stampPosition[0], y + stampPosition[1]}
+						}
+						mapSprite := MapSprite{
+							Image:     stampSprite.Image,
+							Positions: mapPositions,
+						}
+						nSprites = append(nSprites, mapSprite)
+					}
+				}
+			} else {
+				return fmt.Errorf("stamp id is not defined or is misspelled: \"%s\"", sprite.Stamp)
+			}
+		}
+	}
+
+	m.Sprites = nSprites
+
+	return nil
 }
 
 func (m *Map) generateMapLevels() error {

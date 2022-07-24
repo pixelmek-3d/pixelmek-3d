@@ -109,8 +109,10 @@ func NewGame() *Game {
 
 	// load map
 	var err error
-	g.mapObj, err = model.LoadMap("arena.yaml")
+	mapPath := "arena.yaml"
+	g.mapObj, err = model.LoadMap(mapPath)
 	if err != nil {
+		log.Println("Error(s) loading map", mapPath, ":")
 		log.Println(err)
 		exit(1)
 	}
