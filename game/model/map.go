@@ -6,10 +6,12 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"math/rand"
 	"path/filepath"
 	"regexp"
 
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,6 +26,7 @@ type Map struct {
 	Flooring         MapFlooring        `yaml:"flooring"`
 	Clutter          []MapClutter       `yaml:"clutter"`
 	Sprites          []MapSprite        `yaml:"sprites"`
+	SpriteFill       []MapSpriteFill    `yaml:"spriteFill"`
 	SpriteStamps     []MapSpriteStamp   `yaml:"spriteStamps"`
 	Seed             int64              `yaml:"seed"`
 }
@@ -82,6 +85,13 @@ type MapSprite struct {
 	Image     string       `yaml:"image"`
 	Positions [][2]float64 `yaml:"positions"`
 	Stamp     string       `yaml:"stamp"`
+}
+
+type MapSpriteFill struct {
+	Image      string     `yaml:"image"`
+	Quantity   int        `yaml:"quantity"`
+	ScaleRange [2]float64 `yaml:"scaleRange"`
+	Rect       [2][2]int  `yaml:"rect"`
 }
 
 type MapSpriteStamp struct {
@@ -167,6 +177,14 @@ func LoadMap(mapFile string) (*Map, error) {
 		m.NumRaycastLevels = len(m.Levels)
 	}
 
+	// generate additional sprites using sprite fill
+	if len(m.SpriteFill) > 0 {
+		err := m.generateFillerSprites()
+		if err != nil {
+			return m, err
+		}
+	}
+
 	// generate additional sprites using sprite stamps
 	if len(m.SpriteStamps) > 0 {
 		err := m.generateSpritesFromStamps()
@@ -176,6 +194,32 @@ func LoadMap(mapFile string) (*Map, error) {
 	}
 
 	return m, nil
+}
+
+func (m *Map) generateFillerSprites() error {
+	nSprites := make([]MapSprite, len(m.Sprites))
+	copier.Copy(&nSprites, &m.Sprites)
+
+	for n, fill := range m.SpriteFill {
+		rand.Seed(m.Seed + int64(n))
+
+		x0, y0 := float64(fill.Rect[0][0]), float64(fill.Rect[0][1])
+		x1, y1 := float64(fill.Rect[1][0]), float64(fill.Rect[1][1])
+
+		mapPositions := make([][2]float64, fill.Quantity)
+		for i := 0; i < fill.Quantity; i++ {
+			mapPositions[i] = [2]float64{x0 + (x1-x0)*rand.Float64(), y0 + (y1-y0)*rand.Float64()}
+		}
+
+		mapSprite := MapSprite{
+			Image:     fill.Image,
+			Positions: mapPositions,
+		}
+		nSprites = append(nSprites, mapSprite)
+	}
+
+	m.Sprites = nSprites
+	return nil
 }
 
 func (m *Map) generateSpritesFromStamps() error {

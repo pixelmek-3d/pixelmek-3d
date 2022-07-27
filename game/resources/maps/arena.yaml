@@ -78,6 +78,11 @@ clutter:
   scale: 0.05
   floorPathMatch: "grass"
   frequency: 0.5
+spriteFill:
+- image: "shrubbery/tree_1.png"
+  scaleRange: [0.3, 1.0]
+  quantity: 100
+  rect: [[42, 15], [64, 30]]
 spriteStamps:
 - id: "tree line L2"
   sprites:
