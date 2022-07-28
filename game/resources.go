@@ -158,6 +158,11 @@ func (g *Game) loadContent() {
 			continue
 		}
 
+		if s.Scale == 0.0 {
+			// default unset scale to 1.0
+			s.Scale = 1.0
+		}
+
 		var spriteImg *ebiten.Image
 		if eImg, ok := g.tex.texMap[s.Image]; ok {
 			spriteImg = eImg
@@ -168,7 +173,7 @@ func (g *Game) loadContent() {
 
 		for _, position := range s.Positions {
 			sprite := model.NewSprite(
-				position[0], position[1], 1.0, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, 0,
+				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, 0,
 			)
 			g.addSprite(sprite)
 		}

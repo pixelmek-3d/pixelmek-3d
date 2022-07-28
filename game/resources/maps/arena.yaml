@@ -80,7 +80,7 @@ clutter:
   frequency: 0.5
 spriteFill:
 - image: "shrubbery/tree_1.png"
-  scaleRange: [0.3, 1.0]
+  scaleRange: [0.6, 1.0]
   quantity: 100
   rect: [[42, 15], [64, 30]]
 spriteStamps:
@@ -93,6 +93,7 @@ spriteStamps:
     - [1.5, 0]
     - [2.0, 0]
   - image: "shrubbery/tree_0.png"
+    scale: 0.5
     positions:
     - [1.0, 0]
 - id: "forest circle R6"

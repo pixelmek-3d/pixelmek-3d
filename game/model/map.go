@@ -84,6 +84,7 @@ func (r *RegExp) UnmarshalText(b []byte) error {
 type MapSprite struct {
 	Image     string       `yaml:"image"`
 	Positions [][2]float64 `yaml:"positions"`
+	Scale     float64      `default:"1.0" yaml:"scale,omitempty"`
 	Stamp     string       `yaml:"stamp"`
 }
 
@@ -206,16 +207,22 @@ func (m *Map) generateFillerSprites() error {
 		x0, y0 := float64(fill.Rect[0][0]), float64(fill.Rect[0][1])
 		x1, y1 := float64(fill.Rect[1][0]), float64(fill.Rect[1][1])
 
-		mapPositions := make([][2]float64, fill.Quantity)
 		for i := 0; i < fill.Quantity; i++ {
-			mapPositions[i] = [2]float64{x0 + (x1-x0)*rand.Float64(), y0 + (y1-y0)*rand.Float64()}
+			fX, fY := RandFloat64In(x0, x1), RandFloat64In(y0, y1)
+			scale := 1.0
+			if len(fill.ScaleRange) == 2 {
+				// generate random scale value within scale range
+				scale = RandFloat64In(fill.ScaleRange[0], fill.ScaleRange[1])
+			}
+
+			mapSprite := MapSprite{
+				Image:     fill.Image,
+				Positions: [][2]float64{{fX, fY}},
+				Scale:     scale,
+			}
+			nSprites = append(nSprites, mapSprite)
 		}
 
-		mapSprite := MapSprite{
-			Image:     fill.Image,
-			Positions: mapPositions,
-		}
-		nSprites = append(nSprites, mapSprite)
 	}
 
 	m.Sprites = nSprites
@@ -246,6 +253,7 @@ func (m *Map) generateSpritesFromStamps() error {
 						mapSprite := MapSprite{
 							Image:     stampSprite.Image,
 							Positions: mapPositions,
+							Scale:     stampSprite.Scale,
 						}
 						nSprites = append(nSprites, mapSprite)
 					}
