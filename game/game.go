@@ -74,11 +74,7 @@ type Game struct {
 	mapObj       *model.Map
 	collisionMap []geom.Line
 
-	sprites     map[*model.Sprite]struct{}
-	mechSprites map[*model.MechSprite]struct{}
-	projectiles map[*model.Projectile]struct{}
-	effects     map[*model.Effect]struct{}
-
+	sprites *SpriteHandler
 	clutter *ClutterHandler
 
 	mapWidth, mapHeight int
@@ -291,30 +287,7 @@ func (g *Game) Update() error {
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Put projectiles together with sprites for raycasting both as sprites
-	numSprites := len(g.sprites) + len(g.mechSprites) + len(g.projectiles) + len(g.effects) + len(g.clutter.sprites)
-	raycastSprites := make([]raycaster.Sprite, numSprites)
-	index := 0
-
-	for sprite := range g.sprites {
-		raycastSprites[index] = sprite
-		index += 1
-	}
-	for clutter := range g.clutter.sprites {
-		raycastSprites[index] = clutter
-		index += 1
-	}
-	for mech := range g.mechSprites {
-		raycastSprites[index] = mech
-		index += 1
-	}
-	for projectile := range g.projectiles {
-		raycastSprites[index] = projectile.Sprite
-		index += 1
-	}
-	for effect := range g.effects {
-		raycastSprites[index] = effect.Sprite
-		index += 1
-	}
+	raycastSprites := g.getRaycastSprites()
 
 	// Update camera (calculate raycast)
 	g.camera.Update(raycastSprites)
@@ -454,7 +427,7 @@ func (g *Game) fireWeapon() {
 
 	projectile := w.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, g.player.Entity)
 	if projectile != nil {
-		g.addProjectile(projectile)
+		g.sprites.addProjectile(projectile)
 	}
 }
 
@@ -479,7 +452,7 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 
 func (g *Game) updateProjectiles() {
 	// Testing animated projectile movement
-	for p := range g.projectiles {
+	for p := range g.sprites.projectiles {
 		if p.Velocity != 0 {
 
 			realVelocity := p.Velocity
@@ -500,7 +473,7 @@ func (g *Game) updateProjectiles() {
 			newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, false)
 			if isCollision || p.PositionZ <= 0 {
 				// for testing purposes, projectiles instantly get deleted when collision occurs
-				g.deleteProjectile(p)
+				g.sprites.deleteProjectile(p)
 
 				// make a sprite/wall getting hit by projectile cause some visual effect
 				if p.ImpactEffect.Sprite != nil {
@@ -512,7 +485,7 @@ func (g *Game) updateProjectiles() {
 					// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
 					effect := p.SpawnEffect(newPos.X, newPos.Y, p.PositionZ, p.Angle, p.Pitch)
 
-					g.addEffect(effect)
+					g.sprites.addEffect(effect)
 				}
 
 				for _, collisionEntity := range collisions {
@@ -534,21 +507,21 @@ func (g *Game) updateProjectiles() {
 	}
 
 	// Testing animated effects (explosions)
-	for e := range g.effects {
+	for e := range g.sprites.effects {
 		e.Update(g.player.Position)
 		if e.GetLoopCounter() >= e.LoopCount {
-			g.deleteEffect(e)
+			g.sprites.deleteEffect(e)
 		}
 	}
 }
 
 func (g *Game) AllEntities() map[*model.Entity]struct{} {
-	numEntities := len(g.sprites) + len(g.mechSprites)
+	numEntities := len(g.sprites.mapSprites) + len(g.sprites.mechSprites)
 	entities := make(map[*model.Entity]struct{}, numEntities)
-	for s := range g.sprites {
+	for s := range g.sprites.mapSprites {
 		entities[s.Entity] = struct{}{}
 	}
-	for s := range g.mechSprites {
+	for s := range g.sprites.mechSprites {
 		entities[s.Entity] = struct{}{}
 	}
 	return entities
@@ -556,7 +529,7 @@ func (g *Game) AllEntities() map[*model.Entity]struct{} {
 
 func (g *Game) updateSprites() {
 	// Testing animated sprite movement
-	for s := range g.sprites {
+	for s := range g.sprites.mapSprites {
 		if s.Velocity != 0 {
 			vLine := geom.LineFromAngle(s.Position.X, s.Position.Y, s.Angle, s.Velocity)
 

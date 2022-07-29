@@ -54,10 +54,7 @@ func getSpriteFromFile(sFile string) *ebiten.Image {
 
 // loadContent loads all map texture and static sprite resources
 func (g *Game) loadContent() {
-	g.projectiles = make(map[*model.Projectile]struct{}, 1024)
-	g.effects = make(map[*model.Effect]struct{}, 1024)
-	g.sprites = make(map[*model.Sprite]struct{}, 512)
-	g.mechSprites = make(map[*model.MechSprite]struct{}, 128)
+	g.sprites = NewSpriteHandler()
 
 	// keep a map of textures by name to only load duplicate entries once
 	g.tex.texMap = make(map[string]*ebiten.Image, 128)
@@ -175,7 +172,7 @@ func (g *Game) loadContent() {
 			sprite := model.NewSprite(
 				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, 0,
 			)
-			g.addSprite(sprite)
+			g.sprites.addSprite(sprite)
 		}
 	}
 }
@@ -198,32 +195,4 @@ func (g *Game) loadSprites() {
 	// g.addMechSprite(mech)
 	// mech2 := model.NewMechSpriteFromMech(7, 18, mechTemplate)
 	// g.addMechSprite(mech2)
-}
-
-func (g *Game) addSprite(sprite *model.Sprite) {
-	g.sprites[sprite] = struct{}{}
-}
-
-func (g *Game) addMechSprite(mech *model.MechSprite) {
-	g.mechSprites[mech] = struct{}{}
-}
-
-// func (g *Game) deleteSprite(sprite *model.Sprite) {
-// 	delete(g.sprites, sprite)
-// }
-
-func (g *Game) addProjectile(projectile *model.Projectile) {
-	g.projectiles[projectile] = struct{}{}
-}
-
-func (g *Game) deleteProjectile(projectile *model.Projectile) {
-	delete(g.projectiles, projectile)
-}
-
-func (g *Game) addEffect(effect *model.Effect) {
-	g.effects[effect] = struct{}{}
-}
-
-func (g *Game) deleteEffect(effect *model.Effect) {
-	delete(g.effects, effect)
 }
