@@ -83,6 +83,10 @@ spriteFill:
   scaleRange: [0.6, 1.0]
   quantity: 100
   rect: [[42, 15], [64, 30]]
+- image: "shrubbery/tree_1.png"
+  scaleRange: [0.4, 0.7]
+  quantity: 200
+  rect: [[150, 150], [350, 350]]
 spriteStamps:
 - id: "tree line L2"
   sprites:
@@ -134,11 +138,6 @@ sprites:
 - stamp: "forest circle R6"
   positions:
   - [21, 52]
-  - [25, 52]
-  - [21, 57]
-  - [25, 57]
-  - [30, 52]
-  - [36, 52]
-  - [30, 57]
-  - [36, 57]
-
+  - [100, 52]
+  - [21, 100]
+  - [100, 125]

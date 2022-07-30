@@ -1,6 +1,8 @@
 package game
 
 import (
+	"math"
+
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go"
 )
@@ -25,12 +27,16 @@ func (s *SpriteHandler) addSprite(sprite *model.Sprite) {
 	s.mapSprites[sprite] = struct{}{}
 }
 
+func (s *SpriteHandler) deleteSprite(sprite *model.Sprite) {
+	delete(s.mapSprites, sprite)
+}
+
 func (s *SpriteHandler) addMechSprite(mech *model.MechSprite) {
 	s.mechSprites[mech] = struct{}{}
 }
 
-func (s *SpriteHandler) deleteSprite(sprite *model.Sprite) {
-	delete(s.mapSprites, sprite)
+func (s *SpriteHandler) deleteMechSprite(mech *model.MechSprite) {
+	delete(s.mechSprites, mech)
 }
 
 func (s *SpriteHandler) addProjectile(projectile *model.Projectile) {
@@ -50,17 +56,21 @@ func (s *SpriteHandler) deleteEffect(effect *model.Effect) {
 }
 
 func (g *Game) getRaycastSprites() []raycaster.Sprite {
-	numSprites := len(g.sprites.mapSprites) + len(g.sprites.mechSprites) + len(g.sprites.projectiles) + len(g.sprites.effects) + len(g.clutter.sprites)
+	numSprites := len(g.sprites.mapSprites) + len(g.sprites.mechSprites) +
+		len(g.sprites.projectiles) + len(g.sprites.effects) + len(g.clutter.sprites)
 	raycastSprites := make([]raycaster.Sprite, numSprites)
-	index := 0
 
+	index := 0
 	for sprite := range g.sprites.mapSprites {
-		raycastSprites[index] = sprite
-		index += 1
-	}
-	for clutter := range g.clutter.sprites {
-		raycastSprites[index] = clutter
-		index += 1
+		// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
+		// only include map sprites within fast approximation of render distance
+		doSprite := g.renderDistance < 0 ||
+			(math.Abs(sprite.Position.X-g.player.Position.X) <= g.renderDistance &&
+				math.Abs(sprite.Position.Y-g.player.Position.Y) <= g.renderDistance)
+		if doSprite {
+			raycastSprites[index] = sprite
+			index += 1
+		}
 	}
 	for mech := range g.sprites.mechSprites {
 		raycastSprites[index] = mech
@@ -74,6 +84,10 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 		raycastSprites[index] = effect.Sprite
 		index += 1
 	}
+	for clutter := range g.clutter.sprites {
+		raycastSprites[index] = clutter
+		index += 1
+	}
 
-	return raycastSprites
+	return raycastSprites[:index]
 }
