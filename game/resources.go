@@ -182,17 +182,55 @@ func (g *Game) loadSprites() {
 
 	// TODO: load mission sprites from yaml file
 
-	// mechImg := getSpriteFromFile("mechs/timberwolf.png")
-	// mechTemplate := model.NewMechSprite(0, 0, mechImg, 0.01)
+	tbrImg := getSpriteFromFile("mechs/timberwolf.png")
+	tbrTemplate := model.NewMechSprite(0, 0, 0.75, tbrImg, 0.01)
 
-	// // for i := 1.5; i <= 19.5; i++ {
-	// // 	for j := 16.0; j < 24; j++ {
-	// // 		mech := model.NewMechSpriteFromMech(i, j, mechTemplate)
-	// // 		g.addMechSprite(mech)
-	// // 	}
-	// // }
-	// mech := model.NewMechSpriteFromMech(5, 18, mechTemplate)
-	// g.addMechSprite(mech)
-	// mech2 := model.NewMechSpriteFromMech(7, 18, mechTemplate)
-	// g.addMechSprite(mech2)
+	whkImg := getSpriteFromFile("mechs/warhawk.png")
+	whkTemplate := model.NewMechSprite(0, 0, 0.8, whkImg, 0.01)
+
+	// testing a few  of them
+	mech0 := model.NewMechSpriteFromMech(13, 15, whkTemplate)
+	mech0.SetMechAnimation(model.ANIMATE_STATIC)
+	g.sprites.addMechSprite(mech0)
+
+	mech1 := model.NewMechSpriteFromMech(15, 15, whkTemplate)
+	mech1.SetMechAnimation(model.ANIMATE_STRUT)
+	mech1.AnimationRate = 5
+	mech1.Velocity = 0.0025
+	g.sprites.addMechSprite(mech1)
+
+	mech2 := model.NewMechSpriteFromMech(17, 15, whkTemplate)
+	mech2.SetMechAnimation(model.ANIMATE_IDLE)
+	mech2.AnimationRate = 7
+	g.sprites.addMechSprite(mech2)
+
+	// testing lots of them
+	for i := 1.5; i <= 19.5; i++ {
+		for j := 22.0; j < 24; j++ {
+			mech := model.NewMechSpriteFromMech(i, j, tbrTemplate)
+
+			mech.Velocity = 0.01
+
+			if false && int(j)%2 == 0 {
+				mech.SetMechAnimation(model.ANIMATE_IDLE)
+				mech.AnimationRate = 7
+			} else {
+				mech.SetMechAnimation(model.ANIMATE_STRUT)
+				// TODO: set AnimationRate based on mech velocity (1 is fastest for running light mechs)
+				//       2 could be for medium mech at run speed, 3 for heavy, 4 for assault,
+				//       higher values if mech is moving but not at run speed.
+				mech.AnimationRate = 2
+			}
+
+			if int(i)%2 == 0 {
+				mech.SetAnimationReversed(true)
+			}
+
+			if mech.NumAnimationFrames() > 1 {
+				mech.SetAnimationFrame(int(i) % mech.NumAnimationFrames())
+			}
+
+			g.sprites.addMechSprite(mech)
+		}
+	}
 }
