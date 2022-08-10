@@ -28,7 +28,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 		return
 	}
 
-	numClutter := len(g.mapObj.Clutter)
+	numClutter := len(g.mission.Map().Clutter)
 	if numClutter == 0 || g.clutterDistance <= 0 {
 		return
 	}
@@ -54,7 +54,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 			posId := (x-1)*int64(g.mapWidth) + y
 
 			// make sure there's not a wall here
-			if g.mapObj.IsWallAt(0, int(x), int(y)) {
+			if g.mission.Map().IsWallAt(0, int(x), int(y)) {
 				continue
 			}
 
@@ -72,9 +72,9 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 			c.spritesByPosition[posId] = make([]*model.Sprite, numClutter)
 
 			// use position based seed to produce consistent clutter positioning each time the coordinate is in view
-			rand.Seed(g.mapObj.Seed + posId)
+			rand.Seed(g.mission.Map().Seed + posId)
 
-			for i, clutter := range g.mapObj.Clutter {
+			for i, clutter := range g.mission.Map().Clutter {
 				// use floorPathMatch to determine if this clutter is for this coordinate based on floor texture
 				if clutter.FloorPathMatch != nil && !clutter.FloorPathMatch.MatchString(floorTexPath) {
 					continue

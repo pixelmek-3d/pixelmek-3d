@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -60,15 +61,15 @@ func (g *Game) loadContent() {
 	g.tex.texMap = make(map[string]*ebiten.Image, 128)
 
 	// load textured flooring
-	if g.mapObj.Flooring.Default != "" {
-		g.tex.floorTexDefault = newFloorTexture(g.mapObj.Flooring.Default)
+	if g.mission.Map().Flooring.Default != "" {
+		g.tex.floorTexDefault = newFloorTexture(g.mission.Map().Flooring.Default)
 	}
 
 	// keep track of floor texture positions by name so they can be matched on later
 	var floorTexNames [][]string
 
 	// load texture floor pathing
-	if len(g.mapObj.Flooring.Pathing) > 0 {
+	if len(g.mission.Map().Flooring.Pathing) > 0 {
 		g.tex.floorTexMap = make([][]*FloorTexture, g.mapWidth)
 		floorTexNames = make([][]string, g.mapWidth)
 		for x := 0; x < g.mapWidth; x++ {
@@ -76,7 +77,7 @@ func (g *Game) loadContent() {
 			floorTexNames[x] = make([]string, g.mapHeight)
 		}
 		// create map grid of path image textures for the X/Y coords indicated
-		for _, pathing := range g.mapObj.Flooring.Pathing {
+		for _, pathing := range g.mission.Map().Flooring.Pathing {
 			tex := newFloorTexture(pathing.Image)
 
 			// create filled rectangle paths
@@ -116,10 +117,10 @@ func (g *Game) loadContent() {
 	}
 
 	// load clutter sprites mapped by path
-	if len(g.mapObj.Clutter) > 0 {
+	if len(g.mission.Map().Clutter) > 0 {
 		g.clutter = NewClutterHandler()
 
-		for _, clutter := range g.mapObj.Clutter {
+		for _, clutter := range g.mission.Map().Clutter {
 			var clutterImg *ebiten.Image
 			if _, ok := g.tex.texMap[clutter.Image]; !ok {
 				clutterImg = getSpriteFromFile(clutter.Image)
@@ -129,7 +130,7 @@ func (g *Game) loadContent() {
 	}
 
 	// load textures mapped by path
-	for _, tex := range g.mapObj.Textures {
+	for _, tex := range g.mission.Map().Textures {
 		if tex.Image != "" {
 			if _, ok := g.tex.texMap[tex.Image]; !ok {
 				g.tex.texMap[tex.Image] = getTextureFromFile(tex.Image)
@@ -150,7 +151,7 @@ func (g *Game) loadContent() {
 	}
 
 	// load static sprites
-	for _, s := range g.mapObj.Sprites {
+	for _, s := range g.mission.Map().Sprites {
 		if len(s.Image) == 0 {
 			continue
 		}
@@ -179,58 +180,23 @@ func (g *Game) loadContent() {
 
 // loadSprites loads all mission sprite reources
 func (g *Game) loadSprites() {
+	// TODO: move these to predefined mech sprites from their own data source files
+	mechSpriteTemplates := make(map[string]*model.MechSprite, len(g.mission.Mechs))
 
-	// TODO: load mission sprites from yaml file
-
-	tbrImg := getSpriteFromFile("mechs/timberwolf.png")
-	tbrTemplate := model.NewMechSprite(0, 0, 0.75, tbrImg, 0.01)
-
-	whkImg := getSpriteFromFile("mechs/warhawk.png")
-	whkTemplate := model.NewMechSprite(0, 0, 0.8, whkImg, 0.01)
-
-	// testing a few  of them
-	mech0 := model.NewMechSpriteFromMech(13, 15, whkTemplate)
-	mech0.SetMechAnimation(model.ANIMATE_STATIC)
-	g.sprites.addMechSprite(mech0)
-
-	mech1 := model.NewMechSpriteFromMech(15, 15, whkTemplate)
-	mech1.SetMechAnimation(model.ANIMATE_STRUT)
-	mech1.AnimationRate = 5
-	mech1.Velocity = 0.0025
-	g.sprites.addMechSprite(mech1)
-
-	mech2 := model.NewMechSpriteFromMech(17, 15, whkTemplate)
-	mech2.SetMechAnimation(model.ANIMATE_IDLE)
-	mech2.AnimationRate = 7
-	g.sprites.addMechSprite(mech2)
-
-	// testing lots of them
-	for i := 1.5; i <= 19.5; i++ {
-		for j := 22.0; j < 24; j++ {
-			mech := model.NewMechSpriteFromMech(i, j, tbrTemplate)
-
-			mech.Velocity = 0.01
-
-			if false && int(j)%2 == 0 {
-				mech.SetMechAnimation(model.ANIMATE_IDLE)
-				mech.AnimationRate = 7
-			} else {
-				mech.SetMechAnimation(model.ANIMATE_STRUT)
-				// TODO: set AnimationRate based on mech velocity (1 is fastest for running light mechs)
-				//       2 could be for medium mech at run speed, 3 for heavy, 4 for assault,
-				//       higher values if mech is moving but not at run speed.
-				mech.AnimationRate = 2
-			}
-
-			if int(i)%2 == 0 {
-				mech.SetAnimationReversed(true)
-			}
-
-			if mech.NumAnimationFrames() > 1 {
-				mech.SetAnimationFrame(int(i) % mech.NumAnimationFrames())
-			}
-
-			g.sprites.addMechSprite(mech)
+	for _, missionMech := range g.mission.Mechs {
+		if _, ok := mechSpriteTemplates[missionMech.Image]; !ok {
+			mechRelPath := fmt.Sprintf("mechs/%s", missionMech.Image)
+			mechImg := getSpriteFromFile(mechRelPath)
+			mechSpriteTemplates[missionMech.Image] = model.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.01)
 		}
+
+		mechTemplate := mechSpriteTemplates[missionMech.Image]
+		posX, posY := missionMech.Position[0], missionMech.Position[1]
+		mech := model.NewMechSpriteFromMech(posX, posY, mechTemplate)
+		g.sprites.addMechSprite(mech)
+
+		// TODO: give mission mechs something to do
+		mech.SetMechAnimation(model.ANIMATE_IDLE)
+		mech.AnimationRate = 7
 	}
 }

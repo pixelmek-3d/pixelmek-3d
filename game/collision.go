@@ -167,7 +167,7 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 		iy = int(newY)
 	}
 
-	worldMap := g.mapObj.Level(0)
+	worldMap := g.mission.Map().Level(0)
 	if worldMap[ix][iy] <= 0 {
 		posX = newX
 		posY = newY

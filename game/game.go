@@ -70,8 +70,8 @@ type Game struct {
 	minLightRGB        color.NRGBA
 	maxLightRGB        color.NRGBA
 
-	//--array of levels, levels refer to "floors" of the world--//
-	mapObj       *model.Map
+	// Mission and map
+	mission      *model.Mission
 	collisionMap []geom.Line
 
 	sprites *SpriteHandler
@@ -103,21 +103,21 @@ func NewGame() *Game {
 	g.setFullscreen(false)
 	g.setVsyncEnabled(true)
 
-	// load map
+	// load mission
 	var err error
-	mapPath := "arena.yaml"
-	g.mapObj, err = model.LoadMap(mapPath)
+	missionPath := "trial.yaml"
+	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
-		log.Println("Error(s) loading map", mapPath, ":")
+		log.Println("Error loading mission", missionPath)
 		log.Println(err)
 		exit(1)
 	}
 
 	// load texture handler
-	g.tex = NewTextureHandler(g.mapObj)
+	g.tex = NewTextureHandler(g.mission.Map())
 
-	g.collisionMap = g.mapObj.GetCollisionLines(clipDistance)
-	worldMap := g.mapObj.Level(0)
+	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
+	worldMap := g.mission.Map().Level(0)
 	g.mapWidth = len(worldMap)
 	g.mapHeight = len(worldMap[0])
 
@@ -138,20 +138,20 @@ func NewGame() *Game {
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
-	g.camera = raycaster.NewCamera(g.width, g.height, texWidth, g.mapObj, g.tex)
+	g.camera = raycaster.NewCamera(g.width, g.height, texWidth, g.mission.Map(), g.tex)
 	g.camera.SetRenderDistance(g.renderDistance)
 
-	if len(g.mapObj.FloorBox.Image) > 0 {
-		g.camera.SetFloorTexture(getTextureFromFile(g.mapObj.FloorBox.Image))
+	if len(g.mission.Map().FloorBox.Image) > 0 {
+		g.camera.SetFloorTexture(getTextureFromFile(g.mission.Map().FloorBox.Image))
 	}
-	if len(g.mapObj.SkyBox.Image) > 0 {
-		g.camera.SetSkyTexture(getTextureFromFile(g.mapObj.SkyBox.Image))
+	if len(g.mission.Map().SkyBox.Image) > 0 {
+		g.camera.SetSkyTexture(getTextureFromFile(g.mission.Map().SkyBox.Image))
 	}
 
 	// init camera lighting from map settings
-	g.lightFalloff = g.mapObj.Lighting.Falloff
-	g.globalIllumination = g.mapObj.Lighting.Illumination
-	g.minLightRGB, g.maxLightRGB = g.mapObj.Lighting.LightRGB()
+	g.lightFalloff = g.mission.Map().Lighting.Falloff
+	g.globalIllumination = g.mission.Map().Lighting.Illumination
+	g.minLightRGB, g.maxLightRGB = g.mission.Map().Lighting.LightRGB()
 
 	g.camera.SetLightFalloff(g.lightFalloff)
 	g.camera.SetGlobalIllumination(g.globalIllumination)

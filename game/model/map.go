@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"io/ioutil"
-	"log"
 	"math"
 	"math/rand"
 	"path/filepath"
@@ -139,18 +138,16 @@ func (m *Map) Level(levelNum int) [][]int {
 }
 
 func LoadMap(mapFile string) (*Map, error) {
-	mapsPath := filepath.Join("game", "resources", "maps", mapFile)
+	mapPath := filepath.Join("game", "resources", "maps", mapFile)
 
-	mapsYaml, err := ioutil.ReadFile(mapsPath)
+	mapYaml, err := ioutil.ReadFile(mapPath)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 
 	m := &Map{}
-	err = yaml.Unmarshal(mapsYaml, m)
+	err = yaml.Unmarshal(mapYaml, m)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	if len(m.Textures) == 0 {
