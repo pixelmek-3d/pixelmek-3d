@@ -121,11 +121,8 @@ func NewGame() *Game {
 	g.mapWidth = len(worldMap)
 	g.mapHeight = len(worldMap[0])
 
-	// load content once when first run
+	// load map and mission content once when first run
 	g.loadContent()
-
-	// init the sprites
-	g.loadSprites()
 
 	// init player model
 	angleDegrees := 60.0
@@ -536,8 +533,52 @@ func (g *Game) updateSprites() {
 
 	// Testing animated mech sprite movement
 	for s := range g.sprites.mechSprites {
-		g.updateSpritePosition(s.Sprite)
+		g.updateMechPosition(s)
 		s.Update(g.player.Position)
+	}
+}
+
+func (g *Game) updateMechPosition(s *model.MechSprite) {
+	// TODO: give mechs a bit more of a brain than this
+	if len(s.PatrolPath) > 0 {
+		// make sure there's movement towards the next patrol point
+		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
+		patrolLine := geom.Line{X1: s.Position.X, Y1: s.Position.Y, X2: patrolX, Y2: patrolY}
+
+		// TODO: do something about this velocity
+		s.Velocity = 0.02
+
+		angle := patrolLine.Angle()
+		dist := patrolLine.Distance()
+
+		if dist <= s.Velocity {
+			// start movement towards next patrol point
+			s.PatrolPathIndex += 1
+			if s.PatrolPathIndex >= len(s.PatrolPath) {
+				// loop back towards first patrol point
+				s.PatrolPathIndex = 0
+			}
+			g.updateMechPosition(s)
+		} else {
+			// keep movements towards current patrol point
+			s.Angle = angle
+		}
+	}
+
+	if s.Velocity != 0 {
+		vLine := geom.LineFromAngle(s.Position.X, s.Position.Y, s.Angle, s.Velocity)
+
+		xCheck := vLine.X2
+		yCheck := vLine.Y2
+
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, false)
+		if isCollision {
+			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
+			s.Angle = randFloat(-math.Pi, math.Pi)
+			s.Velocity = randFloat(0.005, 0.009)
+		} else {
+			s.Position = newPos
+		}
 	}
 }
 

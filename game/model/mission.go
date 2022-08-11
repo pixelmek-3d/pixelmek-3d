@@ -20,9 +20,10 @@ func (m *Mission) Map() *Map {
 
 type MissionMech struct {
 	// TODO: load mech definitions from their own data files
-	Image    string     `yaml:"image"`
-	Position [2]float64 `yaml:"position"`
-	Scale    float64    `default:"1.0" yaml:"scale,omitempty"`
+	Image      string       `yaml:"image"`
+	Scale      float64      `default:"1.0" yaml:"scale,omitempty"`
+	Position   [2]float64   `yaml:"position"`
+	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
 func LoadMission(missionFile string) (*Mission, error) {

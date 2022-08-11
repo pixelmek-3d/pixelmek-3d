@@ -176,10 +176,13 @@ func (g *Game) loadContent() {
 			g.sprites.addSprite(sprite)
 		}
 	}
+
+	// load non-static mission sprites
+	g.loadMissionSprites()
 }
 
 // loadSprites loads all mission sprite reources
-func (g *Game) loadSprites() {
+func (g *Game) loadMissionSprites() {
 	// TODO: move these to predefined mech sprites from their own data source files
 	mechSpriteTemplates := make(map[string]*model.MechSprite, len(g.mission.Mechs))
 
@@ -193,10 +196,17 @@ func (g *Game) loadSprites() {
 		mechTemplate := mechSpriteTemplates[missionMech.Image]
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
 		mech := model.NewMechSpriteFromMech(posX, posY, mechTemplate)
-		g.sprites.addMechSprite(mech)
 
-		// TODO: give mission mechs something to do
-		mech.SetMechAnimation(model.ANIMATE_IDLE)
-		mech.AnimationRate = 7
+		// TODO: give mission mechs a bit more of a brain
+		if len(missionMech.PatrolPath) > 0 {
+			mech.PatrolPath = missionMech.PatrolPath
+			mech.SetMechAnimation(model.ANIMATE_STRUT)
+			mech.AnimationRate = 3
+		} else {
+			mech.SetMechAnimation(model.ANIMATE_IDLE)
+			mech.AnimationRate = 7
+		}
+
+		g.sprites.addMechSprite(mech)
 	}
 }

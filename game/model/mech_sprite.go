@@ -20,6 +20,10 @@ type MechSprite struct {
 	// ra     *ebiten.Image
 	// ll     *ebiten.Image
 	// rl     *ebiten.Image
+
+	// TODO: move to separate AI handler
+	PatrolPathIndex int
+	PatrolPath      [][2]float64
 }
 
 type MechPart int
@@ -33,22 +37,6 @@ const (
 	PART_RL     MechPart = 5
 	NUM_PARTS   MechPart = 6
 )
-
-// func (s *MechSprite) Scale() float64 {
-// 	return s.scale
-// }
-
-// func (s *MechSprite) VerticalAnchor() raycaster.SpriteAnchor {
-// 	return s.anchor
-// }
-
-// func (s *MechSprite) Texture() *ebiten.Image {
-// 	return s.texture
-// }
-
-// func (s *MechSprite) TextureRect() image.Rectangle {
-// 	return s.texRect
-// }
 
 func NewMechSprite(
 	x, y, scale float64, img *ebiten.Image, collisionRadius float64,
