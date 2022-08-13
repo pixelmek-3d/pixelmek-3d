@@ -9,6 +9,11 @@
 - Pixel Mechs by "Luscious Dan":
   - http://mwomercs.com/forums/topic/231592-luscious-dans-pixel-mechs/
 
+## ./projectiles
+
+- `beams_red.png`: "Rawdanitsu"
+  - https://opengameart.org/content/lasers-and-beams
+
 ## ./rocks
 
 - `rock_0`: "prushik" - https://opengameart.org/content/a-bunch-of-rocks

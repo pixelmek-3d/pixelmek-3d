@@ -145,21 +145,6 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	_, wheelY := ebiten.Wheel()
-	if wheelY != 0 {
-		g.player.NextWeapon(wheelY > 0)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyDigit1) {
-		g.player.SelectWeapon(0)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyDigit2) {
-		g.player.SelectWeapon(1)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyH) {
-		// put away/holster weapon
-		g.player.SelectWeapon(-1)
-	}
-
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		rotLeft = true
 	}

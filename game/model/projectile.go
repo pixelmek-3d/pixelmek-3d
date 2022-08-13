@@ -13,7 +13,6 @@ import (
 
 type Projectile struct {
 	*Sprite
-	Ricochets    int
 	Lifespan     float64
 	ImpactEffect Effect
 }
@@ -23,7 +22,6 @@ func NewProjectile(
 ) *Projectile {
 	p := &Projectile{
 		Sprite:       NewSprite(x, y, scale, img, mapColor, anchor, collisionRadius),
-		Ricochets:    0,
 		Lifespan:     math.MaxFloat64,
 		ImpactEffect: Effect{},
 	}
@@ -37,10 +35,30 @@ func NewAnimatedProjectile(
 ) *Projectile {
 	p := &Projectile{
 		Sprite:       NewAnimatedSprite(x, y, scale, animationRate, img, mapColor, columns, rows, anchor, collisionRadius),
-		Ricochets:    0,
 		Lifespan:     math.MaxFloat64,
 		ImpactEffect: Effect{},
 	}
+
+	return p
+}
+
+func (pSpawn *Projectile) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy *Entity) *Projectile {
+	p := &Projectile{}
+	s := &Sprite{}
+	copier.Copy(p, pSpawn)
+	copier.Copy(s, pSpawn.Sprite)
+
+	p.Sprite = s
+	p.Position = &geom.Vector2{X: x, Y: y}
+	p.PositionZ = z
+	p.Angle = angle
+	p.Pitch = pitch
+
+	// convert velocity from distance/second to distance per tick
+	p.Velocity = velocity / float64(ebiten.MaxTPS())
+
+	// keep track of what spawned it
+	p.Parent = spawnedBy
 
 	return p
 }

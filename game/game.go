@@ -121,13 +121,13 @@ func NewGame() *Game {
 	g.mapWidth = len(worldMap)
 	g.mapHeight = len(worldMap[0])
 
-	// load map and mission content once when first run
-	g.loadContent()
-
 	// init player model
 	angleDegrees := 60.0
 	g.player = model.NewPlayer(8.5, 3.5, geom.Radians(angleDegrees), 0)
 	g.player.CollisionRadius = clipDistance
+
+	// load map and mission content once when first run
+	g.loadContent()
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -405,26 +405,25 @@ func (g *Game) Prone() {
 }
 
 func (g *Game) fireWeapon() {
-	w := g.player.Weapon
-	if w == nil {
-		g.player.NextWeapon(false)
-		return
-	}
-	if w.OnCooldown() {
+	p := g.player.TestProjectile
+	if p == nil {
 		return
 	}
 
-	// set weapon firing for animation to run
-	w.Fire()
+	if g.player.TestCooldown > 0 {
+		return
+	}
 
 	// spawning projectile at player position just slightly below player's center point of view
 	pX, pY, pZ := g.player.Position.X, g.player.Position.Y, geom.Clamp(g.player.PositionZ-0.15, 0.05, g.player.PositionZ+0.5)
 	// TODO: pitch angle should be based on raycasted angle toward crosshairs, for now just simplified as player pitch angle
 	pAngle, pPitch := g.player.Angle, g.player.Pitch
 
-	projectile := w.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, g.player.Entity)
+	pVelocity := 24.0
+	projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
 	if projectile != nil {
 		g.sprites.addProjectile(projectile)
+		g.player.TestCooldown = 10
 	}
 }
 
@@ -449,6 +448,10 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 
 func (g *Game) updateProjectiles() {
 	// Testing animated projectile movement
+	if g.player.TestCooldown > 0 {
+		g.player.TestCooldown--
+	}
+
 	for p := range g.sprites.projectiles {
 		if p.Velocity != 0 {
 

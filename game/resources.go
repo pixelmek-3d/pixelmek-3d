@@ -179,9 +179,12 @@ func (g *Game) loadContent() {
 
 	// load non-static mission sprites
 	g.loadMissionSprites()
+
+	// load all other game sprites
+	g.loadGameSprites()
 }
 
-// loadSprites loads all mission sprite reources
+// loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
 	// TODO: move these to predefined mech sprites from their own data source files
 	mechSpriteTemplates := make(map[string]*model.MechSprite, len(g.mission.Mechs))
@@ -190,7 +193,7 @@ func (g *Game) loadMissionSprites() {
 		if _, ok := mechSpriteTemplates[missionMech.Image]; !ok {
 			mechRelPath := fmt.Sprintf("mechs/%s", missionMech.Image)
 			mechImg := getSpriteFromFile(mechRelPath)
-			mechSpriteTemplates[missionMech.Image] = model.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.01)
+			mechSpriteTemplates[missionMech.Image] = model.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.3)
 		}
 
 		mechTemplate := mechSpriteTemplates[missionMech.Image]
@@ -209,4 +212,14 @@ func (g *Game) loadMissionSprites() {
 
 		g.sprites.addMechSprite(mech)
 	}
+}
+
+// loadGameSprites loads all other game sprite reources
+func (g *Game) loadGameSprites() {
+	// TODO: move these to predefined projectile sprites from their own data source files
+	redLaserImg := getSpriteFromFile("projectiles/beams_red.png")
+	redLaserProjectile := model.NewAnimatedProjectile(
+		0, 0, 0.2, 0, redLaserImg, color.RGBA{}, 3, 1, raycaster.AnchorCenter, 0.01,
+	)
+	g.player.TestProjectile = redLaserProjectile
 }
