@@ -13,11 +13,11 @@ type Effect struct {
 }
 
 func NewAnimatedEffect(
-	x, y, scale float64, animationRate int, img *ebiten.Image, columns, rows int, anchor raycaster.SpriteAnchor, loopCount int,
+	x, y, scale float64, img *ebiten.Image, columns, rows, animationRate int, anchor raycaster.SpriteAnchor, loopCount int,
 ) *Effect {
 	mapColor := color.RGBA{0, 0, 0, 0}
 	e := &Effect{
-		Sprite:    NewAnimatedSprite(x, y, scale, animationRate, img, mapColor, columns, rows, anchor, 0),
+		Sprite:    NewAnimatedSprite(x, y, scale, img, mapColor, columns, rows, animationRate, anchor, 0),
 		LoopCount: loopCount,
 	}
 

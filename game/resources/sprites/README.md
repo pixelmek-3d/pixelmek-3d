@@ -1,5 +1,10 @@
 # Sprite Resource Attribution
 
+## ./effects
+
+- `laser_impact_sheet.png`: Ville Seppanen
+  - https://opengameart.org/content/explosion-animated
+
 ## ./mechs
 
 - Pixel Mechs by "Alistair Winter":

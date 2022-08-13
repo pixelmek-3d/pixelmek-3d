@@ -236,5 +236,12 @@ func (g *Game) loadGameSprites() {
 	}
 	redLaserProjectile.SetTextureFacingMap(redLaserFacingMap)
 
+	// give projectile impact effect
+	laserImpactImg := getSpriteFromFile("effects/laser_impact_sheet.png")
+	redExplosionEffect := model.NewAnimatedEffect(
+		0, 0, 0.1, laserImpactImg, 8, 3, 1, raycaster.AnchorCenter, 1,
+	)
+	redLaserProjectile.ImpactEffect = *redExplosionEffect
+
 	g.player.TestProjectile = redLaserProjectile
 }

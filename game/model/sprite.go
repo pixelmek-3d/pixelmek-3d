@@ -121,8 +121,8 @@ func NewSpriteFromSheet(
 }
 
 func NewAnimatedSprite(
-	x, y, scale float64, animationRate int, img *ebiten.Image, mapColor color.RGBA,
-	columns, rows int, anchor raycaster.SpriteAnchor, collisionRadius float64,
+	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
+	columns, rows, animationRate int, anchor raycaster.SpriteAnchor, collisionRadius float64,
 ) *Sprite {
 	s := &Sprite{
 		Entity: &Entity{

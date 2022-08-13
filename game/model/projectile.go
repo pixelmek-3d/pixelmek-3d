@@ -40,7 +40,7 @@ func NewAnimatedProjectile(
 		lifespan = math.MaxFloat64
 	}
 	p := &Projectile{
-		Sprite:       NewAnimatedSprite(x, y, scale, animationRate, img, mapColor, columns, rows, anchor, collisionRadius),
+		Sprite:       NewAnimatedSprite(x, y, scale, img, mapColor, columns, rows, animationRate, anchor, collisionRadius),
 		Lifespan:     lifespan,
 		ImpactEffect: Effect{},
 	}
