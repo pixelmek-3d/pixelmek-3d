@@ -218,8 +218,11 @@ func (g *Game) loadMissionSprites() {
 func (g *Game) loadGameSprites() {
 	// TODO: move these to predefined projectile sprites from their own data source files
 	redLaserImg := getSpriteFromFile("projectiles/beams_red.png")
+	lifespanSeconds := 2.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel
 	redLaserProjectile := model.NewAnimatedProjectile(
-		0, 0, 0.2, 0, redLaserImg, color.RGBA{}, 3, 1, raycaster.AnchorCenter, 0.01,
+		0, 0, 0.2, lifespanSeconds, redLaserImg, color.RGBA{}, 3, 1, 0, raycaster.AnchorCenter, 0.01,
 	)
 	g.player.TestProjectile = redLaserProjectile
+
+	// TODO: use facing index to give projectile different look when viewed from other angles besides head-on
 }

@@ -453,6 +453,12 @@ func (g *Game) updateProjectiles() {
 	}
 
 	for p := range g.sprites.projectiles {
+		p.Lifespan--
+		if p.Lifespan <= 0 {
+			g.sprites.deleteProjectile(p)
+			continue
+		}
+
 		if p.Velocity != 0 {
 
 			realVelocity := p.Velocity
