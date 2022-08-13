@@ -419,7 +419,7 @@ func (g *Game) fireWeapon() {
 	// TODO: pitch angle should be based on raycasted angle toward crosshairs, for now just simplified as player pitch angle
 	pAngle, pPitch := g.player.Angle, g.player.Pitch
 
-	pVelocity := 24.0
+	pVelocity := 2.0
 	projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
 	if projectile != nil {
 		g.sprites.addProjectile(projectile)
