@@ -414,17 +414,52 @@ func (g *Game) fireWeapon() {
 		return
 	}
 
-	// spawning projectile at player position just slightly below player's center point of view
-	pX, pY, pZ := g.player.Position.X, g.player.Position.Y, geom.Clamp(g.player.PositionZ-0.15, 0.05, g.player.PositionZ+0.5)
+	// spawning projectile at offsets from player's center point of view
 	// TODO: pitch angle should be based on raycasted angle toward crosshairs, for now just simplified as player pitch angle
 	pAngle, pPitch := g.player.Angle, g.player.Pitch
 
-	pVelocity := 2.0
+	// firing test projectiles
+	pVelocity := 16.0
+
+	pX, pY, pZ := g.weaponPosition3D(0, -0.1)
 	projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
 	if projectile != nil {
 		g.sprites.addProjectile(projectile)
 		g.player.TestCooldown = 10
 	}
+
+	pX, pY, pZ = g.weaponPosition3D(-0.1, -0.2)
+	projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
+	if projectile != nil {
+		g.sprites.addProjectile(projectile)
+		g.player.TestCooldown = 10
+	}
+
+	pX, pY, pZ = g.weaponPosition3D(0.1, -0.2)
+	projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
+	if projectile != nil {
+		g.sprites.addProjectile(projectile)
+		g.player.TestCooldown = 10
+	}
+}
+
+// weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
+func (g *Game) weaponPosition3D(weaponOffX, weaponOffY float64) (float64, float64, float64) {
+	wX, wY, wZ := g.player.Position.X, g.player.Position.Y, g.player.PositionZ+weaponOffY
+
+	if weaponOffX == 0 {
+		// no X/Y position adjustments needed
+		return wX, wY, wZ
+	}
+
+	// calculate X,Y based on player orientation angle perpendicular to angle of view
+	offAngle := g.player.Angle + math.Pi/2
+
+	// create line segment using offset angle and X offset to determine 3D position offset of X/Y
+	offLine := geom.LineFromAngle(0, 0, offAngle, weaponOffX)
+	wX, wY = wX+offLine.X2, wY+offLine.Y2
+
+	return wX, wY, wZ
 }
 
 // Update camera to match player position and orientation
