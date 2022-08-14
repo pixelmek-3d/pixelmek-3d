@@ -114,6 +114,10 @@ func (g *Game) handleInput() {
 			g.fireWeapon()
 		}
 
+		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
+			g.fireTestWeaponAtPlayer()
+		}
+
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
 			// hold right click to zoom view in this mode
 			if g.camera.FovDepth() != g.zoomFovDepth {

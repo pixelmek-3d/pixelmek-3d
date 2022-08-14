@@ -443,6 +443,32 @@ func (g *Game) fireWeapon() {
 	}
 }
 
+func (g *Game) fireTestWeaponAtPlayer() {
+	// Just for testing!
+	p := g.player.TestProjectile
+	if p == nil {
+		return
+	}
+
+	if g.player.TestCooldown > 0 {
+		return
+	}
+
+	for m := range g.sprites.mechSprites {
+		// firing test projectile at player
+		pVelocity := 16.0
+
+		pX, pY, pZ := m.Position.X, m.Position.Y, m.PositionZ-0.2
+		pLine := geom.Line{X1: pX, Y1: pY, X2: g.player.Position.X, Y2: g.player.Position.Y}
+		pAngle := pLine.Angle()
+		projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, 0, pVelocity, m.Entity)
+		if projectile != nil {
+			g.sprites.addProjectile(projectile)
+			g.player.TestCooldown = 10
+		}
+	}
+}
+
 // weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
 func (g *Game) weaponPosition3D(weaponOffX, weaponOffY float64) (float64, float64, float64) {
 	wX, wY, wZ := g.player.Position.X, g.player.Position.Y, g.player.PositionZ+weaponOffY
