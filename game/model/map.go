@@ -81,17 +81,19 @@ func (r *RegExp) UnmarshalText(b []byte) error {
 }
 
 type MapSprite struct {
-	Image     string       `yaml:"image"`
-	Positions [][2]float64 `yaml:"positions"`
-	Scale     float64      `default:"1.0" yaml:"scale,omitempty"`
-	Stamp     string       `yaml:"stamp"`
+	Image           string       `yaml:"image"`
+	Positions       [][2]float64 `yaml:"positions"`
+	CollisionRadius float64      `yaml:"collisionRadius"`
+	Scale           float64      `default:"1.0" yaml:"scale,omitempty"`
+	Stamp           string       `yaml:"stamp"`
 }
 
 type MapSpriteFill struct {
-	Image      string     `yaml:"image"`
-	Quantity   int        `yaml:"quantity"`
-	ScaleRange [2]float64 `yaml:"scaleRange"`
-	Rect       [2][2]int  `yaml:"rect"`
+	Image           string     `yaml:"image"`
+	Quantity        int        `yaml:"quantity"`
+	CollisionRadius float64    `yaml:"collisionRadius"`
+	ScaleRange      [2]float64 `yaml:"scaleRange"`
+	Rect            [2][2]int  `yaml:"rect"`
 }
 
 type MapSpriteStamp struct {
@@ -213,9 +215,10 @@ func (m *Map) generateFillerSprites() error {
 			}
 
 			mapSprite := MapSprite{
-				Image:     fill.Image,
-				Positions: [][2]float64{{fX, fY}},
-				Scale:     scale,
+				Image:           fill.Image,
+				Positions:       [][2]float64{{fX, fY}},
+				CollisionRadius: fill.CollisionRadius,
+				Scale:           scale,
 			}
 			nSprites = append(nSprites, mapSprite)
 		}
@@ -248,9 +251,10 @@ func (m *Map) generateSpritesFromStamps() error {
 							mapPositions[i] = [2]float64{x + stampPosition[0], y + stampPosition[1]}
 						}
 						mapSprite := MapSprite{
-							Image:     stampSprite.Image,
-							Positions: mapPositions,
-							Scale:     stampSprite.Scale,
+							Image:           stampSprite.Image,
+							Positions:       mapPositions,
+							CollisionRadius: stampSprite.CollisionRadius,
+							Scale:           stampSprite.Scale,
 						}
 						nSprites = append(nSprites, mapSprite)
 					}

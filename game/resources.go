@@ -171,7 +171,7 @@ func (g *Game) loadContent() {
 
 		for _, position := range s.Positions {
 			sprite := model.NewSprite(
-				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, 0,
+				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, s.CollisionRadius*s.Scale,
 			)
 			g.sprites.addSprite(sprite)
 		}
