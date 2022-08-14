@@ -84,6 +84,7 @@ type MapSprite struct {
 	Image           string       `yaml:"image"`
 	Positions       [][2]float64 `yaml:"positions"`
 	CollisionRadius float64      `yaml:"collisionRadius"`
+	HitPoints       float64      `yaml:"hitPoints"`
 	Scale           float64      `default:"1.0" yaml:"scale,omitempty"`
 	Stamp           string       `yaml:"stamp"`
 }
@@ -92,6 +93,7 @@ type MapSpriteFill struct {
 	Image           string     `yaml:"image"`
 	Quantity        int        `yaml:"quantity"`
 	CollisionRadius float64    `yaml:"collisionRadius"`
+	HitPoints       float64    `yaml:"hitPoints"`
 	ScaleRange      [2]float64 `yaml:"scaleRange"`
 	Rect            [2][2]int  `yaml:"rect"`
 }
@@ -218,6 +220,7 @@ func (m *Map) generateFillerSprites() error {
 				Image:           fill.Image,
 				Positions:       [][2]float64{{fX, fY}},
 				CollisionRadius: fill.CollisionRadius,
+				HitPoints:       fill.HitPoints,
 				Scale:           scale,
 			}
 			nSprites = append(nSprites, mapSprite)
@@ -254,6 +257,7 @@ func (m *Map) generateSpritesFromStamps() error {
 							Image:           stampSprite.Image,
 							Positions:       mapPositions,
 							CollisionRadius: stampSprite.CollisionRadius,
+							HitPoints:       stampSprite.HitPoints,
 							Scale:           stampSprite.Scale,
 						}
 						nSprites = append(nSprites, mapSprite)

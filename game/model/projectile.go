@@ -14,11 +14,12 @@ import (
 type Projectile struct {
 	*Sprite
 	Lifespan     float64
+	Damage       float64 // TODO: separate out non-visual game model
 	ImpactEffect Effect
 }
 
 func NewProjectile(
-	x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, anchor raycaster.SpriteAnchor, collisionRadius float64,
+	x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, anchor raycaster.SpriteAnchor, collisionRadius, damage float64,
 ) *Projectile {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
@@ -26,6 +27,7 @@ func NewProjectile(
 	p := &Projectile{
 		Sprite:       NewSprite(x, y, scale, img, mapColor, anchor, collisionRadius),
 		Lifespan:     lifespan,
+		Damage:       damage,
 		ImpactEffect: Effect{},
 	}
 
@@ -34,7 +36,7 @@ func NewProjectile(
 
 func NewAnimatedProjectile(
 	x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int,
-	anchor raycaster.SpriteAnchor, collisionRadius float64,
+	anchor raycaster.SpriteAnchor, collisionRadius, damage float64,
 ) *Projectile {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
@@ -42,6 +44,7 @@ func NewAnimatedProjectile(
 	p := &Projectile{
 		Sprite:       NewAnimatedSprite(x, y, scale, img, mapColor, columns, rows, animationRate, anchor, collisionRadius),
 		Lifespan:     lifespan,
+		Damage:       damage,
 		ImpactEffect: Effect{},
 	}
 

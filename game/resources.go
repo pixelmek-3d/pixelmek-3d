@@ -173,7 +173,8 @@ func (g *Game) loadContent() {
 			sprite := model.NewSprite(
 				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, s.CollisionRadius*s.Scale,
 			)
-			g.sprites.addSprite(sprite)
+			sprite.HitPoints = s.HitPoints
+			g.sprites.addMapSprite(sprite)
 		}
 	}
 
@@ -219,8 +220,9 @@ func (g *Game) loadGameSprites() {
 	// TODO: move these to predefined projectile sprites from their own data source files
 	redLaserImg := getSpriteFromFile("projectiles/beams_red.png")
 	lifespanSeconds := 4.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel
+	redLaserDamage := 5.0
 	redLaserProjectile := model.NewAnimatedProjectile(
-		0, 0, 0.2, lifespanSeconds, redLaserImg, color.RGBA{}, 1, 3, 4, raycaster.AnchorCenter, 0.01,
+		0, 0, 0.2, lifespanSeconds, redLaserImg, color.RGBA{}, 1, 3, 4, raycaster.AnchorCenter, 0.01, redLaserDamage,
 	)
 
 	// give projectile angle facing textures by row index

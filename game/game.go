@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -333,12 +334,7 @@ func (g *Game) setFovAngle(fovDegrees float64) {
 // Move player by move speed in the forward/backward direction
 func (g *Game) Move(mSpeed float64) {
 	moveLine := geom.LineFromAngle(g.player.Position.X, g.player.Position.Y, g.player.Angle, mSpeed)
-
-	newPos, _, _ := g.getValidMove(g.player.Entity, moveLine.X2, moveLine.Y2, true)
-	if !newPos.Equals(g.player.Pos()) {
-		g.player.Position = newPos
-		g.player.Moved = true
-	}
+	g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
 }
 
 // Move player by strafe speed in the left/right direction
@@ -348,12 +344,7 @@ func (g *Game) Strafe(sSpeed float64) {
 		strafeAngle = -strafeAngle
 	}
 	strafeLine := geom.LineFromAngle(g.player.Position.X, g.player.Position.Y, g.player.Angle-strafeAngle, math.Abs(sSpeed))
-
-	newPos, _, _ := g.getValidMove(g.player.Entity, strafeLine.X2, strafeLine.Y2, true)
-	if !newPos.Equals(g.player.Pos()) {
-		g.player.Position = newPos
-		g.player.Moved = true
-	}
+	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2)
 }
 
 // Rotate player heading angle by rotation speed
@@ -507,8 +498,38 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	g.camera.SetPitchAngle(g.player.Pitch)
 }
 
+func (g *Game) AllEntities() map[*model.Entity]struct{} {
+	numEntities := len(g.sprites.mapSprites) + len(g.sprites.mechSprites)
+	entities := make(map[*model.Entity]struct{}, numEntities)
+	for s := range g.sprites.mapSprites {
+		entities[s.Entity] = struct{}{}
+	}
+	for s := range g.sprites.mechSprites {
+		entities[s.Entity] = struct{}{}
+	}
+	return entities
+}
+
+func (g *Game) updatePlayerPosition(newX, newY float64) {
+	// Update player position
+	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, true)
+	if !newPos.Equals(g.player.Pos()) {
+		g.player.Position = newPos
+		g.player.Moved = true
+	}
+
+	if isCollision && len(collisions) > 0 {
+		// apply damage to the first sprite entity that was hit
+		collisionEntity := collisions[0]
+
+		collisionDamage := 1.0 // TODO: determine collision damage based on player mech and speed
+		collisionEntity.entity.HitPoints -= collisionDamage
+		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.HitPoints)
+	}
+}
+
 func (g *Game) updateProjectiles() {
-	// Testing animated projectile movement
+	// Update animated projectile movement
 	if g.player.TestCooldown > 0 {
 		g.player.TestCooldown--
 	}
@@ -526,7 +547,7 @@ func (g *Game) updateProjectiles() {
 			zVelocity := 0.0
 			if p.Pitch != 0 {
 				// would be better to use proper 3D geometry math here, but trying to avoid matrix math library
-				// for this one simple use (but if becomes desired: https://github.com/ungerik/go3d)
+				// for now, for this one simple use
 				realVelocity = geom.GetAdjacentHypotenuseTriangleLeg(p.Pitch, p.Velocity)
 				zVelocity = geom.LineFromAngle(0, 0, p.Pitch, realVelocity).Y2
 			}
@@ -542,11 +563,25 @@ func (g *Game) updateProjectiles() {
 				// for testing purposes, projectiles instantly get deleted when collision occurs
 				g.sprites.deleteProjectile(p)
 
+				var collisionEntity *EntityCollision
+				if len(collisions) > 0 {
+					// apply damage to the first sprite entity that was hit
+					collisionEntity = collisions[0]
+
+					if collisionEntity.entity == g.player.Entity {
+						// TODO: visual response to player being hit
+						println("ouch!")
+					} else {
+						collisionEntity.entity.HitPoints -= p.Damage
+						fmt.Printf("hit for %0.1f (HP: %0.1f)\n", p.Damage, collisionEntity.entity.HitPoints)
+					}
+				}
+
 				// make a sprite/wall getting hit by projectile cause some visual effect
 				if p.ImpactEffect.Sprite != nil {
-					if len(collisions) >= 1 {
+					if collisionEntity != nil {
 						// use the first collision point to place effect at
-						newPos = collisions[0].collision
+						newPos = collisionEntity.collision
 					}
 
 					// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
@@ -555,13 +590,6 @@ func (g *Game) updateProjectiles() {
 					g.sprites.addEffect(effect)
 				}
 
-				for _, collisionEntity := range collisions {
-					if collisionEntity.entity == g.player.Entity {
-						println("ouch!")
-					} else {
-						println("hit!")
-					}
-				}
 			} else {
 				p.Position = newPos
 
@@ -582,27 +610,26 @@ func (g *Game) updateProjectiles() {
 	}
 }
 
-func (g *Game) AllEntities() map[*model.Entity]struct{} {
-	numEntities := len(g.sprites.mapSprites) + len(g.sprites.mechSprites)
-	entities := make(map[*model.Entity]struct{}, numEntities)
-	for s := range g.sprites.mapSprites {
-		entities[s.Entity] = struct{}{}
-	}
-	for s := range g.sprites.mechSprites {
-		entities[s.Entity] = struct{}{}
-	}
-	return entities
-}
-
 func (g *Game) updateSprites() {
-	// Testing animated sprite movement
+	// Update for animated sprite movement
 	for s := range g.sprites.mapSprites {
+		if s.HitPoints <= 0 {
+			// TODO: implement sprite destruction animation
+			g.sprites.deleteMapSprite(s)
+		}
+
 		g.updateSpritePosition(s)
 		s.Update(g.player.Position)
 	}
 
-	// Testing animated mech sprite movement
+	// Updates for animated mech sprite movement
 	for s := range g.sprites.mechSprites {
+		// TODO: implement mech armor and structure instead of direct HP
+		if s.HitPoints <= 0 {
+			// TODO: implement mech destruction animation
+			g.sprites.deleteMechSprite(s)
+		}
+
 		g.updateMechPosition(s)
 		s.Update(g.player.Position)
 	}

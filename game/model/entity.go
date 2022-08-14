@@ -13,6 +13,7 @@ type Entity struct {
 	Pitch           float64
 	Velocity        float64
 	CollisionRadius float64
+	HitPoints       float64 // TODO: separate out non-visual game model
 	MapColor        color.RGBA
 	Parent          *Entity
 }

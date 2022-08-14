@@ -57,6 +57,7 @@ func NewSprite(
 			Angle:           0,
 			Velocity:        0,
 			CollisionRadius: collisionRadius,
+			HitPoints:       math.MaxFloat64,
 			MapColor:        mapColor,
 		},
 	}
@@ -86,6 +87,7 @@ func NewSpriteFromSheet(
 			Angle:           0,
 			Velocity:        0,
 			CollisionRadius: collisionRadius,
+			HitPoints:       math.MaxFloat64,
 			MapColor:        mapColor,
 		},
 	}
@@ -131,6 +133,7 @@ func NewAnimatedSprite(
 			Angle:           0,
 			Velocity:        0,
 			CollisionRadius: collisionRadius,
+			HitPoints:       math.MaxFloat64,
 			MapColor:        mapColor,
 		},
 	}

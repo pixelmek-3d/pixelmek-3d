@@ -23,11 +23,11 @@ func NewSpriteHandler() *SpriteHandler {
 	return s
 }
 
-func (s *SpriteHandler) addSprite(sprite *model.Sprite) {
+func (s *SpriteHandler) addMapSprite(sprite *model.Sprite) {
 	s.mapSprites[sprite] = struct{}{}
 }
 
-func (s *SpriteHandler) deleteSprite(sprite *model.Sprite) {
+func (s *SpriteHandler) deleteMapSprite(sprite *model.Sprite) {
 	delete(s.mapSprites, sprite)
 }
 
