@@ -50,7 +50,8 @@ type Game struct {
 	width  int
 	height int
 
-	player *model.Player
+	player     *model.Player
+	crosshairs *model.Crosshairs
 
 	//--define camera and renderer--//
 	camera *raycaster.Camera
@@ -129,6 +130,10 @@ func NewGame() *Game {
 
 	// load map and mission content once when first run
 	g.loadContent()
+
+	// load crosshairs
+	crosshairs_sheet := getSpriteFromFile("crosshairs_sheet.png")
+	g.crosshairs = model.NewCrosshairs(0, 0, 1.0, crosshairs_sheet, 20, 10, 126)
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -292,6 +297,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// Render raycast to screen
 	g.camera.Draw(screen)
+
+	// draw crosshairs
+	g.drawCrosshairs(screen)
 
 	// draw menu (if active)
 	g.menu.draw(screen)
