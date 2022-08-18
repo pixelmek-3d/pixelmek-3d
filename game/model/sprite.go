@@ -29,6 +29,7 @@ type Sprite struct {
 	texFacingKeys  []float64
 	texRects       []image.Rectangle
 	textures       []*ebiten.Image
+	screenRect     *image.Rectangle
 }
 
 func (s *Sprite) Scale() float64 {
@@ -45,6 +46,10 @@ func (s *Sprite) Texture() *ebiten.Image {
 
 func (s *Sprite) TextureRect() image.Rectangle {
 	return s.texRects[s.texNum]
+}
+
+func (s *Sprite) SetScreenRect(rect *image.Rectangle) {
+	s.screenRect = rect
 }
 
 func NewSprite(
@@ -219,8 +224,12 @@ func (s *Sprite) ResetAnimation() {
 	s.texNum = 0
 }
 
-func (s *Sprite) GetLoopCounter() int {
+func (s *Sprite) LoopCounter() int {
 	return s.loopCounter
+}
+
+func (s *Sprite) ScreenRect() *image.Rectangle {
+	return s.screenRect
 }
 
 func (s *Sprite) Update(camPos *geom.Vector2) {

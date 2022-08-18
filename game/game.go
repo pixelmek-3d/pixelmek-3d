@@ -609,10 +609,10 @@ func (g *Game) updateProjectiles() {
 		p.Update(g.player.Position)
 	}
 
-	// Testing animated effects (explosions)
+	// Update animated effects
 	for e := range g.sprites.effects {
 		e.Update(g.player.Position)
-		if e.GetLoopCounter() >= e.LoopCount {
+		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
 		}
 	}
