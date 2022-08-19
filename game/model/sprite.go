@@ -211,7 +211,7 @@ func (s *Sprite) SetAnimationReversed(isReverse bool) {
 	s.animReversed = isReverse
 }
 
-func (s *Sprite) SetAnimationFrame(texNum int) {
+func (s *Sprite) SetTextureFrame(texNum int) {
 	s.texNum = texNum
 }
 

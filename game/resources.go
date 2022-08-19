@@ -217,6 +217,13 @@ func (g *Game) loadMissionSprites() {
 
 // loadGameSprites loads all other game sprite reources
 func (g *Game) loadGameSprites() {
+	// load crosshairs
+	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	g.crosshairs = model.NewCrosshairs(1.0, crosshairsSheet, 20, 10, 190)
+
+	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
+	g.reticle = model.NewTargetReticle(1.0, reticleSheet)
+
 	// TODO: move these to predefined projectile sprites from their own data source files
 	redLaserImg := getSpriteFromFile("projectiles/beams_red.png")
 	lifespanSeconds := 4.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel

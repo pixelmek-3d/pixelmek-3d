@@ -12,10 +12,10 @@ type Crosshairs struct {
 }
 
 func NewCrosshairs(
-	x, y, scale float64, img *ebiten.Image, columns, rows, crosshairIndex int,
+	scale float64, img *ebiten.Image, columns, rows, crosshairIndex int,
 ) *Crosshairs {
 	c := &Crosshairs{
-		Sprite: NewSpriteFromSheet(x, y, scale, img, color.RGBA{}, columns, rows, crosshairIndex, raycaster.AnchorCenter, 0),
+		Sprite: NewSpriteFromSheet(0, 0, scale, img, color.RGBA{}, columns, rows, crosshairIndex, raycaster.AnchorCenter, 0),
 	}
 
 	return c
