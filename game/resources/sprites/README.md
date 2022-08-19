@@ -1,11 +1,13 @@
 # Sprite Resource Attribution
 
-- `crosshairs_sheet`: Kenney - https://www.kenney.nl/
-
 ## ./effects
 
 - `laser_impact_sheet.png`: Ville Seppanen
   - https://opengameart.org/content/explosion-animated
+
+## ./hud
+
+- `crosshairs_sheet`: Kenney - https://www.kenney.nl/
 
 ## ./mechs
 

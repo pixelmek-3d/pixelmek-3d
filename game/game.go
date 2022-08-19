@@ -132,8 +132,8 @@ func NewGame() *Game {
 	g.loadContent()
 
 	// load crosshairs
-	crosshairs_sheet := getSpriteFromFile("crosshairs_sheet.png")
-	g.crosshairs = model.NewCrosshairs(0, 0, 1.0, crosshairs_sheet, 20, 10, 126)
+	crosshairs_sheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	g.crosshairs = model.NewCrosshairs(0, 0, 1.0, crosshairs_sheet, 20, 10, 190)
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)

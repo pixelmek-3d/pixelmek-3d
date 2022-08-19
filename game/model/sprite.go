@@ -108,13 +108,14 @@ func NewSpriteFromSheet(
 	w, h := img.Size()
 
 	// crop sheet by given number of columns and rows into a single dimension array
-	s.W = w / columns
-	s.H = h / rows
+	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
+	s.W = int(wFloat)
+	s.H = int(hFloat)
 
 	for r := 0; r < rows; r++ {
-		y := r * s.H
+		y := int(float64(r) * hFloat)
 		for c := 0; c < columns; c++ {
-			x := c * s.W
+			x := int(float64(c) * wFloat)
 			cellRect := image.Rect(x, y, x+s.W-1, y+s.H-1)
 			cellImg := img.SubImage(cellRect).(*ebiten.Image)
 
