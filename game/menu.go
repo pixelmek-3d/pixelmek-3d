@@ -78,7 +78,7 @@ func (m *DemoMenu) update(g *Game) {
 	m.mgr.Update(1.0 / float32(ebiten.MaxTPS()))
 
 	m.mgr.BeginFrame()
-	imgui.Begin("Settings")
+	imgui.BeginV("Settings", nil, imgui.WindowFlagsAlwaysVerticalScrollbar)
 	{
 		// Set resolution by using int input fields and button to set it
 		{
