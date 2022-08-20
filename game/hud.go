@@ -12,7 +12,7 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
 
-	crosshairScale := g.crosshairs.Scale()
+	crosshairScale := g.crosshairs.Scale() * g.renderScale
 	op.GeoM.Scale(crosshairScale, crosshairScale)
 	op.GeoM.Translate(
 		float64(g.width)/2-float64(g.crosshairs.W)*crosshairScale/2,
@@ -27,7 +27,8 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 	}
 
 	r := g.reticle
-	rScale := r.Scale()
+	rScale := r.Scale() * g.renderScale
+	rOff := rScale * float64(r.W) / 2
 
 	var op *ebiten.DrawImageOptions
 
@@ -37,12 +38,14 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 			continue
 		}
 
+		minX, minY, maxX, maxY := float64(rect.Min.X), float64(rect.Min.Y), float64(rect.Max.X), float64(rect.Max.Y)
+
 		// top left corner
 		g.reticle.SetTextureFrame(0)
 		op = &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Scale(rScale, rScale)
-		op.GeoM.Translate(float64(rect.Min.X-r.W/2), float64(rect.Min.Y-r.W/2))
+		op.GeoM.Translate(minX-rOff, minY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 
 		// top right corner
@@ -50,7 +53,7 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		op = &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Scale(rScale, rScale)
-		op.GeoM.Translate(float64(rect.Max.X-r.W/2), float64(rect.Min.Y-r.W/2))
+		op.GeoM.Translate(maxX-rOff, minY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 
 		// bottom left corner
@@ -58,7 +61,7 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		op = &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Scale(rScale, rScale)
-		op.GeoM.Translate(float64(rect.Min.X-r.W/2), float64(rect.Max.Y-r.W/2))
+		op.GeoM.Translate(minX-rOff, maxY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 
 		// bottom right corner
@@ -66,7 +69,7 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		op = &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Scale(rScale, rScale)
-		op.GeoM.Translate(float64(rect.Max.X-r.W/2), float64(rect.Max.Y-r.W/2))
+		op.GeoM.Translate(maxX-rOff, maxY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 	}
 }
