@@ -11,8 +11,9 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
+	op.ColorM.Scale(0.0, 1.0, 0.0, 1.0) // TODO: make hud color configurable
 
-	crosshairScale := g.crosshairs.Scale() * g.renderScale
+	crosshairScale := g.crosshairs.Scale() * g.renderScale // TODO: make hud scale configurable
 	op.GeoM.Scale(crosshairScale, crosshairScale)
 	op.GeoM.Translate(
 		float64(g.width)/2-float64(g.crosshairs.W)*crosshairScale/2,
@@ -32,6 +33,13 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 
 	var op *ebiten.DrawImageOptions
 
+	// setup some common draw modifications
+	geoM := ebiten.GeoM{}
+	geoM.Scale(rScale, rScale)
+
+	colorM := ebiten.ColorM{}
+	colorM.Scale(1.0, 0, 0, 1.0)
+
 	for s := range g.sprites.mechSprites {
 		rect := s.ScreenRect()
 		if rect == nil {
@@ -42,33 +50,29 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 
 		// top left corner
 		g.reticle.SetTextureFrame(0)
-		op = &ebiten.DrawImageOptions{}
+		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
 		op.Filter = ebiten.FilterNearest
-		op.GeoM.Scale(rScale, rScale)
 		op.GeoM.Translate(minX-rOff, minY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 
 		// top right corner
 		g.reticle.SetTextureFrame(1)
-		op = &ebiten.DrawImageOptions{}
+		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
 		op.Filter = ebiten.FilterNearest
-		op.GeoM.Scale(rScale, rScale)
 		op.GeoM.Translate(maxX-rOff, minY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 
 		// bottom left corner
 		g.reticle.SetTextureFrame(2)
-		op = &ebiten.DrawImageOptions{}
+		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
 		op.Filter = ebiten.FilterNearest
-		op.GeoM.Scale(rScale, rScale)
 		op.GeoM.Translate(minX-rOff, maxY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 
 		// bottom right corner
 		g.reticle.SetTextureFrame(3)
-		op = &ebiten.DrawImageOptions{}
+		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
 		op.Filter = ebiten.FilterNearest
-		op.GeoM.Scale(rScale, rScale)
 		op.GeoM.Translate(maxX-rOff, maxY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
 	}
