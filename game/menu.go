@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"strings"
 
 	"github.com/gabstv/ebiten-imgui/renderer"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -78,11 +79,44 @@ func (m *DemoMenu) update(g *Game) {
 	m.mgr.Update(1.0 / float32(ebiten.MaxTPS()))
 
 	m.mgr.BeginFrame()
-	if !imgui.BeginV("Settings", nil, imgui.WindowFlagsAlwaysVerticalScrollbar) {
+
+	windowFlags := imgui.WindowFlagsNone
+	windowFlags |= imgui.WindowFlagsAlwaysAutoResize
+	windowFlags |= imgui.WindowFlagsAlwaysVerticalScrollbar
+	windowFlags |= imgui.WindowFlagsMenuBar
+
+	if !imgui.BeginV("Settings", nil, windowFlags) {
 		// Early out if the window is collapsed, as an optimization.
 		imgui.End()
 		m.mgr.EndFrame()
 		return
+	}
+
+	if imgui.BeginMenuBar() {
+		if imgui.BeginMenu("Resume") {
+			if imgui.MenuItem("Return to duty") {
+				g.closeMenu()
+			}
+			imgui.EndMenu()
+		}
+
+		// provide separation between Resume and Exit options
+		if imgui.BeginMenuV(strings.Repeat(" ", 8), false) {
+			imgui.EndMenu()
+		}
+		imgui.Separator()
+		if imgui.BeginMenuV(strings.Repeat(" ", 7), false) {
+			imgui.EndMenu()
+		}
+
+		if imgui.BeginMenu("Exit") {
+			if imgui.MenuItem("Embrace cowardice") {
+				exit(0)
+			}
+			imgui.EndMenu()
+		}
+
+		imgui.EndMenuBar()
 	}
 
 	// Set resolution by using int input fields and button to set it
@@ -184,19 +218,6 @@ func (m *DemoMenu) update(g *Game) {
 			R: byte(m.newMaxLightRGB[0] * 255), G: byte(m.newMaxLightRGB[1] * 255), B: byte(m.newMaxLightRGB[2] * 255),
 		}
 		g.camera.SetLightRGB(g.minLightRGB, g.maxLightRGB)
-	}
-
-	// Just some extra spacing
-	imgui.Dummy(imgui.Vec2{X: 10, Y: 10})
-	imgui.Separator()
-	{
-		if imgui.ButtonV("Resume", imgui.Vec2{X: 100, Y: 25}) {
-			g.closeMenu()
-		}
-		imgui.SameLineV(0, imgui.WindowWidth()-200)
-		if imgui.ButtonV("Exit", imgui.Vec2{X: 100, Y: 25}) {
-			exit(0)
-		}
 	}
 
 	imgui.End()
