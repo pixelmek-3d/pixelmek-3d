@@ -55,6 +55,7 @@ type Game struct {
 	reticle    *model.TargetReticle
 
 	hudScale float64
+	hudRGBA  color.RGBA
 
 	//--define camera and renderer--//
 	camera *raycaster.Camera
@@ -200,6 +201,10 @@ func (g *Game) initConfig() {
 	viper.SetDefault("screen.clutterDistance", 10.0)
 
 	viper.SetDefault("hud.scale", 1.0)
+	viper.SetDefault("hud.color.red", 100)
+	viper.SetDefault("hud.color.green", 255)
+	viper.SetDefault("hud.color.blue", 230)
+	viper.SetDefault("hud.color.alpha", 255)
 
 	err := viper.ReadInConfig()
 	if err != nil && g.debug {
@@ -214,6 +219,12 @@ func (g *Game) initConfig() {
 	g.clutterDistance = viper.GetFloat64("screen.clutterDistance")
 
 	g.hudScale = viper.GetFloat64("hud.scale")
+	g.hudRGBA = color.RGBA{
+		R: uint8(viper.GetUint("hud.color.red")),
+		G: uint8(viper.GetUint("hud.color.green")),
+		B: uint8(viper.GetUint("hud.color.blue")),
+		A: uint8(viper.GetUint("hud.color.alpha")),
+	}
 
 	g.debug = viper.GetBool("debug")
 }

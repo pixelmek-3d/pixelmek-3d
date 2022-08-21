@@ -23,6 +23,7 @@ type DemoMenu struct {
 	newClutterDistance float32
 
 	newHudScale float32
+	newHudRGBA  [4]float32
 
 	// DEBUG only options
 	newGlobalIllumination float32
@@ -54,6 +55,12 @@ func (g *Game) openMenu() {
 	g.menu.newClutterDistance = float32(g.clutterDistance)
 
 	g.menu.newHudScale = float32(g.hudScale)
+	g.menu.newHudRGBA = [4]float32{
+		float32(g.hudRGBA.R) * 1 / 255,
+		float32(g.hudRGBA.G) * 1 / 255,
+		float32(g.hudRGBA.B) * 1 / 255,
+		float32(g.hudRGBA.A) * 1 / 255,
+	}
 
 	g.menu.newLightFalloff = float32(g.lightFalloff)
 	g.menu.newGlobalIllumination = float32(g.globalIllumination)
@@ -198,6 +205,19 @@ func (m *DemoMenu) update(g *Game) {
 
 	if imgui.SliderFloatV("Scaling", &m.newHudScale, 0.2, 5.0, "%.1f", imgui.SliderFlagsNone) {
 		g.hudScale = float64(m.newHudScale)
+	}
+
+	hudColorChanged := false
+	if imgui.ColorEdit4V("Color", &m.newHudRGBA, imgui.ColorEditFlagsAlphaBar) {
+		hudColorChanged = true
+	}
+	if hudColorChanged {
+		g.hudRGBA = color.RGBA{
+			R: byte(m.newHudRGBA[0] * 255),
+			G: byte(m.newHudRGBA[1] * 255),
+			B: byte(m.newHudRGBA[2] * 255),
+			A: byte(m.newHudRGBA[3] * 255),
+		}
 	}
 
 	// New section for lighting options (TODO: should be DEBUG only)

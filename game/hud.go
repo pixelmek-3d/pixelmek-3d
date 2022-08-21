@@ -11,7 +11,7 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
-	op.ColorM.Scale(0.0, 1.0, 0.0, 1.0) // TODO: make hud color configurable
+	op.ColorM.ScaleWithColor(g.hudRGBA)
 
 	crosshairScale := g.crosshairs.Scale() * g.renderScale * g.hudScale
 	op.GeoM.Scale(crosshairScale, crosshairScale)
@@ -38,7 +38,7 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 	geoM.Scale(rScale, rScale)
 
 	colorM := ebiten.ColorM{}
-	colorM.Scale(1.0, 0, 0, 1.0)
+	colorM.ScaleWithColor(g.hudRGBA)
 
 	for s := range g.sprites.mechSprites {
 		rect := s.ScreenRect()
