@@ -54,6 +54,8 @@ type Game struct {
 	crosshairs *model.Crosshairs
 	reticle    *model.TargetReticle
 
+	hudScale float64
+
 	//--define camera and renderer--//
 	camera *raycaster.Camera
 
@@ -190,11 +192,14 @@ func (g *Game) initConfig() {
 
 	// set default config values
 	viper.SetDefault("debug", false)
+
 	viper.SetDefault("screen.width", 1024)
 	viper.SetDefault("screen.height", 768)
 	viper.SetDefault("screen.renderScale", 1.0)
 	viper.SetDefault("screen.renderDistance", -1)
 	viper.SetDefault("screen.clutterDistance", 10.0)
+
+	viper.SetDefault("hud.scale", 1.0)
 
 	err := viper.ReadInConfig()
 	if err != nil && g.debug {
@@ -207,6 +212,9 @@ func (g *Game) initConfig() {
 	g.renderScale = viper.GetFloat64("screen.renderScale")
 	g.renderDistance = viper.GetFloat64("screen.renderDistance")
 	g.clutterDistance = viper.GetFloat64("screen.clutterDistance")
+
+	g.hudScale = viper.GetFloat64("hud.scale")
+
 	g.debug = viper.GetBool("debug")
 }
 

@@ -22,6 +22,9 @@ type DemoMenu struct {
 	newRenderDistance  float32
 	newClutterDistance float32
 
+	newHudScale float32
+
+	// DEBUG only options
 	newGlobalIllumination float32
 	newLightFalloff       float32
 	newMinLightRGB        [3]float32
@@ -49,6 +52,8 @@ func (g *Game) openMenu() {
 	g.menu.newFovDegrees = float32(g.fovDegrees)
 	g.menu.newRenderDistance = float32(g.renderDistance)
 	g.menu.newClutterDistance = float32(g.clutterDistance)
+
+	g.menu.newHudScale = float32(g.hudScale)
 
 	g.menu.newLightFalloff = float32(g.lightFalloff)
 	g.menu.newGlobalIllumination = float32(g.globalIllumination)
@@ -83,6 +88,7 @@ func (m *DemoMenu) update(g *Game) {
 	windowFlags := imgui.WindowFlagsNone
 	windowFlags |= imgui.WindowFlagsAlwaysAutoResize
 	windowFlags |= imgui.WindowFlagsAlwaysVerticalScrollbar
+	windowFlags |= imgui.WindowFlagsHorizontalScrollbar
 	windowFlags |= imgui.WindowFlagsMenuBar
 
 	if !imgui.BeginV("Settings", nil, windowFlags) {
@@ -186,7 +192,15 @@ func (m *DemoMenu) update(g *Game) {
 
 	imgui.Checkbox("Floor Texturing", &g.tex.renderFloorTex)
 
-	// New section for lighting options
+	// New section for HUD options
+	imgui.Separator()
+	imgui.Text("HUD:")
+
+	if imgui.SliderFloatV("Scaling", &m.newHudScale, 0.2, 5.0, "%.1f", imgui.SliderFlagsNone) {
+		g.hudScale = float64(m.newHudScale)
+	}
+
+	// New section for lighting options (TODO: should be DEBUG only)
 	imgui.Separator()
 
 	imgui.Text("Lighting:")
