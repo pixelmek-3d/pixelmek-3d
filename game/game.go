@@ -14,8 +14,10 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/spf13/viper"
 )
 
@@ -322,6 +324,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw menu (if active)
 	g.menu.draw(screen)
+
+	// draw FPS/TPS counter debug display
+	fps := fmt.Sprintf("FPS: %f\nTPS: %f/%v", ebiten.CurrentFPS(), ebiten.CurrentTPS(), ebiten.MaxTPS())
+	ebitenutil.DebugPrint(screen, fps)
 }
 
 func (g *Game) setFullscreen(fullscreen bool) {
@@ -390,11 +396,8 @@ func (g *Game) Rotate(rSpeed float64) {
 
 // Update player pitch angle by pitch speed
 func (g *Game) Pitch(pSpeed float64) {
-	g.player.Pitch += pSpeed
-
 	// current raycasting method can only allow up to 45 degree pitch in either direction
-	g.player.Pitch = geom.Clamp(g.player.Pitch, -math.Pi/4, math.Pi/4)
-
+	g.player.Pitch = geom.Clamp(pSpeed+g.player.Pitch, -math.Pi/8, math.Pi/4)
 	g.player.Moved = true
 }
 
@@ -570,19 +573,10 @@ func (g *Game) updateProjectiles() {
 
 		if p.Velocity != 0 {
 
-			realVelocity := p.Velocity
-			zVelocity := 0.0
-			if p.Pitch != 0 {
-				// would be better to use proper 3D geometry math here, but trying to avoid matrix math library
-				// for now, for this one simple use
-				realVelocity = geom.GetAdjacentHypotenuseTriangleLeg(p.Pitch, p.Velocity)
-				zVelocity = geom.LineFromAngle(0, 0, p.Pitch, realVelocity).Y2
-			}
-
-			vLine := geom.LineFromAngle(p.Position.X, p.Position.Y, p.Angle, realVelocity)
-
-			xCheck := vLine.X2
-			yCheck := vLine.Y2
+			trajectory := geom3d.Line3dFromAngle(p.Position.X, p.Position.Y, p.PositionZ, p.Angle, p.Pitch, p.Velocity)
+			xCheck := trajectory.X2
+			yCheck := trajectory.Y2
+			zCheck := trajectory.Z2
 
 			// TODO: getValidMove needs to be able to take PosZ into account for wall/sprite collisions
 			newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, false)
@@ -619,10 +613,7 @@ func (g *Game) updateProjectiles() {
 
 			} else {
 				p.Position = newPos
-
-				if zVelocity != 0 {
-					p.PositionZ += zVelocity
-				}
+				p.PositionZ = zCheck // TODO: some basic Z axis collision checking
 			}
 		}
 		p.Update(g.player.Position)
