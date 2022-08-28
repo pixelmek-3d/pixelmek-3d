@@ -83,6 +83,7 @@ func (r *RegExp) UnmarshalText(b []byte) error {
 type MapSprite struct {
 	Image           string       `yaml:"image"`
 	Positions       [][2]float64 `yaml:"positions"`
+	ZPosition       float64      `yaml:"zPosition"`
 	CollisionRadius float64      `yaml:"collisionRadius"`
 	HitPoints       float64      `yaml:"hitPoints"`
 	Scale           float64      `default:"1.0" yaml:"scale,omitempty"`

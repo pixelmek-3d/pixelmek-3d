@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"math"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -173,7 +174,16 @@ func (g *Game) loadContent() {
 			sprite := model.NewSprite(
 				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, s.CollisionRadius*s.Scale,
 			)
-			sprite.HitPoints = s.HitPoints
+			if s.ZPosition != 0 {
+				sprite.PositionZ = s.ZPosition
+			}
+
+			if s.HitPoints == 0 {
+				sprite.HitPoints = math.MaxFloat64
+			} else {
+				sprite.HitPoints = s.HitPoints
+			}
+
 			g.sprites.addMapSprite(sprite)
 		}
 	}

@@ -161,3 +161,12 @@ sprites:
   positions:
   - [13.5, 13.5]
   - [15.5, 14]
+# TODO: create mission section/struct for aircraft
+- image: "vtol/attack_chopper.png"
+  scale: 0.5
+  collisionRadius: 0.1
+  hitPoints: 25
+  zPosition: 4.0
+  positions:
+  - [13, 15]
+  - [17, 15]
