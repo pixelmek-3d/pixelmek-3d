@@ -42,3 +42,7 @@
 ## ./tanks
 
 - `rocket_tank`: "generalgames" - https://generalgames.itch.io/vehicle-sprite-sheets
+
+## ./vtol
+
+- `attack_chopper`: "Prinz Eugn" - http://prinzeugn.deviantart.com/
