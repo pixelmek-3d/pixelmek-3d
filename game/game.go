@@ -66,8 +66,7 @@ type Game struct {
 	mouseX, mouseY int
 
 	// zoom settings
-	zoomFovDegrees float64
-	zoomFovDepth   float64
+	zoomFovDepth float64
 
 	renderDistance  float64
 	clutterDistance float64
@@ -168,7 +167,6 @@ func NewGame() *Game {
 	g.fovDepth = g.camera.FovDepth()
 
 	g.zoomFovDepth = 2.0
-	g.zoomFovDegrees = g.fovDegrees / g.zoomFovDepth
 
 	// initialize clutter
 	if g.clutter != nil {

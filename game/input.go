@@ -121,11 +121,14 @@ func (g *Game) handleInput() {
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
 			// hold right click to zoom view in this mode
 			if g.camera.FovDepth() != g.zoomFovDepth {
-				g.camera.SetFovAngle(g.zoomFovDegrees, g.zoomFovDepth)
+				zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
+				g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
+				g.camera.SetPitchAngle(g.player.Pitch)
 			}
 		} else if g.camera.FovDepth() == g.zoomFovDepth {
 			// unzoom
 			g.camera.SetFovAngle(g.fovDegrees, 1.0)
+			g.camera.SetPitchAngle(g.player.Pitch)
 		}
 
 		switch {
