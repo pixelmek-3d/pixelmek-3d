@@ -11,7 +11,7 @@
 
 ## ./infantry
 
-- `sms_soldier`: https://opengameart.org/content/rpg-asset-character-soldier-sms
+- `sms_soldier`: "Chasersgaming" - https://opengameart.org/content/rpg-asset-character-soldier-sms
 
 ## ./mechs
 
@@ -38,3 +38,7 @@
 
 - `tree_0`, `tree_1`: "Bleed" - http://remusprites.carbonmade.com/
   - https://opengameart.org/content/tree-collection-v26-bleeds-game-art
+
+## ./tanks
+
+- `rocket_tank`: "generalgames" - https://generalgames.itch.io/vehicle-sprite-sheets

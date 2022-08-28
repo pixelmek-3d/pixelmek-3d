@@ -153,3 +153,11 @@ sprites:
   - [100, 52]
   - [21, 100]
   - [100, 125]
+# TODO: create mission section/struct for tanks
+- image: "tanks/rocket_tank.png"
+  scale: 0.35
+  collisionRadius: 0.1
+  hitPoints: 25
+  positions:
+  - [13.5, 13.5]
+  - [15.5, 14]
