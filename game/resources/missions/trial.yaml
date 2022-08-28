@@ -18,3 +18,11 @@ mechs:
   scale: 0.75
   position: [15, 23]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
+  # TODO: create separate section/struct for infantry
+- image: "../infantry/sms_soldier.png"
+  scale: 0.085
+  position: [13, 13.5]
+- image: "../infantry/sms_soldier.png"
+  scale: 0.085
+  position: [12, 14]
+  patrolPath: [[12, 14], [9, 14], [12, 14]]

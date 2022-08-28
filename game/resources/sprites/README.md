@@ -9,6 +9,10 @@
 
 - `crosshairs_sheet`: Kenney - https://www.kenney.nl/
 
+## ./infantry
+
+- `sms_soldier`: https://opengameart.org/content/rpg-asset-character-soldier-sms
+
 ## ./mechs
 
 - Pixel Mechs by "Alistair Winter":

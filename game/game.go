@@ -659,7 +659,7 @@ func (g *Game) updateMechPosition(s *model.MechSprite) {
 		patrolLine := geom.Line{X1: s.Position.X, Y1: s.Position.Y, X2: patrolX, Y2: patrolY}
 
 		// TODO: do something about this velocity
-		s.Velocity = 0.02
+		s.Velocity = 0.02 * s.Scale()
 
 		angle := patrolLine.Angle()
 		dist := patrolLine.Distance()
