@@ -80,13 +80,15 @@ clutter:
   frequency: 0.5
 spriteFill:
 - image: "shrubbery/tree_1.png"
-  collisionRadius: 0.18
+  collisionRadius: 50
+  collisionHeight: 200
   hitPoints: 10
   scaleRange: [0.6, 1.0]
   quantity: 100
   rect: [[42, 15], [64, 30]]
 - image: "shrubbery/tree_1.png"
-  collisionRadius: 0.18
+  collisionRadius: 50
+  collisionHeight: 200
   hitPoints: 5
   scaleRange: [0.4, 0.7]
   quantity: 200
@@ -95,7 +97,8 @@ spriteStamps:
 - id: "tree line L2"
   sprites:
   - image: "shrubbery/tree_1.png"
-    collisionRadius: 0.18
+    collisionRadius: 50
+    collisionHeight: 200
     hitPoints: 10
     positions:
     - [0, 0]
@@ -103,7 +106,8 @@ spriteStamps:
     - [1.5, 0]
     - [2.0, 0]
   - image: "shrubbery/tree_0.png"
-    collisionRadius: 0.1
+    collisionRadius: 30
+    collisionHeight: 160
     hitPoints: 5
     scale: 0.5
     positions:
@@ -111,7 +115,8 @@ spriteStamps:
 - id: "forest circle R6"
   sprites:
   - image: "shrubbery/tree_1.png"
-    collisionRadius: 0.18
+    collisionRadius: 50
+    collisionHeight: 200
     hitPoints: 10
     positions:
     - [0.1, 3.0]
@@ -138,7 +143,8 @@ spriteStamps:
     - [5.5, 4.6]
 sprites:
 - image: "shrubbery/tree_0.png"
-  collisionRadius: 0.1
+  collisionRadius: 30
+  collisionHeight: 160
   hitPoints: 10
   positions:
   - [8.5, 24.5]
@@ -156,17 +162,20 @@ sprites:
 # TODO: create mission section/struct for tanks
 - image: "tanks/rocket_tank.png"
   scale: 0.35
-  collisionRadius: 0.1
+  collisionRadius: 16
+  collisionHeight: 48
   hitPoints: 25
   positions:
   - [13.5, 13.5]
   - [15.5, 14]
 # TODO: create mission section/struct for aircraft
 - image: "vtol/attack_chopper.png"
-  scale: 0.5
-  collisionRadius: 0.1
+  anchor: "center"
+  scale: 0.75
+  collisionRadius: 12
+  collisionHeight: 26
   hitPoints: 25
-  zPosition: 4.0
+  zPosition: 3.0
   positions:
   - [13, 15]
   - [17, 15]

@@ -17,7 +17,7 @@ func NewAnimatedEffect(
 ) *Effect {
 	mapColor := color.RGBA{0, 0, 0, 0}
 	e := &Effect{
-		Sprite:    NewAnimatedSprite(x, y, scale, img, mapColor, columns, rows, animationRate, anchor, 0),
+		Sprite:    NewAnimatedSprite(x, y, scale, img, mapColor, columns, rows, animationRate, anchor, 0, 0),
 		LoopCount: loopCount,
 	}
 

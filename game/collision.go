@@ -5,24 +5,25 @@ import (
 	"sort"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
 
 type EntityCollision struct {
-	entity    *model.Entity
-	collision *geom.Vector2
+	entity     *model.Entity
+	collision  *geom.Vector2
+	collisionZ float64
 }
 
 // checks for valid move from current position, returns valid (x, y) position, whether a collision
 // was encountered, and a list of entity collisions that may have been encountered
-func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlternate bool) (*geom.Vector2, bool, []*EntityCollision) {
-	newX, newY := moveX, moveY
-
-	posX, posY := entity.Position.X, entity.Position.Y
-	if posX == newX && posY == moveY {
+func (g *Game) getValidMove(entity *model.Entity, moveX, moveY, moveZ float64, checkAlternate bool) (*geom.Vector2, bool, []*EntityCollision) {
+	posX, posY, posZ := entity.Position.X, entity.Position.Y, entity.PositionZ
+	if posX == moveX && posY == moveY && posZ == moveZ {
 		return &geom.Vector2{X: posX, Y: posY}, false, []*EntityCollision{}
 	}
 
+	newX, newY, newZ := moveX, moveY, moveZ
 	moveLine := geom.Line{X1: posX, Y1: posY, X2: newX, Y2: newY}
 
 	intersectPoints := []geom.Vector2{}
@@ -40,11 +41,14 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 	if entity != g.player.Entity && entity.Parent != g.player.Entity && entity.CollisionRadius > 0 {
 		// TODO: only check for collision if player is somewhat nearby
 
+		// quick check if intersects in Z-plane
+		zIntersect := zEntityIntersection(newZ, entity, g.player.Entity)
+
 		// check if movement line intersects with combined collision radii
 		combinedCircle := geom.Circle{X: g.player.Position.X, Y: g.player.Position.Y, Radius: g.player.CollisionRadius + entity.CollisionRadius}
 		combinedIntersects := geom.LineCircleIntersection(moveLine, combinedCircle, true)
 
-		if len(combinedIntersects) > 0 {
+		if zIntersect >= 0 && len(combinedIntersects) > 0 {
 			playerCircle := geom.Circle{X: g.player.Position.X, Y: g.player.Position.Y, Radius: g.player.CollisionRadius}
 			for _, chkPoint := range combinedIntersects {
 				// intersections from combined circle radius indicate center point to check intersection toward sprite collision circle
@@ -52,7 +56,9 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 				intersectPoints = append(intersectPoints, geom.LineCircleIntersection(chkLine, playerCircle, true)...)
 
 				for _, intersect := range intersectPoints {
-					collisionEntities = append(collisionEntities, &EntityCollision{entity: g.player.Entity, collision: &intersect})
+					collisionEntities = append(
+						collisionEntities, &EntityCollision{entity: g.player.Entity, collision: &intersect, collisionZ: zIntersect},
+					)
 				}
 			}
 		}
@@ -65,11 +71,14 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 			continue
 		}
 
+		// quick check if intersects in Z-plane
+		zIntersect := zEntityIntersection(newZ, entity, sEntity)
+
 		// check if movement line intersects with combined collision radii
 		combinedCircle := geom.Circle{X: sEntity.Position.X, Y: sEntity.Position.Y, Radius: sEntity.CollisionRadius + entity.CollisionRadius}
 		combinedIntersects := geom.LineCircleIntersection(moveLine, combinedCircle, true)
 
-		if len(combinedIntersects) > 0 {
+		if zIntersect >= 0 && len(combinedIntersects) > 0 {
 			spriteCircle := geom.Circle{X: sEntity.Position.X, Y: sEntity.Position.Y, Radius: sEntity.CollisionRadius}
 			for _, chkPoint := range combinedIntersects {
 				// intersections from combined circle radius indicate center point to check intersection toward sprite collision circle
@@ -77,7 +86,9 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 				intersectPoints = append(intersectPoints, geom.LineCircleIntersection(chkLine, spriteCircle, true)...)
 
 				for _, intersect := range intersectPoints {
-					collisionEntities = append(collisionEntities, &EntityCollision{entity: sEntity, collision: &intersect})
+					collisionEntities = append(
+						collisionEntities, &EntityCollision{entity: sEntity, collision: &intersect, collisionZ: zIntersect},
+					)
 				}
 			}
 		}
@@ -124,16 +135,16 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 					// no more room to move in X, try to move only Y
 					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
 					// 	c.pos.X, c.pos.Y, moveX, moveY, posX, moveY)
-					return g.getValidMove(entity, posX, moveY, false)
+					return g.getValidMove(entity, posX, moveY, posZ, false)
 				case yDiff <= 0.001:
 					// no more room to move in Y, try to move only X
 					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
 					// 	c.pos.X, c.pos.Y, moveX, moveY, moveX, posY)
-					return g.getValidMove(entity, moveX, posY, false)
+					return g.getValidMove(entity, moveX, posY, posZ, false)
 				default:
 					// try the new position
 					// TODO: need some way to try a potentially valid shorter move without checkAlternate while also avoiding infinite loop
-					return g.getValidMove(entity, newX, newY, false)
+					return g.getValidMove(entity, newX, newY, posZ, false)
 				}
 			} else {
 				// looks like it cannot move
@@ -176,4 +187,43 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY float64, checkAlt
 	}
 
 	return &geom.Vector2{X: posX, Y: posY}, isCollision, collisionEntities
+}
+
+// zEntityIntersection returns the best positionZ intersection point on the target from the source (-1 if no intersection)
+func zEntityIntersection(sourceZ float64, source, target *model.Entity) float64 {
+	srcMinZ, srcMaxZ := zEntityMinMax(sourceZ, source)
+	tgtMinZ, tgtMaxZ := zEntityMinMax(target.PositionZ, target)
+
+	var intersectZ float64 = -1
+	if srcMinZ > tgtMaxZ || tgtMinZ > srcMaxZ {
+		// no intersection
+		return intersectZ
+	}
+
+	// find best simple intersection within the target range
+	midZ := srcMinZ + (srcMaxZ-srcMinZ)/2
+	intersectZ = geom.Clamp(midZ, tgtMinZ, tgtMaxZ)
+
+	if srcMinZ > 0.1 && tgtMinZ > 0.1 {
+		return intersectZ
+	}
+
+	return intersectZ
+}
+
+// zEntityMinMax calculates the minZ/maxZ used for basic collision checking in the Z-plane
+func zEntityMinMax(positionZ float64, entity *model.Entity) (float64, float64) {
+	var minZ, maxZ float64
+	collisionHeight := entity.CollisionHeight
+
+	switch entity.Anchor {
+	case raycaster.AnchorBottom:
+		minZ, maxZ = positionZ, positionZ+collisionHeight
+	case raycaster.AnchorCenter:
+		minZ, maxZ = positionZ-collisionHeight/2, positionZ+collisionHeight/2
+	case raycaster.AnchorTop:
+		minZ, maxZ = positionZ-collisionHeight, positionZ
+	}
+
+	return minZ, maxZ
 }

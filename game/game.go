@@ -131,7 +131,8 @@ func NewGame() *Game {
 	// init player model
 	angleDegrees := 60.0
 	g.player = model.NewPlayer(8.5, 3.5, geom.Radians(angleDegrees), 0)
-	g.player.CollisionRadius = clipDistance
+	g.player.CollisionRadius = clipDistance // TODO: get from player mech
+	g.player.CollisionHeight = 0.5          // TODO: also get from player mech
 
 	// load map and mission content once when first run
 	g.loadContent()
@@ -400,26 +401,26 @@ func (g *Game) Pitch(pSpeed float64) {
 }
 
 func (g *Game) Stand() {
-	g.player.PositionZ = 0.5
+	g.player.CameraZ = 0.5
 	g.player.Moved = true
 }
 
 func (g *Game) IsStanding() bool {
-	return g.player.PosZ() == 0.5
+	return g.player.CameraZ == 0.5
 }
 
 func (g *Game) Jump() {
-	g.player.PositionZ = 0.9
+	g.player.CameraZ = 0.9
 	g.player.Moved = true
 }
 
 func (g *Game) Crouch() {
-	g.player.PositionZ = 0.3
+	g.player.CameraZ = 0.3
 	g.player.Moved = true
 }
 
 func (g *Game) Prone() {
-	g.player.PositionZ = 0.1
+	g.player.CameraZ = 0.1
 	g.player.Moved = true
 }
 
@@ -434,7 +435,6 @@ func (g *Game) fireWeapon() {
 	}
 
 	// spawning projectile at offsets from player's center point of view
-	// TODO: pitch angle should be based on raycasted angle toward crosshairs, for now just simplified as player pitch angle
 	pAngle, pPitch := g.player.Angle, g.player.Pitch
 
 	// firing test projectiles
@@ -477,10 +477,10 @@ func (g *Game) fireTestWeaponAtPlayer() {
 		// firing test projectile at player
 		pVelocity := 16.0
 
-		pX, pY, pZ := m.Position.X, m.Position.Y, m.PositionZ-0.2
-		pLine := geom.Line{X1: pX, Y1: pY, X2: g.player.Position.X, Y2: g.player.Position.Y}
-		pAngle := pLine.Angle()
-		projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, 0, pVelocity, m.Entity)
+		pX, pY, pZ := m.Position.X, m.Position.Y, m.PositionZ+0.4
+		pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: g.player.Position.X, Y2: g.player.Position.Y, Z2: randFloat(0.1, 0.7)}
+		pHeading, pPitch := pLine.Heading(), pLine.Pitch()
+		projectile := p.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, pVelocity, m.Entity)
 		if projectile != nil {
 			g.sprites.addProjectile(projectile)
 			g.player.TestCooldown = 10
@@ -490,7 +490,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 // weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
 func (g *Game) weaponPosition3D(weaponOffX, weaponOffY float64) (float64, float64, float64) {
-	wX, wY, wZ := g.player.Position.X, g.player.Position.Y, g.player.PositionZ+weaponOffY
+	wX, wY, wZ := g.player.Position.X, g.player.Position.Y, g.player.CameraZ+weaponOffY
 
 	if weaponOffX == 0 {
 		// no X/Y position adjustments needed
@@ -517,11 +517,8 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	// reset player moved flag to only update camera when necessary
 	g.player.Moved = false
 
-	playerPos := g.player.Position.Copy()
-	playerPosZ := (g.player.PositionZ - 0.5) * float64(g.height)
-
-	g.camera.SetPosition(playerPos)
-	g.camera.SetPositionZ(playerPosZ)
+	g.camera.SetPosition(g.player.Position.Copy())
+	g.camera.SetPositionZ(g.player.CameraZ)
 	g.camera.SetHeadingAngle(g.player.Angle)
 	g.camera.SetPitchAngle(g.player.Pitch)
 }
@@ -540,7 +537,7 @@ func (g *Game) AllEntities() map[*model.Entity]struct{} {
 
 func (g *Game) updatePlayerPosition(newX, newY float64) {
 	// Update player position
-	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, true)
+	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, g.player.PosZ(), true)
 	if !newPos.Equals(g.player.Pos()) {
 		g.player.Position = newPos
 		g.player.Moved = true
@@ -577,7 +574,7 @@ func (g *Game) updateProjectiles() {
 			zCheck := trajectory.Z2
 
 			// TODO: getValidMove needs to be able to take PosZ into account for wall/sprite collisions
-			newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, false)
+			newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, zCheck, false)
 			if isCollision || p.PositionZ <= 0 {
 				// for testing purposes, projectiles instantly get deleted when collision occurs
 				g.sprites.deleteProjectile(p)
@@ -611,7 +608,7 @@ func (g *Game) updateProjectiles() {
 
 			} else {
 				p.Position = newPos
-				p.PositionZ = zCheck // TODO: some basic Z axis collision checking
+				p.PositionZ = zCheck
 			}
 		}
 		p.Update(g.player.Position)
@@ -684,7 +681,7 @@ func (g *Game) updateMechPosition(s *model.MechSprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, false)
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.Angle = randFloat(-math.Pi, math.Pi)
@@ -702,7 +699,7 @@ func (g *Game) updateSpritePosition(s *model.Sprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, false)
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.Angle = randFloat(-math.Pi, math.Pi)

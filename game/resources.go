@@ -171,8 +171,12 @@ func (g *Game) loadContent() {
 		}
 
 		for _, position := range s.Positions {
+			// convert collisionRadius/height pixel values to grid format
+			sWidth, sHeight := spriteImg.Size()
+			collisionRadius := (s.Scale * s.CollisionPxRadius) / float64(sWidth)
+			collisionHeight := (s.Scale * s.CollisionPxHeight) / float64(sHeight)
 			sprite := model.NewSprite(
-				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, raycaster.AnchorBottom, s.CollisionRadius*s.Scale,
+				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight,
 			)
 			if s.ZPosition != 0 {
 				sprite.PositionZ = s.ZPosition
@@ -204,7 +208,7 @@ func (g *Game) loadMissionSprites() {
 		if _, ok := mechSpriteTemplates[missionMech.Image]; !ok {
 			mechRelPath := fmt.Sprintf("mechs/%s", missionMech.Image)
 			mechImg := getSpriteFromFile(mechRelPath)
-			mechSpriteTemplates[missionMech.Image] = model.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.3)
+			mechSpriteTemplates[missionMech.Image] = model.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.3, 0.7)
 		}
 
 		mechTemplate := mechSpriteTemplates[missionMech.Image]
@@ -236,10 +240,18 @@ func (g *Game) loadGameSprites() {
 
 	// TODO: move these to predefined projectile sprites from their own data source files
 	redLaserImg := getSpriteFromFile("projectiles/beams_red.png")
+	redLaserWidth, _ := redLaserImg.Size()
+	redLaserCols, redLaserRows := 1, 3
+	redLaserScale := 0.2
+	// in pixels, radius to use for collision testing
+	redLaserPxRadius := 4.0
+	// convert pixel to grid using image pixel size
+	redLaserCollisionRadius := (redLaserScale * redLaserPxRadius) / (float64(redLaserWidth) / float64(redLaserCols))
+	redLaserCollisionHeight := 2 * redLaserCollisionRadius
 	lifespanSeconds := 4.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel
 	redLaserDamage := 5.0
 	redLaserProjectile := model.NewAnimatedProjectile(
-		0, 0, 0.2, lifespanSeconds, redLaserImg, color.RGBA{}, 1, 3, 4, raycaster.AnchorCenter, 0.01, redLaserDamage,
+		0, 0, redLaserScale, lifespanSeconds, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 4, raycaster.AnchorCenter, redLaserCollisionRadius, redLaserCollisionHeight, redLaserDamage,
 	)
 
 	// give projectile angle facing textures by row index

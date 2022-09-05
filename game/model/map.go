@@ -8,7 +8,9 @@ import (
 	"math/rand"
 	"path/filepath"
 	"regexp"
+	"strings"
 
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
@@ -65,6 +67,30 @@ type MapClutter struct {
 	Scale          float64 `yaml:"scale"`
 }
 
+type SpriteAnchor struct {
+	raycaster.SpriteAnchor
+}
+
+// Unmarshals into raycaster.SpriteAnchor
+func (r *SpriteAnchor) UnmarshalText(b []byte) error {
+	str := strings.Trim(string(b), `"`)
+
+	top, center, bottom := "top", "center", "bottom"
+
+	switch str {
+	case top:
+		r.SpriteAnchor = raycaster.AnchorTop
+	case center:
+		r.SpriteAnchor = raycaster.AnchorCenter
+	case bottom, "":
+		r.SpriteAnchor = raycaster.AnchorBottom
+	default:
+		return fmt.Errorf("unknown anchor value '%s', must be one of: [%s, %s, %s]", str, top, center, bottom)
+	}
+
+	return nil
+}
+
 type RegExp struct {
 	*regexp.Regexp
 }
@@ -81,22 +107,25 @@ func (r *RegExp) UnmarshalText(b []byte) error {
 }
 
 type MapSprite struct {
-	Image           string       `yaml:"image"`
-	Positions       [][2]float64 `yaml:"positions"`
-	ZPosition       float64      `yaml:"zPosition"`
-	CollisionRadius float64      `yaml:"collisionRadius"`
-	HitPoints       float64      `yaml:"hitPoints"`
-	Scale           float64      `default:"1.0" yaml:"scale,omitempty"`
-	Stamp           string       `yaml:"stamp"`
+	Image             string       `yaml:"image"`
+	Positions         [][2]float64 `yaml:"positions"`
+	ZPosition         float64      `yaml:"zPosition"`
+	CollisionPxRadius float64      `yaml:"collisionRadius"`
+	CollisionPxHeight float64      `yaml:"collisionHeight"`
+	HitPoints         float64      `yaml:"hitPoints"`
+	Scale             float64      `default:"1.0" yaml:"scale,omitempty"`
+	Anchor            SpriteAnchor `yaml:"anchor"`
+	Stamp             string       `yaml:"stamp"`
 }
 
 type MapSpriteFill struct {
-	Image           string     `yaml:"image"`
-	Quantity        int        `yaml:"quantity"`
-	CollisionRadius float64    `yaml:"collisionRadius"`
-	HitPoints       float64    `yaml:"hitPoints"`
-	ScaleRange      [2]float64 `yaml:"scaleRange"`
-	Rect            [2][2]int  `yaml:"rect"`
+	Image             string     `yaml:"image"`
+	Quantity          int        `yaml:"quantity"`
+	CollisionPxRadius float64    `yaml:"collisionRadius"`
+	CollisionPxHeight float64    `yaml:"collisionHeight"`
+	HitPoints         float64    `yaml:"hitPoints"`
+	ScaleRange        [2]float64 `yaml:"scaleRange"`
+	Rect              [2][2]int  `yaml:"rect"`
 }
 
 type MapSpriteStamp struct {
@@ -218,11 +247,12 @@ func (m *Map) generateFillerSprites() error {
 			}
 
 			mapSprite := MapSprite{
-				Image:           fill.Image,
-				Positions:       [][2]float64{{fX, fY}},
-				CollisionRadius: fill.CollisionRadius,
-				HitPoints:       fill.HitPoints,
-				Scale:           scale,
+				Image:             fill.Image,
+				Positions:         [][2]float64{{fX, fY}},
+				CollisionPxRadius: fill.CollisionPxRadius,
+				CollisionPxHeight: fill.CollisionPxHeight,
+				HitPoints:         fill.HitPoints,
+				Scale:             scale,
 			}
 			nSprites = append(nSprites, mapSprite)
 		}
@@ -255,11 +285,12 @@ func (m *Map) generateSpritesFromStamps() error {
 							mapPositions[i] = [2]float64{x + stampPosition[0], y + stampPosition[1]}
 						}
 						mapSprite := MapSprite{
-							Image:           stampSprite.Image,
-							Positions:       mapPositions,
-							CollisionRadius: stampSprite.CollisionRadius,
-							HitPoints:       stampSprite.HitPoints,
-							Scale:           stampSprite.Scale,
+							Image:             stampSprite.Image,
+							Positions:         mapPositions,
+							CollisionPxRadius: stampSprite.CollisionPxRadius,
+							CollisionPxHeight: stampSprite.CollisionPxHeight,
+							HitPoints:         stampSprite.HitPoints,
+							Scale:             stampSprite.Scale,
 						}
 						nSprites = append(nSprites, mapSprite)
 					}
