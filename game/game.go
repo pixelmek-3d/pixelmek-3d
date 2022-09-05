@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"runtime"
+	"sync"
 
 	"image/color"
 	_ "image/png"
@@ -473,8 +474,9 @@ func (g *Game) fireTestWeaponAtPlayer() {
 		return
 	}
 
-	for m := range g.sprites.mechSprites {
+	for sInterface := range g.sprites.sprites[MechSpriteType] {
 		// firing test projectile at player
+		m := sInterface.(*model.MechSprite)
 		pVelocity := 16.0
 
 		pX, pY, pZ := m.Position.X, m.Position.Y, m.PositionZ+0.4
@@ -523,18 +525,6 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	g.camera.SetPitchAngle(g.player.Pitch)
 }
 
-func (g *Game) AllEntities() map[*model.Entity]struct{} {
-	numEntities := len(g.sprites.mapSprites) + len(g.sprites.mechSprites)
-	entities := make(map[*model.Entity]struct{}, numEntities)
-	for s := range g.sprites.mapSprites {
-		entities[s.Entity] = struct{}{}
-	}
-	for s := range g.sprites.mechSprites {
-		entities[s.Entity] = struct{}{}
-	}
-	return entities
-}
-
 func (g *Game) updatePlayerPosition(newX, newY float64) {
 	// Update player position
 	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, g.player.PosZ(), true)
@@ -559,73 +549,88 @@ func (g *Game) updateProjectiles() {
 		g.player.TestCooldown--
 	}
 
-	for p := range g.sprites.projectiles {
+	// perform concurrent projectile updates
+	var wg sync.WaitGroup
+
+	for pInterface := range g.sprites.sprites[ProjectileSpriteType] {
+		p := pInterface.(*model.Projectile)
 		p.Lifespan--
 		if p.Lifespan <= 0 {
 			g.sprites.deleteProjectile(p)
 			continue
 		}
 
-		if p.Velocity != 0 {
-
-			trajectory := geom3d.Line3dFromAngle(p.Position.X, p.Position.Y, p.PositionZ, p.Angle, p.Pitch, p.Velocity)
-			xCheck := trajectory.X2
-			yCheck := trajectory.Y2
-			zCheck := trajectory.Z2
-
-			// TODO: getValidMove needs to be able to take PosZ into account for wall/sprite collisions
-			newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, zCheck, false)
-			if isCollision || p.PositionZ <= 0 {
-				// for testing purposes, projectiles instantly get deleted when collision occurs
-				g.sprites.deleteProjectile(p)
-
-				var collisionEntity *EntityCollision
-				if len(collisions) > 0 {
-					// apply damage to the first sprite entity that was hit
-					collisionEntity = collisions[0]
-
-					if collisionEntity.entity == g.player.Entity {
-						// TODO: visual response to player being hit
-						println("ouch!")
-					} else {
-						collisionEntity.entity.HitPoints -= p.Damage
-						fmt.Printf("hit for %0.1f (HP: %0.1f)\n", p.Damage, collisionEntity.entity.HitPoints)
-					}
-				}
-
-				// make a sprite/wall getting hit by projectile cause some visual effect
-				if p.ImpactEffect.Sprite != nil {
-					if collisionEntity != nil {
-						// use the first collision point to place effect at
-						newPos = collisionEntity.collision
-					}
-
-					// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
-					effect := p.SpawnEffect(newPos.X, newPos.Y, p.PositionZ, p.Angle, p.Pitch)
-
-					g.sprites.addEffect(effect)
-				}
-
-			} else {
-				p.Position = newPos
-				p.PositionZ = zCheck
-			}
-		}
-		p.Update(g.player.Position)
+		wg.Add(1)
+		go g.asyncProjectileUpdate(p, &wg)
 	}
 
 	// Update animated effects
-	for e := range g.sprites.effects {
+	for eInterface := range g.sprites.sprites[EffectSpriteType] {
+		e := eInterface.(*model.Effect)
 		e.Update(g.player.Position)
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
 		}
 	}
+
+	wg.Wait()
+}
+
+func (g *Game) asyncProjectileUpdate(p *model.Projectile, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	if p.Velocity != 0 {
+
+		trajectory := geom3d.Line3dFromAngle(p.Position.X, p.Position.Y, p.PositionZ, p.Angle, p.Pitch, p.Velocity)
+		xCheck := trajectory.X2
+		yCheck := trajectory.Y2
+		zCheck := trajectory.Z2
+
+		newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, zCheck, false)
+		if isCollision || p.PositionZ <= 0 {
+			// for testing purposes, projectiles instantly get deleted when collision occurs
+			//g.sprites.deleteProjectile(p)
+			p.Lifespan = -1
+
+			var collisionEntity *EntityCollision
+			if len(collisions) > 0 {
+				// apply damage to the first sprite entity that was hit
+				collisionEntity = collisions[0]
+
+				if collisionEntity.entity == g.player.Entity {
+					// TODO: visual response to player being hit
+					println("ouch!")
+				} else {
+					collisionEntity.entity.HitPoints -= p.Damage
+					fmt.Printf("hit for %0.1f (HP: %0.1f)\n", p.Damage, collisionEntity.entity.HitPoints)
+				}
+			}
+
+			// make a sprite/wall getting hit by projectile cause some visual effect
+			if p.ImpactEffect.Sprite != nil {
+				if collisionEntity != nil {
+					// use the first collision point to place effect at
+					newPos = collisionEntity.collision
+				}
+
+				// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
+				effect := p.SpawnEffect(newPos.X, newPos.Y, p.PositionZ, p.Angle, p.Pitch)
+
+				g.sprites.addEffect(effect)
+			}
+
+		} else {
+			p.Position = newPos
+			p.PositionZ = zCheck
+		}
+	}
+	p.Update(g.player.Position)
 }
 
 func (g *Game) updateSprites() {
 	// Update for animated sprite movement
-	for s := range g.sprites.mapSprites {
+	for sInterface := range g.sprites.sprites[MapSpriteType] {
+		s := sInterface.(*model.Sprite)
 		if s.HitPoints <= 0 {
 			// TODO: implement sprite destruction animation
 			g.sprites.deleteMapSprite(s)
@@ -636,7 +641,8 @@ func (g *Game) updateSprites() {
 	}
 
 	// Updates for animated mech sprite movement
-	for s := range g.sprites.mechSprites {
+	for sInterface := range g.sprites.sprites[MechSpriteType] {
+		s := sInterface.(*model.MechSprite)
 		// TODO: implement mech armor and structure instead of direct HP
 		if s.HitPoints <= 0 {
 			// TODO: implement mech destruction animation

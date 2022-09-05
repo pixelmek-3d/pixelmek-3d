@@ -1,88 +1,124 @@
 package game
 
 import (
+	"fmt"
 	"math"
+	"sync"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go"
 )
 
 type SpriteHandler struct {
-	mapSprites  map[*model.Sprite]struct{}
-	mechSprites map[*model.MechSprite]struct{}
-	projectiles map[*model.Projectile]struct{}
-	effects     map[*model.Effect]struct{}
+	sprites  map[SpriteType]map[raycaster.Sprite]struct{}
+	mutexMap map[SpriteType]*sync.RWMutex
 }
 
+type SpriteType int
+
+const (
+	MapSpriteType SpriteType = iota
+	MechSpriteType
+	ProjectileSpriteType
+	EffectSpriteType
+	TotalSpriteTypes
+)
+
 func NewSpriteHandler() *SpriteHandler {
-	s := &SpriteHandler{}
-	s.effects = make(map[*model.Effect]struct{}, 1024)
-	s.projectiles = make(map[*model.Projectile]struct{}, 1024)
-	s.mapSprites = make(map[*model.Sprite]struct{}, 512)
-	s.mechSprites = make(map[*model.MechSprite]struct{}, 128)
+	s := &SpriteHandler{
+		sprites:  make(map[SpriteType]map[raycaster.Sprite]struct{}, TotalSpriteTypes),
+		mutexMap: make(map[SpriteType]*sync.RWMutex),
+	}
+	s.sprites[MechSpriteType] = make(map[raycaster.Sprite]struct{}, 128)
+	s.sprites[MapSpriteType] = make(map[raycaster.Sprite]struct{}, 512)
+	s.sprites[ProjectileSpriteType] = make(map[raycaster.Sprite]struct{}, 1024)
+	s.sprites[EffectSpriteType] = make(map[raycaster.Sprite]struct{}, 1024)
+
+	for spriteType := range s.sprites {
+		// TODO: consider trying sync Map, it may be faster for read/delete, but slower for writes?
+		// create map mutex to lock/unlock maps for concurrent safety
+		s.mutexMap[spriteType] = &sync.RWMutex{}
+	}
+
 	return s
 }
 
+func (s *SpriteHandler) totalSprites() int {
+	total := 0
+	for _, spriteMap := range s.sprites {
+		total += len(spriteMap)
+	}
+
+	return total
+}
+
 func (s *SpriteHandler) addMapSprite(sprite *model.Sprite) {
-	s.mapSprites[sprite] = struct{}{}
+	s.mutexMap[MapSpriteType].Lock()
+	s.sprites[MapSpriteType][sprite] = struct{}{}
+	s.mutexMap[MapSpriteType].Unlock()
 }
 
 func (s *SpriteHandler) deleteMapSprite(sprite *model.Sprite) {
-	delete(s.mapSprites, sprite)
+	s.mutexMap[MapSpriteType].Lock()
+	delete(s.sprites[MapSpriteType], sprite)
+	s.mutexMap[MapSpriteType].Unlock()
 }
 
 func (s *SpriteHandler) addMechSprite(mech *model.MechSprite) {
-	s.mechSprites[mech] = struct{}{}
+	s.mutexMap[MechSpriteType].Lock()
+	s.sprites[MechSpriteType][mech] = struct{}{}
+	s.mutexMap[MechSpriteType].Unlock()
 }
 
 func (s *SpriteHandler) deleteMechSprite(mech *model.MechSprite) {
-	delete(s.mechSprites, mech)
+	s.mutexMap[MechSpriteType].Lock()
+	delete(s.sprites[MechSpriteType], mech)
+	s.mutexMap[MechSpriteType].Unlock()
 }
 
 func (s *SpriteHandler) addProjectile(projectile *model.Projectile) {
-	s.projectiles[projectile] = struct{}{}
+	s.mutexMap[ProjectileSpriteType].Lock()
+	s.sprites[ProjectileSpriteType][projectile] = struct{}{}
+	s.mutexMap[ProjectileSpriteType].Unlock()
 }
 
 func (s *SpriteHandler) deleteProjectile(projectile *model.Projectile) {
-	delete(s.projectiles, projectile)
+	s.mutexMap[ProjectileSpriteType].Lock()
+	delete(s.sprites[ProjectileSpriteType], projectile)
+	s.mutexMap[ProjectileSpriteType].Unlock()
 }
 
 func (s *SpriteHandler) addEffect(effect *model.Effect) {
-	s.effects[effect] = struct{}{}
+	s.mutexMap[EffectSpriteType].Lock()
+	s.sprites[EffectSpriteType][effect] = struct{}{}
+	s.mutexMap[EffectSpriteType].Unlock()
 }
 
 func (s *SpriteHandler) deleteEffect(effect *model.Effect) {
-	delete(s.effects, effect)
+	s.mutexMap[EffectSpriteType].Lock()
+	delete(s.sprites[EffectSpriteType], effect)
+	s.mutexMap[EffectSpriteType].Unlock()
 }
 
 func (g *Game) getRaycastSprites() []raycaster.Sprite {
-	numSprites := len(g.sprites.mapSprites) + len(g.sprites.mechSprites) +
-		len(g.sprites.projectiles) + len(g.sprites.effects) + len(g.clutter.sprites)
+	numSprites := g.sprites.totalSprites() + len(g.clutter.sprites)
 	raycastSprites := make([]raycaster.Sprite, numSprites)
 
 	index := 0
-	for sprite := range g.sprites.mapSprites {
-		// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
-		// only include map sprites within fast approximation of render distance
-		doSprite := g.renderDistance < 0 ||
-			(math.Abs(sprite.Position.X-g.player.Position.X) <= g.renderDistance &&
-				math.Abs(sprite.Position.Y-g.player.Position.Y) <= g.renderDistance)
-		if doSprite {
-			raycastSprites[index] = sprite
-			index += 1
+
+	for _, spriteMap := range g.sprites.sprites {
+		for spriteInterface := range spriteMap {
+			sprite := getSpriteFromInterface(spriteInterface)
+			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
+			// only include map sprites within fast approximation of render distance
+			doSprite := g.renderDistance < 0 ||
+				(math.Abs(sprite.Position.X-g.player.Position.X) <= g.renderDistance &&
+					math.Abs(sprite.Position.Y-g.player.Position.Y) <= g.renderDistance)
+			if doSprite {
+				raycastSprites[index] = spriteInterface
+				index += 1
+			}
 		}
-	}
-	for mech := range g.sprites.mechSprites {
-		raycastSprites[index] = mech
-		index += 1
-	}
-	for projectile := range g.sprites.projectiles {
-		raycastSprites[index] = projectile.Sprite
-		index += 1
-	}
-	for effect := range g.sprites.effects {
-		raycastSprites[index] = effect.Sprite
-		index += 1
 	}
 	for clutter := range g.clutter.sprites {
 		raycastSprites[index] = clutter
@@ -90,4 +126,34 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	}
 
 	return raycastSprites[:index]
+}
+
+func getSpriteFromInterface(sInterface raycaster.Sprite) *model.Sprite {
+	switch interfaceType := sInterface.(type) {
+	case *model.Sprite:
+		return sInterface.(*model.Sprite)
+	case *model.MechSprite:
+		return sInterface.(*model.MechSprite).Sprite
+	case *model.Projectile:
+		return sInterface.(*model.Projectile).Sprite
+	case *model.Effect:
+		return sInterface.(*model.Effect).Sprite
+	default:
+		panic(fmt.Errorf("unable to get model.Sprite from type %v", interfaceType))
+	}
+}
+
+func getEntityFromInterface(sInterface raycaster.Sprite) *model.Entity {
+	switch interfaceType := sInterface.(type) {
+	case *model.Sprite:
+		return sInterface.(*model.Sprite).Entity
+	case *model.MechSprite:
+		return sInterface.(*model.MechSprite).Entity
+	case *model.Projectile:
+		return sInterface.(*model.Projectile).Entity
+	case *model.Effect:
+		return sInterface.(*model.Effect).Entity
+	default:
+		panic(fmt.Errorf("unable to get model.Entity from type %v", interfaceType))
+	}
 }

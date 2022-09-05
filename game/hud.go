@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
 func (g *Game) drawCrosshairs(screen *ebiten.Image) {
@@ -40,7 +41,8 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 	colorM := ebiten.ColorM{}
 	colorM.ScaleWithColor(g.hudRGBA)
 
-	for s := range g.sprites.mechSprites {
+	for sInterface := range g.sprites.sprites[MechSpriteType] {
+		s := sInterface.(*model.MechSprite)
 		rect := s.ScreenRect()
 		if rect == nil {
 			continue
