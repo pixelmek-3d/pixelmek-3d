@@ -10,8 +10,7 @@ import (
 )
 
 type SpriteHandler struct {
-	sprites  map[SpriteType]map[raycaster.Sprite]struct{}
-	mutexMap map[SpriteType]*sync.RWMutex
+	sprites map[SpriteType]*sync.Map
 }
 
 type SpriteType int
@@ -26,88 +25,55 @@ const (
 
 func NewSpriteHandler() *SpriteHandler {
 	s := &SpriteHandler{
-		sprites:  make(map[SpriteType]map[raycaster.Sprite]struct{}, TotalSpriteTypes),
-		mutexMap: make(map[SpriteType]*sync.RWMutex),
+		sprites: make(map[SpriteType]*sync.Map, TotalSpriteTypes),
 	}
-	s.sprites[MechSpriteType] = make(map[raycaster.Sprite]struct{}, 128)
-	s.sprites[MapSpriteType] = make(map[raycaster.Sprite]struct{}, 512)
-	s.sprites[ProjectileSpriteType] = make(map[raycaster.Sprite]struct{}, 1024)
-	s.sprites[EffectSpriteType] = make(map[raycaster.Sprite]struct{}, 1024)
-
-	for spriteType := range s.sprites {
-		// TODO: consider trying sync Map, it may be faster for read/delete, but slower for writes?
-		// create map mutex to lock/unlock maps for concurrent safety
-		s.mutexMap[spriteType] = &sync.RWMutex{}
-	}
+	s.sprites[MechSpriteType] = &sync.Map{}
+	s.sprites[MapSpriteType] = &sync.Map{}
+	s.sprites[ProjectileSpriteType] = &sync.Map{}
+	s.sprites[EffectSpriteType] = &sync.Map{}
 
 	return s
 }
 
-func (s *SpriteHandler) totalSprites() int {
-	total := 0
-	for _, spriteMap := range s.sprites {
-		total += len(spriteMap)
-	}
-
-	return total
-}
-
 func (s *SpriteHandler) addMapSprite(sprite *model.Sprite) {
-	s.mutexMap[MapSpriteType].Lock()
-	s.sprites[MapSpriteType][sprite] = struct{}{}
-	s.mutexMap[MapSpriteType].Unlock()
+	s.sprites[MapSpriteType].Store(sprite, struct{}{})
 }
 
 func (s *SpriteHandler) deleteMapSprite(sprite *model.Sprite) {
-	s.mutexMap[MapSpriteType].Lock()
-	delete(s.sprites[MapSpriteType], sprite)
-	s.mutexMap[MapSpriteType].Unlock()
+	s.sprites[MapSpriteType].Delete(sprite)
 }
 
 func (s *SpriteHandler) addMechSprite(mech *model.MechSprite) {
-	s.mutexMap[MechSpriteType].Lock()
-	s.sprites[MechSpriteType][mech] = struct{}{}
-	s.mutexMap[MechSpriteType].Unlock()
+	s.sprites[MechSpriteType].Store(mech, struct{}{})
 }
 
 func (s *SpriteHandler) deleteMechSprite(mech *model.MechSprite) {
-	s.mutexMap[MechSpriteType].Lock()
-	delete(s.sprites[MechSpriteType], mech)
-	s.mutexMap[MechSpriteType].Unlock()
+	s.sprites[MechSpriteType].Delete(mech)
 }
 
 func (s *SpriteHandler) addProjectile(projectile *model.Projectile) {
-	s.mutexMap[ProjectileSpriteType].Lock()
-	s.sprites[ProjectileSpriteType][projectile] = struct{}{}
-	s.mutexMap[ProjectileSpriteType].Unlock()
+	s.sprites[ProjectileSpriteType].Store(projectile, struct{}{})
 }
 
 func (s *SpriteHandler) deleteProjectile(projectile *model.Projectile) {
-	s.mutexMap[ProjectileSpriteType].Lock()
-	delete(s.sprites[ProjectileSpriteType], projectile)
-	s.mutexMap[ProjectileSpriteType].Unlock()
+	s.sprites[ProjectileSpriteType].Delete(projectile)
 }
 
 func (s *SpriteHandler) addEffect(effect *model.Effect) {
-	s.mutexMap[EffectSpriteType].Lock()
-	s.sprites[EffectSpriteType][effect] = struct{}{}
-	s.mutexMap[EffectSpriteType].Unlock()
+	s.sprites[EffectSpriteType].Store(effect, struct{}{})
 }
 
 func (s *SpriteHandler) deleteEffect(effect *model.Effect) {
-	s.mutexMap[EffectSpriteType].Lock()
-	delete(s.sprites[EffectSpriteType], effect)
-	s.mutexMap[EffectSpriteType].Unlock()
+	s.sprites[EffectSpriteType].Delete(effect)
 }
 
 func (g *Game) getRaycastSprites() []raycaster.Sprite {
-	numSprites := g.sprites.totalSprites() + len(g.clutter.sprites)
-	raycastSprites := make([]raycaster.Sprite, numSprites)
+	raycastSprites := make([]raycaster.Sprite, 0, 512)
 
-	index := 0
-
+	count := 0
 	for _, spriteMap := range g.sprites.sprites {
-		for spriteInterface := range spriteMap {
+		spriteMap.Range(func(k, _ interface{}) bool {
+			spriteInterface := k.(raycaster.Sprite)
 			sprite := getSpriteFromInterface(spriteInterface)
 			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
 			// only include map sprites within fast approximation of render distance
@@ -115,17 +81,18 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 				(math.Abs(sprite.Position.X-g.player.Position.X) <= g.renderDistance &&
 					math.Abs(sprite.Position.Y-g.player.Position.Y) <= g.renderDistance)
 			if doSprite {
-				raycastSprites[index] = spriteInterface
-				index += 1
+				raycastSprites = append(raycastSprites, sprite)
+				count++
 			}
-		}
+			return true
+		})
 	}
 	for clutter := range g.clutter.sprites {
-		raycastSprites[index] = clutter
-		index += 1
+		raycastSprites = append(raycastSprites, clutter)
+		count++
 	}
 
-	return raycastSprites[:index]
+	return raycastSprites[:count]
 }
 
 func getSpriteFromInterface(sInterface raycaster.Sprite) *model.Sprite {

@@ -84,15 +84,16 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY, moveZ float64, c
 			// only check collision against certain sprite types (skip projectiles, effects, etc.)
 			continue
 		}
-		for spriteInterface := range spriteMap {
+		spriteMap.Range(func(k, _ interface{}) bool {
+			spriteInterface := k.(raycaster.Sprite)
 			sEntity := getEntityFromInterface(spriteInterface)
 			if entity == sEntity || entity.Parent == sEntity || sEntity.CollisionRadius <= 0 {
-				continue
+				return true
 			}
 
 			// only check intersection of nearby sprites instead of all of them
 			if !pointInProximity(checkDist, newX, newY, sEntity.Position.X, sEntity.Position.Y) {
-				continue
+				return true
 			}
 
 			// quick check if intersects in Z-plane
@@ -116,7 +117,9 @@ func (g *Game) getValidMove(entity *model.Entity, moveX, moveY, moveZ float64, c
 					}
 				}
 			}
-		}
+
+			return true
+		})
 	}
 
 	// sort collisions by distance to current entity position

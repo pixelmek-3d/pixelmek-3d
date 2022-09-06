@@ -41,11 +41,11 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 	colorM := ebiten.ColorM{}
 	colorM.ScaleWithColor(g.hudRGBA)
 
-	for sInterface := range g.sprites.sprites[MechSpriteType] {
-		s := sInterface.(*model.MechSprite)
+	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
+		s := k.(*model.MechSprite)
 		rect := s.ScreenRect()
 		if rect == nil {
-			continue
+			return true
 		}
 
 		minX, minY, maxX, maxY := float64(rect.Min.X), float64(rect.Min.Y), float64(rect.Max.X), float64(rect.Max.Y)
@@ -77,5 +77,7 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Translate(maxX-rOff, maxY-rOff)
 		screen.DrawImage(g.reticle.Texture(), op)
-	}
+
+		return true
+	})
 }

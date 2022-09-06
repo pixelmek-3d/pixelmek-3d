@@ -474,9 +474,9 @@ func (g *Game) fireTestWeaponAtPlayer() {
 		return
 	}
 
-	for sInterface := range g.sprites.sprites[MechSpriteType] {
+	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
 		// firing test projectile at player
-		m := sInterface.(*model.MechSprite)
+		m := k.(*model.MechSprite)
 		pVelocity := 16.0
 
 		pX, pY, pZ := m.Position.X, m.Position.Y, m.PositionZ+0.4
@@ -487,7 +487,9 @@ func (g *Game) fireTestWeaponAtPlayer() {
 			g.sprites.addProjectile(projectile)
 			g.player.TestCooldown = 10
 		}
-	}
+
+		return true
+	})
 }
 
 // weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
@@ -552,26 +554,30 @@ func (g *Game) updateProjectiles() {
 	// perform concurrent projectile updates
 	var wg sync.WaitGroup
 
-	for pInterface := range g.sprites.sprites[ProjectileSpriteType] {
-		p := pInterface.(*model.Projectile)
+	g.sprites.sprites[ProjectileSpriteType].Range(func(k, _ interface{}) bool {
+		p := k.(*model.Projectile)
 		p.Lifespan--
 		if p.Lifespan <= 0 {
 			g.sprites.deleteProjectile(p)
-			continue
+			return true
 		}
 
 		wg.Add(1)
 		go g.asyncProjectileUpdate(p, &wg)
-	}
+
+		return true
+	})
 
 	// Update animated effects
-	for eInterface := range g.sprites.sprites[EffectSpriteType] {
-		e := eInterface.(*model.Effect)
+	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
+		e := k.(*model.Effect)
 		e.Update(g.player.Position)
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
 		}
-	}
+
+		return true
+	})
 
 	wg.Wait()
 }
@@ -629,8 +635,8 @@ func (g *Game) asyncProjectileUpdate(p *model.Projectile, wg *sync.WaitGroup) {
 
 func (g *Game) updateSprites() {
 	// Update for animated sprite movement
-	for sInterface := range g.sprites.sprites[MapSpriteType] {
-		s := sInterface.(*model.Sprite)
+	g.sprites.sprites[MapSpriteType].Range(func(k, _ interface{}) bool {
+		s := k.(*model.Sprite)
 		if s.HitPoints <= 0 {
 			// TODO: implement sprite destruction animation
 			g.sprites.deleteMapSprite(s)
@@ -638,11 +644,13 @@ func (g *Game) updateSprites() {
 
 		g.updateSpritePosition(s)
 		s.Update(g.player.Position)
-	}
+
+		return true
+	})
 
 	// Updates for animated mech sprite movement
-	for sInterface := range g.sprites.sprites[MechSpriteType] {
-		s := sInterface.(*model.MechSprite)
+	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
+		s := k.(*model.MechSprite)
 		// TODO: implement mech armor and structure instead of direct HP
 		if s.HitPoints <= 0 {
 			// TODO: implement mech destruction animation
@@ -651,7 +659,9 @@ func (g *Game) updateSprites() {
 
 		g.updateMechPosition(s)
 		s.Update(g.player.Position)
-	}
+
+		return true
+	})
 }
 
 func (g *Game) updateMechPosition(s *model.MechSprite) {
