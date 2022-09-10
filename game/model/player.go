@@ -8,26 +8,27 @@ import (
 )
 
 type Player struct {
-	*Entity
+	Entity
 	CameraZ        float64
 	Moved          bool
 	TestProjectile *Projectile
 	TestCooldown   int
+	MapColor       color.RGBA
 }
 
 func NewPlayer(x, y, angle, pitch float64) *Player {
 	p := &Player{
-		Entity: &Entity{
-			Position:  &geom.Vector2{X: x, Y: y},
-			PositionZ: 0,
-			Angle:     angle,
-			Pitch:     pitch,
-			Velocity:  0,
-			HitPoints: math.MaxFloat64,
-			MapColor:  color.RGBA{255, 0, 0, 255},
+		Entity: &BasicEntity{
+			position:  &geom.Vector2{X: x, Y: y},
+			positionZ: 0,
+			angle:     angle,
+			pitch:     pitch,
+			velocity:  0,
+			hitPoints: math.MaxFloat64,
 		},
-		CameraZ: 0.5,
-		Moved:   false,
+		CameraZ:  0.5,
+		Moved:    false,
+		MapColor: color.RGBA{255, 0, 0, 255},
 	}
 
 	return p

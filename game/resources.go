@@ -179,13 +179,13 @@ func (g *Game) loadContent() {
 				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight,
 			)
 			if s.ZPosition != 0 {
-				sprite.PositionZ = s.ZPosition
+				sprite.SetPositionZ(s.ZPosition)
 			}
 
 			if s.HitPoints == 0 {
-				sprite.HitPoints = math.MaxFloat64
+				sprite.SetHitPoints(math.MaxFloat64)
 			} else {
-				sprite.HitPoints = s.HitPoints
+				sprite.SetHitPoints(s.HitPoints)
 			}
 
 			g.sprites.addMapSprite(sprite)

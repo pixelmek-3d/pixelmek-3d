@@ -9,13 +9,14 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Sprite struct {
-	*Entity
+	Entity
 	W, H           int
 	AnimationRate  int
 	animReversed   bool
@@ -28,14 +29,23 @@ type Sprite struct {
 	texRects       []image.Rectangle
 	textures       []*ebiten.Image
 	screenRect     *image.Rectangle
+	MapColor       color.RGBA
+}
+
+func (s *Sprite) Pos() *geom.Vector2 {
+	return s.Entity.Position()
+}
+
+func (s *Sprite) PosZ() float64 {
+	return s.Entity.PositionZ()
 }
 
 func (s *Sprite) Scale() float64 {
-	return s.Entity.Scale
+	return s.Entity.Scale()
 }
 
 func (s *Sprite) VerticalAnchor() raycaster.SpriteAnchor {
-	return s.Entity.Anchor
+	return s.Entity.Anchor()
 }
 
 func (s *Sprite) Texture() *ebiten.Image {
@@ -54,18 +64,18 @@ func NewSprite(
 	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
 ) *Sprite {
 	s := &Sprite{
-		Entity: &Entity{
-			Position:        &geom.Vector2{X: x, Y: y},
-			PositionZ:       0,
-			Scale:           scale,
-			Anchor:          anchor,
-			Angle:           0,
-			Velocity:        0,
-			CollisionRadius: collisionRadius,
-			CollisionHeight: collisionHeight,
-			HitPoints:       math.MaxFloat64,
-			MapColor:        mapColor,
+		Entity: &BasicEntity{
+			position:        &geom.Vector2{X: x, Y: y},
+			positionZ:       0,
+			scale:           scale,
+			anchor:          anchor,
+			angle:           0,
+			velocity:        0,
+			collisionRadius: collisionRadius,
+			collisionHeight: collisionHeight,
+			hitPoints:       math.MaxFloat64,
 		},
+		MapColor: mapColor,
 	}
 
 	s.texNum = 0
@@ -85,18 +95,18 @@ func NewSpriteFromSheet(
 	columns, rows, spriteIndex int, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
 ) *Sprite {
 	s := &Sprite{
-		Entity: &Entity{
-			Position:        &geom.Vector2{X: x, Y: y},
-			PositionZ:       0,
-			Scale:           scale,
-			Anchor:          anchor,
-			Angle:           0,
-			Velocity:        0,
-			CollisionRadius: collisionRadius,
-			CollisionHeight: collisionHeight,
-			HitPoints:       math.MaxFloat64,
-			MapColor:        mapColor,
+		Entity: &BasicEntity{
+			position:        &geom.Vector2{X: x, Y: y},
+			positionZ:       0,
+			scale:           scale,
+			anchor:          anchor,
+			angle:           0,
+			velocity:        0,
+			collisionRadius: collisionRadius,
+			collisionHeight: collisionHeight,
+			hitPoints:       math.MaxFloat64,
 		},
+		MapColor: mapColor,
 	}
 
 	s.texNum = spriteIndex
@@ -133,18 +143,18 @@ func NewAnimatedSprite(
 	columns, rows, animationRate int, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
 ) *Sprite {
 	s := &Sprite{
-		Entity: &Entity{
-			Position:        &geom.Vector2{X: x, Y: y},
-			PositionZ:       0,
-			Scale:           scale,
-			Anchor:          anchor,
-			Angle:           0,
-			Velocity:        0,
-			CollisionRadius: collisionRadius,
-			CollisionHeight: collisionHeight,
-			HitPoints:       math.MaxFloat64,
-			MapColor:        mapColor,
+		Entity: &BasicEntity{
+			position:        &geom.Vector2{X: x, Y: y},
+			positionZ:       0,
+			scale:           scale,
+			anchor:          anchor,
+			angle:           0,
+			velocity:        0,
+			collisionRadius: collisionRadius,
+			collisionHeight: collisionHeight,
+			hitPoints:       math.MaxFloat64,
 		},
+		MapColor: mapColor,
 	}
 
 	s.AnimationRate = animationRate
@@ -177,6 +187,18 @@ func NewAnimatedSprite(
 	}
 
 	return s
+}
+
+func (s *Sprite) Clone() *Sprite {
+	sClone := &Sprite{}
+	eClone := &BasicEntity{}
+
+	copier.Copy(sClone, s)
+	copier.Copy(eClone, s.Entity)
+
+	sClone.Entity = eClone
+
+	return sClone
 }
 
 func (s *Sprite) SetTextureFacingMap(texFacingMap map[float64]int) {
@@ -249,8 +271,8 @@ func (s *Sprite) Update(camPos *geom.Vector2) {
 			texRow := 0
 
 			// calculate angle from sprite relative to camera position by getting angle of line between them
-			lineToCam := geom.Line{X1: s.Position.X, Y1: s.Position.Y, X2: camPos.X, Y2: camPos.Y}
-			facingAngle := lineToCam.Angle() - s.Angle
+			lineToCam := geom.Line{X1: s.Position().X, Y1: s.Position().Y, X2: camPos.X, Y2: camPos.Y}
+			facingAngle := lineToCam.Angle() - s.Angle()
 			if facingAngle < 0 {
 				// convert to positive angle needed to determine facing index to use
 				facingAngle += geom.Pi2
@@ -288,7 +310,8 @@ func (s *Sprite) AddDebugLines(lineWidth int, clr color.Color) {
 	lW := float64(lineWidth)
 	sW := float64(s.W)
 	sH := float64(s.H)
-	sCr := s.CollisionRadius * sW
+	cR := s.CollisionRadius()
+	sCr := cR * sW
 
 	for i, img := range s.textures {
 		imgRect := s.texRects[i]
@@ -305,7 +328,7 @@ func (s *Sprite) AddDebugLines(lineWidth int, clr color.Color) {
 		ebitenutil.DrawRect(img, x, y+sH/2-lW/2-1, sW, lW, clr)
 
 		// collision markers
-		if s.CollisionRadius > 0 {
+		if cR > 0 {
 			ebitenutil.DrawRect(img, x+sW/2-sCr-lW/2-1, y, lW, sH, color.White)
 			ebitenutil.DrawRect(img, x+sW/2+sCr-lW/2-1, y, lW, sH, color.White)
 		}

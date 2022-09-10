@@ -123,12 +123,12 @@ func (g *Game) handleInput() {
 			if g.camera.FovDepth() != g.zoomFovDepth {
 				zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
 				g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-				g.camera.SetPitchAngle(g.player.Pitch)
+				g.camera.SetPitchAngle(g.player.Pitch())
 			}
 		} else if g.camera.FovDepth() == g.zoomFovDepth {
 			// unzoom
 			g.camera.SetFovAngle(g.fovDegrees, 1.0)
-			g.camera.SetPitchAngle(g.player.Pitch)
+			g.camera.SetPitchAngle(g.player.Pitch())
 		}
 
 		switch {

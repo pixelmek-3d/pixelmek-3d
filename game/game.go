@@ -132,8 +132,8 @@ func NewGame() *Game {
 	// init player model
 	angleDegrees := 60.0
 	g.player = model.NewPlayer(8.5, 3.5, geom.Radians(angleDegrees), 0)
-	g.player.CollisionRadius = clipDistance // TODO: get from player mech
-	g.player.CollisionHeight = 0.5          // TODO: also get from player mech
+	g.player.SetCollisionRadius(clipDistance) // TODO: get from player mech
+	g.player.SetCollisionHeight(0.5)          // TODO: also get from player mech
 
 	// load map and mission content once when first run
 	g.loadContent()
@@ -366,7 +366,8 @@ func (g *Game) setFovAngle(fovDegrees float64) {
 
 // Move player by move speed in the forward/backward direction
 func (g *Game) Move(mSpeed float64) {
-	moveLine := geom.LineFromAngle(g.player.Position.X, g.player.Position.Y, g.player.Angle, mSpeed)
+	playerPosition := g.player.Position()
+	moveLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Angle(), mSpeed)
 	g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
 }
 
@@ -376,28 +377,30 @@ func (g *Game) Strafe(sSpeed float64) {
 	if sSpeed < 0 {
 		strafeAngle = -strafeAngle
 	}
-	strafeLine := geom.LineFromAngle(g.player.Position.X, g.player.Position.Y, g.player.Angle-strafeAngle, math.Abs(sSpeed))
+	playerPosition := g.player.Position()
+	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Angle()-strafeAngle, math.Abs(sSpeed))
 	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2)
 }
 
 // Rotate player heading angle by rotation speed
 func (g *Game) Rotate(rSpeed float64) {
-	g.player.Angle += rSpeed
+	angle := g.player.Angle() + rSpeed
 
 	pi2 := geom.Pi2
-	if g.player.Angle >= pi2 {
-		g.player.Angle = pi2 - g.player.Angle
-	} else if g.player.Angle <= -pi2 {
-		g.player.Angle = g.player.Angle + pi2
+	if angle >= pi2 {
+		angle = pi2 - angle
+	} else if angle <= -pi2 {
+		angle = angle + pi2
 	}
 
+	g.player.SetAngle(angle)
 	g.player.Moved = true
 }
 
 // Update player pitch angle by pitch speed
 func (g *Game) Pitch(pSpeed float64) {
 	// current raycasting method can only allow up to 45 degree pitch in either direction
-	g.player.Pitch = geom.Clamp(pSpeed+g.player.Pitch, -math.Pi/8, math.Pi/4)
+	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -math.Pi/8, math.Pi/4))
 	g.player.Moved = true
 }
 
@@ -436,7 +439,7 @@ func (g *Game) fireWeapon() {
 	}
 
 	// spawning projectile at offsets from player's center point of view
-	pAngle, pPitch := g.player.Angle, g.player.Pitch
+	pAngle, pPitch := g.player.Angle(), g.player.Pitch()
 
 	// firing test projectiles
 	pVelocity := 16.0
@@ -479,8 +482,11 @@ func (g *Game) fireTestWeaponAtPlayer() {
 		m := k.(*model.MechSprite)
 		pVelocity := 16.0
 
-		pX, pY, pZ := m.Position.X, m.Position.Y, m.PositionZ+0.4
-		pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: g.player.Position.X, Y2: g.player.Position.Y, Z2: randFloat(0.1, 0.7)}
+		playerPosition := g.player.Position()
+		mechPosition := m.Position()
+		pX, pY, pZ := mechPosition.X, mechPosition.Y, m.PositionZ()+0.4
+
+		pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
 		pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 		projectile := p.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, pVelocity, m.Entity)
 		if projectile != nil {
@@ -494,7 +500,8 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 // weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
 func (g *Game) weaponPosition3D(weaponOffX, weaponOffY float64) (float64, float64, float64) {
-	wX, wY, wZ := g.player.Position.X, g.player.Position.Y, g.player.CameraZ+weaponOffY
+	playerPosition := g.player.Position()
+	wX, wY, wZ := playerPosition.X, playerPosition.Y, g.player.CameraZ+weaponOffY
 
 	if weaponOffX == 0 {
 		// no X/Y position adjustments needed
@@ -502,7 +509,7 @@ func (g *Game) weaponPosition3D(weaponOffX, weaponOffY float64) (float64, float6
 	}
 
 	// calculate X,Y based on player orientation angle perpendicular to angle of view
-	offAngle := g.player.Angle + math.Pi/2
+	offAngle := g.player.Angle() + math.Pi/2
 
 	// create line segment using offset angle and X offset to determine 3D position offset of X/Y
 	offLine := geom.LineFromAngle(0, 0, offAngle, weaponOffX)
@@ -521,17 +528,17 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	// reset player moved flag to only update camera when necessary
 	g.player.Moved = false
 
-	g.camera.SetPosition(g.player.Position.Copy())
+	g.camera.SetPosition(g.player.Position().Copy())
 	g.camera.SetPositionZ(g.player.CameraZ)
-	g.camera.SetHeadingAngle(g.player.Angle)
-	g.camera.SetPitchAngle(g.player.Pitch)
+	g.camera.SetHeadingAngle(g.player.Angle())
+	g.camera.SetPitchAngle(g.player.Pitch())
 }
 
 func (g *Game) updatePlayerPosition(newX, newY float64) {
 	// Update player position
-	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, g.player.PosZ(), true)
-	if !newPos.Equals(g.player.Pos()) {
-		g.player.Position = newPos
+	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, g.player.PositionZ(), true)
+	if !newPos.Equals(g.player.Position()) {
+		g.player.SetPosition(newPos)
 		g.player.Moved = true
 	}
 
@@ -540,8 +547,8 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 		collisionEntity := collisions[0]
 
 		collisionDamage := 1.0 // TODO: determine collision damage based on player mech and speed
-		collisionEntity.entity.HitPoints -= collisionDamage
-		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.HitPoints)
+		collisionEntity.entity.DamageHitPoints(collisionDamage)
+		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.HitPoints())
 	}
 }
 
@@ -571,7 +578,7 @@ func (g *Game) updateProjectiles() {
 	// Update animated effects
 	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
 		e := k.(*model.Effect)
-		e.Update(g.player.Position)
+		e.Update(g.player.Position())
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
 		}
@@ -585,15 +592,15 @@ func (g *Game) updateProjectiles() {
 func (g *Game) asyncProjectileUpdate(p *model.Projectile, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	if p.Velocity != 0 {
-
-		trajectory := geom3d.Line3dFromAngle(p.Position.X, p.Position.Y, p.PositionZ, p.Angle, p.Pitch, p.Velocity)
+	if p.Velocity() != 0 {
+		pPosition := p.Position()
+		trajectory := geom3d.Line3dFromAngle(pPosition.X, pPosition.Y, p.PositionZ(), p.Angle(), p.Pitch(), p.Velocity())
 		xCheck := trajectory.X2
 		yCheck := trajectory.Y2
 		zCheck := trajectory.Z2
 
 		newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, zCheck, false)
-		if isCollision || p.PositionZ <= 0 {
+		if isCollision || p.PositionZ() <= 0 {
 			// for testing purposes, projectiles instantly get deleted when collision occurs
 			//g.sprites.deleteProjectile(p)
 			p.Lifespan = -1
@@ -607,8 +614,8 @@ func (g *Game) asyncProjectileUpdate(p *model.Projectile, wg *sync.WaitGroup) {
 					// TODO: visual response to player being hit
 					println("ouch!")
 				} else {
-					collisionEntity.entity.HitPoints -= p.Damage
-					fmt.Printf("hit for %0.1f (HP: %0.1f)\n", p.Damage, collisionEntity.entity.HitPoints)
+					collisionEntity.entity.DamageHitPoints(p.Damage)
+					fmt.Printf("hit for %0.1f (HP: %0.1f)\n", p.Damage, collisionEntity.entity.HitPoints())
 				}
 			}
 
@@ -620,30 +627,30 @@ func (g *Game) asyncProjectileUpdate(p *model.Projectile, wg *sync.WaitGroup) {
 				}
 
 				// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
-				effect := p.SpawnEffect(newPos.X, newPos.Y, p.PositionZ, p.Angle, p.Pitch)
+				effect := p.SpawnEffect(newPos.X, newPos.Y, p.PositionZ(), p.Angle(), p.Pitch())
 
 				g.sprites.addEffect(effect)
 			}
 
 		} else {
-			p.Position = newPos
-			p.PositionZ = zCheck
+			p.SetPosition(newPos)
+			p.SetPositionZ(zCheck)
 		}
 	}
-	p.Update(g.player.Position)
+	p.Update(g.player.Position())
 }
 
 func (g *Game) updateSprites() {
 	// Update for animated sprite movement
 	g.sprites.sprites[MapSpriteType].Range(func(k, _ interface{}) bool {
 		s := k.(*model.Sprite)
-		if s.HitPoints <= 0 {
+		if s.HitPoints() <= 0 {
 			// TODO: implement sprite destruction animation
 			g.sprites.deleteMapSprite(s)
 		}
 
 		g.updateSpritePosition(s)
-		s.Update(g.player.Position)
+		s.Update(g.player.Position())
 
 		return true
 	})
@@ -652,13 +659,13 @@ func (g *Game) updateSprites() {
 	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
 		s := k.(*model.MechSprite)
 		// TODO: implement mech armor and structure instead of direct HP
-		if s.HitPoints <= 0 {
+		if s.HitPoints() <= 0 {
 			// TODO: implement mech destruction animation
 			g.sprites.deleteMechSprite(s)
 		}
 
 		g.updateMechPosition(s)
-		s.Update(g.player.Position)
+		s.Update(g.player.Position())
 
 		return true
 	})
@@ -666,18 +673,19 @@ func (g *Game) updateSprites() {
 
 func (g *Game) updateMechPosition(s *model.MechSprite) {
 	// TODO: give mechs a bit more of a brain than this
+	sPosition := s.Position()
 	if len(s.PatrolPath) > 0 {
 		// make sure there's movement towards the next patrol point
 		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: s.Position.X, Y1: s.Position.Y, X2: patrolX, Y2: patrolY}
+		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
 
 		// TODO: do something about this velocity
-		s.Velocity = 0.02 * s.Scale()
+		s.SetVelocity(0.02 * s.Scale())
 
 		angle := patrolLine.Angle()
 		dist := patrolLine.Distance()
 
-		if dist <= s.Velocity {
+		if dist <= s.Velocity() {
 			// start movement towards next patrol point
 			s.PatrolPathIndex += 1
 			if s.PatrolPathIndex >= len(s.PatrolPath) {
@@ -687,41 +695,42 @@ func (g *Game) updateMechPosition(s *model.MechSprite) {
 			g.updateMechPosition(s)
 		} else {
 			// keep movements towards current patrol point
-			s.Angle = angle
+			s.SetAngle(angle)
 		}
 	}
 
-	if s.Velocity != 0 {
-		vLine := geom.LineFromAngle(s.Position.X, s.Position.Y, s.Angle, s.Velocity)
+	if s.Velocity() != 0 {
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PositionZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.Angle = randFloat(-math.Pi, math.Pi)
-			s.Velocity = randFloat(0.005, 0.009)
+			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
-			s.Position = newPos
+			s.SetPosition(newPos)
 		}
 	}
 }
 
 func (g *Game) updateSpritePosition(s *model.Sprite) {
-	if s.Velocity != 0 {
-		vLine := geom.LineFromAngle(s.Position.X, s.Position.Y, s.Angle, s.Velocity)
+	if s.Velocity() != 0 {
+		sPosition := s.Position()
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PositionZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.Angle = randFloat(-math.Pi, math.Pi)
-			s.Velocity = randFloat(0.005, 0.009)
+			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
-			s.Position = newPos
+			s.SetPosition(newPos)
 		}
 	}
 }

@@ -78,8 +78,8 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
 			// only include map sprites within fast approximation of render distance
 			doSprite := g.renderDistance < 0 ||
-				(math.Abs(sprite.Position.X-g.player.Position.X) <= g.renderDistance &&
-					math.Abs(sprite.Position.Y-g.player.Position.Y) <= g.renderDistance)
+				(math.Abs(sprite.Position().X-g.player.Position().X) <= g.renderDistance &&
+					math.Abs(sprite.Position().Y-g.player.Position().Y) <= g.renderDistance)
 			if doSprite {
 				raycastSprites = append(raycastSprites, sprite)
 				count++
@@ -110,7 +110,7 @@ func getSpriteFromInterface(sInterface raycaster.Sprite) *model.Sprite {
 	}
 }
 
-func getEntityFromInterface(sInterface raycaster.Sprite) *model.Entity {
+func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
 	switch interfaceType := sInterface.(type) {
 	case *model.Sprite:
 		return sInterface.(*model.Sprite).Entity

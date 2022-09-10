@@ -58,15 +58,25 @@ func NewMechSprite(
 }
 
 func NewMechSpriteFromMech(x, y float64, origMech *MechSprite) *MechSprite {
-	s := &MechSprite{}
-	copier.Copy(s, origMech)
-
-	s.Sprite = &Sprite{}
-	copier.Copy(s.Sprite, origMech.Sprite)
-
-	s.Position = &geom.Vector2{X: x, Y: y}
+	s := origMech.Clone()
+	s.SetPosition(&geom.Vector2{X: x, Y: y})
 
 	return s
+}
+
+func (m *MechSprite) Clone() *MechSprite {
+	mClone := &MechSprite{}
+	sClone := &Sprite{}
+	eClone := &BasicEntity{}
+
+	copier.Copy(mClone, m)
+	copier.Copy(sClone, m.Sprite)
+	copier.Copy(eClone, m.Entity)
+
+	mClone.Sprite = sClone
+	mClone.Sprite.Entity = eClone
+
+	return mClone
 }
 
 func (s *MechSprite) SetMechAnimation(animateIndex MechAnimationIndex) {

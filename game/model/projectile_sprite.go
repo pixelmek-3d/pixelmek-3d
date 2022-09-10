@@ -52,41 +52,47 @@ func NewAnimatedProjectile(
 	return p
 }
 
-func (pSpawn *Projectile) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy *Entity) *Projectile {
-	p := &Projectile{}
-	s := &Sprite{}
-	copier.Copy(p, pSpawn)
-	copier.Copy(s, pSpawn.Sprite)
+func (p *Projectile) Clone() *Projectile {
+	pClone := &Projectile{}
+	sClone := &Sprite{}
+	eClone := &BasicEntity{}
 
-	p.Sprite = s
-	p.Position = &geom.Vector2{X: x, Y: y}
-	p.PositionZ = z
-	p.Angle = angle
-	p.Pitch = pitch
+	copier.Copy(pClone, p)
+	copier.Copy(sClone, p.Sprite)
+	copier.Copy(eClone, p.Entity)
+
+	pClone.Sprite = sClone
+	pClone.Sprite.Entity = eClone
+
+	return pClone
+}
+
+func (p *Projectile) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy Entity) *Projectile {
+	pSpawn := p.Clone()
+
+	pSpawn.SetPosition(&geom.Vector2{X: x, Y: y})
+	pSpawn.SetPositionZ(z)
+	pSpawn.SetAngle(angle)
+	pSpawn.SetPitch(pitch)
 
 	// convert velocity from distance/second to distance per tick
-	p.Velocity = velocity / float64(ebiten.MaxTPS())
+	pSpawn.SetVelocity(velocity / float64(ebiten.MaxTPS()))
 
 	// keep track of what spawned it
-	p.Parent = spawnedBy
+	pSpawn.SetParent(spawnedBy)
 
-	return p
+	return pSpawn
 }
 
 func (p *Projectile) SpawnEffect(x, y, z, angle, pitch float64) *Effect {
-	e := &Effect{}
-	s := &Sprite{}
-	copier.Copy(e, p.ImpactEffect)
-	copier.Copy(s, p.ImpactEffect.Sprite)
-
-	e.Sprite = s
-	e.Position = &geom.Vector2{X: x, Y: y}
-	e.PositionZ = z
-	e.Angle = angle
-	e.Pitch = pitch
+	e := p.ImpactEffect.Clone()
+	e.SetPosition(&geom.Vector2{X: x, Y: y})
+	e.SetPositionZ(z)
+	e.SetAngle(angle)
+	e.SetPitch(pitch)
 
 	// keep track of what spawned it
-	e.Parent = p.Parent
+	e.SetParent(p.Parent())
 
 	return e
 }

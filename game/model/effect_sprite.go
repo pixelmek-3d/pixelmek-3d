@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
+	"github.com/jinzhu/copier"
 )
 
 type Effect struct {
@@ -22,4 +23,19 @@ func NewAnimatedEffect(
 	}
 
 	return e
+}
+
+func (e *Effect) Clone() *Effect {
+	fClone := &Effect{}
+	sClone := &Sprite{}
+	eClone := &BasicEntity{}
+
+	copier.Copy(fClone, e)
+	copier.Copy(sClone, e.Sprite)
+	copier.Copy(eClone, e.Entity)
+
+	fClone.Sprite = sClone
+	fClone.Sprite.Entity = eClone
+
+	return fClone
 }
