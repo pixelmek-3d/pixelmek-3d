@@ -8,9 +8,10 @@ import (
 	"math"
 	"path/filepath"
 
+	"github.com/harbdog/pixelmek-3d/game/render"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
@@ -175,7 +176,7 @@ func (g *Game) loadContent() {
 			sWidth, sHeight := spriteImg.Size()
 			collisionRadius := (s.Scale * s.CollisionPxRadius) / float64(sWidth)
 			collisionHeight := (s.Scale * s.CollisionPxHeight) / float64(sHeight)
-			sprite := model.NewSprite(
+			sprite := render.NewSprite(
 				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight,
 			)
 			if s.ZPosition != 0 {
@@ -202,26 +203,26 @@ func (g *Game) loadContent() {
 // loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
 	// TODO: move these to predefined mech sprites from their own data source files
-	mechSpriteTemplates := make(map[string]*model.MechSprite, len(g.mission.Mechs))
+	mechSpriteTemplates := make(map[string]*render.MechSprite, len(g.mission.Mechs))
 
 	for _, missionMech := range g.mission.Mechs {
 		if _, ok := mechSpriteTemplates[missionMech.Image]; !ok {
 			mechRelPath := fmt.Sprintf("mechs/%s", missionMech.Image)
 			mechImg := getSpriteFromFile(mechRelPath)
-			mechSpriteTemplates[missionMech.Image] = model.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.3, 0.7)
+			mechSpriteTemplates[missionMech.Image] = render.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.3, 0.7)
 		}
 
 		mechTemplate := mechSpriteTemplates[missionMech.Image]
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
-		mech := model.NewMechSpriteFromMech(posX, posY, mechTemplate)
+		mech := render.NewMechSpriteFromMech(posX, posY, mechTemplate)
 
 		// TODO: give mission mechs a bit more of a brain
 		if len(missionMech.PatrolPath) > 0 {
 			mech.PatrolPath = missionMech.PatrolPath
-			mech.SetMechAnimation(model.ANIMATE_STRUT)
+			mech.SetMechAnimation(render.ANIMATE_STRUT)
 			mech.AnimationRate = 3
 		} else {
-			mech.SetMechAnimation(model.ANIMATE_IDLE)
+			mech.SetMechAnimation(render.ANIMATE_IDLE)
 			mech.AnimationRate = 7
 		}
 
@@ -233,10 +234,10 @@ func (g *Game) loadMissionSprites() {
 func (g *Game) loadGameSprites() {
 	// load crosshairs
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
-	g.crosshairs = model.NewCrosshairs(1.0, crosshairsSheet, 20, 10, 190)
+	g.crosshairs = render.NewCrosshairs(1.0, crosshairsSheet, 20, 10, 190)
 
 	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
-	g.reticle = model.NewTargetReticle(1.0, reticleSheet)
+	g.reticle = render.NewTargetReticle(1.0, reticleSheet)
 
 	// TODO: move these to predefined projectile sprites from their own data source files
 	redLaserImg := getSpriteFromFile("projectiles/beams_red.png")
@@ -250,7 +251,7 @@ func (g *Game) loadGameSprites() {
 	redLaserCollisionHeight := 2 * redLaserCollisionRadius
 	lifespanSeconds := 4.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel
 	redLaserDamage := 5.0
-	redLaserProjectile := model.NewAnimatedProjectile(
+	redLaserProjectile := render.NewAnimatedProjectile(
 		0, 0, redLaserScale, lifespanSeconds, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 4, raycaster.AnchorCenter, redLaserCollisionRadius, redLaserCollisionHeight, redLaserDamage,
 	)
 
@@ -269,7 +270,7 @@ func (g *Game) loadGameSprites() {
 
 	// give projectile impact effect
 	laserImpactImg := getSpriteFromFile("effects/laser_impact_sheet.png")
-	redExplosionEffect := model.NewAnimatedEffect(
+	redExplosionEffect := render.NewAnimatedEffect(
 		0, 0, 0.1, laserImpactImg, 8, 3, 1, raycaster.AnchorCenter, 1,
 	)
 	redLaserProjectile.ImpactEffect = *redExplosionEffect

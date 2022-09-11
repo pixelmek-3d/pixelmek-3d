@@ -6,6 +6,8 @@ import (
 	"sync"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/pixelmek-3d/game/render"
+
 	"github.com/harbdog/raycaster-go"
 )
 
@@ -35,35 +37,35 @@ func NewSpriteHandler() *SpriteHandler {
 	return s
 }
 
-func (s *SpriteHandler) addMapSprite(sprite *model.Sprite) {
+func (s *SpriteHandler) addMapSprite(sprite *render.Sprite) {
 	s.sprites[MapSpriteType].Store(sprite, struct{}{})
 }
 
-func (s *SpriteHandler) deleteMapSprite(sprite *model.Sprite) {
+func (s *SpriteHandler) deleteMapSprite(sprite *render.Sprite) {
 	s.sprites[MapSpriteType].Delete(sprite)
 }
 
-func (s *SpriteHandler) addMechSprite(mech *model.MechSprite) {
+func (s *SpriteHandler) addMechSprite(mech *render.MechSprite) {
 	s.sprites[MechSpriteType].Store(mech, struct{}{})
 }
 
-func (s *SpriteHandler) deleteMechSprite(mech *model.MechSprite) {
+func (s *SpriteHandler) deleteMechSprite(mech *render.MechSprite) {
 	s.sprites[MechSpriteType].Delete(mech)
 }
 
-func (s *SpriteHandler) addProjectile(projectile *model.Projectile) {
+func (s *SpriteHandler) addProjectile(projectile *render.ProjectileSprite) {
 	s.sprites[ProjectileSpriteType].Store(projectile, struct{}{})
 }
 
-func (s *SpriteHandler) deleteProjectile(projectile *model.Projectile) {
+func (s *SpriteHandler) deleteProjectile(projectile *render.ProjectileSprite) {
 	s.sprites[ProjectileSpriteType].Delete(projectile)
 }
 
-func (s *SpriteHandler) addEffect(effect *model.Effect) {
+func (s *SpriteHandler) addEffect(effect *render.EffectSprite) {
 	s.sprites[EffectSpriteType].Store(effect, struct{}{})
 }
 
-func (s *SpriteHandler) deleteEffect(effect *model.Effect) {
+func (s *SpriteHandler) deleteEffect(effect *render.EffectSprite) {
 	s.sprites[EffectSpriteType].Delete(effect)
 }
 
@@ -95,16 +97,16 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	return raycastSprites[:count]
 }
 
-func getSpriteFromInterface(sInterface raycaster.Sprite) *model.Sprite {
+func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
 	switch interfaceType := sInterface.(type) {
-	case *model.Sprite:
-		return sInterface.(*model.Sprite)
-	case *model.MechSprite:
-		return sInterface.(*model.MechSprite).Sprite
-	case *model.Projectile:
-		return sInterface.(*model.Projectile).Sprite
-	case *model.Effect:
-		return sInterface.(*model.Effect).Sprite
+	case *render.Sprite:
+		return sInterface.(*render.Sprite)
+	case *render.MechSprite:
+		return sInterface.(*render.MechSprite).Sprite
+	case *render.ProjectileSprite:
+		return sInterface.(*render.ProjectileSprite).Sprite
+	case *render.EffectSprite:
+		return sInterface.(*render.EffectSprite).Sprite
 	default:
 		panic(fmt.Errorf("unable to get model.Sprite from type %v", interfaceType))
 	}
@@ -112,14 +114,14 @@ func getSpriteFromInterface(sInterface raycaster.Sprite) *model.Sprite {
 
 func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
 	switch interfaceType := sInterface.(type) {
-	case *model.Sprite:
-		return sInterface.(*model.Sprite).Entity
-	case *model.MechSprite:
-		return sInterface.(*model.MechSprite).Entity
-	case *model.Projectile:
-		return sInterface.(*model.Projectile).Entity
-	case *model.Effect:
-		return sInterface.(*model.Effect).Entity
+	case *render.Sprite:
+		return sInterface.(*render.Sprite).Entity
+	case *render.MechSprite:
+		return sInterface.(*render.MechSprite).Entity
+	case *render.ProjectileSprite:
+		return sInterface.(*render.ProjectileSprite).Entity
+	case *render.EffectSprite:
+		return sInterface.(*render.EffectSprite).Entity
 	default:
 		panic(fmt.Errorf("unable to get model.Entity from type %v", interfaceType))
 	}

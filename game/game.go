@@ -13,6 +13,7 @@ import (
 	_ "image/png"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/pixelmek-3d/game/render"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -53,9 +54,9 @@ type Game struct {
 	width  int
 	height int
 
-	player     *model.Player
-	crosshairs *model.Crosshairs
-	reticle    *model.TargetReticle
+	player     *render.Player
+	crosshairs *render.Crosshairs
+	reticle    *render.TargetReticle
 
 	hudScale float64
 	hudRGBA  color.RGBA
@@ -131,7 +132,7 @@ func NewGame() *Game {
 
 	// init player model
 	angleDegrees := 60.0
-	g.player = model.NewPlayer(8.5, 3.5, geom.Radians(angleDegrees), 0)
+	g.player = render.NewPlayer(8.5, 3.5, geom.Radians(angleDegrees), 0)
 	g.player.SetCollisionRadius(clipDistance) // TODO: get from player mech
 	g.player.SetCollisionHeight(0.5)          // TODO: also get from player mech
 
@@ -479,7 +480,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
 		// firing test projectile at player
-		m := k.(*model.MechSprite)
+		m := k.(*render.MechSprite)
 		pVelocity := 16.0
 
 		playerPosition := g.player.Position()
@@ -562,7 +563,7 @@ func (g *Game) updateProjectiles() {
 	var wg sync.WaitGroup
 
 	g.sprites.sprites[ProjectileSpriteType].Range(func(k, _ interface{}) bool {
-		p := k.(*model.Projectile)
+		p := k.(*render.ProjectileSprite)
 		p.Lifespan--
 		if p.Lifespan <= 0 {
 			g.sprites.deleteProjectile(p)
@@ -577,7 +578,7 @@ func (g *Game) updateProjectiles() {
 
 	// Update animated effects
 	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
-		e := k.(*model.Effect)
+		e := k.(*render.EffectSprite)
 		e.Update(g.player.Position())
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
@@ -589,7 +590,7 @@ func (g *Game) updateProjectiles() {
 	wg.Wait()
 }
 
-func (g *Game) asyncProjectileUpdate(p *model.Projectile, wg *sync.WaitGroup) {
+func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	if p.Velocity() != 0 {
@@ -643,7 +644,7 @@ func (g *Game) asyncProjectileUpdate(p *model.Projectile, wg *sync.WaitGroup) {
 func (g *Game) updateSprites() {
 	// Update for animated sprite movement
 	g.sprites.sprites[MapSpriteType].Range(func(k, _ interface{}) bool {
-		s := k.(*model.Sprite)
+		s := k.(*render.Sprite)
 		if s.HitPoints() <= 0 {
 			// TODO: implement sprite destruction animation
 			g.sprites.deleteMapSprite(s)
@@ -657,7 +658,7 @@ func (g *Game) updateSprites() {
 
 	// Updates for animated mech sprite movement
 	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
-		s := k.(*model.MechSprite)
+		s := k.(*render.MechSprite)
 		// TODO: implement mech armor and structure instead of direct HP
 		if s.HitPoints() <= 0 {
 			// TODO: implement mech destruction animation
@@ -671,7 +672,7 @@ func (g *Game) updateSprites() {
 	})
 }
 
-func (g *Game) updateMechPosition(s *model.MechSprite) {
+func (g *Game) updateMechPosition(s *render.MechSprite) {
 	// TODO: give mechs a bit more of a brain than this
 	sPosition := s.Position()
 	if len(s.PatrolPath) > 0 {
@@ -716,7 +717,7 @@ func (g *Game) updateMechPosition(s *model.MechSprite) {
 	}
 }
 
-func (g *Game) updateSpritePosition(s *model.Sprite) {
+func (g *Game) updateSpritePosition(s *render.Sprite) {
 	if s.Velocity() != 0 {
 		sPosition := s.Position()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())

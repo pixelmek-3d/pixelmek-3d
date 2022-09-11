@@ -1,4 +1,4 @@
-package model
+package render
 
 import (
 	"image"
@@ -7,16 +7,17 @@ import (
 	"math"
 	"sort"
 
-	"github.com/harbdog/raycaster-go"
-	"github.com/harbdog/raycaster-go/geom"
-	"github.com/jinzhu/copier"
+	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/harbdog/raycaster-go"
+	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type Sprite struct {
-	Entity
+	model.Entity
 	W, H           int
 	AnimationRate  int
 	animReversed   bool
@@ -64,19 +65,19 @@ func NewSprite(
 	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
 ) *Sprite {
 	s := &Sprite{
-		Entity: &BasicEntity{
-			position:        &geom.Vector2{X: x, Y: y},
-			positionZ:       0,
-			scale:           scale,
-			anchor:          anchor,
-			angle:           0,
-			velocity:        0,
-			collisionRadius: collisionRadius,
-			collisionHeight: collisionHeight,
-			hitPoints:       math.MaxFloat64,
-		},
+		Entity:   &model.BasicEntity{},
 		MapColor: mapColor,
 	}
+
+	s.SetPosition(&geom.Vector2{X: x, Y: y})
+	s.SetPositionZ(0)
+	s.SetScale(scale)
+	s.SetAnchor(anchor)
+	s.SetAngle(0)
+	s.SetVelocity(0)
+	s.SetCollisionRadius(collisionRadius)
+	s.SetCollisionHeight(collisionHeight)
+	s.SetHitPoints(math.MaxFloat64)
 
 	s.texNum = 0
 	s.lenTex = 1
@@ -95,19 +96,19 @@ func NewSpriteFromSheet(
 	columns, rows, spriteIndex int, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
 ) *Sprite {
 	s := &Sprite{
-		Entity: &BasicEntity{
-			position:        &geom.Vector2{X: x, Y: y},
-			positionZ:       0,
-			scale:           scale,
-			anchor:          anchor,
-			angle:           0,
-			velocity:        0,
-			collisionRadius: collisionRadius,
-			collisionHeight: collisionHeight,
-			hitPoints:       math.MaxFloat64,
-		},
+		Entity:   &model.BasicEntity{},
 		MapColor: mapColor,
 	}
+
+	s.SetPosition(&geom.Vector2{X: x, Y: y})
+	s.SetPositionZ(0)
+	s.SetScale(scale)
+	s.SetAnchor(anchor)
+	s.SetAngle(0)
+	s.SetVelocity(0)
+	s.SetCollisionRadius(collisionRadius)
+	s.SetCollisionHeight(collisionHeight)
+	s.SetHitPoints(math.MaxFloat64)
 
 	s.texNum = spriteIndex
 	s.columns, s.rows = columns, rows
@@ -143,19 +144,19 @@ func NewAnimatedSprite(
 	columns, rows, animationRate int, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
 ) *Sprite {
 	s := &Sprite{
-		Entity: &BasicEntity{
-			position:        &geom.Vector2{X: x, Y: y},
-			positionZ:       0,
-			scale:           scale,
-			anchor:          anchor,
-			angle:           0,
-			velocity:        0,
-			collisionRadius: collisionRadius,
-			collisionHeight: collisionHeight,
-			hitPoints:       math.MaxFloat64,
-		},
+		Entity:   &model.BasicEntity{},
 		MapColor: mapColor,
 	}
+
+	s.SetPosition(&geom.Vector2{X: x, Y: y})
+	s.SetPositionZ(0)
+	s.SetScale(scale)
+	s.SetAnchor(anchor)
+	s.SetAngle(0)
+	s.SetVelocity(0)
+	s.SetCollisionRadius(collisionRadius)
+	s.SetCollisionHeight(collisionHeight)
+	s.SetHitPoints(math.MaxFloat64)
 
 	s.AnimationRate = animationRate
 	s.animCounter = 0
@@ -191,7 +192,7 @@ func NewAnimatedSprite(
 
 func (s *Sprite) Clone() *Sprite {
 	sClone := &Sprite{}
-	eClone := &BasicEntity{}
+	eClone := &model.BasicEntity{}
 
 	copier.Copy(sClone, s)
 	copier.Copy(eClone, s.Entity)

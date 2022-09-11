@@ -4,20 +4,20 @@ import (
 	"image/color"
 	"math/rand"
 
-	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/pixelmek-3d/game/render"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
 
 type ClutterHandler struct {
-	sprites           map[*model.Sprite]struct{}
-	spritesByPosition map[int64][]*model.Sprite
+	sprites           map[*render.Sprite]struct{}
+	spritesByPosition map[int64][]*render.Sprite
 }
 
 func NewClutterHandler() *ClutterHandler {
 	c := &ClutterHandler{
-		sprites:           make(map[*model.Sprite]struct{}, 256),
-		spritesByPosition: make(map[int64][]*model.Sprite, 256),
+		sprites:           make(map[*render.Sprite]struct{}, 256),
+		spritesByPosition: make(map[int64][]*render.Sprite, 256),
 	}
 	return c
 }
@@ -69,7 +69,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 			floorTexPath := g.tex.floorTexturePathAt(int(x), int(y))
 
 			// store sprite objects by position ID to make it easy to remove clutter when it goes outside of view
-			c.spritesByPosition[posId] = make([]*model.Sprite, numClutter)
+			c.spritesByPosition[posId] = make([]*render.Sprite, numClutter)
 
 			// use position based seed to produce consistent clutter positioning each time the coordinate is in view
 			rand.Seed(g.mission.Map().Seed + posId)
@@ -86,7 +86,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 				}
 
 				clutterImg := g.tex.texMap[clutter.Image]
-				cSprite := model.NewSprite(
+				cSprite := render.NewSprite(
 					float64(x)+rand.Float64(), float64(y)+rand.Float64(), clutter.Scale, clutterImg,
 					color.RGBA{}, raycaster.AnchorBottom, 0, 0,
 				)

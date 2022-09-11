@@ -1,4 +1,4 @@
-package model
+package render
 
 import (
 	"image/color"

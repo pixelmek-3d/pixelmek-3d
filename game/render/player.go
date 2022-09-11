@@ -1,35 +1,37 @@
-package model
+package render
 
 import (
 	"image/color"
 	"math"
 
+	"github.com/harbdog/pixelmek-3d/game/model"
+
 	"github.com/harbdog/raycaster-go/geom"
 )
 
 type Player struct {
-	Entity
+	model.Entity
 	CameraZ        float64
 	Moved          bool
-	TestProjectile *Projectile
+	TestProjectile *ProjectileSprite
 	TestCooldown   int
 	MapColor       color.RGBA
 }
 
 func NewPlayer(x, y, angle, pitch float64) *Player {
 	p := &Player{
-		Entity: &BasicEntity{
-			position:  &geom.Vector2{X: x, Y: y},
-			positionZ: 0,
-			angle:     angle,
-			pitch:     pitch,
-			velocity:  0,
-			hitPoints: math.MaxFloat64,
-		},
+		Entity:   &model.BasicEntity{},
 		CameraZ:  0.5,
 		Moved:    false,
 		MapColor: color.RGBA{255, 0, 0, 255},
 	}
+
+	p.SetPosition(&geom.Vector2{X: x, Y: y})
+	p.SetPositionZ(0)
+	p.SetAngle(angle)
+	p.SetPitch(pitch)
+	p.SetVelocity(0)
+	p.SetHitPoints(math.MaxFloat64) // TODO: get from mech model
 
 	return p
 }

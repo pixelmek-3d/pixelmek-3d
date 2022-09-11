@@ -1,8 +1,10 @@
-package model
+package render
 
 import (
 	"image/color"
 	_ "image/png"
+
+	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -67,7 +69,7 @@ func NewMechSpriteFromMech(x, y float64, origMech *MechSprite) *MechSprite {
 func (m *MechSprite) Clone() *MechSprite {
 	mClone := &MechSprite{}
 	sClone := &Sprite{}
-	eClone := &BasicEntity{}
+	eClone := &model.BasicEntity{}
 
 	copier.Copy(mClone, m)
 	copier.Copy(sClone, m.Sprite)

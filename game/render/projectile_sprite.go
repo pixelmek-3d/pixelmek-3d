@@ -1,35 +1,36 @@
-package model
+package render
 
 import (
 	"image/color"
 	"math"
 
-	"github.com/harbdog/raycaster-go"
-	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/raycaster-go"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
 )
 
-type Projectile struct {
+type ProjectileSprite struct {
 	*Sprite
 	Lifespan     float64
 	Damage       float64 // TODO: separate out non-visual game model
-	ImpactEffect Effect
+	ImpactEffect EffectSprite
 }
 
 func NewProjectile(
 	x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA,
 	anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight, damage float64,
-) *Projectile {
+) *ProjectileSprite {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
 	}
-	p := &Projectile{
+	p := &ProjectileSprite{
 		Sprite:       NewSprite(x, y, scale, img, mapColor, anchor, collisionRadius, collisionHeight),
 		Lifespan:     lifespan,
 		Damage:       damage,
-		ImpactEffect: Effect{},
+		ImpactEffect: EffectSprite{},
 	}
 
 	return p
@@ -38,24 +39,24 @@ func NewProjectile(
 func NewAnimatedProjectile(
 	x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int,
 	anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight, damage float64,
-) *Projectile {
+) *ProjectileSprite {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
 	}
-	p := &Projectile{
+	p := &ProjectileSprite{
 		Sprite:       NewAnimatedSprite(x, y, scale, img, mapColor, columns, rows, animationRate, anchor, collisionRadius, collisionHeight),
 		Lifespan:     lifespan,
 		Damage:       damage,
-		ImpactEffect: Effect{},
+		ImpactEffect: EffectSprite{},
 	}
 
 	return p
 }
 
-func (p *Projectile) Clone() *Projectile {
-	pClone := &Projectile{}
+func (p *ProjectileSprite) Clone() *ProjectileSprite {
+	pClone := &ProjectileSprite{}
 	sClone := &Sprite{}
-	eClone := &BasicEntity{}
+	eClone := &model.BasicEntity{}
 
 	copier.Copy(pClone, p)
 	copier.Copy(sClone, p.Sprite)
@@ -67,7 +68,7 @@ func (p *Projectile) Clone() *Projectile {
 	return pClone
 }
 
-func (p *Projectile) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy Entity) *Projectile {
+func (p *ProjectileSprite) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy model.Entity) *ProjectileSprite {
 	pSpawn := p.Clone()
 
 	pSpawn.SetPosition(&geom.Vector2{X: x, Y: y})
@@ -84,7 +85,7 @@ func (p *Projectile) SpawnProjectile(x, y, z, angle, pitch, velocity float64, sp
 	return pSpawn
 }
 
-func (p *Projectile) SpawnEffect(x, y, z, angle, pitch float64) *Effect {
+func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSprite {
 	e := p.ImpactEffect.Clone()
 	e.SetPosition(&geom.Vector2{X: x, Y: y})
 	e.SetPositionZ(z)
