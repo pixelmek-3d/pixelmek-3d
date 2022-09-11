@@ -234,7 +234,7 @@ func (g *Game) loadMissionSprites() {
 func (g *Game) loadGameSprites() {
 	// load crosshairs
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
-	g.crosshairs = render.NewCrosshairs(1.0, crosshairsSheet, 20, 10, 190)
+	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
 
 	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
 	g.reticle = render.NewTargetReticle(1.0, reticleSheet)

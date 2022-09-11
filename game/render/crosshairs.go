@@ -1,21 +1,18 @@
 package render
 
 import (
-	"image/color"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/raycaster-go"
 )
 
 type Crosshairs struct {
-	*Sprite
+	HUDSprite
 }
 
 func NewCrosshairs(
-	scale float64, img *ebiten.Image, columns, rows, crosshairIndex int,
+	img *ebiten.Image, scale float64, columns, rows, crosshairIndex int,
 ) *Crosshairs {
 	c := &Crosshairs{
-		Sprite: NewSpriteFromSheet(0, 0, scale, img, color.RGBA{}, columns, rows, crosshairIndex, raycaster.AnchorCenter, 0, 0),
+		HUDSprite: NewHUDSpriteFromSheet(img, scale, columns, rows, crosshairIndex),
 	}
 
 	return c

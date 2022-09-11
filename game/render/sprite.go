@@ -18,7 +18,7 @@ import (
 
 type Sprite struct {
 	model.Entity
-	W, H           int
+	w, h           int
 	AnimationRate  int
 	animReversed   bool
 	animCounter    int
@@ -79,7 +79,7 @@ func NewSprite(
 	s.SetCollisionHeight(collisionHeight)
 	s.SetHitPoints(math.MaxFloat64)
 
-	s.W, s.H = img.Size()
+	s.w, s.h = img.Size()
 	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
 	s.lenTex = 1
 
@@ -111,7 +111,7 @@ func NewSpriteFromSheet(
 	// crop sheet by given number of columns and rows into a single dimension array
 	w, h := img.Size()
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
-	s.W, s.H = int(wFloat), int(hFloat)
+	s.w, s.h = int(wFloat), int(hFloat)
 
 	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
 	s.lenTex = len(s.textures)
@@ -148,7 +148,7 @@ func NewAnimatedSprite(
 	// crop sheet by given number of columns and rows into a single dimension array
 	w, h := img.Size()
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
-	s.W, s.H = int(wFloat), int(hFloat)
+	s.w, s.h = int(wFloat), int(hFloat)
 
 	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
 	s.lenTex = len(s.textures)
@@ -301,8 +301,7 @@ func (s *Sprite) Update(camPos *geom.Vector2) {
 
 func (s *Sprite) AddDebugLines(lineWidth int, clr color.Color) {
 	lW := float64(lineWidth)
-	sW := float64(s.W)
-	sH := float64(s.H)
+	sW, sH := float64(s.w), float64(s.h)
 	cR := s.CollisionRadius()
 	sCr := cR * sW
 
