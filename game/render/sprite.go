@@ -79,14 +79,9 @@ func NewSprite(
 	s.SetCollisionHeight(collisionHeight)
 	s.SetHitPoints(math.MaxFloat64)
 
-	s.texNum = 0
-	s.lenTex = 1
-	s.textures = make([]*ebiten.Image, s.lenTex)
-
 	s.W, s.H = img.Size()
-	s.texRects = []image.Rectangle{image.Rect(0, 0, s.W, s.H)}
-
-	s.textures[0] = img
+	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
+	s.lenTex = 1
 
 	return s
 }
@@ -112,29 +107,14 @@ func NewSpriteFromSheet(
 
 	s.texNum = spriteIndex
 	s.columns, s.rows = columns, rows
-	s.lenTex = columns * rows
-	s.textures = make([]*ebiten.Image, s.lenTex)
-	s.texRects = make([]image.Rectangle, s.lenTex)
-
-	w, h := img.Size()
 
 	// crop sheet by given number of columns and rows into a single dimension array
+	w, h := img.Size()
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
-	s.W = int(wFloat)
-	s.H = int(hFloat)
+	s.W, s.H = int(wFloat), int(hFloat)
 
-	for r := 0; r < rows; r++ {
-		y := int(float64(r) * hFloat)
-		for c := 0; c < columns; c++ {
-			x := int(float64(c) * wFloat)
-			cellRect := image.Rect(x, y, x+s.W-1, y+s.H-1)
-			cellImg := img.SubImage(cellRect).(*ebiten.Image)
-
-			index := c + r*columns
-			s.textures[index] = cellImg
-			s.texRects[index] = cellRect
-		}
-	}
+	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
+	s.lenTex = len(s.textures)
 
 	return s
 }
@@ -164,30 +144,42 @@ func NewAnimatedSprite(
 
 	s.texNum = 0
 	s.columns, s.rows = columns, rows
-	s.lenTex = columns * rows
-	s.textures = make([]*ebiten.Image, s.lenTex)
-	s.texRects = make([]image.Rectangle, s.lenTex)
+
+	// crop sheet by given number of columns and rows into a single dimension array
+	w, h := img.Size()
+	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
+	s.W, s.H = int(wFloat), int(hFloat)
+
+	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
+	s.lenTex = len(s.textures)
+
+	return s
+}
+
+func GetSpriteSheetSlices(img *ebiten.Image, columns, rows int) ([]*ebiten.Image, []image.Rectangle) {
+	lenTex := columns * rows
+	textures := make([]*ebiten.Image, lenTex)
+	texRects := make([]image.Rectangle, lenTex)
 
 	w, h := img.Size()
 
 	// crop sheet by given number of columns and rows into a single dimension array
-	s.W = w / columns
-	s.H = h / rows
+	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
+	spriteW, spriteH := int(wFloat), int(hFloat)
 
 	for r := 0; r < rows; r++ {
-		y := r * s.H
+		y := int(float64(r) * hFloat)
 		for c := 0; c < columns; c++ {
-			x := c * s.W
-			cellRect := image.Rect(x, y, x+s.W, y+s.H)
+			x := int(float64(c) * wFloat)
+			cellRect := image.Rect(x, y, x+spriteW-1, y+spriteH-1)
 			cellImg := img.SubImage(cellRect).(*ebiten.Image)
 
 			index := c + r*columns
-			s.textures[index] = cellImg
-			s.texRects[index] = cellRect
+			textures[index] = cellImg
+			texRects[index] = cellRect
 		}
 	}
-
-	return s
+	return textures, texRects
 }
 
 func (s *Sprite) Clone() *Sprite {
