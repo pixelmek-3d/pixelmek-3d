@@ -39,7 +39,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 	}
 
 	// determine which cells are in view for clutter consideration
-	camX, camY := g.player.Position().X, g.player.Position().Y
+	camX, camY := g.player.Pos().X, g.player.Pos().Y
 	viewAngle := g.player.Angle()
 	viewFOV := geom.Radians(g.fovDegrees)
 	for a := viewAngle - viewFOV/2; a <= viewAngle+viewFOV/2; a += viewFOV / 20 {

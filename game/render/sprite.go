@@ -34,11 +34,11 @@ type Sprite struct {
 }
 
 func (s *Sprite) Pos() *geom.Vector2 {
-	return s.Entity.Position()
+	return s.Entity.Pos()
 }
 
 func (s *Sprite) PosZ() float64 {
-	return s.Entity.PositionZ()
+	return s.Entity.PosZ()
 }
 
 func (s *Sprite) Scale() float64 {
@@ -69,8 +69,8 @@ func NewSprite(
 		MapColor: mapColor,
 	}
 
-	s.SetPosition(&geom.Vector2{X: x, Y: y})
-	s.SetPositionZ(0)
+	s.SetPos(&geom.Vector2{X: x, Y: y})
+	s.SetPosZ(0)
 	s.SetScale(scale)
 	s.SetAnchor(anchor)
 	s.SetAngle(0)
@@ -95,8 +95,8 @@ func NewSpriteFromSheet(
 		MapColor: mapColor,
 	}
 
-	s.SetPosition(&geom.Vector2{X: x, Y: y})
-	s.SetPositionZ(0)
+	s.SetPos(&geom.Vector2{X: x, Y: y})
+	s.SetPosZ(0)
 	s.SetScale(scale)
 	s.SetAnchor(anchor)
 	s.SetAngle(0)
@@ -128,8 +128,8 @@ func NewAnimatedSprite(
 		MapColor: mapColor,
 	}
 
-	s.SetPosition(&geom.Vector2{X: x, Y: y})
-	s.SetPositionZ(0)
+	s.SetPos(&geom.Vector2{X: x, Y: y})
+	s.SetPosZ(0)
 	s.SetScale(scale)
 	s.SetAnchor(anchor)
 	s.SetAngle(0)
@@ -264,7 +264,7 @@ func (s *Sprite) Update(camPos *geom.Vector2) {
 			texRow := 0
 
 			// calculate angle from sprite relative to camera position by getting angle of line between them
-			lineToCam := geom.Line{X1: s.Position().X, Y1: s.Position().Y, X2: camPos.X, Y2: camPos.Y}
+			lineToCam := geom.Line{X1: s.Pos().X, Y1: s.Pos().Y, X2: camPos.X, Y2: camPos.Y}
 			facingAngle := lineToCam.Angle() - s.Angle()
 			if facingAngle < 0 {
 				// convert to positive angle needed to determine facing index to use

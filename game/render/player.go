@@ -26,8 +26,8 @@ func NewPlayer(x, y, angle, pitch float64) *Player {
 		MapColor: color.RGBA{255, 0, 0, 255},
 	}
 
-	p.SetPosition(&geom.Vector2{X: x, Y: y})
-	p.SetPositionZ(0)
+	p.SetPos(&geom.Vector2{X: x, Y: y})
+	p.SetPosZ(0)
 	p.SetAngle(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)

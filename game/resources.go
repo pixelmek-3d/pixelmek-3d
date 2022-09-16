@@ -180,7 +180,7 @@ func (g *Game) loadContent() {
 				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight,
 			)
 			if s.ZPosition != 0 {
-				sprite.SetPositionZ(s.ZPosition)
+				sprite.SetPosZ(s.ZPosition)
 			}
 
 			if s.HitPoints == 0 {

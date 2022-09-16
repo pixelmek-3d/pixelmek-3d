@@ -19,8 +19,8 @@ type EntityCollision struct {
 // checks for valid move from current position, returns valid (x, y) position, whether a collision
 // was encountered, and a list of entity collisions that may have been encountered
 func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, checkAlternate bool) (*geom.Vector2, bool, []*EntityCollision) {
-	position := entity.Position()
-	posX, posY, posZ := position.X, position.Y, entity.PositionZ()
+	position := entity.Pos()
+	posX, posY, posZ := position.X, position.Y, entity.PosZ()
 	if entity.CollisionRadius() <= 0 || entity.CollisionHeight() <= 0 {
 		return &geom.Vector2{X: posX, Y: posY}, false, []*EntityCollision{}
 	}
@@ -56,7 +56,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 	// check sprite against player collision
 	if entity != g.player.Entity && entity.Parent() != g.player.Entity {
 		// only check for collision if player is somewhat nearby
-		playerPosition := g.player.Position()
+		playerPosition := g.player.Pos()
 		playerCollisionRadius := g.player.CollisionRadius()
 		if pointInProximity(checkDist, newX, newY, playerPosition.X, playerPosition.Y) {
 			// quick check if intersects in Z-plane
@@ -96,7 +96,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 				return true
 			}
 
-			sEntityPosition := sEntity.Position()
+			sEntityPosition := sEntity.Pos()
 			sEntityCr := sEntity.CollisionRadius()
 
 			// only check intersection of nearby sprites instead of all of them
@@ -234,7 +234,7 @@ func pointInProximity(distance, srcX, srcY, tgtX, tgtY float64) bool {
 // zEntityIntersection returns the best positionZ intersection point on the target from the source (-1 if no intersection)
 func zEntityIntersection(sourceZ float64, source, target model.Entity) float64 {
 	srcMinZ, srcMaxZ := zEntityMinMax(sourceZ, source)
-	tgtMinZ, tgtMaxZ := zEntityMinMax(target.PositionZ(), target)
+	tgtMinZ, tgtMaxZ := zEntityMinMax(target.PosZ(), target)
 
 	var intersectZ float64 = -1
 	if srcMinZ > tgtMaxZ || tgtMinZ > srcMaxZ {

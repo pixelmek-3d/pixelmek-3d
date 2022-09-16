@@ -72,6 +72,8 @@ func (s *SpriteHandler) deleteEffect(effect *render.EffectSprite) {
 func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	raycastSprites := make([]raycaster.Sprite, 0, 512)
 
+	playerPos := g.player.Pos()
+
 	count := 0
 	for _, spriteMap := range g.sprites.sprites {
 		spriteMap.Range(func(k, _ interface{}) bool {
@@ -80,8 +82,8 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
 			// only include map sprites within fast approximation of render distance
 			doSprite := g.renderDistance < 0 ||
-				(math.Abs(sprite.Position().X-g.player.Position().X) <= g.renderDistance &&
-					math.Abs(sprite.Position().Y-g.player.Position().Y) <= g.renderDistance)
+				(math.Abs(sprite.Pos().X-playerPos.X) <= g.renderDistance &&
+					math.Abs(sprite.Pos().Y-playerPos.Y) <= g.renderDistance)
 			if doSprite {
 				raycastSprites = append(raycastSprites, sprite)
 				count++

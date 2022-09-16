@@ -61,7 +61,7 @@ func NewMechSprite(
 
 func NewMechSpriteFromMech(x, y float64, origMech *MechSprite) *MechSprite {
 	s := origMech.Clone()
-	s.SetPosition(&geom.Vector2{X: x, Y: y})
+	s.SetPos(&geom.Vector2{X: x, Y: y})
 
 	return s
 }

@@ -367,7 +367,7 @@ func (g *Game) setFovAngle(fovDegrees float64) {
 
 // Move player by move speed in the forward/backward direction
 func (g *Game) Move(mSpeed float64) {
-	playerPosition := g.player.Position()
+	playerPosition := g.player.Pos()
 	moveLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Angle(), mSpeed)
 	g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
 }
@@ -378,7 +378,7 @@ func (g *Game) Strafe(sSpeed float64) {
 	if sSpeed < 0 {
 		strafeAngle = -strafeAngle
 	}
-	playerPosition := g.player.Position()
+	playerPosition := g.player.Pos()
 	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Angle()-strafeAngle, math.Abs(sSpeed))
 	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2)
 }
@@ -483,9 +483,9 @@ func (g *Game) fireTestWeaponAtPlayer() {
 		m := k.(*render.MechSprite)
 		pVelocity := 16.0
 
-		playerPosition := g.player.Position()
-		mechPosition := m.Position()
-		pX, pY, pZ := mechPosition.X, mechPosition.Y, m.PositionZ()+0.4
+		playerPosition := g.player.Pos()
+		mechPosition := m.Pos()
+		pX, pY, pZ := mechPosition.X, mechPosition.Y, m.PosZ()+0.4
 
 		pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
 		pHeading, pPitch := pLine.Heading(), pLine.Pitch()
@@ -501,7 +501,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 // weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
 func (g *Game) weaponPosition3D(weaponOffX, weaponOffY float64) (float64, float64, float64) {
-	playerPosition := g.player.Position()
+	playerPosition := g.player.Pos()
 	wX, wY, wZ := playerPosition.X, playerPosition.Y, g.player.CameraZ+weaponOffY
 
 	if weaponOffX == 0 {
@@ -529,7 +529,7 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	// reset player moved flag to only update camera when necessary
 	g.player.Moved = false
 
-	g.camera.SetPosition(g.player.Position().Copy())
+	g.camera.SetPosition(g.player.Pos().Copy())
 	g.camera.SetPositionZ(g.player.CameraZ)
 	g.camera.SetHeadingAngle(g.player.Angle())
 	g.camera.SetPitchAngle(g.player.Pitch())
@@ -537,9 +537,9 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 
 func (g *Game) updatePlayerPosition(newX, newY float64) {
 	// Update player position
-	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, g.player.PositionZ(), true)
-	if !newPos.Equals(g.player.Position()) {
-		g.player.SetPosition(newPos)
+	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, g.player.PosZ(), true)
+	if !newPos.Equals(g.player.Pos()) {
+		g.player.SetPos(newPos)
 		g.player.Moved = true
 	}
 
@@ -579,7 +579,7 @@ func (g *Game) updateProjectiles() {
 	// Update animated effects
 	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
 		e := k.(*render.EffectSprite)
-		e.Update(g.player.Position())
+		e.Update(g.player.Pos())
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
 		}
@@ -594,14 +594,14 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 	defer wg.Done()
 
 	if p.Velocity() != 0 {
-		pPosition := p.Position()
-		trajectory := geom3d.Line3dFromAngle(pPosition.X, pPosition.Y, p.PositionZ(), p.Angle(), p.Pitch(), p.Velocity())
+		pPosition := p.Pos()
+		trajectory := geom3d.Line3dFromAngle(pPosition.X, pPosition.Y, p.PosZ(), p.Angle(), p.Pitch(), p.Velocity())
 		xCheck := trajectory.X2
 		yCheck := trajectory.Y2
 		zCheck := trajectory.Z2
 
 		newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, zCheck, false)
-		if isCollision || p.PositionZ() <= 0 {
+		if isCollision || p.PosZ() <= 0 {
 			// for testing purposes, projectiles instantly get deleted when collision occurs
 			//g.sprites.deleteProjectile(p)
 			p.Lifespan = -1
@@ -628,17 +628,17 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				}
 
 				// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
-				effect := p.SpawnEffect(newPos.X, newPos.Y, p.PositionZ(), p.Angle(), p.Pitch())
+				effect := p.SpawnEffect(newPos.X, newPos.Y, p.PosZ(), p.Angle(), p.Pitch())
 
 				g.sprites.addEffect(effect)
 			}
 
 		} else {
-			p.SetPosition(newPos)
-			p.SetPositionZ(zCheck)
+			p.SetPos(newPos)
+			p.SetPosZ(zCheck)
 		}
 	}
-	p.Update(g.player.Position())
+	p.Update(g.player.Pos())
 }
 
 func (g *Game) updateSprites() {
@@ -651,7 +651,7 @@ func (g *Game) updateSprites() {
 		}
 
 		g.updateSpritePosition(s)
-		s.Update(g.player.Position())
+		s.Update(g.player.Pos())
 
 		return true
 	})
@@ -666,7 +666,7 @@ func (g *Game) updateSprites() {
 		}
 
 		g.updateMechPosition(s)
-		s.Update(g.player.Position())
+		s.Update(g.player.Pos())
 
 		return true
 	})
@@ -674,7 +674,7 @@ func (g *Game) updateSprites() {
 
 func (g *Game) updateMechPosition(s *render.MechSprite) {
 	// TODO: give mechs a bit more of a brain than this
-	sPosition := s.Position()
+	sPosition := s.Pos()
 	if len(s.PatrolPath) > 0 {
 		// make sure there's movement towards the next patrol point
 		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
@@ -706,32 +706,32 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PositionZ(), false)
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.SetAngle(randFloat(-math.Pi, math.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
-			s.SetPosition(newPos)
+			s.SetPos(newPos)
 		}
 	}
 }
 
 func (g *Game) updateSpritePosition(s *render.Sprite) {
 	if s.Velocity() != 0 {
-		sPosition := s.Position()
+		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PositionZ(), false)
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.SetAngle(randFloat(-math.Pi, math.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
-			s.SetPosition(newPos)
+			s.SetPos(newPos)
 		}
 	}
 }

@@ -71,8 +71,8 @@ func (p *ProjectileSprite) Clone() *ProjectileSprite {
 func (p *ProjectileSprite) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy model.Entity) *ProjectileSprite {
 	pSpawn := p.Clone()
 
-	pSpawn.SetPosition(&geom.Vector2{X: x, Y: y})
-	pSpawn.SetPositionZ(z)
+	pSpawn.SetPos(&geom.Vector2{X: x, Y: y})
+	pSpawn.SetPosZ(z)
 	pSpawn.SetAngle(angle)
 	pSpawn.SetPitch(pitch)
 
@@ -87,8 +87,8 @@ func (p *ProjectileSprite) SpawnProjectile(x, y, z, angle, pitch, velocity float
 
 func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSprite {
 	e := p.ImpactEffect.Clone()
-	e.SetPosition(&geom.Vector2{X: x, Y: y})
-	e.SetPositionZ(z)
+	e.SetPos(&geom.Vector2{X: x, Y: y})
+	e.SetPosZ(z)
 	e.SetAngle(angle)
 	e.SetPitch(pitch)
 

@@ -6,10 +6,10 @@ import (
 )
 
 type Entity interface {
-	Position() *geom.Vector2
-	SetPosition(*geom.Vector2)
-	PositionZ() float64
-	SetPositionZ(float64)
+	Pos() *geom.Vector2
+	SetPos(*geom.Vector2)
+	PosZ() float64
+	SetPosZ(float64)
 
 	Scale() float64
 	SetScale(float64)
@@ -50,19 +50,19 @@ type BasicEntity struct {
 	parent          Entity
 }
 
-func (e *BasicEntity) Position() *geom.Vector2 {
+func (e *BasicEntity) Pos() *geom.Vector2 {
 	return e.position
 }
 
-func (e *BasicEntity) SetPosition(pos *geom.Vector2) {
+func (e *BasicEntity) SetPos(pos *geom.Vector2) {
 	e.position = pos
 }
 
-func (e *BasicEntity) PositionZ() float64 {
+func (e *BasicEntity) PosZ() float64 {
 	return e.positionZ
 }
 
-func (e *BasicEntity) SetPositionZ(posZ float64) {
+func (e *BasicEntity) SetPosZ(posZ float64) {
 	e.positionZ = posZ
 }
 
