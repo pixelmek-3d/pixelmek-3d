@@ -8,6 +8,7 @@ import (
 	"math"
 	"path/filepath"
 
+	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -177,7 +178,8 @@ func (g *Game) loadContent() {
 			collisionRadius := (s.Scale * s.CollisionPxRadius) / float64(sWidth)
 			collisionHeight := (s.Scale * s.CollisionPxHeight) / float64(sHeight)
 			sprite := render.NewSprite(
-				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196}, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight,
+				model.BasicCollisionEntity(s.Anchor.SpriteAnchor, collisionRadius, collisionHeight),
+				position[0], position[1], s.Scale, spriteImg, color.RGBA{0, 255, 0, 196},
 			)
 			if s.ZPosition != 0 {
 				sprite.SetPosZ(s.ZPosition)
@@ -209,12 +211,16 @@ func (g *Game) loadMissionSprites() {
 		if _, ok := mechSpriteTemplates[missionMech.Image]; !ok {
 			mechRelPath := fmt.Sprintf("mechs/%s", missionMech.Image)
 			mechImg := getSpriteFromFile(mechRelPath)
-			mechSpriteTemplates[missionMech.Image] = render.NewMechSprite(0, 0, missionMech.Scale, mechImg, 0.3, 0.7)
+
+			modelMech := model.NewMech(0.3, .7)
+			mechSpriteTemplates[missionMech.Image] = render.NewMechSprite(modelMech, 0, 0, missionMech.Scale, mechImg)
 		}
 
 		mechTemplate := mechSpriteTemplates[missionMech.Image]
+		mech := mechTemplate.Clone()
+
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
-		mech := render.NewMechSpriteFromMech(posX, posY, mechTemplate)
+		mech.SetPos(&geom.Vector2{X: posX, Y: posY})
 
 		// TODO: give mission mechs a bit more of a brain
 		if len(missionMech.PatrolPath) > 0 {
@@ -252,7 +258,8 @@ func (g *Game) loadGameSprites() {
 	lifespanSeconds := 4.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel
 	redLaserDamage := 5.0
 	redLaserProjectile := render.NewAnimatedProjectile(
-		0, 0, redLaserScale, lifespanSeconds, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 4, raycaster.AnchorCenter, redLaserCollisionRadius, redLaserCollisionHeight, redLaserDamage,
+		model.BasicCollisionEntity(raycaster.AnchorCenter, redLaserCollisionRadius, redLaserCollisionHeight),
+		0, 0, redLaserScale, lifespanSeconds, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 4, redLaserDamage,
 	)
 
 	// give projectile angle facing textures by row index
@@ -271,7 +278,7 @@ func (g *Game) loadGameSprites() {
 	// give projectile impact effect
 	laserImpactImg := getSpriteFromFile("effects/laser_impact_sheet.png")
 	redExplosionEffect := render.NewAnimatedEffect(
-		0, 0, 0.1, laserImpactImg, 8, 3, 1, raycaster.AnchorCenter, 1,
+		model.BasicCollisionEntity(raycaster.AnchorCenter, 0, 0), 0, 0, 0.1, laserImpactImg, 8, 3, 1, 1,
 	)
 	redLaserProjectile.ImpactEffect = *redExplosionEffect
 

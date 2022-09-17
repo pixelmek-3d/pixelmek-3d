@@ -7,7 +7,6 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
 )
@@ -40,15 +39,16 @@ const (
 	NUM_PARTS   MechPart = 6
 )
 
+// TODO: move x, y positioning out so it belongs only in the model entity
 func NewMechSprite(
-	x, y, scale float64, img *ebiten.Image, collisionRadius, collisionHeight float64,
+	mech *model.Mech, x, y, scale float64, img *ebiten.Image,
 ) *MechSprite {
 	// all mech sprite sheets have 6 columns of images in the sheet:
 	// [full, torso, left arm, right arm, left leg, right leg]
 	mechAnimate := NewMechAnimationSheetFromImage(img)
 	p := NewAnimatedSprite(
-		x, y, scale, mechAnimate.sheet, color.RGBA{},
-		mechAnimate.maxCols, mechAnimate.maxRows, 0, raycaster.AnchorBottom, collisionRadius, collisionHeight,
+		mech, x, y, scale, mechAnimate.sheet, color.RGBA{},
+		mechAnimate.maxCols, mechAnimate.maxRows, 0,
 	)
 	s := &MechSprite{
 		Sprite:       p,
@@ -59,17 +59,10 @@ func NewMechSprite(
 	return s
 }
 
-func NewMechSpriteFromMech(x, y float64, origMech *MechSprite) *MechSprite {
-	s := origMech.Clone()
-	s.SetPos(&geom.Vector2{X: x, Y: y})
-
-	return s
-}
-
 func (m *MechSprite) Clone() *MechSprite {
 	mClone := &MechSprite{}
 	sClone := &Sprite{}
-	eClone := &model.BasicEntity{}
+	eClone := &model.Mech{}
 
 	copier.Copy(mClone, m)
 	copier.Copy(sClone, m.Sprite)

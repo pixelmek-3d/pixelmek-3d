@@ -7,7 +7,6 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
 )
@@ -20,14 +19,13 @@ type ProjectileSprite struct {
 }
 
 func NewProjectile(
-	x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA,
-	anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight, damage float64,
+	modelEntity model.Entity, x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, damage float64,
 ) *ProjectileSprite {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
 	}
 	p := &ProjectileSprite{
-		Sprite:       NewSprite(x, y, scale, img, mapColor, anchor, collisionRadius, collisionHeight),
+		Sprite:       NewSprite(modelEntity, x, y, scale, img, mapColor),
 		Lifespan:     lifespan,
 		Damage:       damage,
 		ImpactEffect: EffectSprite{},
@@ -37,14 +35,13 @@ func NewProjectile(
 }
 
 func NewAnimatedProjectile(
-	x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int,
-	anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight, damage float64,
+	modelEntity model.Entity, x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int, damage float64,
 ) *ProjectileSprite {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
 	}
 	p := &ProjectileSprite{
-		Sprite:       NewAnimatedSprite(x, y, scale, img, mapColor, columns, rows, animationRate, anchor, collisionRadius, collisionHeight),
+		Sprite:       NewAnimatedSprite(modelEntity, x, y, scale, img, mapColor, columns, rows, animationRate),
 		Lifespan:     lifespan,
 		Damage:       damage,
 		ImpactEffect: EffectSprite{},

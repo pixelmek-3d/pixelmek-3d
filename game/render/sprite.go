@@ -62,21 +62,18 @@ func (s *Sprite) SetScreenRect(rect *image.Rectangle) {
 }
 
 func NewSprite(
-	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
+	modelEntity model.Entity, x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
 ) *Sprite {
 	s := &Sprite{
-		Entity:   &model.BasicEntity{},
+		Entity:   modelEntity,
 		MapColor: mapColor,
 	}
 
 	s.SetPos(&geom.Vector2{X: x, Y: y})
 	s.SetPosZ(0)
 	s.SetScale(scale)
-	s.SetAnchor(anchor)
 	s.SetAngle(0)
 	s.SetVelocity(0)
-	s.SetCollisionRadius(collisionRadius)
-	s.SetCollisionHeight(collisionHeight)
 	s.SetHitPoints(math.MaxFloat64)
 
 	s.w, s.h = img.Size()
@@ -87,22 +84,19 @@ func NewSprite(
 }
 
 func NewSpriteFromSheet(
-	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
-	columns, rows, spriteIndex int, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
+	modelEntity model.Entity, x, y, scale float64, img *ebiten.Image,
+	mapColor color.RGBA, columns, rows, spriteIndex int,
 ) *Sprite {
 	s := &Sprite{
-		Entity:   &model.BasicEntity{},
+		Entity:   modelEntity,
 		MapColor: mapColor,
 	}
 
 	s.SetPos(&geom.Vector2{X: x, Y: y})
 	s.SetPosZ(0)
 	s.SetScale(scale)
-	s.SetAnchor(anchor)
 	s.SetAngle(0)
 	s.SetVelocity(0)
-	s.SetCollisionRadius(collisionRadius)
-	s.SetCollisionHeight(collisionHeight)
 	s.SetHitPoints(math.MaxFloat64)
 
 	s.texNum = spriteIndex
@@ -120,22 +114,19 @@ func NewSpriteFromSheet(
 }
 
 func NewAnimatedSprite(
-	x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
-	columns, rows, animationRate int, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64,
+	modelEntity model.Entity, x, y, scale float64, img *ebiten.Image,
+	mapColor color.RGBA, columns, rows, animationRate int,
 ) *Sprite {
 	s := &Sprite{
-		Entity:   &model.BasicEntity{},
+		Entity:   modelEntity,
 		MapColor: mapColor,
 	}
 
 	s.SetPos(&geom.Vector2{X: x, Y: y})
 	s.SetPosZ(0)
 	s.SetScale(scale)
-	s.SetAnchor(anchor)
 	s.SetAngle(0)
 	s.SetVelocity(0)
-	s.SetCollisionRadius(collisionRadius)
-	s.SetCollisionHeight(collisionHeight)
 	s.SetHitPoints(math.MaxFloat64)
 
 	s.AnimationRate = animationRate

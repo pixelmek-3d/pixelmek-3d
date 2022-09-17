@@ -50,6 +50,15 @@ type BasicEntity struct {
 	parent          Entity
 }
 
+func BasicCollisionEntity(anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64) *BasicEntity {
+	e := &BasicEntity{
+		anchor:          anchor,
+		collisionRadius: collisionRadius,
+		collisionHeight: collisionHeight,
+	}
+	return e
+}
+
 func (e *BasicEntity) Pos() *geom.Vector2 {
 	return e.position
 }

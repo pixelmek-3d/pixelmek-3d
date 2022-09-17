@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"math/rand"
 
+	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
-	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
 
@@ -87,8 +87,8 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 
 				clutterImg := g.tex.texMap[clutter.Image]
 				cSprite := render.NewSprite(
-					float64(x)+rand.Float64(), float64(y)+rand.Float64(), clutter.Scale, clutterImg,
-					color.RGBA{}, raycaster.AnchorBottom, 0, 0,
+					&model.BasicEntity{}, float64(x)+rand.Float64(), float64(y)+rand.Float64(),
+					clutter.Scale, clutterImg, color.RGBA{},
 				)
 
 				// store clutter sprites and which coordinate position id they are in
