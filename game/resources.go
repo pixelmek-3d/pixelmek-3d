@@ -257,8 +257,8 @@ func (g *Game) loadGameSprites() {
 	lifespanSeconds := 4.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel
 	redLaserDamage := 5.0
 	redLaserProjectile := render.NewAnimatedProjectile(
-		model.BasicCollisionEntity(0, 0, 0, raycaster.AnchorCenter, redLaserCollisionRadius, redLaserCollisionHeight, 0.1),
-		redLaserScale, lifespanSeconds, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 4, redLaserDamage,
+		model.NewProjectile(redLaserDamage, lifespanSeconds, redLaserCollisionRadius, redLaserCollisionHeight),
+		redLaserScale, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 4,
 	)
 
 	// give projectile angle facing textures by row index

@@ -2,7 +2,6 @@ package render
 
 import (
 	"image/color"
-	"math"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 
@@ -13,21 +12,14 @@ import (
 
 type ProjectileSprite struct {
 	*Sprite
-	Lifespan     float64
-	Damage       float64 // TODO: separate out non-visual game model
 	ImpactEffect EffectSprite
 }
 
 func NewProjectile(
-	modelEntity model.Entity, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, damage float64,
+	projectile *model.Projectile, scale float64, img *ebiten.Image, mapColor color.RGBA,
 ) *ProjectileSprite {
-	if lifespan < 0 {
-		lifespan = math.MaxFloat64
-	}
 	p := &ProjectileSprite{
-		Sprite:       NewSprite(modelEntity, scale, img, mapColor),
-		Lifespan:     lifespan,
-		Damage:       damage,
+		Sprite:       NewSprite(projectile, scale, img, mapColor),
 		ImpactEffect: EffectSprite{},
 	}
 
@@ -35,15 +27,10 @@ func NewProjectile(
 }
 
 func NewAnimatedProjectile(
-	modelEntity model.Entity, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int, damage float64,
+	projectile *model.Projectile, scale float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int,
 ) *ProjectileSprite {
-	if lifespan < 0 {
-		lifespan = math.MaxFloat64
-	}
 	p := &ProjectileSprite{
-		Sprite:       NewAnimatedSprite(modelEntity, scale, img, mapColor, columns, rows, animationRate),
-		Lifespan:     lifespan,
-		Damage:       damage,
+		Sprite:       NewAnimatedSprite(projectile, scale, img, mapColor, columns, rows, animationRate),
 		ImpactEffect: EffectSprite{},
 	}
 
@@ -53,7 +40,7 @@ func NewAnimatedProjectile(
 func (p *ProjectileSprite) Clone() *ProjectileSprite {
 	pClone := &ProjectileSprite{}
 	sClone := &Sprite{}
-	eClone := &model.BasicEntity{}
+	eClone := &model.Projectile{}
 
 	copier.Copy(pClone, p)
 	copier.Copy(sClone, p.Sprite)
@@ -63,6 +50,22 @@ func (p *ProjectileSprite) Clone() *ProjectileSprite {
 	pClone.Sprite.Entity = eClone
 
 	return pClone
+}
+
+func (p *ProjectileSprite) Damage() float64 {
+	return p.Entity.(*model.Projectile).Damage()
+}
+
+func (p *ProjectileSprite) Lifespan() float64 {
+	return p.Entity.(*model.Projectile).Lifespan()
+}
+
+func (p *ProjectileSprite) DecreaseLifespan(decreaseBy float64) float64 {
+	return p.Entity.(*model.Projectile).DecreaseLifespan(decreaseBy)
+}
+
+func (p *ProjectileSprite) ZeroLifespan() {
+	p.Entity.(*model.Projectile).ZeroLifespan()
 }
 
 func (p *ProjectileSprite) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy model.Entity) *ProjectileSprite {

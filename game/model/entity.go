@@ -29,6 +29,7 @@ type Entity interface {
 	HitPoints() float64
 	SetHitPoints(float64)
 	DamageHitPoints(float64) float64
+	MaxHitPoints() float64
 
 	Parent() Entity
 	SetParent(Entity)
@@ -44,6 +45,7 @@ type BasicEntity struct {
 	collisionRadius float64
 	collisionHeight float64
 	hitPoints       float64
+	maxHitPoints    float64
 	parent          Entity
 }
 
@@ -55,6 +57,7 @@ func BasicCollisionEntity(x, y, z float64, anchor raycaster.SpriteAnchor, collis
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		hitPoints:       hitPoints,
+		maxHitPoints:    hitPoints,
 	}
 	return e
 }
@@ -145,6 +148,10 @@ func (e *BasicEntity) SetHitPoints(hitPoints float64) {
 func (e *BasicEntity) DamageHitPoints(damage float64) float64 {
 	e.hitPoints -= damage
 	return e.hitPoints
+}
+
+func (e *BasicEntity) MaxHitPoints() float64 {
+	return e.maxHitPoints
 }
 
 func (e *BasicEntity) Parent() Entity {

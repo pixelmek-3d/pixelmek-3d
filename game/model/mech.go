@@ -15,6 +15,7 @@ type Mech struct {
 	collisionRadius float64
 	collisionHeight float64
 	hitPoints       float64
+	maxHitPoints    float64
 	parent          Entity
 }
 
@@ -24,6 +25,7 @@ func NewMech(collisionRadius, collisionHeight, hitPoints float64) *Mech {
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		hitPoints:       hitPoints,
+		maxHitPoints:    hitPoints,
 	}
 	return m
 }
@@ -103,6 +105,10 @@ func (e *Mech) SetHitPoints(hitPoints float64) {
 func (e *Mech) DamageHitPoints(damage float64) float64 {
 	e.hitPoints -= damage
 	return e.hitPoints
+}
+
+func (e *Mech) MaxHitPoints() float64 {
+	return e.maxHitPoints
 }
 
 func (e *Mech) Parent() Entity {

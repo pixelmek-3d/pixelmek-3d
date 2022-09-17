@@ -564,8 +564,8 @@ func (g *Game) updateProjectiles() {
 
 	g.sprites.sprites[ProjectileSpriteType].Range(func(k, _ interface{}) bool {
 		p := k.(*render.ProjectileSprite)
-		p.Lifespan--
-		if p.Lifespan <= 0 {
+		p.DecreaseLifespan(1)
+		if p.Lifespan() <= 0 {
 			g.sprites.deleteProjectile(p)
 			return true
 		}
@@ -603,8 +603,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 		newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, zCheck, false)
 		if isCollision || p.PosZ() <= 0 {
 			// for testing purposes, projectiles instantly get deleted when collision occurs
-			//g.sprites.deleteProjectile(p)
-			p.Lifespan = -1
+			p.ZeroLifespan()
 
 			var collisionEntity *EntityCollision
 			if len(collisions) > 0 {
@@ -615,8 +614,12 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 					// TODO: visual response to player being hit
 					println("ouch!")
 				} else {
-					collisionEntity.entity.DamageHitPoints(p.Damage)
-					fmt.Printf("hit for %0.1f (HP: %0.1f)\n", p.Damage, collisionEntity.entity.HitPoints())
+					damage := p.Damage()
+					collisionEntity.entity.DamageHitPoints(damage)
+
+					hp, maxHP := collisionEntity.entity.HitPoints(), collisionEntity.entity.MaxHitPoints()
+					percentHP := 100 * (hp / maxHP)
+					fmt.Printf("[%0.2f%s] hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
 				}
 			}
 
