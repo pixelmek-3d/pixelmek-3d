@@ -19,13 +19,13 @@ type ProjectileSprite struct {
 }
 
 func NewProjectile(
-	modelEntity model.Entity, x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, damage float64,
+	modelEntity model.Entity, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, damage float64,
 ) *ProjectileSprite {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
 	}
 	p := &ProjectileSprite{
-		Sprite:       NewSprite(modelEntity, x, y, scale, img, mapColor),
+		Sprite:       NewSprite(modelEntity, scale, img, mapColor),
 		Lifespan:     lifespan,
 		Damage:       damage,
 		ImpactEffect: EffectSprite{},
@@ -35,13 +35,13 @@ func NewProjectile(
 }
 
 func NewAnimatedProjectile(
-	modelEntity model.Entity, x, y, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int, damage float64,
+	modelEntity model.Entity, scale, lifespan float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int, damage float64,
 ) *ProjectileSprite {
 	if lifespan < 0 {
 		lifespan = math.MaxFloat64
 	}
 	p := &ProjectileSprite{
-		Sprite:       NewAnimatedSprite(modelEntity, x, y, scale, img, mapColor, columns, rows, animationRate),
+		Sprite:       NewAnimatedSprite(modelEntity, scale, img, mapColor, columns, rows, animationRate),
 		Lifespan:     lifespan,
 		Damage:       damage,
 		ImpactEffect: EffectSprite{},

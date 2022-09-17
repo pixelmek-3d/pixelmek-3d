@@ -11,8 +11,6 @@ type Entity interface {
 	PosZ() float64
 	SetPosZ(float64)
 
-	Scale() float64
-	SetScale(float64)
 	Anchor() raycaster.SpriteAnchor
 	SetAnchor(raycaster.SpriteAnchor)
 
@@ -39,7 +37,6 @@ type Entity interface {
 type BasicEntity struct {
 	position        *geom.Vector2
 	positionZ       float64
-	scale           float64
 	anchor          raycaster.SpriteAnchor
 	angle           float64
 	pitch           float64
@@ -50,11 +47,25 @@ type BasicEntity struct {
 	parent          Entity
 }
 
-func BasicCollisionEntity(anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight float64) *BasicEntity {
+func BasicCollisionEntity(x, y, z float64, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight, hitPoints float64) *BasicEntity {
 	e := &BasicEntity{
+		position:        &geom.Vector2{X: x, Y: y},
+		positionZ:       z,
 		anchor:          anchor,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
+		hitPoints:       hitPoints,
+	}
+	return e
+}
+
+func BasicVisualEntity(x, y, z float64, anchor raycaster.SpriteAnchor) *BasicEntity {
+	e := &BasicEntity{
+		position:        &geom.Vector2{X: x, Y: y},
+		positionZ:       z,
+		anchor:          anchor,
+		collisionRadius: 0,
+		collisionHeight: 0,
 	}
 	return e
 }
@@ -73,14 +84,6 @@ func (e *BasicEntity) PosZ() float64 {
 
 func (e *BasicEntity) SetPosZ(posZ float64) {
 	e.positionZ = posZ
-}
-
-func (e *BasicEntity) Scale() float64 {
-	return e.scale
-}
-
-func (e *BasicEntity) SetScale(scale float64) {
-	e.scale = scale
 }
 
 func (e *BasicEntity) Anchor() raycaster.SpriteAnchor {

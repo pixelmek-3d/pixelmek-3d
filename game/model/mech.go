@@ -8,7 +8,6 @@ import (
 type Mech struct {
 	position        *geom.Vector2
 	positionZ       float64
-	scale           float64
 	anchor          raycaster.SpriteAnchor
 	angle           float64
 	pitch           float64
@@ -19,11 +18,12 @@ type Mech struct {
 	parent          Entity
 }
 
-func NewMech(collisionRadius, collisionHeight float64) *Mech {
+func NewMech(collisionRadius, collisionHeight, hitPoints float64) *Mech {
 	m := &Mech{
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
+		hitPoints:       hitPoints,
 	}
 	return m
 }
@@ -42,14 +42,6 @@ func (e *Mech) PosZ() float64 {
 
 func (e *Mech) SetPosZ(posZ float64) {
 	e.positionZ = posZ
-}
-
-func (e *Mech) Scale() float64 {
-	return e.scale
-}
-
-func (e *Mech) SetScale(scale float64) {
-	e.scale = scale
 }
 
 func (e *Mech) Anchor() raycaster.SpriteAnchor {

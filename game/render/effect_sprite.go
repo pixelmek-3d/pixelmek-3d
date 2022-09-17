@@ -15,11 +15,11 @@ type EffectSprite struct {
 }
 
 func NewAnimatedEffect(
-	modelEntity model.Entity, x, y, scale float64, img *ebiten.Image, columns, rows, animationRate, loopCount int,
+	modelEntity model.Entity, scale float64, img *ebiten.Image, columns, rows, animationRate, loopCount int,
 ) *EffectSprite {
 	mapColor := color.RGBA{0, 0, 0, 0}
 	e := &EffectSprite{
-		Sprite:    NewAnimatedSprite(modelEntity, x, y, scale, img, mapColor, columns, rows, animationRate),
+		Sprite:    NewAnimatedSprite(modelEntity, scale, img, mapColor, columns, rows, animationRate),
 		LoopCount: loopCount,
 	}
 

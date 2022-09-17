@@ -6,6 +6,7 @@ import (
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
 
@@ -87,7 +88,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 
 				clutterImg := g.tex.texMap[clutter.Image]
 				cSprite := render.NewSprite(
-					&model.BasicEntity{}, float64(x)+rand.Float64(), float64(y)+rand.Float64(),
+					model.BasicVisualEntity(float64(x)+rand.Float64(), float64(y)+rand.Float64(), 0, raycaster.AnchorBottom),
 					clutter.Scale, clutterImg, color.RGBA{},
 				)
 

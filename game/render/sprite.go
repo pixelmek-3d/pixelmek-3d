@@ -19,6 +19,7 @@ import (
 type Sprite struct {
 	model.Entity
 	w, h           int
+	scale          float64
 	AnimationRate  int
 	animReversed   bool
 	animCounter    int
@@ -30,7 +31,7 @@ type Sprite struct {
 	texRects       []image.Rectangle
 	textures       []*ebiten.Image
 	screenRect     *image.Rectangle
-	MapColor       color.RGBA
+	mapColor       color.RGBA
 }
 
 func (s *Sprite) Pos() *geom.Vector2 {
@@ -42,7 +43,7 @@ func (s *Sprite) PosZ() float64 {
 }
 
 func (s *Sprite) Scale() float64 {
-	return s.Entity.Scale()
+	return s.scale
 }
 
 func (s *Sprite) VerticalAnchor() raycaster.SpriteAnchor {
@@ -62,19 +63,13 @@ func (s *Sprite) SetScreenRect(rect *image.Rectangle) {
 }
 
 func NewSprite(
-	modelEntity model.Entity, x, y, scale float64, img *ebiten.Image, mapColor color.RGBA,
+	modelEntity model.Entity, scale float64, img *ebiten.Image, mapColor color.RGBA,
 ) *Sprite {
 	s := &Sprite{
 		Entity:   modelEntity,
-		MapColor: mapColor,
+		scale:    scale,
+		mapColor: mapColor,
 	}
-
-	s.SetPos(&geom.Vector2{X: x, Y: y})
-	s.SetPosZ(0)
-	s.SetScale(scale)
-	s.SetAngle(0)
-	s.SetVelocity(0)
-	s.SetHitPoints(math.MaxFloat64)
 
 	s.w, s.h = img.Size()
 	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
@@ -84,20 +79,14 @@ func NewSprite(
 }
 
 func NewSpriteFromSheet(
-	modelEntity model.Entity, x, y, scale float64, img *ebiten.Image,
+	modelEntity model.Entity, scale float64, img *ebiten.Image,
 	mapColor color.RGBA, columns, rows, spriteIndex int,
 ) *Sprite {
 	s := &Sprite{
 		Entity:   modelEntity,
-		MapColor: mapColor,
+		scale:    scale,
+		mapColor: mapColor,
 	}
-
-	s.SetPos(&geom.Vector2{X: x, Y: y})
-	s.SetPosZ(0)
-	s.SetScale(scale)
-	s.SetAngle(0)
-	s.SetVelocity(0)
-	s.SetHitPoints(math.MaxFloat64)
 
 	s.texNum = spriteIndex
 	s.columns, s.rows = columns, rows
@@ -114,20 +103,14 @@ func NewSpriteFromSheet(
 }
 
 func NewAnimatedSprite(
-	modelEntity model.Entity, x, y, scale float64, img *ebiten.Image,
+	modelEntity model.Entity, scale float64, img *ebiten.Image,
 	mapColor color.RGBA, columns, rows, animationRate int,
 ) *Sprite {
 	s := &Sprite{
 		Entity:   modelEntity,
-		MapColor: mapColor,
+		scale:    scale,
+		mapColor: mapColor,
 	}
-
-	s.SetPos(&geom.Vector2{X: x, Y: y})
-	s.SetPosZ(0)
-	s.SetScale(scale)
-	s.SetAngle(0)
-	s.SetVelocity(0)
-	s.SetHitPoints(math.MaxFloat64)
 
 	s.AnimationRate = animationRate
 	s.animCounter = 0

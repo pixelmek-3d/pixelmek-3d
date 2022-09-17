@@ -47,7 +47,7 @@ func NewMechSprite(
 	// [full, torso, left arm, right arm, left leg, right leg]
 	mechAnimate := NewMechAnimationSheetFromImage(img)
 	p := NewAnimatedSprite(
-		mech, x, y, scale, mechAnimate.sheet, color.RGBA{},
+		mech, scale, mechAnimate.sheet, color.RGBA{},
 		mechAnimate.maxCols, mechAnimate.maxRows, 0,
 	)
 	s := &MechSprite{
