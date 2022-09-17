@@ -1,9 +1,27 @@
 package game
 
 import (
+	"image"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/pixelmek-3d/game/render"
 )
+
+func (g *Game) initInteractiveTypes() {
+	g.interactiveSpriteTypes = map[SpriteType]struct{}{
+		MechSpriteType:     {},
+		VehicleSpriteType:  {},
+		VTOLSpriteType:     {},
+		InfantrySpriteType: {},
+	}
+}
+
+func (g *Game) isInteractiveType(spriteType SpriteType) bool {
+	if _, containsType := g.interactiveSpriteTypes[spriteType]; containsType {
+		return true
+	}
+	return false
+}
 
 func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 	if g.crosshairs == nil {
@@ -40,43 +58,67 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 	colorM := ebiten.ColorM{}
 	colorM.ScaleWithColor(g.hudRGBA)
 
-	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
-		s := k.(*render.MechSprite)
-		rect := s.ScreenRect()
-		if rect == nil {
-			return true
+	for spriteType, spriteMap := range g.sprites.sprites {
+		if !g.isInteractiveType(spriteType) {
+			// only show on certain sprite types (skip projectiles, effects, etc.)
+			continue
 		}
 
-		minX, minY, maxX, maxY := float64(rect.Min.X), float64(rect.Min.Y), float64(rect.Max.X), float64(rect.Max.Y)
+		spriteMap.Range(func(k, _ interface{}) bool {
+			var rect *image.Rectangle
+			switch spriteType {
+			case MechSpriteType:
+				s := k.(*render.MechSprite)
+				rect = s.ScreenRect()
 
-		// top left corner
-		g.reticle.SetTextureFrame(0)
-		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-		op.Filter = ebiten.FilterNearest
-		op.GeoM.Translate(minX-rOff, minY-rOff)
-		screen.DrawImage(g.reticle.Texture(), op)
+			case VehicleSpriteType:
+				s := k.(*render.VehicleSprite)
+				rect = s.ScreenRect()
 
-		// top right corner
-		g.reticle.SetTextureFrame(1)
-		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-		op.Filter = ebiten.FilterNearest
-		op.GeoM.Translate(maxX-rOff, minY-rOff)
-		screen.DrawImage(g.reticle.Texture(), op)
+			case VTOLSpriteType:
+				s := k.(*render.VTOLSprite)
+				rect = s.ScreenRect()
 
-		// bottom left corner
-		g.reticle.SetTextureFrame(2)
-		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-		op.Filter = ebiten.FilterNearest
-		op.GeoM.Translate(minX-rOff, maxY-rOff)
-		screen.DrawImage(g.reticle.Texture(), op)
+			case InfantrySpriteType:
+				s := k.(*render.InfantrySprite)
+				rect = s.ScreenRect()
+			}
 
-		// bottom right corner
-		g.reticle.SetTextureFrame(3)
-		op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-		op.Filter = ebiten.FilterNearest
-		op.GeoM.Translate(maxX-rOff, maxY-rOff)
-		screen.DrawImage(g.reticle.Texture(), op)
+			if rect == nil {
+				return true
+			}
 
-		return true
-	})
+			minX, minY, maxX, maxY := float64(rect.Min.X), float64(rect.Min.Y), float64(rect.Max.X), float64(rect.Max.Y)
+
+			// top left corner
+			g.reticle.SetTextureFrame(0)
+			op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
+			op.Filter = ebiten.FilterNearest
+			op.GeoM.Translate(minX-rOff, minY-rOff)
+			screen.DrawImage(g.reticle.Texture(), op)
+
+			// top right corner
+			g.reticle.SetTextureFrame(1)
+			op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
+			op.Filter = ebiten.FilterNearest
+			op.GeoM.Translate(maxX-rOff, minY-rOff)
+			screen.DrawImage(g.reticle.Texture(), op)
+
+			// bottom left corner
+			g.reticle.SetTextureFrame(2)
+			op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
+			op.Filter = ebiten.FilterNearest
+			op.GeoM.Translate(minX-rOff, maxY-rOff)
+			screen.DrawImage(g.reticle.Texture(), op)
+
+			// bottom right corner
+			g.reticle.SetTextureFrame(3)
+			op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
+			op.Filter = ebiten.FilterNearest
+			op.GeoM.Translate(maxX-rOff, maxY-rOff)
+			screen.DrawImage(g.reticle.Texture(), op)
+
+			return true
+		})
+	}
 }

@@ -16,6 +16,16 @@ type EntityCollision struct {
 	collisionZ float64
 }
 
+func (g *Game) initCollisionTypes() {
+	g.collisonSpriteTypes = map[SpriteType]struct{}{
+		MapSpriteType:      {},
+		MechSpriteType:     {},
+		VehicleSpriteType:  {},
+		VTOLSpriteType:     {},
+		InfantrySpriteType: {},
+	}
+}
+
 func (g *Game) isCollisionType(spriteType SpriteType) bool {
 	if _, containsType := g.collisonSpriteTypes[spriteType]; containsType {
 		return true
