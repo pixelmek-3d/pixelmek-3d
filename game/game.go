@@ -83,8 +83,9 @@ type Game struct {
 	mission      *model.Mission
 	collisionMap []geom.Line
 
-	sprites *SpriteHandler
-	clutter *ClutterHandler
+	sprites             *SpriteHandler
+	clutter             *ClutterHandler
+	collisonSpriteTypes map[SpriteType]struct{}
 
 	mapWidth, mapHeight int
 
@@ -125,6 +126,13 @@ func NewGame() *Game {
 	// load texture handler
 	g.tex = NewTextureHandler(g.mission.Map())
 
+	g.collisonSpriteTypes = map[SpriteType]struct{}{
+		MapSpriteType:      {},
+		MechSpriteType:     {},
+		VehicleSpriteType:  {},
+		VTOLSpriteType:     {},
+		InfantrySpriteType: {},
+	}
 	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
 	worldMap := g.mission.Map().Level(0)
 	g.mapWidth = len(worldMap)
@@ -478,25 +486,55 @@ func (g *Game) fireTestWeaponAtPlayer() {
 		return
 	}
 
-	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
-		// firing test projectile at player
-		m := k.(*render.MechSprite)
-		pVelocity := 16.0
+	// firing test projectiles at player
+	playerPosition := g.player.Pos()
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+			var pX, pY, pZ float64
+			var entity model.Entity
 
-		playerPosition := g.player.Pos()
-		mechPosition := m.Pos()
-		pX, pY, pZ := mechPosition.X, mechPosition.Y, m.PosZ()+0.4
+			switch spriteType {
+			case MechSpriteType:
+				s := k.(*render.MechSprite)
+				sPosition := s.Pos()
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+				entity = s.Entity
 
-		pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
-		pHeading, pPitch := pLine.Heading(), pLine.Pitch()
-		projectile := p.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, pVelocity, m.Entity)
-		if projectile != nil {
-			g.sprites.addProjectile(projectile)
-			g.player.TestCooldown = 10
-		}
+			case VehicleSpriteType:
+				s := k.(*render.VehicleSprite)
+				sPosition := s.Pos()
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+				entity = s.Entity
 
-		return true
-	})
+			case VTOLSpriteType:
+				s := k.(*render.VTOLSprite)
+				sPosition := s.Pos()
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+				entity = s.Entity
+
+			case InfantrySpriteType:
+				s := k.(*render.MechSprite)
+				sPosition := s.Pos()
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+				entity = s.Entity
+			}
+
+			if entity == nil {
+				return true
+			}
+
+			pVelocity := 16.0
+			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
+			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
+			projectile := p.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, pVelocity, entity)
+			if projectile != nil {
+				g.sprites.addProjectile(projectile)
+				g.player.TestCooldown = 10
+			}
+
+			return true
+		})
+	}
 }
 
 // weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
@@ -646,33 +684,67 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 func (g *Game) updateSprites() {
 	// Update for animated sprite movement
-	g.sprites.sprites[MapSpriteType].Range(func(k, _ interface{}) bool {
-		s := k.(*render.Sprite)
-		if s.HitPoints() <= 0 {
-			// TODO: implement sprite destruction animation
-			g.sprites.deleteMapSprite(s)
-		}
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 
-		g.updateSpritePosition(s)
-		s.Update(g.player.Pos())
+			switch spriteType {
+			case MapSpriteType:
+				s := k.(*render.Sprite)
+				if s.HitPoints() <= 0 {
+					// TODO: implement sprite destruction animation
+					g.sprites.deleteMapSprite(s)
+				}
 
-		return true
-	})
+				g.updateSpritePosition(s)
+				s.Update(g.player.Pos())
 
-	// Updates for animated mech sprite movement
-	g.sprites.sprites[MechSpriteType].Range(func(k, _ interface{}) bool {
-		s := k.(*render.MechSprite)
-		// TODO: implement mech armor and structure instead of direct HP
-		if s.HitPoints() <= 0 {
-			// TODO: implement mech destruction animation
-			g.sprites.deleteMechSprite(s)
-		}
+			case MechSpriteType:
+				s := k.(*render.MechSprite)
+				// TODO: implement mech armor and structure instead of direct HP
+				if s.HitPoints() <= 0 {
+					// TODO: implement unit destruction animation
+					g.sprites.deleteMechSprite(s)
+				}
 
-		g.updateMechPosition(s)
-		s.Update(g.player.Pos())
+				g.updateMechPosition(s)
+				s.Update(g.player.Pos())
 
-		return true
-	})
+			case VehicleSpriteType:
+				s := k.(*render.VehicleSprite)
+				// TODO: implement vehicle armor and structure instead of direct HP
+				if s.HitPoints() <= 0 {
+					// TODO: implement unit destruction animation
+					g.sprites.deleteVehicleSprite(s)
+				}
+
+				g.updateVehiclePosition(s)
+				s.Update(g.player.Pos())
+
+			case VTOLSpriteType:
+				s := k.(*render.VTOLSprite)
+				// TODO: implement vtol armor and structure instead of direct HP
+				if s.HitPoints() <= 0 {
+					// TODO: implement unit destruction animation
+					g.sprites.deleteVTOLSprite(s)
+				}
+
+				g.updateVTOLPosition(s)
+				s.Update(g.player.Pos())
+
+			case InfantrySpriteType:
+				s := k.(*render.MechSprite)
+				if s.HitPoints() <= 0 {
+					// TODO: implement unit destruction animation
+					g.sprites.deleteMechSprite(s)
+				}
+
+				g.updateMechPosition(s)
+				s.Update(g.player.Pos())
+			}
+
+			return true
+		})
+	}
 }
 
 func (g *Game) updateMechPosition(s *render.MechSprite) {
@@ -697,6 +769,96 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 				s.PatrolPathIndex = 0
 			}
 			g.updateMechPosition(s)
+		} else {
+			// keep movements towards current patrol point
+			s.SetAngle(angle)
+		}
+	}
+
+	if s.Velocity() != 0 {
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
+
+		xCheck := vLine.X2
+		yCheck := vLine.Y2
+
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		if isCollision {
+			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
+			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetVelocity(randFloat(0.005, 0.009))
+		} else {
+			s.SetPos(newPos)
+		}
+	}
+}
+
+func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
+	// TODO: give units a bit more of a brain than this
+	sPosition := s.Pos()
+	if len(s.PatrolPath) > 0 {
+		// make sure there's movement towards the next patrol point
+		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
+		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
+
+		// TODO: do something about this velocity
+		s.SetVelocity(0.02 * s.Scale())
+
+		angle := patrolLine.Angle()
+		dist := patrolLine.Distance()
+
+		if dist <= s.Velocity() {
+			// start movement towards next patrol point
+			s.PatrolPathIndex += 1
+			if s.PatrolPathIndex >= len(s.PatrolPath) {
+				// loop back towards first patrol point
+				s.PatrolPathIndex = 0
+			}
+			g.updateVehiclePosition(s)
+		} else {
+			// keep movements towards current patrol point
+			s.SetAngle(angle)
+		}
+	}
+
+	if s.Velocity() != 0 {
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
+
+		xCheck := vLine.X2
+		yCheck := vLine.Y2
+
+		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		if isCollision {
+			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
+			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetVelocity(randFloat(0.005, 0.009))
+		} else {
+			s.SetPos(newPos)
+		}
+	}
+}
+
+func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
+	// TODO: give units a bit more of a brain than this
+	sPosition := s.Pos()
+	if len(s.PatrolPath) > 0 {
+		// make sure there's movement towards the next patrol point
+		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
+		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
+
+		// TODO: do something about this velocity
+		s.SetVelocity(0.02 * s.Scale())
+
+		angle := patrolLine.Angle()
+		dist := patrolLine.Distance()
+
+		if dist <= s.Velocity() {
+			// start movement towards next patrol point
+			s.PatrolPathIndex += 1
+			if s.PatrolPathIndex >= len(s.PatrolPath) {
+				// loop back towards first patrol point
+				s.PatrolPathIndex = 0
+			}
+			g.updateVTOLPosition(s)
 		} else {
 			// keep movements towards current patrol point
 			s.SetAngle(angle)

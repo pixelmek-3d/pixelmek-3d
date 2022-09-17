@@ -203,8 +203,11 @@ func (g *Game) loadContent() {
 
 // loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
-	// TODO: move these to predefined mech sprites from their own data source files
+	// TODO: move these to predefined mech definitions from their own data source files
 	mechSpriteTemplates := make(map[string]*render.MechSprite, len(g.mission.Mechs))
+	vehicleSpriteTemplates := make(map[string]*render.VehicleSprite, len(g.mission.Vehicles))
+	vtolSpriteTemplates := make(map[string]*render.VTOLSprite, len(g.mission.VTOLs))
+	infantrySpriteTemplates := make(map[string]*render.MechSprite, len(g.mission.Infantry))
 
 	for _, missionMech := range g.mission.Mechs {
 		if _, ok := mechSpriteTemplates[missionMech.Image]; !ok {
@@ -212,7 +215,7 @@ func (g *Game) loadMissionSprites() {
 			mechImg := getSpriteFromFile(mechRelPath)
 
 			modelMech := model.NewMech(0.3, .7, 100)
-			mechSpriteTemplates[missionMech.Image] = render.NewMechSprite(modelMech, 0, 0, missionMech.Scale, mechImg)
+			mechSpriteTemplates[missionMech.Image] = render.NewMechSprite(modelMech, missionMech.Scale, mechImg)
 		}
 
 		mechTemplate := mechSpriteTemplates[missionMech.Image]
@@ -221,7 +224,7 @@ func (g *Game) loadMissionSprites() {
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
 		mech.SetPos(&geom.Vector2{X: posX, Y: posY})
 
-		// TODO: give mission mechs a bit more of a brain
+		// TODO: give mission units a bit more of a brain
 		if len(missionMech.PatrolPath) > 0 {
 			mech.PatrolPath = missionMech.PatrolPath
 			mech.SetMechAnimation(render.ANIMATE_STRUT)
@@ -232,6 +235,82 @@ func (g *Game) loadMissionSprites() {
 		}
 
 		g.sprites.addMechSprite(mech)
+	}
+
+	for _, missionVehicle := range g.mission.Vehicles {
+		if _, ok := vehicleSpriteTemplates[missionVehicle.Image]; !ok {
+			vehicleRelPath := fmt.Sprintf("vehicles/%s", missionVehicle.Image)
+			vehicleImg := getSpriteFromFile(vehicleRelPath)
+
+			modelVehicle := model.NewVehicle(0.3, .7, 25)
+			vehicleSpriteTemplates[missionVehicle.Image] = render.NewVehicleSprite(modelVehicle, missionVehicle.Scale, vehicleImg)
+		}
+
+		vehicleTemplate := vehicleSpriteTemplates[missionVehicle.Image]
+		vehicle := vehicleTemplate.Clone()
+
+		posX, posY := missionVehicle.Position[0], missionVehicle.Position[1]
+		vehicle.SetPos(&geom.Vector2{X: posX, Y: posY})
+
+		// TODO: give mission units a bit more of a brain
+		if len(missionVehicle.PatrolPath) > 0 {
+			vehicle.PatrolPath = missionVehicle.PatrolPath
+		}
+
+		g.sprites.addVehicleSprite(vehicle)
+	}
+
+	for _, missionVTOL := range g.mission.VTOLs {
+		if _, ok := vtolSpriteTemplates[missionVTOL.Image]; !ok {
+			vtolRelPath := fmt.Sprintf("vtols/%s", missionVTOL.Image)
+			vtolImg := getSpriteFromFile(vtolRelPath)
+
+			modelVTOL := model.NewVTOL(0.3, .7, 100)
+			vtolSpriteTemplates[missionVTOL.Image] = render.NewVTOLSprite(modelVTOL, missionVTOL.Scale, vtolImg)
+		}
+
+		vtolTemplate := vtolSpriteTemplates[missionVTOL.Image]
+		vtol := vtolTemplate.Clone()
+
+		posX, posY, posZ := missionVTOL.Position[0], missionVTOL.Position[1], missionVTOL.ZPosition
+		vtol.SetPos(&geom.Vector2{X: posX, Y: posY})
+		vtol.SetPosZ(posZ)
+
+		// TODO: give mission units a bit more of a brain
+		if len(missionVTOL.PatrolPath) > 0 {
+			vtol.PatrolPath = missionVTOL.PatrolPath
+		}
+
+		g.sprites.addVTOLSprite(vtol)
+	}
+
+	for _, missionInfantry := range g.mission.Infantry {
+		if _, ok := infantrySpriteTemplates[missionInfantry.Image]; !ok {
+			infantryRelPath := fmt.Sprintf("infantry/%s", missionInfantry.Image)
+			infantryImg := getSpriteFromFile(infantryRelPath)
+
+			// TODO: create infantry specific sprite class
+			modelInfantry := model.NewMech(0.3, .7, 100)
+			infantrySpriteTemplates[missionInfantry.Image] = render.NewMechSprite(modelInfantry, missionInfantry.Scale, infantryImg)
+		}
+
+		infantryTemplate := infantrySpriteTemplates[missionInfantry.Image]
+		infantry := infantryTemplate.Clone()
+
+		posX, posY := missionInfantry.Position[0], missionInfantry.Position[1]
+		infantry.SetPos(&geom.Vector2{X: posX, Y: posY})
+
+		// TODO: give mission units a bit more of a brain
+		if len(missionInfantry.PatrolPath) > 0 {
+			infantry.PatrolPath = missionInfantry.PatrolPath
+			infantry.SetMechAnimation(render.ANIMATE_STRUT)
+			infantry.AnimationRate = 3
+		} else {
+			infantry.SetMechAnimation(render.ANIMATE_IDLE)
+			infantry.AnimationRate = 7
+		}
+
+		g.sprites.addInfantrySprite(infantry)
 	}
 }
 

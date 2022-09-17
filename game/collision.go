@@ -16,6 +16,13 @@ type EntityCollision struct {
 	collisionZ float64
 }
 
+func (g *Game) isCollisionType(spriteType SpriteType) bool {
+	if _, containsType := g.collisonSpriteTypes[spriteType]; containsType {
+		return true
+	}
+	return false
+}
+
 // checks for valid move from current position, returns valid (x, y) position, whether a collision
 // was encountered, and a list of entity collisions that may have been encountered
 func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, checkAlternate bool) (*geom.Vector2, bool, []*EntityCollision) {
@@ -85,7 +92,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 
 	// check sprite collisions
 	for spriteType, spriteMap := range g.sprites.sprites {
-		if !(spriteType == MapSpriteType || spriteType == MechSpriteType) {
+		if !g.isCollisionType(spriteType) {
 			// only check collision against certain sprite types (skip projectiles, effects, etc.)
 			continue
 		}

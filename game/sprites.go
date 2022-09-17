@@ -20,6 +20,9 @@ type SpriteType int
 const (
 	MapSpriteType SpriteType = iota
 	MechSpriteType
+	VehicleSpriteType
+	VTOLSpriteType
+	InfantrySpriteType
 	ProjectileSpriteType
 	EffectSpriteType
 	TotalSpriteTypes
@@ -30,6 +33,9 @@ func NewSpriteHandler() *SpriteHandler {
 		sprites: make(map[SpriteType]*sync.Map, TotalSpriteTypes),
 	}
 	s.sprites[MechSpriteType] = &sync.Map{}
+	s.sprites[VehicleSpriteType] = &sync.Map{}
+	s.sprites[VTOLSpriteType] = &sync.Map{}
+	s.sprites[InfantrySpriteType] = &sync.Map{}
 	s.sprites[MapSpriteType] = &sync.Map{}
 	s.sprites[ProjectileSpriteType] = &sync.Map{}
 	s.sprites[EffectSpriteType] = &sync.Map{}
@@ -51,6 +57,30 @@ func (s *SpriteHandler) addMechSprite(mech *render.MechSprite) {
 
 func (s *SpriteHandler) deleteMechSprite(mech *render.MechSprite) {
 	s.sprites[MechSpriteType].Delete(mech)
+}
+
+func (s *SpriteHandler) addVehicleSprite(vehicle *render.VehicleSprite) {
+	s.sprites[VehicleSpriteType].Store(vehicle, struct{}{})
+}
+
+func (s *SpriteHandler) deleteVehicleSprite(vehicle *render.VehicleSprite) {
+	s.sprites[VehicleSpriteType].Delete(vehicle)
+}
+
+func (s *SpriteHandler) addVTOLSprite(vtol *render.VTOLSprite) {
+	s.sprites[VTOLSpriteType].Store(vtol, struct{}{})
+}
+
+func (s *SpriteHandler) deleteVTOLSprite(vtol *render.VTOLSprite) {
+	s.sprites[VTOLSpriteType].Delete(vtol)
+}
+
+func (s *SpriteHandler) addInfantrySprite(infantry *render.MechSprite) {
+	s.sprites[MechSpriteType].Store(infantry, struct{}{})
+}
+
+func (s *SpriteHandler) deleteInfantrySprite(infantry *render.MechSprite) {
+	s.sprites[MechSpriteType].Delete(infantry)
 }
 
 func (s *SpriteHandler) addProjectile(projectile *render.ProjectileSprite) {
@@ -105,6 +135,12 @@ func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
 		return sInterface.(*render.Sprite)
 	case *render.MechSprite:
 		return sInterface.(*render.MechSprite).Sprite
+	case *render.VehicleSprite:
+		return sInterface.(*render.VehicleSprite).Sprite
+	case *render.VTOLSprite:
+		return sInterface.(*render.VTOLSprite).Sprite
+	// case *render.InfantrySprite:
+	// 	return sInterface.(*render.InfantrySprite).Sprite
 	case *render.ProjectileSprite:
 		return sInterface.(*render.ProjectileSprite).Sprite
 	case *render.EffectSprite:
@@ -120,6 +156,12 @@ func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
 		return sInterface.(*render.Sprite).Entity
 	case *render.MechSprite:
 		return sInterface.(*render.MechSprite).Entity
+	case *render.VehicleSprite:
+		return sInterface.(*render.VehicleSprite).Entity
+	case *render.VTOLSprite:
+		return sInterface.(*render.VTOLSprite).Entity
+	// case *render.InfantrySprite:
+	// 	return sInterface.(*render.InfantrySprite).Entity
 	case *render.ProjectileSprite:
 		return sInterface.(*render.ProjectileSprite).Entity
 	case *render.EffectSprite:

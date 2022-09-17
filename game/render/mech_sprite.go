@@ -39,9 +39,8 @@ const (
 	NUM_PARTS   MechPart = 6
 )
 
-// TODO: move x, y positioning out so it belongs only in the model entity
 func NewMechSprite(
-	mech *model.Mech, x, y, scale float64, img *ebiten.Image,
+	mech *model.Mech, scale float64, img *ebiten.Image,
 ) *MechSprite {
 	// all mech sprite sheets have 6 columns of images in the sheet:
 	// [full, torso, left arm, right arm, left leg, right leg]
