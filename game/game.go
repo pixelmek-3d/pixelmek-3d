@@ -105,6 +105,7 @@ func NewGame() *Game {
 
 	g.initInteractiveTypes()
 	g.initCollisionTypes()
+	model.LoadModels()
 
 	ebiten.SetWindowTitle("PixelMek 3D")
 

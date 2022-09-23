@@ -1,0 +1,13 @@
+---
+# https://www.sarna.net/wiki/Clan_Heavy_Foot_Infantry
+name: Heavy Foot Infantry
+variant: Infantry-Heavy
+image: sms_soldier.png
+tech: clan
+speed: 7
+jumpJets: 0
+armor: 10
+structure: 1
+collisionRadius: 6
+collisionHeight: 24
+scale: 0.085

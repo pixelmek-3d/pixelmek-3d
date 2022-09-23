@@ -1,0 +1,13 @@
+---
+# https://www.sarna.net/wiki/SRM_Carrier
+name: SRM Carrier
+variant: Carrier-SRM
+image: rocket_tank.png
+tech: clan
+tonnage: 60
+speed: 54
+armor: 50
+structure: 50
+collisionRadius: 16
+collisionHeight: 48
+scale: 0.35

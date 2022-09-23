@@ -1,0 +1,13 @@
+---
+# https://www.sarna.net/wiki/Donar
+name: Donar Assault Helicopter
+variant: VTOL-Donar
+image: attack_chopper.png
+tech: clan
+tonnage: 21
+speed: 151
+armor: 50
+structure: 25
+collisionRadius: 12
+collisionHeight: 26
+scale: 0.75
