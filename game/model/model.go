@@ -20,6 +20,17 @@ type ModelResources struct {
 	Infantry map[string]*ModelInfantryResource
 }
 
+type TechBase int
+
+const (
+	CLAN TechBase = iota
+	IS
+)
+
+type ModelTech struct {
+	TechBase
+}
+
 type ModelMechResource struct {
 	Name              string    `yaml:"name" validate:"required"`
 	Variant           string    `yaml:"variant" validate:"required"`
@@ -36,56 +47,54 @@ type ModelMechResource struct {
 }
 
 type ModelVehicleResource struct {
-	Name              string    `yaml:"name" validate:"required"`
-	Variant           string    `yaml:"variant" validate:"required"`
-	Image             string    `yaml:"image" validate:"required"`
-	Tech              ModelTech `yaml:"tech" validate:"required"`
-	Tonnage           float64   `yaml:"tonnage" validate:"gt=0,lte=200"`
-	Speed             float64   `yaml:"speed" validate:"gt=0,lte=250"`
-	Armor             float64   `yaml:"armor" validate:"gte=0"`
-	Structure         float64   `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64   `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64   `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64   `yaml:"scale" validate:"gt=0"`
+	Name              string                   `yaml:"name" validate:"required"`
+	Variant           string                   `yaml:"variant" validate:"required"`
+	Image             string                   `yaml:"image" validate:"required"`
+	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
+	Tech              ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=200"`
+	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
+	Armor             float64                  `yaml:"armor" validate:"gte=0"`
+	Structure         float64                  `yaml:"structure" validate:"gt=0"`
+	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 }
 
 type ModelVTOLResource struct {
-	Name              string    `yaml:"name" validate:"required"`
-	Variant           string    `yaml:"variant" validate:"required"`
-	Image             string    `yaml:"image" validate:"required"`
-	Tech              ModelTech `yaml:"tech" validate:"required"`
-	Tonnage           float64   `yaml:"tonnage" validate:"gt=0,lte=100"`
-	Speed             float64   `yaml:"speed" validate:"gt=0,lte=250"`
-	Armor             float64   `yaml:"armor" validate:"gte=0"`
-	Structure         float64   `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64   `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64   `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64   `yaml:"scale" validate:"gt=0"`
+	Name              string                   `yaml:"name" validate:"required"`
+	Variant           string                   `yaml:"variant" validate:"required"`
+	Image             string                   `yaml:"image" validate:"required"`
+	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
+	Tech              ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
+	Armor             float64                  `yaml:"armor" validate:"gte=0"`
+	Structure         float64                  `yaml:"structure" validate:"gt=0"`
+	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 }
 
 type ModelInfantryResource struct {
-	Name              string    `yaml:"name" validate:"required"`
-	Variant           string    `yaml:"variant" validate:"required"`
-	Image             string    `yaml:"image" validate:"required"`
-	Tech              ModelTech `yaml:"tech" validate:"required"`
-	Speed             float64   `yaml:"speed" validate:"gt=0,lte=250"`
-	JumpJets          int       `yaml:"jumpJets" validate:"gte=0,lte=20"`
-	Armor             float64   `yaml:"armor" validate:"gte=0"`
-	Structure         float64   `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64   `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64   `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64   `yaml:"scale" validate:"gt=0"`
+	Name              string                   `yaml:"name" validate:"required"`
+	Variant           string                   `yaml:"variant" validate:"required"`
+	Image             string                   `yaml:"image" validate:"required"`
+	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
+	Tech              ModelTech                `yaml:"tech" validate:"required"`
+	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
+	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
+	Armor             float64                  `yaml:"armor" validate:"gte=0"`
+	Structure         float64                  `yaml:"structure" validate:"gt=0"`
+	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 }
 
-type TechBase int
-
-const (
-	CLAN TechBase = iota
-	IS
-)
-
-type ModelTech struct {
-	TechBase
+type ModelResourceImageSheet struct {
+	Columns     int             `yaml:"columns" validate:"gt=0"`
+	Rows        int             `yaml:"rows" validate:"gt=0"`
+	AngleFacing map[float64]int `yaml:"angleFacing"`
 }
 
 // Unmarshals into TechBase

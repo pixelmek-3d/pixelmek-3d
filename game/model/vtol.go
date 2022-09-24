@@ -8,28 +8,28 @@ import (
 )
 
 type VTOL struct {
-	position                *geom.Vector2
-	positionZ               float64
-	anchor                  raycaster.SpriteAnchor
-	angle                   float64
-	pitch                   float64
-	velocity                float64
-	collisionRadius         float64
-	collisionHeight         float64
-	armor, maxArmor         float64
-	structure, maxStructure float64
-	parent                  Entity
+	Resource        *ModelVTOLResource
+	position        *geom.Vector2
+	positionZ       float64
+	anchor          raycaster.SpriteAnchor
+	angle           float64
+	pitch           float64
+	velocity        float64
+	collisionRadius float64
+	collisionHeight float64
+	armor           float64
+	structure       float64
+	parent          Entity
 }
 
 func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64) *VTOL {
 	m := &VTOL{
+		Resource:        r,
 		anchor:          raycaster.AnchorCenter,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		armor:           r.Armor,
-		maxArmor:        r.Armor,
 		structure:       r.Structure,
-		maxStructure:    r.Structure,
 	}
 	return m
 }
@@ -120,7 +120,7 @@ func (e *VTOL) SetArmorPoints(armor float64) {
 }
 
 func (e *VTOL) MaxArmorPoints() float64 {
-	return e.maxArmor
+	return e.Resource.Armor
 }
 
 func (e *VTOL) StructurePoints() float64 {
@@ -132,7 +132,7 @@ func (e *VTOL) SetStructurePoints(structure float64) {
 }
 
 func (e *VTOL) MaxStructurePoints() float64 {
-	return e.maxStructure
+	return e.Resource.Structure
 }
 
 func (e *VTOL) Parent() Entity {

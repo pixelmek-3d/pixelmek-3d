@@ -5,6 +5,7 @@ import (
 	_ "image/png"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go/geom"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jinzhu/copier"
@@ -21,9 +22,24 @@ type VTOLSprite struct {
 func NewVTOLSprite(
 	vtol *model.VTOL, scale float64, img *ebiten.Image,
 ) *VTOLSprite {
-	p := NewSprite(
-		vtol, scale, img, color.RGBA{},
-	)
+	var p *Sprite
+	sheet := vtol.Resource.ImageSheet
+	if sheet == nil {
+		p = NewSprite(
+			vtol, scale, img, color.RGBA{},
+		)
+	} else {
+		p = NewAnimatedSprite(vtol, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, 4)
+		if len(sheet.AngleFacing) > 0 {
+			facingMap := make(map[float64]int, len(sheet.AngleFacing))
+			for degrees, index := range sheet.AngleFacing {
+				rads := geom.Radians(degrees)
+				facingMap[rads] = index
+			}
+			p.SetTextureFacingMap(facingMap)
+		}
+	}
+
 	s := &VTOLSprite{
 		Sprite: p,
 	}

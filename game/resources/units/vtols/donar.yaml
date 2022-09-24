@@ -3,6 +3,16 @@
 name: Donar Assault Helicopter
 variant: VTOL-Donar
 image: attack_chopper.png
+imageSheet:
+  columns: 1
+  rows: 4
+  angleFacing:
+    0: 0
+    45: 1
+    140: 1
+    180: 3
+    220: 2
+    315: 2
 tech: clan
 tonnage: 21
 speed: 151

@@ -172,7 +172,7 @@ func (s *Sprite) SetTextureFacingMap(texFacingMap map[float64]int) {
 	s.texFacingMap = texFacingMap
 
 	// create pre-sorted list of keys used during facing determination
-	s.texFacingKeys = make([]float64, len(texFacingMap))
+	s.texFacingKeys = make([]float64, 0, len(texFacingMap))
 	for k := range texFacingMap {
 		s.texFacingKeys = append(s.texFacingKeys, k)
 	}
