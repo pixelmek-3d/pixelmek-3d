@@ -1,6 +1,8 @@
 package model
 
 import (
+	"math"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
@@ -26,27 +28,30 @@ type Entity interface {
 	CollisionHeight() float64
 	SetCollisionHeight(float64)
 
-	HitPoints() float64
-	SetHitPoints(float64)
-	DamageHitPoints(float64) float64
-	MaxHitPoints() float64
+	ApplyDamage(float64)
+	ArmorPoints() float64
+	SetArmorPoints(float64)
+	MaxArmorPoints() float64
+	StructurePoints() float64
+	SetStructurePoints(float64)
+	MaxStructurePoints() float64
 
 	Parent() Entity
 	SetParent(Entity)
 }
 
 type BasicEntity struct {
-	position        *geom.Vector2
-	positionZ       float64
-	anchor          raycaster.SpriteAnchor
-	angle           float64
-	pitch           float64
-	velocity        float64
-	collisionRadius float64
-	collisionHeight float64
-	hitPoints       float64
-	maxHitPoints    float64
-	parent          Entity
+	position                *geom.Vector2
+	positionZ               float64
+	anchor                  raycaster.SpriteAnchor
+	angle                   float64
+	pitch                   float64
+	velocity                float64
+	collisionRadius         float64
+	collisionHeight         float64
+	armor, maxArmor         float64
+	structure, maxStructure float64
+	parent                  Entity
 }
 
 func BasicCollisionEntity(x, y, z float64, anchor raycaster.SpriteAnchor, collisionRadius, collisionHeight, hitPoints float64) *BasicEntity {
@@ -56,8 +61,10 @@ func BasicCollisionEntity(x, y, z float64, anchor raycaster.SpriteAnchor, collis
 		anchor:          anchor,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
-		hitPoints:       hitPoints,
-		maxHitPoints:    hitPoints,
+		armor:           0,
+		maxArmor:        0,
+		structure:       hitPoints,
+		maxStructure:    hitPoints,
 	}
 	return e
 }
@@ -137,21 +144,41 @@ func (e *BasicEntity) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
-func (e *BasicEntity) HitPoints() float64 {
-	return e.hitPoints
+func (e *BasicEntity) ApplyDamage(damage float64) {
+	if e.armor > 0 {
+		e.armor -= damage
+		if e.armor < 0 {
+			// apply remainder of armor damage on structure
+			e.structure -= math.Abs(e.armor)
+			e.armor = 0
+		}
+	} else {
+		e.structure -= damage
+	}
 }
 
-func (e *BasicEntity) SetHitPoints(hitPoints float64) {
-	e.hitPoints = hitPoints
+func (e *BasicEntity) ArmorPoints() float64 {
+	return e.armor
 }
 
-func (e *BasicEntity) DamageHitPoints(damage float64) float64 {
-	e.hitPoints -= damage
-	return e.hitPoints
+func (e *BasicEntity) SetArmorPoints(armor float64) {
+	e.armor = armor
 }
 
-func (e *BasicEntity) MaxHitPoints() float64 {
-	return e.maxHitPoints
+func (e *BasicEntity) MaxArmorPoints() float64 {
+	return e.maxArmor
+}
+
+func (e *BasicEntity) StructurePoints() float64 {
+	return e.structure
+}
+
+func (e *BasicEntity) SetStructurePoints(structure float64) {
+	e.structure = structure
+}
+
+func (e *BasicEntity) MaxStructurePoints() float64 {
+	return e.maxStructure
 }
 
 func (e *BasicEntity) Parent() Entity {

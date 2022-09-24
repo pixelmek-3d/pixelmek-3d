@@ -38,6 +38,8 @@ type Game struct {
 	menu   DemoMenu
 	paused bool
 
+	resources *model.ModelResources
+
 	//--create slicer and declare slices--//
 	tex *TextureHandler
 
@@ -105,7 +107,6 @@ func NewGame() *Game {
 
 	g.initInteractiveTypes()
 	g.initCollisionTypes()
-	model.LoadModels()
 
 	ebiten.SetWindowTitle("PixelMek 3D")
 
@@ -118,12 +119,19 @@ func NewGame() *Game {
 	g.setFullscreen(false)
 	g.setVsyncEnabled(true)
 
-	// load mission
 	var err error
+	g.resources, err = model.LoadModels()
+	if err != nil {
+		log.Println("Error loading models:")
+		log.Println(err)
+		exit(1)
+	}
+
+	// load mission
 	missionPath := "trial.yaml"
 	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
-		log.Println("Error loading mission", missionPath)
+		log.Println("Error loading mission: ", missionPath)
 		log.Println(err)
 		exit(1)
 	}
@@ -584,8 +592,8 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 		collisionEntity := collisions[0]
 
 		collisionDamage := 1.0 // TODO: determine collision damage based on player mech and speed
-		collisionEntity.entity.DamageHitPoints(collisionDamage)
-		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.HitPoints())
+		collisionEntity.entity.ApplyDamage(collisionDamage)
+		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.ArmorPoints())
 	}
 }
 
@@ -645,15 +653,17 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			if len(collisions) > 0 {
 				// apply damage to the first sprite entity that was hit
 				collisionEntity = collisions[0]
+				entity := collisionEntity.entity
 
-				if collisionEntity.entity == g.player.Entity {
+				if entity == g.player.Entity {
 					// TODO: visual response to player being hit
 					println("ouch!")
 				} else {
 					damage := p.Damage()
-					collisionEntity.entity.DamageHitPoints(damage)
+					entity.ApplyDamage(damage)
 
-					hp, maxHP := collisionEntity.entity.HitPoints(), collisionEntity.entity.MaxHitPoints()
+					// TODO: visual method for showing damage was done
+					hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
 					percentHP := 100 * (hp / maxHP)
 					fmt.Printf("[%0.2f%s] hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
 				}
@@ -688,7 +698,7 @@ func (g *Game) updateSprites() {
 			switch spriteType {
 			case MapSpriteType:
 				s := k.(*render.Sprite)
-				if s.HitPoints() <= 0 {
+				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
 					// TODO: implement sprite destruction animation
 					g.sprites.deleteMapSprite(s)
 				}
@@ -699,7 +709,7 @@ func (g *Game) updateSprites() {
 			case MechSpriteType:
 				s := k.(*render.MechSprite)
 				// TODO: implement mech armor and structure instead of direct HP
-				if s.HitPoints() <= 0 {
+				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteMechSprite(s)
 				}
@@ -710,7 +720,7 @@ func (g *Game) updateSprites() {
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
 				// TODO: implement vehicle armor and structure instead of direct HP
-				if s.HitPoints() <= 0 {
+				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteVehicleSprite(s)
 				}
@@ -721,7 +731,7 @@ func (g *Game) updateSprites() {
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
 				// TODO: implement vtol armor and structure instead of direct HP
-				if s.HitPoints() <= 0 {
+				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteVTOLSprite(s)
 				}
@@ -731,7 +741,7 @@ func (g *Game) updateSprites() {
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
-				if s.HitPoints() <= 0 {
+				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteInfantrySprite(s)
 				}

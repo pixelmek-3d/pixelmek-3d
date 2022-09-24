@@ -31,7 +31,8 @@ func NewPlayer(x, y, angle, pitch float64) *Player {
 	p.SetAngle(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
-	p.SetHitPoints(math.MaxFloat64) // TODO: get from mech model
+	p.SetArmorPoints(math.MaxFloat64) // TODO: get from mech model
+	p.SetStructurePoints(math.MaxFloat64)
 
 	return p
 }

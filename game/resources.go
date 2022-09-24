@@ -177,8 +177,9 @@ func (g *Game) loadContent() {
 			sWidth, sHeight := spriteImg.Size()
 			x, y, z := position[0], position[1], s.ZPosition
 
-			collisionRadius := (s.Scale * s.CollisionPxRadius) / float64(sWidth)
-			collisionHeight := (s.Scale * s.CollisionPxHeight) / float64(sHeight)
+			collisionRadius, collisionHeight := convertCollisionFromPx(
+				s.CollisionPxRadius, s.CollisionPxHeight, sWidth, sHeight, s.Scale,
+			)
 
 			hitPoints := math.MaxFloat64
 			if s.HitPoints != 0 {
@@ -203,22 +204,29 @@ func (g *Game) loadContent() {
 
 // loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
-	// TODO: move these to predefined mech definitions from their own data source files
 	mechSpriteTemplates := make(map[string]*render.MechSprite, len(g.mission.Mechs))
 	vehicleSpriteTemplates := make(map[string]*render.VehicleSprite, len(g.mission.Vehicles))
 	vtolSpriteTemplates := make(map[string]*render.VTOLSprite, len(g.mission.VTOLs))
 	infantrySpriteTemplates := make(map[string]*render.InfantrySprite, len(g.mission.Infantry))
 
 	for _, missionMech := range g.mission.Mechs {
-		if _, ok := mechSpriteTemplates[missionMech.Image]; !ok {
-			mechRelPath := fmt.Sprintf("mechs/%s", missionMech.Image)
+		if _, ok := mechSpriteTemplates[missionMech.Unit]; !ok {
+			mechResource := g.resources.GetMechResource(missionMech.Unit)
+			mechRelPath := fmt.Sprintf("mechs/%s", mechResource.Image)
 			mechImg := getSpriteFromFile(mechRelPath)
 
-			modelMech := model.NewMech(0.3, .7, 100)
-			mechSpriteTemplates[missionMech.Image] = render.NewMechSprite(modelMech, missionMech.Scale, mechImg)
+			// need to use the image size to find the unit collision conversion from pixels
+			width, height := mechImg.Size()
+			width = width / 6 // all mech images are required to be six columns of images in a sheet
+			collisionRadius, collisionHeight := convertCollisionFromPx(
+				mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, mechResource.Scale,
+			)
+
+			modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight)
+			mechSpriteTemplates[missionMech.Unit] = render.NewMechSprite(modelMech, mechResource.Scale, mechImg)
 		}
 
-		mechTemplate := mechSpriteTemplates[missionMech.Image]
+		mechTemplate := mechSpriteTemplates[missionMech.Unit]
 		mech := mechTemplate.Clone()
 
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
@@ -238,21 +246,28 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVehicle := range g.mission.Vehicles {
-		if _, ok := vehicleSpriteTemplates[missionVehicle.Image]; !ok {
-			vehicleRelPath := fmt.Sprintf("vehicles/%s", missionVehicle.Image)
+		if _, ok := vehicleSpriteTemplates[missionVehicle.Unit]; !ok {
+			vehicleResource := g.resources.GetVehicleResource(missionVehicle.Unit)
+			vehicleRelPath := fmt.Sprintf("vehicles/%s", vehicleResource.Image)
 			vehicleImg := getSpriteFromFile(vehicleRelPath)
 
-			modelVehicle := model.NewVehicle(0.3, .3, 35)
-			vehicleSpriteTemplates[missionVehicle.Image] = render.NewVehicleSprite(modelVehicle, missionVehicle.Scale, vehicleImg)
+			// need to use the image size to find the unit collision conversion from pixels
+			width, height := vehicleImg.Size()
+			// TODO: handle if image has multiple rows/cols
+			collisionRadius, collisionHeight := convertCollisionFromPx(
+				vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, vehicleResource.Scale,
+			)
+
+			modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight)
+			vehicleSpriteTemplates[missionVehicle.Unit] = render.NewVehicleSprite(modelVehicle, vehicleResource.Scale, vehicleImg)
 		}
 
-		vehicleTemplate := vehicleSpriteTemplates[missionVehicle.Image]
+		vehicleTemplate := vehicleSpriteTemplates[missionVehicle.Unit]
 		vehicle := vehicleTemplate.Clone()
 
 		posX, posY := missionVehicle.Position[0], missionVehicle.Position[1]
 		vehicle.SetPos(&geom.Vector2{X: posX, Y: posY})
 
-		// TODO: give mission units a bit more of a brain
 		if len(missionVehicle.PatrolPath) > 0 {
 			vehicle.PatrolPath = missionVehicle.PatrolPath
 		}
@@ -261,22 +276,29 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVTOL := range g.mission.VTOLs {
-		if _, ok := vtolSpriteTemplates[missionVTOL.Image]; !ok {
-			vtolRelPath := fmt.Sprintf("vtols/%s", missionVTOL.Image)
+		if _, ok := vtolSpriteTemplates[missionVTOL.Unit]; !ok {
+			vtolResource := g.resources.GetVTOLResource(missionVTOL.Unit)
+			vtolRelPath := fmt.Sprintf("vtols/%s", vtolResource.Image)
 			vtolImg := getSpriteFromFile(vtolRelPath)
 
-			modelVTOL := model.NewVTOL(0.2, .2, 25)
-			vtolSpriteTemplates[missionVTOL.Image] = render.NewVTOLSprite(modelVTOL, missionVTOL.Scale, vtolImg)
+			// need to use the image size to find the unit collision conversion from pixels
+			width, height := vtolImg.Size()
+			// TODO: handle if image has multiple rows/cols
+			collisionRadius, collisionHeight := convertCollisionFromPx(
+				vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, vtolResource.Scale,
+			)
+
+			modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight)
+			vtolSpriteTemplates[missionVTOL.Unit] = render.NewVTOLSprite(modelVTOL, vtolResource.Scale, vtolImg)
 		}
 
-		vtolTemplate := vtolSpriteTemplates[missionVTOL.Image]
+		vtolTemplate := vtolSpriteTemplates[missionVTOL.Unit]
 		vtol := vtolTemplate.Clone()
 
 		posX, posY, posZ := missionVTOL.Position[0], missionVTOL.Position[1], missionVTOL.ZPosition
 		vtol.SetPos(&geom.Vector2{X: posX, Y: posY})
 		vtol.SetPosZ(posZ)
 
-		// TODO: give mission units a bit more of a brain
 		if len(missionVTOL.PatrolPath) > 0 {
 			vtol.PatrolPath = missionVTOL.PatrolPath
 		}
@@ -285,22 +307,28 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionInfantry := range g.mission.Infantry {
-		if _, ok := infantrySpriteTemplates[missionInfantry.Image]; !ok {
-			infantryRelPath := fmt.Sprintf("infantry/%s", missionInfantry.Image)
+		if _, ok := infantrySpriteTemplates[missionInfantry.Unit]; !ok {
+			infantryResource := g.resources.GetInfantryResource(missionInfantry.Unit)
+			infantryRelPath := fmt.Sprintf("infantry/%s", infantryResource.Image)
 			infantryImg := getSpriteFromFile(infantryRelPath)
 
-			// TODO: create infantry specific sprite class
-			modelInfantry := model.NewInfantry(0.1, .1, 10)
-			infantrySpriteTemplates[missionInfantry.Image] = render.NewInfantrySprite(modelInfantry, missionInfantry.Scale, infantryImg)
+			// need to use the image size to find the unit collision conversion from pixels
+			width, height := infantryImg.Size()
+			// TODO: handle if image has multiple rows/cols
+			collisionRadius, collisionHeight := convertCollisionFromPx(
+				infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, infantryResource.Scale,
+			)
+
+			modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight)
+			infantrySpriteTemplates[missionInfantry.Unit] = render.NewInfantrySprite(modelInfantry, infantryResource.Scale, infantryImg)
 		}
 
-		infantryTemplate := infantrySpriteTemplates[missionInfantry.Image]
+		infantryTemplate := infantrySpriteTemplates[missionInfantry.Unit]
 		infantry := infantryTemplate.Clone()
 
 		posX, posY := missionInfantry.Position[0], missionInfantry.Position[1]
 		infantry.SetPos(&geom.Vector2{X: posX, Y: posY})
 
-		// TODO: give mission units a bit more of a brain
 		if len(missionInfantry.PatrolPath) > 0 {
 			infantry.PatrolPath = missionInfantry.PatrolPath
 		}
@@ -357,4 +385,10 @@ func (g *Game) loadGameSprites() {
 	redLaserProjectile.ImpactEffect = *redExplosionEffect
 
 	g.player.TestProjectile = redLaserProjectile
+}
+
+func convertCollisionFromPx(collisionPxRadius, collisionPxHeight float64, width, height int, scale float64) (collisionRadius float64, collisionHeight float64) {
+	collisionRadius = (scale * collisionPxRadius) / float64(width)
+	collisionHeight = (scale * collisionPxHeight) / float64(height)
+	return
 }

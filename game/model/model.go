@@ -14,14 +14,13 @@ import (
 )
 
 type ModelResources struct {
-	Mechs    map[string]*ModelMech
-	Vehicles map[string]*ModelVehicle
-	VTOLs    map[string]*ModelVTOL
-	Infantry map[string]*ModelInfantry
+	Mechs    map[string]*ModelMechResource
+	Vehicles map[string]*ModelVehicleResource
+	VTOLs    map[string]*ModelVTOLResource
+	Infantry map[string]*ModelInfantryResource
 }
 
-// TODO: add field validation - https://github.com/go-playground/validator
-type ModelMech struct {
+type ModelMechResource struct {
 	Name              string    `yaml:"name" validate:"required"`
 	Variant           string    `yaml:"variant" validate:"required"`
 	Image             string    `yaml:"image" validate:"required"`
@@ -36,7 +35,7 @@ type ModelMech struct {
 	Scale             float64   `yaml:"scale" validate:"gt=0"`
 }
 
-type ModelVehicle struct {
+type ModelVehicleResource struct {
 	Name              string    `yaml:"name" validate:"required"`
 	Variant           string    `yaml:"variant" validate:"required"`
 	Image             string    `yaml:"image" validate:"required"`
@@ -50,7 +49,7 @@ type ModelVehicle struct {
 	Scale             float64   `yaml:"scale" validate:"gt=0"`
 }
 
-type ModelVTOL struct {
+type ModelVTOLResource struct {
 	Name              string    `yaml:"name" validate:"required"`
 	Variant           string    `yaml:"variant" validate:"required"`
 	Image             string    `yaml:"image" validate:"required"`
@@ -64,7 +63,7 @@ type ModelVTOL struct {
 	Scale             float64   `yaml:"scale" validate:"gt=0"`
 }
 
-type ModelInfantry struct {
+type ModelInfantryResource struct {
 	Name              string    `yaml:"name" validate:"required"`
 	Variant           string    `yaml:"variant" validate:"required"`
 	Image             string    `yaml:"image" validate:"required"`
@@ -137,16 +136,16 @@ func LoadModels() (*ModelResources, error) {
 		// initialize map for each recognized unit type
 		switch unitType {
 		case "mechs":
-			resources.Mechs = make(map[string]*ModelMech, len(unitFiles))
+			resources.Mechs = make(map[string]*ModelMechResource, len(unitFiles))
 
 		case "vehicles":
-			resources.Vehicles = make(map[string]*ModelVehicle, len(unitFiles))
+			resources.Vehicles = make(map[string]*ModelVehicleResource, len(unitFiles))
 
 		case "vtols":
-			resources.VTOLs = make(map[string]*ModelVTOL, len(unitFiles))
+			resources.VTOLs = make(map[string]*ModelVTOLResource, len(unitFiles))
 
 		case "infantry":
-			resources.Infantry = make(map[string]*ModelInfantry, len(unitFiles))
+			resources.Infantry = make(map[string]*ModelInfantryResource, len(unitFiles))
 
 		}
 
@@ -165,7 +164,7 @@ func LoadModels() (*ModelResources, error) {
 
 			switch unitType {
 			case "mechs":
-				m := &ModelMech{}
+				m := &ModelMechResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
 					log.Fatal(err)
@@ -181,7 +180,7 @@ func LoadModels() (*ModelResources, error) {
 				resources.Mechs[fileName] = m
 
 			case "vehicles":
-				m := &ModelVehicle{}
+				m := &ModelVehicleResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
 					log.Fatal(err)
@@ -197,7 +196,7 @@ func LoadModels() (*ModelResources, error) {
 				resources.Vehicles[fileName] = m
 
 			case "vtols":
-				m := &ModelVTOL{}
+				m := &ModelVTOLResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
 					log.Fatal(err)
@@ -213,7 +212,7 @@ func LoadModels() (*ModelResources, error) {
 				resources.VTOLs[fileName] = m
 
 			case "infantry":
-				m := &ModelInfantry{}
+				m := &ModelInfantryResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
 					log.Fatal(err)
@@ -234,6 +233,34 @@ func LoadModels() (*ModelResources, error) {
 	}
 
 	return resources, nil
+}
+
+func (r *ModelResources) GetMechResource(unit string) *ModelMechResource {
+	if m, ok := r.Mechs[unit]; ok {
+		return m
+	}
+	return nil
+}
+
+func (r *ModelResources) GetVehicleResource(unit string) *ModelVehicleResource {
+	if m, ok := r.Vehicles[unit]; ok {
+		return m
+	}
+	return nil
+}
+
+func (r *ModelResources) GetVTOLResource(unit string) *ModelVTOLResource {
+	if m, ok := r.VTOLs[unit]; ok {
+		return m
+	}
+	return nil
+}
+
+func (r *ModelResources) GetInfantryResource(unit string) *ModelInfantryResource {
+	if m, ok := r.Infantry[unit]; ok {
+		return m
+	}
+	return nil
 }
 
 func filesInPath(path string) ([]fs.DirEntry, error) {

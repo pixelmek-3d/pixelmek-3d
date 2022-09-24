@@ -1,31 +1,35 @@
 package model
 
 import (
+	"math"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
 
 type Mech struct {
-	position        *geom.Vector2
-	positionZ       float64
-	anchor          raycaster.SpriteAnchor
-	angle           float64
-	pitch           float64
-	velocity        float64
-	collisionRadius float64
-	collisionHeight float64
-	hitPoints       float64
-	maxHitPoints    float64
-	parent          Entity
+	position                *geom.Vector2
+	positionZ               float64
+	anchor                  raycaster.SpriteAnchor
+	angle                   float64
+	pitch                   float64
+	velocity                float64
+	collisionRadius         float64
+	collisionHeight         float64
+	armor, maxArmor         float64
+	structure, maxStructure float64
+	parent                  Entity
 }
 
-func NewMech(collisionRadius, collisionHeight, hitPoints float64) *Mech {
+func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64) *Mech {
 	m := &Mech{
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
-		hitPoints:       hitPoints,
-		maxHitPoints:    hitPoints,
+		armor:           r.Armor,
+		maxArmor:        r.Armor,
+		structure:       r.Structure,
+		maxStructure:    r.Structure,
 	}
 	return m
 }
@@ -94,21 +98,41 @@ func (e *Mech) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
-func (e *Mech) HitPoints() float64 {
-	return e.hitPoints
+func (e *Mech) ApplyDamage(damage float64) {
+	if e.armor > 0 {
+		e.armor -= damage
+		if e.armor < 0 {
+			// apply remainder of armor damage on structure
+			e.structure -= math.Abs(e.armor)
+			e.armor = 0
+		}
+	} else {
+		e.structure -= damage
+	}
 }
 
-func (e *Mech) SetHitPoints(hitPoints float64) {
-	e.hitPoints = hitPoints
+func (e *Mech) ArmorPoints() float64 {
+	return e.armor
 }
 
-func (e *Mech) DamageHitPoints(damage float64) float64 {
-	e.hitPoints -= damage
-	return e.hitPoints
+func (e *Mech) SetArmorPoints(armor float64) {
+	e.armor = armor
 }
 
-func (e *Mech) MaxHitPoints() float64 {
-	return e.maxHitPoints
+func (e *Mech) MaxArmorPoints() float64 {
+	return e.maxArmor
+}
+
+func (e *Mech) StructurePoints() float64 {
+	return e.structure
+}
+
+func (e *Mech) SetStructurePoints(structure float64) {
+	e.structure = structure
+}
+
+func (e *Mech) MaxStructurePoints() float64 {
+	return e.maxStructure
 }
 
 func (e *Mech) Parent() Entity {

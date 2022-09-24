@@ -1,44 +1,33 @@
 map: "testing_grounds.yaml"
 mechs:
-- image: "warhawk.png"
-  scale: 0.8
+- unit: "warhawk_prime.yaml"
   position: [13, 14]
-- image: "warhawk.png"
-  scale: 0.8
+- unit: "warhawk_prime.yaml"
   position: [17, 14]
-- image: "timberwolf.png"
-  scale: 0.75
+- unit: "timberwolf_prime.yaml"
   position: [9, 23]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
-- image: "timberwolf.png"
-  scale: 0.75
+- unit: "timberwolf_prime.yaml"
   position: [12, 21]
   patrolPath: [[18, 21], [18, 16], [3, 16], [3, 21], [18, 21]]
-- image: "timberwolf.png"
-  scale: 0.75
+- unit: "timberwolf_prime.yaml"
   position: [15, 23]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 vehicles:
-- image: "rocket_tank.png"
-  scale: 0.35
+- unit: "srm_carrier_clan.yaml"
   position: [13.5, 13.5]
-- image: "rocket_tank.png"
-  scale: 0.35
+- unit: "srm_carrier_clan.yaml"
   position: [15.5, 14]
 vtols:
-- image: "attack_chopper.png"
-  scale: 0.75
+- unit: "donar.yaml"
   position: [13, 15]
   zPosition: 3.0
-- image: "attack_chopper.png"
-  scale: 0.75
+- unit: "donar.yaml"
   position: [17, 15]
   zPosition: 3.0
 infantry:
-- image: "sms_soldier.png"
-  scale: 0.085
+- unit: "heavy_clan.yaml"
   position: [13, 13.5]
-- image: "sms_soldier.png"
-  scale: 0.085
+- unit: "heavy_clan.yaml"
   position: [12, 14]
   patrolPath: [[12, 14], [9, 14], [12, 14]]

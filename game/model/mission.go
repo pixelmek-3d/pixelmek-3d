@@ -22,34 +22,26 @@ func (m *Mission) Map() *Map {
 }
 
 type MissionMech struct {
-	// TODO: load unit definitions from their own data files
-	Image      string       `yaml:"image"`
-	Scale      float64      `default:"1.0" yaml:"scale,omitempty"`
+	Unit       string       `yaml:"unit"`
 	Position   [2]float64   `yaml:"position"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
 type MissionVehicle struct {
-	// TODO: load unit definitions from their own data files
-	Image      string       `yaml:"image"`
-	Scale      float64      `default:"1.0" yaml:"scale,omitempty"`
+	Unit       string       `yaml:"unit"`
 	Position   [2]float64   `yaml:"position"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
 type MissionVTOL struct {
-	// TODO: load unit definitions from their own data files
-	Image      string       `yaml:"image"`
-	Scale      float64      `default:"1.0" yaml:"scale,omitempty"`
+	Unit       string       `yaml:"unit"`
 	Position   [2]float64   `yaml:"position"`
 	ZPosition  float64      `yaml:"zPosition"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
 type MissionInfantry struct {
-	// TODO: load unit definitions from their own data files
-	Image      string       `yaml:"image"`
-	Scale      float64      `default:"1.0" yaml:"scale,omitempty"`
+	Unit       string       `yaml:"unit"`
 	Position   [2]float64   `yaml:"position"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }

@@ -115,22 +115,31 @@ func (e *Projectile) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
-func (e *Projectile) HitPoints() float64 {
-	// projectiles are only tested for damage against non-projectiles
+func (e *Projectile) ApplyDamage(damage float64) {
+	// projectileHitPointsIgnored
+}
+
+func (e *Projectile) ArmorPoints() float64 {
 	return projectileHitPointsIgnored
 }
 
-func (e *Projectile) SetHitPoints(hitPointsIgnored float64) {
-	// projectiles are only tested for damage against non-projectiles
+func (e *Projectile) SetArmorPoints(armor float64) {
+	// projectileHitPointsIgnored
 }
 
-func (e *Projectile) DamageHitPoints(damageIgnored float64) float64 {
-	// projectiles are only tested for damage against non-projectiles
+func (e *Projectile) MaxArmorPoints() float64 {
 	return projectileHitPointsIgnored
 }
 
-func (e *Projectile) MaxHitPoints() float64 {
-	// projectiles are only tested for damage against non-projectiles
+func (e *Projectile) StructurePoints() float64 {
+	return projectileHitPointsIgnored
+}
+
+func (e *Projectile) SetStructurePoints(structure float64) {
+	// projectileHitPointsIgnored
+}
+
+func (e *Projectile) MaxStructurePoints() float64 {
 	return projectileHitPointsIgnored
 }
 

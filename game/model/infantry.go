@@ -1,31 +1,35 @@
 package model
 
 import (
+	"math"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
 
 type Infantry struct {
-	position        *geom.Vector2
-	positionZ       float64
-	anchor          raycaster.SpriteAnchor
-	angle           float64
-	pitch           float64
-	velocity        float64
-	collisionRadius float64
-	collisionHeight float64
-	hitPoints       float64
-	maxHitPoints    float64
-	parent          Entity
+	position                *geom.Vector2
+	positionZ               float64
+	anchor                  raycaster.SpriteAnchor
+	angle                   float64
+	pitch                   float64
+	velocity                float64
+	collisionRadius         float64
+	collisionHeight         float64
+	armor, maxArmor         float64
+	structure, maxStructure float64
+	parent                  Entity
 }
 
-func NewInfantry(collisionRadius, collisionHeight, hitPoints float64) *Infantry {
+func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64) *Infantry {
 	m := &Infantry{
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
-		hitPoints:       hitPoints,
-		maxHitPoints:    hitPoints,
+		armor:           r.Armor,
+		maxArmor:        r.Armor,
+		structure:       r.Structure,
+		maxStructure:    r.Structure,
 	}
 	return m
 }
@@ -94,21 +98,41 @@ func (e *Infantry) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
-func (e *Infantry) HitPoints() float64 {
-	return e.hitPoints
+func (e *Infantry) ApplyDamage(damage float64) {
+	if e.armor > 0 {
+		e.armor -= damage
+		if e.armor < 0 {
+			// apply remainder of armor damage on structure
+			e.structure -= math.Abs(e.armor)
+			e.armor = 0
+		}
+	} else {
+		e.structure -= damage
+	}
 }
 
-func (e *Infantry) SetHitPoints(hitPoints float64) {
-	e.hitPoints = hitPoints
+func (e *Infantry) ArmorPoints() float64 {
+	return e.armor
 }
 
-func (e *Infantry) DamageHitPoints(damage float64) float64 {
-	e.hitPoints -= damage
-	return e.hitPoints
+func (e *Infantry) SetArmorPoints(armor float64) {
+	e.armor = armor
 }
 
-func (e *Infantry) MaxHitPoints() float64 {
-	return e.maxHitPoints
+func (e *Infantry) MaxArmorPoints() float64 {
+	return e.maxArmor
+}
+
+func (e *Infantry) StructurePoints() float64 {
+	return e.structure
+}
+
+func (e *Infantry) SetStructurePoints(structure float64) {
+	e.structure = structure
+}
+
+func (e *Infantry) MaxStructurePoints() float64 {
+	return e.maxStructure
 }
 
 func (e *Infantry) Parent() Entity {
