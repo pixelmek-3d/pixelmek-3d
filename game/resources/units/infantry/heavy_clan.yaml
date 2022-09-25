@@ -2,7 +2,7 @@
 # https://www.sarna.net/wiki/Clan_Heavy_Foot_Infantry
 name: Heavy Foot Infantry
 variant: Infantry-Heavy
-image: soldier_walk.png
+image: soldier.png
 imageSheet:
   columns: 4
   rows: 4

@@ -11,7 +11,7 @@
 
 ## ./infantry
 
-- `sms_soldier`: "Chasersgaming" - https://opengameart.org/content/rpg-asset-character-soldier-sms
+- `soldier`: "Chasersgaming" - https://opengameart.org/content/rpg-asset-character-soldier-sms
 
 ## ./mechs
 

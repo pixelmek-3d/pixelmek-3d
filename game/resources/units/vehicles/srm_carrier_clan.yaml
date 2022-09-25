@@ -3,6 +3,15 @@
 name: SRM Carrier
 variant: Carrier-SRM
 image: rocket_tank.png
+imageSheet:
+  columns: 1
+  rows: 4
+  animationRate: 4
+  angleFacingRow:
+    0: 0
+    90: 1
+    180: 2
+    270: 3
 tech: clan
 tonnage: 60
 speed: 54

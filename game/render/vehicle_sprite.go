@@ -5,6 +5,7 @@ import (
 	_ "image/png"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go/geom"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jinzhu/copier"
@@ -21,9 +22,25 @@ type VehicleSprite struct {
 func NewVehicleSprite(
 	vehicle *model.Vehicle, scale float64, img *ebiten.Image,
 ) *VehicleSprite {
-	p := NewSprite(
-		vehicle, scale, img, color.RGBA{},
-	)
+	var p *Sprite
+	sheet := vehicle.Resource.ImageSheet
+
+	if sheet == nil {
+		p = NewSprite(
+			vehicle, scale, img, color.RGBA{},
+		)
+	} else {
+		p = NewAnimatedSprite(vehicle, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		if len(sheet.AngleFacingRow) > 0 {
+			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
+			for degrees, index := range sheet.AngleFacingRow {
+				rads := geom.Radians(degrees)
+				facingMap[rads] = index
+			}
+			p.SetTextureFacingMap(facingMap)
+		}
+	}
+
 	s := &VehicleSprite{
 		Sprite: p,
 	}
