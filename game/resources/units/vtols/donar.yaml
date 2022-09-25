@@ -9,11 +9,11 @@ imageSheet:
   animationRate: 4
   angleFacingRow:
     0: 0
-    45: 1
+    60: 1
     140: 1
     180: 3
     220: 2
-    315: 2
+    300: 2
 tech: clan
 tonnage: 21
 speed: 151

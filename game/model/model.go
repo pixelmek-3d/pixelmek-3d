@@ -14,11 +14,20 @@ import (
 )
 
 type ModelResources struct {
-	Mechs    map[string]*ModelMechResource
-	Vehicles map[string]*ModelVehicleResource
-	VTOLs    map[string]*ModelVTOLResource
-	Infantry map[string]*ModelInfantryResource
+	Mechs         map[string]*ModelMechResource
+	Vehicles      map[string]*ModelVehicleResource
+	VTOLs         map[string]*ModelVTOLResource
+	Infantry      map[string]*ModelInfantryResource
+	EnergyWeapons map[string]*ModelEnergyWeaponResource
 }
+
+const (
+	MechResourceType     string = "mechs"
+	VehicleResourceType  string = "vehicles"
+	VTOLResourceType     string = "vtols"
+	InfantryResourceType string = "infantry"
+	EnergyResourceType   string = "energy"
+)
 
 type TechBase int
 
@@ -91,6 +100,33 @@ type ModelInfantryResource struct {
 	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 }
 
+type ModelEnergyWeaponResource struct {
+	Name       string                   `yaml:"name" validate:"required"`
+	ShortName  string                   `yaml:"short" validate:"required"`
+	Tech       ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage    float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Damage     float64                  `yaml:"damage" validate:"gt=0"`
+	Heat       float64                  `yaml:"heat" validate:"gte=0"`
+	Range      float64                  `yaml:"range" validate:"gt=0"`
+	Cooldown   float64                  `yaml:"cooldown" validate:"gt=0"`
+	Projectile *ModelProjectileResource `yaml:"projectile"`
+}
+
+type ModelProjectileResource struct {
+	Image             string                   `yaml:"image" validate:"required"`
+	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
+	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	Scale             float64                  `yaml:"scale" validate:"gt=0"`
+	ImpactEffect      *ModelEffectResource     `yaml:"impactEffect"`
+}
+
+type ModelEffectResource struct {
+	Image      string                   `yaml:"image" validate:"required"`
+	ImageSheet *ModelResourceImageSheet `yaml:"imageSheet"`
+	Scale      float64                  `yaml:"scale" validate:"gt=0"`
+}
+
 type ModelResourceImageSheet struct {
 	Columns        int             `yaml:"columns" validate:"gt=0"`
 	Rows           int             `yaml:"rows" validate:"gt=0"`
@@ -116,17 +152,32 @@ func (t *ModelTech) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func LoadModels() (*ModelResources, error) {
-	unitsPath := filepath.Join("game", "resources", "units")
-
-	// TODO: load and validate all units
-	v := validator.New()
+func LoadModelResources() (*ModelResources, error) {
 	resources := &ModelResources{}
 
-	unitsTypes, err := filesInPath(unitsPath)
+	err := resources.loadUnitResources()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
+	}
+
+	err = resources.loadWeaponResources()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	return resources, nil
+}
+
+func (r *ModelResources) loadUnitResources() error {
+	// load and validate all units
+	v := validator.New()
+
+	unitsPath := filepath.Join("game", "resources", "units")
+	unitsTypes, err := filesInPath(unitsPath)
+	if err != nil {
+		return err
 	}
 
 	for _, t := range unitsTypes {
@@ -139,23 +190,22 @@ func LoadModels() (*ModelResources, error) {
 		unitTypePath := filepath.Join(unitsPath, unitType)
 		unitFiles, err := filesInPath(unitTypePath)
 		if err != nil {
-			log.Fatal(err)
-			return nil, err
+			return err
 		}
 
 		// initialize map for each recognized unit type
 		switch unitType {
-		case "mechs":
-			resources.Mechs = make(map[string]*ModelMechResource, len(unitFiles))
+		case MechResourceType:
+			r.Mechs = make(map[string]*ModelMechResource, len(unitFiles))
 
-		case "vehicles":
-			resources.Vehicles = make(map[string]*ModelVehicleResource, len(unitFiles))
+		case VehicleResourceType:
+			r.Vehicles = make(map[string]*ModelVehicleResource, len(unitFiles))
 
-		case "vtols":
-			resources.VTOLs = make(map[string]*ModelVTOLResource, len(unitFiles))
+		case VTOLResourceType:
+			r.VTOLs = make(map[string]*ModelVTOLResource, len(unitFiles))
 
-		case "infantry":
-			resources.Infantry = make(map[string]*ModelInfantryResource, len(unitFiles))
+		case InfantryResourceType:
+			r.Infantry = make(map[string]*ModelInfantryResource, len(unitFiles))
 
 		}
 
@@ -168,81 +218,135 @@ func LoadModels() (*ModelResources, error) {
 			fileName := u.Name()
 			unitYaml, err := ioutil.ReadFile(filepath.Join(unitTypePath, fileName))
 			if err != nil {
-				log.Fatal(err)
-				return nil, err
+				return err
 			}
 
 			switch unitType {
-			case "mechs":
+			case MechResourceType:
 				m := &ModelMechResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
 				err = v.Struct(m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
-				resources.Mechs[fileName] = m
+				r.Mechs[fileName] = m
 
-			case "vehicles":
+			case VehicleResourceType:
 				m := &ModelVehicleResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
 				err = v.Struct(m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
-				resources.Vehicles[fileName] = m
+				r.Vehicles[fileName] = m
 
-			case "vtols":
+			case VTOLResourceType:
 				m := &ModelVTOLResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
 				err = v.Struct(m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
-				resources.VTOLs[fileName] = m
+				r.VTOLs[fileName] = m
 
-			case "infantry":
+			case InfantryResourceType:
 				m := &ModelInfantryResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
 				err = v.Struct(m)
 				if err != nil {
-					log.Fatal(err)
-					return nil, err
+					return err
 				}
 
-				resources.Infantry[fileName] = m
+				r.Infantry[fileName] = m
 
 			}
 		}
-
 	}
 
-	return resources, nil
+	return nil
+}
+
+func (r *ModelResources) loadWeaponResources() error {
+	// load and validate all weapons, projectiles and impact efffects
+	v := validator.New()
+
+	weaponsPath := filepath.Join("game", "resources", "weapons")
+	weaponsTypes, err := filesInPath(weaponsPath)
+	if err != nil {
+		return err
+	}
+
+	for _, t := range weaponsTypes {
+		if !t.IsDir() {
+			// only folders with weapon type name expected
+			continue
+		}
+
+		weaponType := t.Name()
+		weaponTypePath := filepath.Join(weaponsPath, weaponType)
+		weaponFiles, err := filesInPath(weaponTypePath)
+		if err != nil {
+			return err
+		}
+
+		// initialize map for each recognized weapon type
+		switch weaponType {
+		case EnergyResourceType:
+			r.EnergyWeapons = make(map[string]*ModelEnergyWeaponResource, len(weaponFiles))
+
+		}
+
+		for _, u := range weaponFiles {
+			if u.IsDir() {
+				// TODO: support recursive directory structure?
+				continue
+			}
+
+			fileName := u.Name()
+			weaponYaml, err := ioutil.ReadFile(filepath.Join(weaponTypePath, fileName))
+			if err != nil {
+				return err
+			}
+
+			switch weaponType {
+			case EnergyResourceType:
+				m := &ModelEnergyWeaponResource{}
+				err = yaml.Unmarshal(weaponYaml, m)
+				if err != nil {
+					return err
+				}
+
+				err = v.Struct(m)
+				if err != nil {
+					return err
+				}
+
+				r.EnergyWeapons[fileName] = m
+
+			}
+		}
+	}
+
+	return nil
 }
 
 func (r *ModelResources) GetMechResource(unit string) *ModelMechResource {

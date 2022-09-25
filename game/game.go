@@ -120,7 +120,7 @@ func NewGame() *Game {
 	g.setVsyncEnabled(true)
 
 	var err error
-	g.resources, err = model.LoadModels()
+	g.resources, err = model.LoadModelResources()
 	if err != nil {
 		log.Println("Error loading models:")
 		log.Println(err)

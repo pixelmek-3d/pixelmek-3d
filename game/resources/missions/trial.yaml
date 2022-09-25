@@ -14,9 +14,9 @@ mechs:
   position: [15, 23]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 vehicles:
-- unit: "srm_carrier_clan.yaml"
+- unit: "srm_carrier.yaml"
   position: [13.5, 13.5]
-- unit: "srm_carrier_clan.yaml"
+- unit: "srm_carrier.yaml"
   position: [15.5, 14]
 vtols:
 - unit: "donar.yaml"
@@ -26,8 +26,8 @@ vtols:
   position: [17, 15]
   zPosition: 3.0
 infantry:
-- unit: "heavy_clan.yaml"
+- unit: "heavy_foot.yaml"
   position: [13, 13.5]
-- unit: "heavy_clan.yaml"
+- unit: "heavy_foot.yaml"
   position: [12, 14]
   patrolPath: [[12, 14], [9, 14], [12, 14]]

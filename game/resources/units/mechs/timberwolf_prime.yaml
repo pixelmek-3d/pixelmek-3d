@@ -12,3 +12,12 @@ structure: 114
 collisionRadius: 21
 collisionHeight: 61
 scale: 0.75
+cockpitOffset: [0, 44]
+heatSinks:
+  quantity: 15
+  type: double
+armament:
+- weapon: "er_medium_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-18, 32]
