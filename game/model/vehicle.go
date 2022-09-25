@@ -8,6 +8,7 @@ import (
 )
 
 type Vehicle struct {
+	Resource                *ModelVehicleResource
 	position                *geom.Vector2
 	positionZ               float64
 	anchor                  raycaster.SpriteAnchor
@@ -23,6 +24,7 @@ type Vehicle struct {
 
 func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float64) *Vehicle {
 	m := &Vehicle{
+		Resource:        r,
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,

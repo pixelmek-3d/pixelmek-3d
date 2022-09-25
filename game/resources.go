@@ -253,7 +253,12 @@ func (g *Game) loadMissionSprites() {
 
 			// need to use the image size to find the unit collision conversion from pixels
 			width, height := vehicleImg.Size()
-			// TODO: handle if image has multiple rows/cols
+			// handle if image has multiple rows/cols
+			if vehicleResource.ImageSheet != nil {
+				width = int(float64(width) / float64(vehicleResource.ImageSheet.Columns))
+				height = int(float64(width) / float64(vehicleResource.ImageSheet.Rows))
+			}
+
 			collisionRadius, collisionHeight := convertCollisionFromPx(
 				vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, vehicleResource.Scale,
 			)
@@ -283,7 +288,12 @@ func (g *Game) loadMissionSprites() {
 
 			// need to use the image size to find the unit collision conversion from pixels
 			width, height := vtolImg.Size()
-			// TODO: handle if image has multiple rows/cols
+			// handle if image has multiple rows/cols
+			if vtolResource.ImageSheet != nil {
+				width = int(float64(width) / float64(vtolResource.ImageSheet.Columns))
+				height = int(float64(width) / float64(vtolResource.ImageSheet.Rows))
+			}
+
 			collisionRadius, collisionHeight := convertCollisionFromPx(
 				vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, vtolResource.Scale,
 			)
@@ -314,7 +324,12 @@ func (g *Game) loadMissionSprites() {
 
 			// need to use the image size to find the unit collision conversion from pixels
 			width, height := infantryImg.Size()
-			// TODO: handle if image has multiple rows/cols
+			// handle if image has multiple rows/cols
+			if infantryResource.ImageSheet != nil {
+				width = int(float64(width) / float64(infantryResource.ImageSheet.Columns))
+				height = int(float64(width) / float64(infantryResource.ImageSheet.Rows))
+			}
+
 			collisionRadius, collisionHeight := convertCollisionFromPx(
 				infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, infantryResource.Scale,
 			)
@@ -360,7 +375,7 @@ func (g *Game) loadGameSprites() {
 	redLaserDamage := 5.0
 	redLaserProjectile := render.NewAnimatedProjectile(
 		model.NewProjectile(redLaserDamage, lifespanSeconds, redLaserCollisionRadius, redLaserCollisionHeight),
-		redLaserScale, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 4,
+		redLaserScale, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 1,
 	)
 
 	// give projectile angle facing textures by row index

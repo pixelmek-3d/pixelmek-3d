@@ -2,7 +2,16 @@
 # https://www.sarna.net/wiki/Clan_Heavy_Foot_Infantry
 name: Heavy Foot Infantry
 variant: Infantry-Heavy
-image: sms_soldier.png
+image: soldier_walk.png
+imageSheet:
+  columns: 4
+  rows: 4
+  animationRate: 8
+  angleFacingRow:
+    0: 0
+    90: 1
+    180: 2
+    270: 3
 tech: clan
 speed: 7
 jumpJets: 0

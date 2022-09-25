@@ -29,10 +29,10 @@ func NewVTOLSprite(
 			vtol, scale, img, color.RGBA{},
 		)
 	} else {
-		p = NewAnimatedSprite(vtol, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, 4)
-		if len(sheet.AngleFacing) > 0 {
-			facingMap := make(map[float64]int, len(sheet.AngleFacing))
-			for degrees, index := range sheet.AngleFacing {
+		p = NewAnimatedSprite(vtol, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		if len(sheet.AngleFacingRow) > 0 {
+			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
+			for degrees, index := range sheet.AngleFacingRow {
 				rads := geom.Radians(degrees)
 				facingMap[rads] = index
 			}

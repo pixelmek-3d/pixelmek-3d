@@ -8,6 +8,7 @@ import (
 )
 
 type Infantry struct {
+	Resource                *ModelInfantryResource
 	position                *geom.Vector2
 	positionZ               float64
 	anchor                  raycaster.SpriteAnchor
@@ -23,6 +24,7 @@ type Infantry struct {
 
 func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64) *Infantry {
 	m := &Infantry{
+		Resource:        r,
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,

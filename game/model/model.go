@@ -92,9 +92,10 @@ type ModelInfantryResource struct {
 }
 
 type ModelResourceImageSheet struct {
-	Columns     int             `yaml:"columns" validate:"gt=0"`
-	Rows        int             `yaml:"rows" validate:"gt=0"`
-	AngleFacing map[float64]int `yaml:"angleFacing"`
+	Columns        int             `yaml:"columns" validate:"gt=0"`
+	Rows           int             `yaml:"rows" validate:"gt=0"`
+	AnimationRate  int             `yaml:"animationRate" validate:"gte=0"`
+	AngleFacingRow map[float64]int `yaml:"angleFacingRow"`
 }
 
 // Unmarshals into TechBase

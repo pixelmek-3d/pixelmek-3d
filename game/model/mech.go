@@ -8,6 +8,7 @@ import (
 )
 
 type Mech struct {
+	Resource                *ModelMechResource
 	position                *geom.Vector2
 	positionZ               float64
 	anchor                  raycaster.SpriteAnchor
@@ -23,6 +24,7 @@ type Mech struct {
 
 func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64) *Mech {
 	m := &Mech{
+		Resource:        r,
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,

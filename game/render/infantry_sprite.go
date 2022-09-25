@@ -5,6 +5,7 @@ import (
 	_ "image/png"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go/geom"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jinzhu/copier"
@@ -21,9 +22,25 @@ type InfantrySprite struct {
 func NewInfantrySprite(
 	infantry *model.Infantry, scale float64, img *ebiten.Image,
 ) *InfantrySprite {
-	p := NewSprite(
-		infantry, scale, img, color.RGBA{},
-	)
+	var p *Sprite
+	sheet := infantry.Resource.ImageSheet
+
+	if sheet == nil {
+		p = NewSprite(
+			infantry, scale, img, color.RGBA{},
+		)
+	} else {
+		p = NewAnimatedSprite(infantry, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		if len(sheet.AngleFacingRow) > 0 {
+			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
+			for degrees, index := range sheet.AngleFacingRow {
+				rads := geom.Radians(degrees)
+				facingMap[rads] = index
+			}
+			p.SetTextureFacingMap(facingMap)
+		}
+	}
+
 	s := &InfantrySprite{
 		Sprite: p,
 	}

@@ -6,7 +6,8 @@ image: attack_chopper.png
 imageSheet:
   columns: 1
   rows: 4
-  angleFacing:
+  animationRate: 4
+  angleFacingRow:
     0: 0
     45: 1
     140: 1
@@ -18,6 +19,6 @@ tonnage: 21
 speed: 151
 armor: 50
 structure: 25
-collisionRadius: 12
+collisionRadius: 16
 collisionHeight: 26
 scale: 0.75
