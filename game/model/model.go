@@ -40,19 +40,50 @@ type ModelTech struct {
 	TechBase
 }
 
+type HeatSinkType int
+
+const (
+	SINGLE HeatSinkType = iota
+	DOUBLE
+)
+
+type ModelHeatSinkType struct {
+	HeatSinkType
+}
+
+type Location int
+
+const (
+	HEAD Location = iota
+	CENTER_TORSO
+	LEFT_TORSO
+	RIGHT_TORSO
+	LEFT_ARM
+	RIGHT_ARM
+	LEFT_LEG
+	RIGHT_LEG
+)
+
+type ModelLocation struct {
+	Location
+}
+
 type ModelMechResource struct {
-	Name              string    `yaml:"name" validate:"required"`
-	Variant           string    `yaml:"variant" validate:"required"`
-	Image             string    `yaml:"image" validate:"required"`
-	Tech              ModelTech `yaml:"tech" validate:"required"`
-	Tonnage           float64   `yaml:"tonnage" validate:"gt=0,lte=200"`
-	Speed             float64   `yaml:"speed" validate:"gt=0,lte=250"`
-	JumpJets          int       `yaml:"jumpJets" validate:"gte=0,lte=20"`
-	Armor             float64   `yaml:"armor" validate:"gte=0"`
-	Structure         float64   `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64   `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64   `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64   `yaml:"scale" validate:"gt=0"`
+	Name              string                   `yaml:"name" validate:"required"`
+	Variant           string                   `yaml:"variant" validate:"required"`
+	Image             string                   `yaml:"image" validate:"required"`
+	Tech              ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=200"`
+	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
+	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
+	Armor             float64                  `yaml:"armor" validate:"gte=0"`
+	Structure         float64                  `yaml:"structure" validate:"gt=0"`
+	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	Scale             float64                  `yaml:"scale" validate:"gt=0"`
+	CockpitOffset     [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
+	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
 
 type ModelVehicleResource struct {
@@ -107,7 +138,8 @@ type ModelEnergyWeaponResource struct {
 	Tonnage    float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
 	Damage     float64                  `yaml:"damage" validate:"gt=0"`
 	Heat       float64                  `yaml:"heat" validate:"gte=0"`
-	Range      float64                  `yaml:"range" validate:"gt=0"`
+	Distance   float64                  `yaml:"distance" validate:"gt=0"`
+	Velocity   float64                  `yaml:"velocity" validate:"gt=0"`
 	Cooldown   float64                  `yaml:"cooldown" validate:"gt=0"`
 	Projectile *ModelProjectileResource `yaml:"projectile"`
 }
@@ -134,6 +166,22 @@ type ModelResourceImageSheet struct {
 	AngleFacingRow map[float64]int `yaml:"angleFacingRow"`
 }
 
+type ModelResourceHeatSinks struct {
+	Quantity int               `yaml:"quantity" validate:"gte=0"`
+	Type     ModelHeatSinkType `yaml:"type" validate:"required"`
+}
+
+type ModelWeaponType struct {
+	WeaponType
+}
+
+type ModelResourceArmament struct {
+	Weapon   string          `yaml:"weapon" validate:"required"`
+	Type     ModelWeaponType `yaml:"type" validate:"required"`
+	Location ModelLocation   `yaml:"location" validate:"required"`
+	Offset   [2]float64      `yaml:"offset" validate:"required"`
+}
+
 // Unmarshals into TechBase
 func (t *ModelTech) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
@@ -152,16 +200,86 @@ func (t *ModelTech) UnmarshalText(b []byte) error {
 	return nil
 }
 
+// Unmarshals into HeatSinkType
+func (t *ModelHeatSinkType) UnmarshalText(b []byte) error {
+	str := strings.Trim(string(b), `"`)
+
+	single, double := "single", "double"
+
+	switch str {
+	case single:
+		t.HeatSinkType = SINGLE
+	case double:
+		t.HeatSinkType = DOUBLE
+	default:
+		return fmt.Errorf("unknown heat sink type value '%s', must be one of: [%s, %s]", str, single, double)
+	}
+
+	return nil
+}
+
+// Unmarshals into WeaponType
+func (t *ModelWeaponType) UnmarshalText(b []byte) error {
+	str := strings.Trim(string(b), `"`)
+
+	energy, ballistic, missile := "energy", "ballistic", "missile"
+
+	switch str {
+	case energy:
+		t.WeaponType = ENERGY
+	case ballistic:
+		t.WeaponType = BALLISTIC
+	case missile:
+		t.WeaponType = MISSILE
+	default:
+		return fmt.Errorf(
+			"unknown weapon type value '%s', must be one of: [%s, %s, %s]", str, energy, ballistic, missile,
+		)
+	}
+
+	return nil
+}
+
+// Unmarshals into Location
+func (t *ModelLocation) UnmarshalText(b []byte) error {
+	str := strings.Trim(string(b), `"`)
+
+	hd, ct, lt, rt, la, ra, ll, rl := "hd", "ct", "lt", "rt", "la", "ra", "ll", "rl"
+
+	switch str {
+	case hd:
+		t.Location = HEAD
+	case ct:
+		t.Location = CENTER_TORSO
+	case lt:
+		t.Location = LEFT_TORSO
+	case rt:
+		t.Location = RIGHT_TORSO
+	case la:
+		t.Location = LEFT_ARM
+	case ra:
+		t.Location = RIGHT_ARM
+	case ll:
+		t.Location = LEFT_LEG
+	case rl:
+		t.Location = RIGHT_LEG
+	default:
+		return fmt.Errorf("unknown location value '%s'", str)
+	}
+
+	return nil
+}
+
 func LoadModelResources() (*ModelResources, error) {
 	resources := &ModelResources{}
 
-	err := resources.loadUnitResources()
+	err := resources.loadWeaponResources()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
 
-	err = resources.loadWeaponResources()
+	err = resources.loadUnitResources()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -216,7 +334,8 @@ func (r *ModelResources) loadUnitResources() error {
 			}
 
 			fileName := u.Name()
-			unitYaml, err := ioutil.ReadFile(filepath.Join(unitTypePath, fileName))
+			filePath := filepath.Join(unitTypePath, fileName)
+			unitYaml, err := ioutil.ReadFile(filePath)
 			if err != nil {
 				return err
 			}
@@ -231,7 +350,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 				err = v.Struct(m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				r.Mechs[fileName] = m
@@ -245,7 +364,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 				err = v.Struct(m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				r.Vehicles[fileName] = m
@@ -259,7 +378,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 				err = v.Struct(m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				r.VTOLs[fileName] = m
@@ -273,7 +392,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 				err = v.Struct(m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				r.Infantry[fileName] = m
@@ -317,7 +436,6 @@ func (r *ModelResources) loadWeaponResources() error {
 
 		for _, u := range weaponFiles {
 			if u.IsDir() {
-				// TODO: support recursive directory structure?
 				continue
 			}
 
@@ -337,7 +455,7 @@ func (r *ModelResources) loadWeaponResources() error {
 
 				err = v.Struct(m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", weaponTypePath, err.Error())
 				}
 
 				r.EnergyWeapons[fileName] = m

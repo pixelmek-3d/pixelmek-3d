@@ -6,8 +6,11 @@ tech: clan
 tonnage: 1
 damage: 7
 heat: 5
-# 15 (hexes) * 30 (meters/hex) = 450 (meters)
-range: 450
+# max distance in meters: 15 (hexes) * 30 (meters/hex) = 450 (meters)
+distance: 450
+# velocity in meters/second
+velocity: 300
+# cooldown in seconds
 cooldown: 5
 projectile:
   collisionRadius: 4

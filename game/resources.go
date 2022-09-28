@@ -223,6 +223,11 @@ func (g *Game) loadMissionSprites() {
 			)
 
 			modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight)
+
+			// TODO: finish this up!
+			testWeapon := &model.EnergyWeapon{}
+			modelMech.AddArmament(testWeapon)
+
 			mechSpriteTemplates[missionMech.Unit] = render.NewMechSprite(modelMech, mechResource.Scale, mechImg)
 		}
 

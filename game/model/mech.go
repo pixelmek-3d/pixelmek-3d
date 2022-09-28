@@ -8,18 +8,21 @@ import (
 )
 
 type Mech struct {
-	Resource                *ModelMechResource
-	position                *geom.Vector2
-	positionZ               float64
-	anchor                  raycaster.SpriteAnchor
-	angle                   float64
-	pitch                   float64
-	velocity                float64
-	collisionRadius         float64
-	collisionHeight         float64
-	armor, maxArmor         float64
-	structure, maxStructure float64
-	parent                  Entity
+	Resource        *ModelMechResource
+	position        *geom.Vector2
+	positionZ       float64
+	anchor          raycaster.SpriteAnchor
+	angle           float64
+	pitch           float64
+	velocity        float64
+	collisionRadius float64
+	collisionHeight float64
+	armor           float64
+	structure       float64
+	heatSinks       int
+	heatSinkType    ModelHeatSinkType
+	armament        []Weapon
+	parent          Entity
 }
 
 func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64) *Mech {
@@ -29,11 +32,16 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64) *Me
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		armor:           r.Armor,
-		maxArmor:        r.Armor,
 		structure:       r.Structure,
-		maxStructure:    r.Structure,
+		heatSinks:       r.HeatSinks.Quantity,
+		heatSinkType:    r.HeatSinks.Type,
+		armament:        make([]Weapon, 0),
 	}
 	return m
+}
+
+func (e *Mech) AddArmament(w Weapon) {
+	e.armament = append(e.armament, w)
 }
 
 func (e *Mech) Pos() *geom.Vector2 {
@@ -122,7 +130,7 @@ func (e *Mech) SetArmorPoints(armor float64) {
 }
 
 func (e *Mech) MaxArmorPoints() float64 {
-	return e.maxArmor
+	return e.Resource.Armor
 }
 
 func (e *Mech) StructurePoints() float64 {
@@ -134,7 +142,7 @@ func (e *Mech) SetStructurePoints(structure float64) {
 }
 
 func (e *Mech) MaxStructurePoints() float64 {
-	return e.maxStructure
+	return e.Resource.Structure
 }
 
 func (e *Mech) Parent() Entity {

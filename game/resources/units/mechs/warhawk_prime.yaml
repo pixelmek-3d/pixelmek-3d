@@ -12,3 +12,8 @@ structure: 130
 collisionRadius: 23
 collisionHeight: 59
 scale: 0.8
+cockpitOffset: [0, 48]
+heatSinks:
+  quantity: 20
+  type: double
+armament: []
