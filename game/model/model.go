@@ -22,11 +22,13 @@ type ModelResources struct {
 }
 
 const (
-	MechResourceType     string = "mechs"
-	VehicleResourceType  string = "vehicles"
-	VTOLResourceType     string = "vtols"
-	InfantryResourceType string = "infantry"
-	EnergyResourceType   string = "energy"
+	MechResourceType        string = "mechs"
+	VehicleResourceType     string = "vehicles"
+	VTOLResourceType        string = "vtols"
+	InfantryResourceType    string = "infantry"
+	ProjectilesResourceType string = "projectiles"
+	EffectsResourceType     string = "effects"
+	EnergyResourceType      string = "energy"
 )
 
 type TechBase int
@@ -490,6 +492,13 @@ func (r *ModelResources) GetVTOLResource(unit string) *ModelVTOLResource {
 
 func (r *ModelResources) GetInfantryResource(unit string) *ModelInfantryResource {
 	if m, ok := r.Infantry[unit]; ok {
+		return m
+	}
+	return nil
+}
+
+func (r *ModelResources) GetEnergyWeaponResource(weapon string) *ModelEnergyWeaponResource {
+	if m, ok := r.EnergyWeapons[weapon]; ok {
 		return m
 	}
 	return nil

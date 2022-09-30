@@ -13,14 +13,21 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 )
+
+var cachedImageByPath = make(map[string]*ebiten.Image)
+var cachedRgbaByPath = make(map[string]*image.RGBA)
 
 func getRGBAFromFile(texFile string) *image.RGBA {
 	var rgba *image.RGBA
 	resourcePath := filepath.Join("game", "resources", "textures")
-	_, tex, err := ebitenutil.NewImageFromFile(filepath.Join(resourcePath, texFile))
+	texFilePath := filepath.Join(resourcePath, texFile)
+	if rgba, ok := cachedRgbaByPath[texFilePath]; ok {
+		return rgba
+	}
+
+	_, tex, err := ebitenutil.NewImageFromFile(texFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,23 +42,41 @@ func getRGBAFromFile(texFile string) *image.RGBA {
 		}
 	}
 
+	if rgba != nil {
+		cachedRgbaByPath[resourcePath] = rgba
+	}
+
 	return rgba
 }
 
 func getTextureFromFile(texFile string) *ebiten.Image {
 	resourcePath := filepath.Join("game", "resources", "textures", texFile)
+	if eImg, ok := cachedImageByPath[resourcePath]; ok {
+		return eImg
+	}
+
 	eImg, _, err := ebitenutil.NewImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if eImg != nil {
+		cachedImageByPath[resourcePath] = eImg
 	}
 	return eImg
 }
 
 func getSpriteFromFile(sFile string) *ebiten.Image {
 	resourcePath := filepath.Join("game", "resources", "sprites", sFile)
+	if eImg, ok := cachedImageByPath[resourcePath]; ok {
+		return eImg
+	}
+
 	eImg, _, err := ebitenutil.NewImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if eImg != nil {
+		cachedImageByPath[resourcePath] = eImg
 	}
 	return eImg
 }
@@ -211,22 +236,11 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionMech := range g.mission.Mechs {
 		if _, ok := mechSpriteTemplates[missionMech.Unit]; !ok {
+			modelMech := g.createModelMech(missionMech.Unit)
+
 			mechResource := g.resources.GetMechResource(missionMech.Unit)
-			mechRelPath := fmt.Sprintf("mechs/%s", mechResource.Image)
+			mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechResource.Image)
 			mechImg := getSpriteFromFile(mechRelPath)
-
-			// need to use the image size to find the unit collision conversion from pixels
-			width, height := mechImg.Size()
-			width = width / 6 // all mech images are required to be six columns of images in a sheet
-			collisionRadius, collisionHeight := convertCollisionFromPx(
-				mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, mechResource.Scale,
-			)
-
-			modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight)
-
-			// TODO: finish this up!
-			testWeapon := &model.EnergyWeapon{}
-			modelMech.AddArmament(testWeapon)
 
 			mechSpriteTemplates[missionMech.Unit] = render.NewMechSprite(modelMech, mechResource.Scale, mechImg)
 		}
@@ -365,46 +379,51 @@ func (g *Game) loadGameSprites() {
 
 	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
 	g.reticle = render.NewTargetReticle(1.0, reticleSheet)
+}
 
-	// TODO: move these to predefined projectile sprites from their own data source files
-	redLaserImg := getSpriteFromFile("projectiles/beams_red.png")
-	redLaserWidth, _ := redLaserImg.Size()
-	redLaserCols, redLaserRows := 1, 3
-	redLaserScale := 0.2
-	// in pixels, radius to use for collision testing
-	redLaserPxRadius := 4.0
-	// convert pixel to grid using image pixel size
-	redLaserCollisionRadius := (redLaserScale * redLaserPxRadius) / (float64(redLaserWidth) / float64(redLaserCols))
-	redLaserCollisionHeight := 2 * redLaserCollisionRadius
-	lifespanSeconds := 4.0 * float64(ebiten.MaxTPS()) // TODO: determine based on max distance for travel
-	redLaserDamage := 5.0
-	redLaserProjectile := render.NewAnimatedProjectile(
-		model.NewProjectile(redLaserDamage, lifespanSeconds, redLaserCollisionRadius, redLaserCollisionHeight),
-		redLaserScale, redLaserImg, color.RGBA{}, redLaserCols, redLaserRows, 1,
+func (g *Game) createModelMech(unit string) *model.Mech {
+	mechResource := g.resources.GetMechResource(unit)
+	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechResource.Image)
+	mechImg := getSpriteFromFile(mechRelPath)
+
+	// need to use the image size to find the unit collision conversion from pixels
+	width, height := mechImg.Size()
+	width = width / 6 // all mech images are required to be six columns of images in a sheet
+	collisionRadius, collisionHeight := convertCollisionFromPx(
+		mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, mechResource.Scale,
 	)
 
-	// give projectile angle facing textures by row index
-	var redLaserFacingMap = map[float64]int{
-		geom.Radians(0):   0,
-		geom.Radians(30):  1,
-		geom.Radians(90):  2,
-		geom.Radians(150): 1,
-		geom.Radians(180): 0,
-		geom.Radians(210): 1,
-		geom.Radians(270): 2,
-		geom.Radians(330): 1,
+	modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight)
+
+	for _, armament := range mechResource.Armament {
+		var weapon model.Weapon
+
+		switch armament.Type.WeaponType {
+		case model.ENERGY:
+			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
+			weaponOffset := &geom.Vector2{X: armament.Offset[0], Y: armament.Offset[1]}
+
+			// need to use the projectile image size to find the unit collision conversion from pixels
+			projectileResource := weaponResource.Projectile
+			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, projectileResource.Image)
+			projectileImg := getSpriteFromFile(projectileRelPath)
+			width, height := projectileImg.Size()
+			if projectileResource.ImageSheet != nil {
+				width = width / projectileResource.ImageSheet.Columns
+				height = height / projectileResource.ImageSheet.Rows
+			}
+			collisionRadius, collisionHeight := convertCollisionFromPx(
+				projectileResource.CollisionPxRadius, projectileResource.CollisionPxHeight, width, height, projectileResource.Scale,
+			)
+			weapon = model.NewEnergyWeapon(weaponResource, collisionRadius, collisionHeight, weaponOffset, modelMech)
+		}
+
+		if weapon != nil {
+			modelMech.AddArmament(weapon)
+		}
 	}
-	redLaserProjectile.SetTextureFacingMap(redLaserFacingMap)
 
-	// give projectile impact effect
-	laserImpactImg := getSpriteFromFile("effects/laser_impact_sheet.png")
-	redExplosionEffect := render.NewAnimatedEffect(
-		model.BasicVisualEntity(0, 0, 0, raycaster.AnchorCenter),
-		0.1, laserImpactImg, 8, 3, 1, 1,
-	)
-	redLaserProjectile.ImpactEffect = *redExplosionEffect
-
-	g.player.TestProjectile = redLaserProjectile
+	return modelMech
 }
 
 func convertCollisionFromPx(collisionPxRadius, collisionPxHeight float64, width, height int, scale float64) (collisionRadius float64, collisionHeight float64) {

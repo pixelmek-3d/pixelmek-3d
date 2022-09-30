@@ -3,9 +3,11 @@ package model
 import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type Projectile struct {
+	Resource        *ModelProjectileResource
 	position        *geom.Vector2
 	positionZ       float64
 	anchor          raycaster.SpriteAnchor
@@ -19,16 +21,26 @@ type Projectile struct {
 	parent          Entity
 }
 
-const projectileHitPointsIgnored float64 = 0.123
+const projectileHitPointsIgnored float64 = 0.12345
 
-func NewProjectile(damage, lifespan, collisionRadius, collisionHeight float64) *Projectile {
+func NewProjectile(r *ModelProjectileResource, damage, velocity, lifespan, collisionRadius, collisionHeight float64, parent Entity) *Projectile {
 	p := &Projectile{
+		Resource:        r,
 		anchor:          raycaster.AnchorCenter,
+		damage:          damage,
+		velocity:        velocity,
+		lifespan:        lifespan,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
-		lifespan:        lifespan,
-		damage:          damage,
+		parent:          parent,
 	}
+	return p
+}
+
+func (e *Projectile) Clone() *Projectile {
+	p := &Projectile{}
+	copier.Copy(p, e)
+
 	return p
 }
 

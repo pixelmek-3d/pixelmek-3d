@@ -11,16 +11,14 @@ import (
 
 type Player struct {
 	model.Entity
-	CameraZ        float64
-	Moved          bool
-	TestProjectile *ProjectileSprite
-	TestCooldown   int
-	MapColor       color.RGBA
+	CameraZ  float64
+	Moved    bool
+	MapColor color.RGBA
 }
 
-func NewPlayer(x, y, angle, pitch float64) *Player {
+func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {
 	p := &Player{
-		Entity:   &model.BasicEntity{},
+		Entity:   unit,
 		CameraZ:  0.5,
 		Moved:    false,
 		MapColor: color.RGBA{255, 0, 0, 255},

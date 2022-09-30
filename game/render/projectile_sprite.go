@@ -68,23 +68,6 @@ func (p *ProjectileSprite) ZeroLifespan() {
 	p.Entity.(*model.Projectile).ZeroLifespan()
 }
 
-func (p *ProjectileSprite) SpawnProjectile(x, y, z, angle, pitch, velocity float64, spawnedBy model.Entity) *ProjectileSprite {
-	pSpawn := p.Clone()
-
-	pSpawn.SetPos(&geom.Vector2{X: x, Y: y})
-	pSpawn.SetPosZ(z)
-	pSpawn.SetAngle(angle)
-	pSpawn.SetPitch(pitch)
-
-	// convert velocity from distance/second to distance per tick
-	pSpawn.SetVelocity(velocity / float64(ebiten.MaxTPS()))
-
-	// keep track of what spawned it
-	pSpawn.SetParent(spawnedBy)
-
-	return pSpawn
-}
-
 func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSprite {
 	e := p.ImpactEffect.Clone()
 	e.SetPos(&geom.Vector2{X: x, Y: y})

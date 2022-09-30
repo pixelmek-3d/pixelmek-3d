@@ -144,14 +144,16 @@ func NewGame() *Game {
 	g.mapWidth = len(worldMap)
 	g.mapHeight = len(worldMap[0])
 
-	// init player model
-	angleDegrees := 60.0
-	g.player = render.NewPlayer(8.5, 3.5, geom.Radians(angleDegrees), 0)
-	g.player.SetCollisionRadius(clipDistance) // TODO: get from player mech
-	g.player.SetCollisionHeight(0.5)          // TODO: also get from player mech
-
 	// load map and mission content once when first run
 	g.loadContent()
+
+	// init player model
+	pX, pY := 8.5, 3.5 // TODO: get from mission
+	angleDegrees := 60.0
+	pMech := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
+	g.player = render.NewPlayer(pMech, pX, pY, geom.Radians(angleDegrees), 0)
+	g.player.SetCollisionRadius(clipDistance) // TODO: get from player mech
+	g.player.SetCollisionHeight(0.5)          // TODO: also get from player mech
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -444,103 +446,103 @@ func (g *Game) Prone() {
 }
 
 func (g *Game) fireWeapon() {
-	p := g.player.TestProjectile
-	if p == nil {
-		return
-	}
+	// p := g.player.TestProjectile
+	// if p == nil {
+	// 	return
+	// }
 
-	if g.player.TestCooldown > 0 {
-		return
-	}
+	// if g.player.TestCooldown > 0 {
+	// 	return
+	// }
 
-	// spawning projectile at offsets from player's center point of view
-	pAngle, pPitch := g.player.Angle(), g.player.Pitch()
+	// // spawning projectile at offsets from player's center point of view
+	// pAngle, pPitch := g.player.Angle(), g.player.Pitch()
 
-	// firing test projectiles
-	pVelocity := 16.0
+	// // firing test projectiles
+	// pVelocity := 16.0
 
-	pX, pY, pZ := g.weaponPosition3D(0, -0.1)
-	projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
-	if projectile != nil {
-		g.sprites.addProjectile(projectile)
-		g.player.TestCooldown = 10
-	}
+	// pX, pY, pZ := g.weaponPosition3D(0, -0.1)
+	// projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
+	// if projectile != nil {
+	// 	g.sprites.addProjectile(projectile)
+	// 	g.player.TestCooldown = 10
+	// }
 
-	pX, pY, pZ = g.weaponPosition3D(-0.1, -0.2)
-	projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
-	if projectile != nil {
-		g.sprites.addProjectile(projectile)
-		g.player.TestCooldown = 10
-	}
+	// pX, pY, pZ = g.weaponPosition3D(-0.1, -0.2)
+	// projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
+	// if projectile != nil {
+	// 	g.sprites.addProjectile(projectile)
+	// 	g.player.TestCooldown = 10
+	// }
 
-	pX, pY, pZ = g.weaponPosition3D(0.1, -0.2)
-	projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
-	if projectile != nil {
-		g.sprites.addProjectile(projectile)
-		g.player.TestCooldown = 10
-	}
+	// pX, pY, pZ = g.weaponPosition3D(0.1, -0.2)
+	// projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
+	// if projectile != nil {
+	// 	g.sprites.addProjectile(projectile)
+	// 	g.player.TestCooldown = 10
+	// }
 }
 
 func (g *Game) fireTestWeaponAtPlayer() {
-	// Just for testing!
-	p := g.player.TestProjectile
-	if p == nil {
-		return
-	}
+	// // Just for testing!
+	// p := g.player.TestProjectile
+	// if p == nil {
+	// 	return
+	// }
 
-	if g.player.TestCooldown > 0 {
-		return
-	}
+	// if g.player.TestCooldown > 0 {
+	// 	return
+	// }
 
-	// firing test projectiles at player
-	playerPosition := g.player.Pos()
-	for spriteType := range g.sprites.sprites {
-		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-			var pX, pY, pZ float64
-			var entity model.Entity
+	// // firing test projectiles at player
+	// playerPosition := g.player.Pos()
+	// for spriteType := range g.sprites.sprites {
+	// 	g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+	// 		var pX, pY, pZ float64
+	// 		var entity model.Entity
 
-			switch spriteType {
-			case MechSpriteType:
-				s := k.(*render.MechSprite)
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				entity = s.Entity
+	// 		switch spriteType {
+	// 		case MechSpriteType:
+	// 			s := k.(*render.MechSprite)
+	// 			sPosition := s.Pos()
+	// 			pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+	// 			entity = s.Entity
 
-			case VehicleSpriteType:
-				s := k.(*render.VehicleSprite)
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				entity = s.Entity
+	// 		case VehicleSpriteType:
+	// 			s := k.(*render.VehicleSprite)
+	// 			sPosition := s.Pos()
+	// 			pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+	// 			entity = s.Entity
 
-			case VTOLSpriteType:
-				s := k.(*render.VTOLSprite)
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				entity = s.Entity
+	// 		case VTOLSpriteType:
+	// 			s := k.(*render.VTOLSprite)
+	// 			sPosition := s.Pos()
+	// 			pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+	// 			entity = s.Entity
 
-			case InfantrySpriteType:
-				s := k.(*render.InfantrySprite)
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				entity = s.Entity
-			}
+	// 		case InfantrySpriteType:
+	// 			s := k.(*render.InfantrySprite)
+	// 			sPosition := s.Pos()
+	// 			pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+	// 			entity = s.Entity
+	// 		}
 
-			if entity == nil {
-				return true
-			}
+	// 		if entity == nil {
+	// 			return true
+	// 		}
 
-			pVelocity := 16.0
-			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
-			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
-			projectile := p.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, pVelocity, entity)
-			if projectile != nil {
-				g.sprites.addProjectile(projectile)
-				g.player.TestCooldown = 10
-			}
+	// 		pVelocity := 16.0
+	// 		pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
+	// 		pHeading, pPitch := pLine.Heading(), pLine.Pitch()
+	// 		projectile := p.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, pVelocity, entity)
+	// 		if projectile != nil {
+	// 			g.sprites.addProjectile(projectile)
+	// 			g.player.TestCooldown = 10
+	// 		}
 
-			return true
-		})
-	}
+	// 		return true
+	// 	})
+	// }
 }
 
 // weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
@@ -598,10 +600,10 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 }
 
 func (g *Game) updateProjectiles() {
-	// Update animated projectile movement
-	if g.player.TestCooldown > 0 {
-		g.player.TestCooldown--
-	}
+	// // Update animated projectile movement
+	// if g.player.TestCooldown > 0 {
+	// 	g.player.TestCooldown--
+	// }
 
 	// perform concurrent projectile updates
 	var wg sync.WaitGroup
