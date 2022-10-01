@@ -412,11 +412,10 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 			pResource := weaponResource.Projectile
 			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
 			projectileImg := getSpriteFromFile(projectileRelPath)
-			pColumns, pRows, pAnimationRate := 1, 1, 1
+			pColumns, pRows := 1, 1
 			if pResource.ImageSheet != nil {
 				pColumns = pResource.ImageSheet.Columns
 				pRows = pResource.ImageSheet.Rows
-				pAnimationRate = pResource.ImageSheet.AnimationRate
 			}
 
 			pWidth, pHeight := projectileImg.Size()
@@ -431,12 +430,6 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 
 			// create the projectile and effect sprite templates
 
-			// TODO: check for existing resource first
-			pSprite := render.NewAnimatedProjectile(
-				&projectile, pResource.Scale, projectileImg, color.RGBA{}, pColumns, pRows, pAnimationRate,
-			)
-			projectileSpriteByWeapon[weapon] = pSprite
-
 			eResource := weaponResource.Projectile.ImpactEffect
 			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
 			effectImg := getSpriteFromFile(effectRelPath)
@@ -449,9 +442,12 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 
 			// TODO: check for existing resource first
 			eSprite := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
-			//effectSpriteByResource[eResource] = eSprite
 
-			pSprite.ImpactEffect = *eSprite
+			// TODO: check for existing resource first
+			pSprite := render.NewAnimatedProjectile(
+				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
+			)
+			projectileSpriteByWeapon[weapon] = pSprite
 		}
 
 		if weapon != nil {

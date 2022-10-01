@@ -27,14 +27,33 @@ func NewProjectile(
 }
 
 func NewAnimatedProjectile(
-	projectile *model.Projectile, scale float64, img *ebiten.Image, mapColor color.RGBA, columns, rows, animationRate int,
+	projectile *model.Projectile, scale float64, img *ebiten.Image, mapColor color.RGBA, impactEffect EffectSprite,
 ) *ProjectileSprite {
-	p := &ProjectileSprite{
-		Sprite:       NewAnimatedSprite(projectile, scale, img, mapColor, columns, rows, animationRate),
-		ImpactEffect: EffectSprite{},
+	var p *Sprite
+	sheet := projectile.Resource.ImageSheet
+
+	if sheet == nil {
+		p = NewSprite(
+			projectile, scale, img, color.RGBA{},
+		)
+	} else {
+		p = NewAnimatedSprite(projectile, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		if len(sheet.AngleFacingRow) > 0 {
+			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
+			for degrees, index := range sheet.AngleFacingRow {
+				rads := geom.Radians(degrees)
+				facingMap[rads] = index
+			}
+			p.SetTextureFacingMap(facingMap)
+		}
 	}
 
-	return p
+	s := &ProjectileSprite{
+		Sprite:       p,
+		ImpactEffect: impactEffect,
+	}
+
+	return s
 }
 
 func (p *ProjectileSprite) Clone() *ProjectileSprite {
