@@ -44,6 +44,10 @@ func (e *Mech) AddArmament(w Weapon) {
 	e.armament = append(e.armament, w)
 }
 
+func (e *Mech) Armament() []Weapon {
+	return e.armament
+}
+
 func (e *Mech) Pos() *geom.Vector2 {
 	return e.position
 }

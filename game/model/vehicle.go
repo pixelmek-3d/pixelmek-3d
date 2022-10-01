@@ -36,6 +36,10 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 	return m
 }
 
+func (e *Vehicle) Armament() []Weapon {
+	return nil
+}
+
 func (e *Vehicle) Pos() *geom.Vector2 {
 	return e.position
 }

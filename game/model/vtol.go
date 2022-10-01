@@ -34,6 +34,10 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64) *VT
 	return m
 }
 
+func (e *VTOL) Armament() []Weapon {
+	return nil
+}
+
 func (e *VTOL) Pos() *geom.Vector2 {
 	return e.position
 }

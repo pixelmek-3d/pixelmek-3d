@@ -36,6 +36,10 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 	return m
 }
 
+func (e *Infantry) Armament() []Weapon {
+	return nil
+}
+
 func (e *Infantry) Pos() *geom.Vector2 {
 	return e.position
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/raycaster-go"
 	"github.com/jinzhu/copier"
 )
 
@@ -15,11 +16,14 @@ type EffectSprite struct {
 }
 
 func NewAnimatedEffect(
-	modelEntity model.Entity, scale float64, img *ebiten.Image, columns, rows, animationRate, loopCount int,
+	scale float64, img *ebiten.Image, columns, rows, animationRate, loopCount int,
 ) *EffectSprite {
 	mapColor := color.RGBA{0, 0, 0, 0}
 	e := &EffectSprite{
-		Sprite:    NewAnimatedSprite(modelEntity, scale, img, mapColor, columns, rows, animationRate),
+		Sprite: NewAnimatedSprite(
+			model.BasicVisualEntity(0, 0, 0, raycaster.AnchorCenter),
+			scale, img, mapColor, columns, rows, animationRate,
+		),
 		LoopCount: loopCount,
 	}
 

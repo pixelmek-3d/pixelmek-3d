@@ -43,7 +43,7 @@ type EnergyWeapon struct {
 	parent     Entity
 }
 
-func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) *EnergyWeapon {
+func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) (*EnergyWeapon, Projectile) {
 	w := &EnergyWeapon{
 		Resource: r,
 		name:     r.Name,
@@ -57,9 +57,9 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 		offset:   offset,
 		parent:   parent,
 	}
-	p := NewProjectile(r.Projectile, w.damage, w.velocity, r.Distance, collisionRadius, collisionHeight, parent)
-	w.projectile = *p
-	return w
+	p := *NewProjectile(r.Projectile, w.damage, w.velocity, r.Distance, collisionRadius, collisionHeight, parent)
+	w.projectile = p
+	return w, p
 }
 
 func (w *EnergyWeapon) SpawnProjectile(x, y, z, angle, pitch float64, spawnedBy Entity) *Projectile {

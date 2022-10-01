@@ -36,6 +36,8 @@ type Entity interface {
 	SetStructurePoints(float64)
 	MaxStructurePoints() float64
 
+	Armament() []Weapon
+
 	Parent() Entity
 	SetParent(Entity)
 }
@@ -78,6 +80,10 @@ func BasicVisualEntity(x, y, z float64, anchor raycaster.SpriteAnchor) *BasicEnt
 		collisionHeight: 0,
 	}
 	return e
+}
+
+func (e *BasicEntity) Armament() []Weapon {
+	return nil
 }
 
 func (e *BasicEntity) Pos() *geom.Vector2 {

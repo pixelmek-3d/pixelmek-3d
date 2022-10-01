@@ -44,6 +44,10 @@ func (e *Projectile) Clone() *Projectile {
 	return p
 }
 
+func (e *Projectile) Armament() []Weapon {
+	return nil
+}
+
 func (e *Projectile) Damage() float64 {
 	return e.damage
 }

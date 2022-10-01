@@ -16,14 +16,18 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 )
 
-var cachedImageByPath = make(map[string]*ebiten.Image)
-var cachedRgbaByPath = make(map[string]*image.RGBA)
+var (
+	imageByPath = make(map[string]*ebiten.Image)
+	rgbaByPath  = make(map[string]*image.RGBA)
+
+	projectileSpriteByWeapon = make(map[model.Weapon]*render.ProjectileSprite)
+)
 
 func getRGBAFromFile(texFile string) *image.RGBA {
 	var rgba *image.RGBA
 	resourcePath := filepath.Join("game", "resources", "textures")
 	texFilePath := filepath.Join(resourcePath, texFile)
-	if rgba, ok := cachedRgbaByPath[texFilePath]; ok {
+	if rgba, ok := rgbaByPath[texFilePath]; ok {
 		return rgba
 	}
 
@@ -43,7 +47,7 @@ func getRGBAFromFile(texFile string) *image.RGBA {
 	}
 
 	if rgba != nil {
-		cachedRgbaByPath[resourcePath] = rgba
+		rgbaByPath[resourcePath] = rgba
 	}
 
 	return rgba
@@ -51,7 +55,7 @@ func getRGBAFromFile(texFile string) *image.RGBA {
 
 func getTextureFromFile(texFile string) *ebiten.Image {
 	resourcePath := filepath.Join("game", "resources", "textures", texFile)
-	if eImg, ok := cachedImageByPath[resourcePath]; ok {
+	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
 
@@ -60,14 +64,14 @@ func getTextureFromFile(texFile string) *ebiten.Image {
 		log.Fatal(err)
 	}
 	if eImg != nil {
-		cachedImageByPath[resourcePath] = eImg
+		imageByPath[resourcePath] = eImg
 	}
 	return eImg
 }
 
 func getSpriteFromFile(sFile string) *ebiten.Image {
 	resourcePath := filepath.Join("game", "resources", "sprites", sFile)
-	if eImg, ok := cachedImageByPath[resourcePath]; ok {
+	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
 
@@ -76,7 +80,7 @@ func getSpriteFromFile(sFile string) *ebiten.Image {
 		log.Fatal(err)
 	}
 	if eImg != nil {
-		cachedImageByPath[resourcePath] = eImg
+		imageByPath[resourcePath] = eImg
 	}
 	return eImg
 }
@@ -397,6 +401,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 
 	for _, armament := range mechResource.Armament {
 		var weapon model.Weapon
+		var projectile model.Projectile
 
 		switch armament.Type.WeaponType {
 		case model.ENERGY:
@@ -404,18 +409,49 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 			weaponOffset := &geom.Vector2{X: armament.Offset[0], Y: armament.Offset[1]}
 
 			// need to use the projectile image size to find the unit collision conversion from pixels
-			projectileResource := weaponResource.Projectile
-			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, projectileResource.Image)
+			pResource := weaponResource.Projectile
+			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
 			projectileImg := getSpriteFromFile(projectileRelPath)
-			width, height := projectileImg.Size()
-			if projectileResource.ImageSheet != nil {
-				width = width / projectileResource.ImageSheet.Columns
-				height = height / projectileResource.ImageSheet.Rows
+			pColumns, pRows, pAnimationRate := 1, 1, 1
+			if pResource.ImageSheet != nil {
+				pColumns = pResource.ImageSheet.Columns
+				pRows = pResource.ImageSheet.Rows
+				pAnimationRate = pResource.ImageSheet.AnimationRate
 			}
-			collisionRadius, collisionHeight := convertCollisionFromPx(
-				projectileResource.CollisionPxRadius, projectileResource.CollisionPxHeight, width, height, projectileResource.Scale,
+
+			pWidth, pHeight := projectileImg.Size()
+			pWidth = pWidth / pColumns
+			pHeight = pHeight / pRows
+			pCollisionRadius, pCollisionHeight := convertCollisionFromPx(
+				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
 			)
-			weapon = model.NewEnergyWeapon(weaponResource, collisionRadius, collisionHeight, weaponOffset, modelMech)
+
+			// create the weapon and projectile model
+			weapon, projectile = model.NewEnergyWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, modelMech)
+
+			// create the projectile and effect sprite templates
+
+			// TODO: check for existing resource first
+			pSprite := render.NewAnimatedProjectile(
+				&projectile, pResource.Scale, projectileImg, color.RGBA{}, pColumns, pRows, pAnimationRate,
+			)
+			projectileSpriteByWeapon[weapon] = pSprite
+
+			eResource := weaponResource.Projectile.ImpactEffect
+			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
+			effectImg := getSpriteFromFile(effectRelPath)
+			eColumns, eRows, eAnimationRate := 1, 1, 1
+			if eResource.ImageSheet != nil {
+				eColumns = eResource.ImageSheet.Columns
+				eRows = eResource.ImageSheet.Rows
+				eAnimationRate = eResource.ImageSheet.AnimationRate
+			}
+
+			// TODO: check for existing resource first
+			eSprite := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+			//effectSpriteByResource[eResource] = eSprite
+
+			pSprite.ImpactEffect = *eSprite
 		}
 
 		if weapon != nil {
