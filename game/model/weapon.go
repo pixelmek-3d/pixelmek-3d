@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type WeaponType int
@@ -16,6 +16,7 @@ const (
 type Weapon interface {
 	Name() string
 	ShortName() string
+	Tech() TechBase
 	Type() WeaponType
 	Tonnage() float64
 	Damage() float64
@@ -23,8 +24,14 @@ type Weapon interface {
 	Distance() float64
 	Velocity() float64
 	Cooldown() float64
+	MaxCooldown() float64
+	DecreaseCooldown(float64)
+	TriggerCooldown()
+
 	Offset() *geom.Vector2
 	SpawnProjectile(x, y, z, angle, pitch float64, spawnedBy Entity) *Projectile
+
+	Clone() Weapon
 	Parent() Entity
 }
 
@@ -32,6 +39,7 @@ type EnergyWeapon struct {
 	Resource   *ModelEnergyWeaponResource
 	name       string
 	short      string
+	tech       TechBase
 	tonnage    float64
 	damage     float64
 	heat       float64
@@ -48,30 +56,45 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 		Resource: r,
 		name:     r.Name,
 		short:    r.ShortName,
+		tech:     r.Tech.TechBase,
 		tonnage:  r.Tonnage,
 		damage:   r.Damage,
 		heat:     r.Heat,
 		distance: r.Distance,
 		velocity: r.Velocity,
-		cooldown: r.Cooldown,
+		cooldown: 0,
 		offset:   offset,
 		parent:   parent,
 	}
-	p := *NewProjectile(r.Projectile, w.damage, w.velocity, r.Distance, collisionRadius, collisionHeight, parent)
+
+	// convert velocity from meters/second to unit distance per tick
+	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
+
+	// convert distance and velocity to number of ticks for lifespan
+	pLifespan := w.distance * (1 / w.velocity) * TICKS_PER_SECOND
+
+	p := *NewProjectile(r.Projectile, w.damage, pVelocity, pLifespan, collisionRadius, collisionHeight, parent)
 	w.projectile = p
 	return w, p
 }
 
+func (w *EnergyWeapon) Clone() Weapon {
+	wClone := &EnergyWeapon{}
+	pClone := w.projectile.Clone().(*Projectile)
+
+	copier.Copy(wClone, w)
+	w.projectile = *pClone
+
+	return wClone
+}
+
 func (w *EnergyWeapon) SpawnProjectile(x, y, z, angle, pitch float64, spawnedBy Entity) *Projectile {
-	pSpawn := w.projectile.Clone()
+	pSpawn := w.projectile.Clone().(*Projectile)
 
 	pSpawn.SetPos(&geom.Vector2{X: x, Y: y})
 	pSpawn.SetPosZ(z)
 	pSpawn.SetAngle(angle)
 	pSpawn.SetPitch(pitch)
-
-	// convert velocity from distance/second to distance per tick
-	pSpawn.SetVelocity(w.velocity / float64(ebiten.MaxTPS()))
 
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
@@ -89,6 +112,10 @@ func (w *EnergyWeapon) ShortName() string {
 
 func (w *EnergyWeapon) Type() WeaponType {
 	return ENERGY
+}
+
+func (w *EnergyWeapon) Tech() TechBase {
+	return w.tech
 }
 
 func (w *EnergyWeapon) Tonnage() float64 {
@@ -113,6 +140,23 @@ func (w *EnergyWeapon) Velocity() float64 {
 
 func (w *EnergyWeapon) Cooldown() float64 {
 	return w.cooldown
+}
+
+func (w *EnergyWeapon) MaxCooldown() float64 {
+	return w.Resource.Cooldown
+}
+
+func (w *EnergyWeapon) DecreaseCooldown(decreaseBy float64) {
+	if w.cooldown > 0 && decreaseBy > 0 {
+		w.cooldown -= decreaseBy
+	}
+	if w.cooldown < 0 {
+		w.cooldown = 0
+	}
+}
+
+func (w *EnergyWeapon) TriggerCooldown() {
+	w.cooldown = w.MaxCooldown()
 }
 
 func (w *EnergyWeapon) Offset() *geom.Vector2 {

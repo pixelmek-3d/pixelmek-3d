@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type Vehicle struct {
@@ -34,6 +35,12 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 		maxStructure:    r.Structure,
 	}
 	return m
+}
+
+func (e *Vehicle) Clone() Entity {
+	eClone := &Vehicle{}
+	copier.Copy(eClone, e)
+	return eClone
 }
 
 func (e *Vehicle) Armament() []Weapon {

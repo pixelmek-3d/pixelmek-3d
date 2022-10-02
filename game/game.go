@@ -109,9 +109,7 @@ func NewGame() *Game {
 	g.initCollisionTypes()
 
 	ebiten.SetWindowTitle("PixelMek 3D")
-
-	// default TPS is 60
-	// ebiten.SetMaxTPS(60)
+	ebiten.SetMaxTPS(int(model.TICKS_PER_SECOND))
 
 	// use scale to keep the desired window width and height
 	g.setResolution(g.screenWidth, g.screenHeight)
@@ -310,6 +308,9 @@ func (g *Game) Update() error {
 			g.clutter.Update(g, false)
 		}
 
+		// handle player weapon updates
+		g.updateWeaponCooldowns(g.player.Entity)
+
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 	}
@@ -445,73 +446,35 @@ func (g *Game) Prone() {
 }
 
 func (g *Game) fireWeapon() {
-	// TODO: weapons test from model
-
+	// weapons test from model
 	armament := g.player.Armament()
 	if len(armament) == 0 {
 		return
 	}
 
-	// p := g.player.TestProjectile
-	// if p == nil {
-	// 	return
-	// }
-
-	// if g.player.TestCooldown > 0 {
-	// 	return
-	// }
-
 	// spawning projectile at offsets from player's center point of view
 	pAngle, pPitch := g.player.Angle(), g.player.Pitch()
 
 	for _, weapon := range armament {
+		if weapon.Cooldown() > 0 {
+			continue
+		}
+
 		pX, pY, pZ := g.weaponPosition3D(0, -0.1)
 		projectile := weapon.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, g.player.Entity)
 		if projectile != nil {
-			pTemplate := projectileSpriteByWeapon[weapon]
+			weapon.TriggerCooldown()
+
+			pTemplate := projectileSpriteForWeapon(weapon)
 			pSprite := pTemplate.Clone()
 			pSprite.Entity = projectile
 			g.sprites.addProjectile(pSprite)
 		}
 	}
-
-	// // firing test projectiles
-	// pVelocity := 16.0
-
-	// pX, pY, pZ := g.weaponPosition3D(0, -0.1)
-	// projectile := p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
-	// if projectile != nil {
-	// 	g.sprites.addProjectile(projectile)
-	// 	g.player.TestCooldown = 10
-	// }
-
-	// pX, pY, pZ = g.weaponPosition3D(-0.1, -0.2)
-	// projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
-	// if projectile != nil {
-	// 	g.sprites.addProjectile(projectile)
-	// 	g.player.TestCooldown = 10
-	// }
-
-	// pX, pY, pZ = g.weaponPosition3D(0.1, -0.2)
-	// projectile = p.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, pVelocity, g.player.Entity)
-	// if projectile != nil {
-	// 	g.sprites.addProjectile(projectile)
-	// 	g.player.TestCooldown = 10
-	// }
 }
 
 func (g *Game) fireTestWeaponAtPlayer() {
-	// // Just for testing!
-	// p := g.player.TestProjectile
-	// if p == nil {
-	// 	return
-	// }
-
-	// if g.player.TestCooldown > 0 {
-	// 	return
-	// }
-
-	// firing test projectiles at player
+	// Just for testing! Firing test projectiles at player
 	playerPosition := g.player.Pos()
 	for spriteType := range g.sprites.sprites {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
@@ -551,9 +514,15 @@ func (g *Game) fireTestWeaponAtPlayer() {
 			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 			for _, weapon := range entity.Armament() {
+				if weapon.Cooldown() > 0 {
+					continue
+				}
+
 				projectile := weapon.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, entity)
 				if projectile != nil {
-					pTemplate := projectileSpriteByWeapon[weapon]
+					weapon.TriggerCooldown()
+
+					pTemplate := projectileSpriteForWeapon(weapon)
 					pSprite := pTemplate.Clone()
 					pSprite.Entity = projectile
 					g.sprites.addProjectile(pSprite)
@@ -620,11 +589,6 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 }
 
 func (g *Game) updateProjectiles() {
-	// // Update animated projectile movement
-	// if g.player.TestCooldown > 0 {
-	// 	g.player.TestCooldown--
-	// }
-
 	// perform concurrent projectile updates
 	var wg sync.WaitGroup
 
@@ -632,6 +596,7 @@ func (g *Game) updateProjectiles() {
 		p := k.(*render.ProjectileSprite)
 		p.DecreaseLifespan(1)
 		if p.Lifespan() <= 0 {
+			// TODO: have projectiles fade out slowly, maybe do less damage at extreme range?
 			g.sprites.deleteProjectile(p)
 			return true
 		}
@@ -738,6 +703,7 @@ func (g *Game) updateSprites() {
 
 				g.updateMechPosition(s)
 				s.Update(g.player.Pos())
+				g.updateWeaponCooldowns(s.Entity)
 
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
@@ -973,6 +939,20 @@ func (g *Game) updateSpritePosition(s *render.Sprite) {
 		} else {
 			s.SetPos(newPos)
 		}
+	}
+}
+
+func (g *Game) updateWeaponCooldowns(entity model.Entity) {
+	if entity == nil {
+		return
+	}
+	armament := entity.Armament()
+	if len(armament) == 0 {
+		return
+	}
+
+	for _, weapon := range armament {
+		weapon.DecreaseCooldown(model.SECONDS_PER_TICK)
 	}
 }
 

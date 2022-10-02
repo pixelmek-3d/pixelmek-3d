@@ -20,7 +20,7 @@ var (
 	imageByPath = make(map[string]*ebiten.Image)
 	rgbaByPath  = make(map[string]*image.RGBA)
 
-	projectileSpriteByWeapon = make(map[model.Weapon]*render.ProjectileSprite)
+	projectileSpriteByWeapon = make(map[string]*render.ProjectileSprite)
 )
 
 func getRGBAFromFile(texFile string) *image.RGBA {
@@ -447,7 +447,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 			pSprite := render.NewAnimatedProjectile(
 				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
 			)
-			projectileSpriteByWeapon[weapon] = pSprite
+			setProjectileSpriteForWeapon(weapon, pSprite)
 		}
 
 		if weapon != nil {
@@ -456,6 +456,16 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 	}
 
 	return modelMech
+}
+
+func projectileSpriteForWeapon(w model.Weapon) *render.ProjectileSprite {
+	wKey := model.TechBaseString(w.Tech()) + "_" + w.Name()
+	return projectileSpriteByWeapon[wKey]
+}
+
+func setProjectileSpriteForWeapon(w model.Weapon, p *render.ProjectileSprite) {
+	wKey := model.TechBaseString(w.Tech()) + "_" + w.Name()
+	projectileSpriteByWeapon[wKey] = p
 }
 
 func convertCollisionFromPx(collisionPxRadius, collisionPxHeight float64, width, height int, scale float64) (collisionRadius float64, collisionHeight float64) {

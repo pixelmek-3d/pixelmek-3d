@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type Mech struct {
@@ -38,6 +39,19 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64) *Me
 		armament:        make([]Weapon, 0),
 	}
 	return m
+}
+
+func (e *Mech) Clone() Entity {
+	eClone := &Mech{}
+	copier.Copy(eClone, e)
+
+	// weapons needs to be cloned since copier does not handle them automatically
+	eClone.armament = make([]Weapon, 0, len(e.armament))
+	for _, weapon := range e.armament {
+		eClone.AddArmament(weapon.Clone())
+	}
+
+	return eClone
 }
 
 func (e *Mech) AddArmament(w Weapon) {

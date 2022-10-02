@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type VTOL struct {
@@ -32,6 +33,12 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64) *VT
 		structure:       r.Structure,
 	}
 	return m
+}
+
+func (e *VTOL) Clone() Entity {
+	eClone := &VTOL{}
+	copier.Copy(eClone, e)
+	return eClone
 }
 
 func (e *VTOL) Armament() []Weapon {

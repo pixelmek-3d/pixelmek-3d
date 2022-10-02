@@ -13,6 +13,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	METERS_PER_UNIT  float64 = 20
+	TICKS_PER_SECOND float64 = 60
+	SECONDS_PER_TICK float64 = 1 / TICKS_PER_SECOND
+)
+
 type ModelResources struct {
 	Mechs         map[string]*ModelMechResource
 	Vehicles      map[string]*ModelVehicleResource
@@ -37,6 +43,16 @@ const (
 	CLAN TechBase = iota
 	IS
 )
+
+func TechBaseString(t TechBase) string {
+	switch t {
+	case CLAN:
+		return "clan"
+	case IS:
+		return "is"
+	}
+	return "unknown"
+}
 
 type ModelTech struct {
 	TechBase
@@ -188,7 +204,7 @@ type ModelResourceArmament struct {
 func (t *ModelTech) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
 
-	clan, is := "clan", "is"
+	clan, is := TechBaseString(CLAN), TechBaseString(IS)
 
 	switch str {
 	case clan:

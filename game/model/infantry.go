@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type Infantry struct {
@@ -34,6 +35,12 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 		maxStructure:    r.Structure,
 	}
 	return m
+}
+
+func (e *Infantry) Clone() Entity {
+	eClone := &Infantry{}
+	copier.Copy(eClone, e)
+	return eClone
 }
 
 func (e *Infantry) Armament() []Weapon {

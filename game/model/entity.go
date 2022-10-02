@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/jinzhu/copier"
 )
 
 type Entity interface {
@@ -38,6 +39,7 @@ type Entity interface {
 
 	Armament() []Weapon
 
+	Clone() Entity
 	Parent() Entity
 	SetParent(Entity)
 }
@@ -80,6 +82,12 @@ func BasicVisualEntity(x, y, z float64, anchor raycaster.SpriteAnchor) *BasicEnt
 		collisionHeight: 0,
 	}
 	return e
+}
+
+func (e *BasicEntity) Clone() Entity {
+	eClone := &BasicEntity{}
+	copier.Copy(eClone, e)
+	return eClone
 }
 
 func (e *BasicEntity) Armament() []Weapon {

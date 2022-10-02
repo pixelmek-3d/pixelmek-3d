@@ -61,11 +61,10 @@ func NewMechSprite(
 func (m *MechSprite) Clone() *MechSprite {
 	mClone := &MechSprite{}
 	sClone := &Sprite{}
-	eClone := &model.Mech{}
+	eClone := m.Entity.Clone()
 
 	copier.Copy(mClone, m)
 	copier.Copy(sClone, m.Sprite)
-	copier.Copy(eClone, m.Entity)
 
 	mClone.Sprite = sClone
 	mClone.Sprite.Entity = eClone

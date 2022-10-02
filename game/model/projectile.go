@@ -37,11 +37,10 @@ func NewProjectile(r *ModelProjectileResource, damage, velocity, lifespan, colli
 	return p
 }
 
-func (e *Projectile) Clone() *Projectile {
-	p := &Projectile{}
-	copier.Copy(p, e)
-
-	return p
+func (e *Projectile) Clone() Entity {
+	eClone := &Projectile{}
+	copier.Copy(eClone, e)
+	return eClone
 }
 
 func (e *Projectile) Armament() []Weapon {
@@ -57,7 +56,7 @@ func (e *Projectile) Lifespan() float64 {
 }
 
 func (e *Projectile) DecreaseLifespan(decreaseBy float64) float64 {
-	if decreaseBy > 0 {
+	if e.lifespan > 0 && decreaseBy > 0 {
 		e.lifespan -= decreaseBy
 	}
 	return e.lifespan
