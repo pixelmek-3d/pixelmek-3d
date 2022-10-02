@@ -15,7 +15,7 @@ cooldown: 2
 projectile:
   collisionRadius: 4
   collisionHeight: 8
-  scale: 0.2
+  scale: 0.3
   image: laser_green.png
   imageSheet:
     columns: 1

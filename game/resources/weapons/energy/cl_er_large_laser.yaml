@@ -15,7 +15,7 @@ cooldown: 3
 projectile:
   collisionRadius: 4
   collisionHeight: 8
-  scale: 0.3
+  scale: 0.4
   image: laser_blue.png
   imageSheet:
     columns: 1
