@@ -11,12 +11,12 @@ distance: 450
 # velocity in meters/second
 velocity: 300
 # cooldown in seconds
-cooldown: 5
+cooldown: 2
 projectile:
   collisionRadius: 4
   collisionHeight: 8
   scale: 0.2
-  image: beams_red.png
+  image: laser_red.png
   imageSheet:
     columns: 1
     rows: 3
@@ -32,7 +32,7 @@ projectile:
       330: 1
   impactEffect:
     scale: 0.1
-    image: laser_impact_sheet.png
+    image: laser_impact.png
     imageSheet:
       columns: 8
       rows: 3

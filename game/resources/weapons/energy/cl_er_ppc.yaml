@@ -1,0 +1,30 @@
+---
+# https://www.sarna.net/wiki/Extended_Range_Particle_Projector_Cannon
+name: ER Particle Projector Cannon
+short: PPC
+tech: clan
+tonnage: 6
+damage: 15
+heat: 15
+# max distance in meters: 23 (hexes) * 30 (meters/hex) = 690 (meters)
+distance: 690
+# velocity in meters/second
+velocity: 200
+# cooldown in seconds
+cooldown: 3.5
+projectile:
+  collisionRadius: 55
+  collisionHeight: 55
+  scale: 0.3
+  image: ppc_bolt.png
+  imageSheet:
+    columns: 8
+    rows: 1
+    animationRate: 1
+  impactEffect:
+    scale: 0.6
+    image: ppc_impact.png
+    imageSheet:
+      columns: 5
+      rows: 3
+      animationRate: 3
