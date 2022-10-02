@@ -1,22 +1,22 @@
 ---
-# https://www.sarna.net/wiki/Extended_Range_Medium_Laser
-name: ER Medium Laser
-short: MLASER
+# https://www.sarna.net/wiki/Extended_Range_Large_Laser
+name: ER Large Laser
+short: LLASER
 tech: clan
-tonnage: 1
-damage: 7
-heat: 5
-# max distance in meters: 15 (hexes) * 30 (meters/hex) = 450 (meters)
-distance: 450
+tonnage: 4
+damage: 10
+heat: 12
+# max distance in meters: 25 (hexes) * 30 (meters/hex) = 750 (meters)
+distance: 750
 # velocity in meters/second
-velocity: 300
+velocity: 325
 # cooldown in seconds
-cooldown: 2
+cooldown: 3
 projectile:
   collisionRadius: 4
   collisionHeight: 8
-  scale: 0.2
-  image: laser_green.png
+  scale: 0.3
+  image: laser_blue.png
   imageSheet:
     columns: 1
     rows: 3
@@ -31,8 +31,8 @@ projectile:
       270: 2
       330: 1
   impactEffect:
-    scale: 0.1
-    image: laser_green_impact.png
+    scale: 0.13
+    image: laser_blue_impact.png
     imageSheet:
       columns: 8
       rows: 3

@@ -2,7 +2,7 @@
 
 ## ./effects
 
-- `laser_impact`: Ville Seppanen
+- `laser_x_impact`: Ville Seppanen
   - https://opengameart.org/content/explosion-animated
 
 * `ppc_impact`: "Skorpio"
@@ -27,7 +27,7 @@
 
 ## ./projectiles
 
-- `laser_red`: "Rawdanitsu"
+- `laser_x`: "Rawdanitsu"
   - https://opengameart.org/content/lasers-and-beams
 
 - `ppc_bolt`: Hansjörg Malthaner - http://opengameart.org/users/varkalandar

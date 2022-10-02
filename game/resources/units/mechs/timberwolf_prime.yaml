@@ -17,11 +17,24 @@ heatSinks:
   quantity: 15
   type: double
 armament:
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: la
+  offset: [18, 35]
 - weapon: "cl_er_medium_laser.yaml"
   type: energy
   location: la
   offset: [18, 32]
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-18, 35]
 - weapon: "cl_er_medium_laser.yaml"
   type: energy
   location: ra
   offset: [-18, 32]
+# FIXME: just testing small laser until medium pulse is made
+- weapon: "cl_er_small_laser.yaml"
+  type: energy
+  location: lt
+  offset: [4, 41]
