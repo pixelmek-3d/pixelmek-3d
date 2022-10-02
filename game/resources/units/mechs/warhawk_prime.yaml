@@ -16,4 +16,8 @@ cockpitOffset: [0, 48]
 heatSinks:
   quantity: 20
   type: double
-armament: []
+armament:
+- weapon: "er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [17, 36]

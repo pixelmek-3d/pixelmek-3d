@@ -149,8 +149,8 @@ func NewGame() *Game {
 	pX, pY, pDegrees := 8.5, 3.5, 60.0                  // TODO: get from mission
 	pMech := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
 	g.player = render.NewPlayer(pMech, pX, pY, geom.Radians(pDegrees), 0)
-	g.player.SetCollisionRadius(clipDistance) // TODO: get from player mech
-	g.player.SetCollisionHeight(0.5)          // TODO: also get from player mech
+	g.player.SetCollisionRadius(pMech.CollisionRadius())
+	g.player.SetCollisionHeight(pMech.CollisionHeight())
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -460,8 +460,7 @@ func (g *Game) fireWeapon() {
 			continue
 		}
 
-		pX, pY, pZ := g.weaponPosition3D(0, -0.1)
-		projectile := weapon.SpawnProjectile(pX, pY, pZ, pAngle, pPitch, g.player.Entity)
+		projectile := weapon.SpawnProjectile(pAngle, pPitch, g.player.Entity)
 		if projectile != nil {
 			weapon.TriggerCooldown()
 
@@ -513,13 +512,18 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
+
+			// TESTING: needed until turret heading is separated from heading angle so projectiles come from correct postion
+			entity.SetAngle(pHeading)
+
 			for _, weapon := range entity.Armament() {
 				if weapon.Cooldown() > 0 {
 					continue
 				}
 
-				projectile := weapon.SpawnProjectile(pX, pY, pZ, pHeading, pPitch, entity)
+				projectile := weapon.SpawnProjectile(pHeading, pPitch, entity)
 				if projectile != nil {
+					// TODO: add muzzle flash effect on being fired at
 					weapon.TriggerCooldown()
 
 					pTemplate := projectileSpriteForWeapon(weapon)
@@ -532,26 +536,6 @@ func (g *Game) fireTestWeaponAtPlayer() {
 			return true
 		})
 	}
-}
-
-// weaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
-func (g *Game) weaponPosition3D(weaponOffX, weaponOffY float64) (float64, float64, float64) {
-	playerPosition := g.player.Pos()
-	wX, wY, wZ := playerPosition.X, playerPosition.Y, g.player.CameraZ+weaponOffY
-
-	if weaponOffX == 0 {
-		// no X/Y position adjustments needed
-		return wX, wY, wZ
-	}
-
-	// calculate X,Y based on player orientation angle perpendicular to angle of view
-	offAngle := g.player.Angle() + math.Pi/2
-
-	// create line segment using offset angle and X offset to determine 3D position offset of X/Y
-	offLine := geom.LineFromAngle(0, 0, offAngle, weaponOffX)
-	wX, wY = wX+offLine.X2, wY+offLine.Y2
-
-	return wX, wY, wZ
 }
 
 // Update camera to match player position and orientation

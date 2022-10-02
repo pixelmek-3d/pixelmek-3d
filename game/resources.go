@@ -206,7 +206,7 @@ func (g *Game) loadContent() {
 			sWidth, sHeight := spriteImg.Size()
 			x, y, z := position[0], position[1], s.ZPosition
 
-			collisionRadius, collisionHeight := convertCollisionFromPx(
+			collisionRadius, collisionHeight := convertOffsetFromPx(
 				s.CollisionPxRadius, s.CollisionPxHeight, sWidth, sHeight, s.Scale,
 			)
 
@@ -282,7 +282,7 @@ func (g *Game) loadMissionSprites() {
 				height = int(float64(width) / float64(vehicleResource.ImageSheet.Rows))
 			}
 
-			collisionRadius, collisionHeight := convertCollisionFromPx(
+			collisionRadius, collisionHeight := convertOffsetFromPx(
 				vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, vehicleResource.Scale,
 			)
 
@@ -317,7 +317,7 @@ func (g *Game) loadMissionSprites() {
 				height = int(float64(width) / float64(vtolResource.ImageSheet.Rows))
 			}
 
-			collisionRadius, collisionHeight := convertCollisionFromPx(
+			collisionRadius, collisionHeight := convertOffsetFromPx(
 				vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, vtolResource.Scale,
 			)
 
@@ -353,7 +353,7 @@ func (g *Game) loadMissionSprites() {
 				height = int(float64(width) / float64(infantryResource.ImageSheet.Rows))
 			}
 
-			collisionRadius, collisionHeight := convertCollisionFromPx(
+			collisionRadius, collisionHeight := convertOffsetFromPx(
 				infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, infantryResource.Scale,
 			)
 
@@ -393,7 +393,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := mechImg.Size()
 	width = width / 6 // all mech images are required to be six columns of images in a sheet
-	collisionRadius, collisionHeight := convertCollisionFromPx(
+	collisionRadius, collisionHeight := convertOffsetFromPx(
 		mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, mechResource.Scale,
 	)
 
@@ -406,7 +406,11 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		switch armament.Type.WeaponType {
 		case model.ENERGY:
 			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
-			weaponOffset := &geom.Vector2{X: armament.Offset[0], Y: armament.Offset[1]}
+
+			weaponOffX, weaponOffY := convertOffsetFromPx(
+				armament.Offset[0], armament.Offset[1], width, height, mechResource.Scale,
+			)
+			weaponOffset := &geom.Vector2{X: weaponOffX, Y: weaponOffY}
 
 			// need to use the projectile image size to find the unit collision conversion from pixels
 			pResource := weaponResource.Projectile
@@ -421,7 +425,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 			pWidth, pHeight := projectileImg.Size()
 			pWidth = pWidth / pColumns
 			pHeight = pHeight / pRows
-			pCollisionRadius, pCollisionHeight := convertCollisionFromPx(
+			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
 				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
 			)
 
@@ -468,8 +472,8 @@ func setProjectileSpriteForWeapon(w model.Weapon, p *render.ProjectileSprite) {
 	projectileSpriteByWeapon[wKey] = p
 }
 
-func convertCollisionFromPx(collisionPxRadius, collisionPxHeight float64, width, height int, scale float64) (collisionRadius float64, collisionHeight float64) {
-	collisionRadius = (scale * collisionPxRadius) / float64(width)
-	collisionHeight = (scale * collisionPxHeight) / float64(height)
+func convertOffsetFromPx(xPx, yPx float64, width, height int, scale float64) (offX float64, offY float64) {
+	offX = (scale * xPx) / float64(width)
+	offY = (scale * yPx) / float64(height)
 	return
 }
