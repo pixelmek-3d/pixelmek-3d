@@ -150,16 +150,18 @@ type ModelInfantryResource struct {
 }
 
 type ModelEnergyWeaponResource struct {
-	Name       string                   `yaml:"name" validate:"required"`
-	ShortName  string                   `yaml:"short" validate:"required"`
-	Tech       ModelTech                `yaml:"tech" validate:"required"`
-	Tonnage    float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
-	Damage     float64                  `yaml:"damage" validate:"gt=0"`
-	Heat       float64                  `yaml:"heat" validate:"gte=0"`
-	Distance   float64                  `yaml:"distance" validate:"gt=0"`
-	Velocity   float64                  `yaml:"velocity" validate:"gt=0"`
-	Cooldown   float64                  `yaml:"cooldown" validate:"gt=0"`
-	Projectile *ModelProjectileResource `yaml:"projectile"`
+	Name            string                   `yaml:"name" validate:"required"`
+	ShortName       string                   `yaml:"short" validate:"required"`
+	Tech            ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage         float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Damage          float64                  `yaml:"damage" validate:"gt=0"`
+	Heat            float64                  `yaml:"heat" validate:"gte=0"`
+	Distance        float64                  `yaml:"distance" validate:"gt=0"`
+	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
+	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
+	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
+	ProjectileDelay float64                  `yaml:"projectileDelay" validate:"gte=0"`
+	Projectile      *ModelProjectileResource `yaml:"projectile"`
 }
 
 type ModelProjectileResource struct {
@@ -458,7 +460,8 @@ func (r *ModelResources) loadWeaponResources() error {
 			}
 
 			fileName := u.Name()
-			weaponYaml, err := ioutil.ReadFile(filepath.Join(weaponTypePath, fileName))
+			weaponFilePath := filepath.Join(weaponTypePath, fileName)
+			weaponYaml, err := ioutil.ReadFile(weaponFilePath)
 			if err != nil {
 				return err
 			}
@@ -473,7 +476,7 @@ func (r *ModelResources) loadWeaponResources() error {
 
 				err = v.Struct(m)
 				if err != nil {
-					return fmt.Errorf("[%s] %s", weaponTypePath, err.Error())
+					return fmt.Errorf("[%s] %s", weaponFilePath, err.Error())
 				}
 
 				r.EnergyWeapons[fileName] = m

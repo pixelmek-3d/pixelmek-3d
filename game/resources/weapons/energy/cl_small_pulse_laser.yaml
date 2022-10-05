@@ -1,22 +1,23 @@
 ---
-# https://www.sarna.net/wiki/Extended_Range_Small_Laser
-name: ER Small Laser
-short: SLASER
+# https://www.sarna.net/wiki/Small_Pulse_Laser
+name: Small Pulse Laser
+short: SPLASER
 tech: clan
-tonnage: 0.5
-damage: 5
+tonnage: 1
+damage: 3
 heat: 2
 # max distance in meters: 6 (hexes) * 30 (meters/hex) = 180 (meters)
 distance: 180
 # velocity in meters/second
-velocity: 275
+velocity: 300
 # cooldown in seconds
-cooldown: 1.5
-projectileCount: 1
+cooldown: 0.75
+projectileCount: 2
+projectileDelay: 0.1
 projectile:
   collisionRadius: 4
   collisionHeight: 8
-  scale: 0.15
+  scale: 0.125
   image: laser_red.png
   imageSheet:
     columns: 1
@@ -32,7 +33,7 @@ projectile:
       270: 2
       330: 1
   impactEffect:
-    scale: 0.08
+    scale: 0.07
     image: laser_red_impact.png
     imageSheet:
       columns: 8

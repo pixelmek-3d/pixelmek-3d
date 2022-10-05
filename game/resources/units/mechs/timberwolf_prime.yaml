@@ -33,8 +33,7 @@ armament:
   type: energy
   location: ra
   offset: [-18, 32]
-# FIXME: just testing small laser until medium pulse is made
-- weapon: "cl_er_small_laser.yaml"
+- weapon: "cl_medium_pulse_laser.yaml"
   type: energy
   location: lt
   offset: [4, 41]

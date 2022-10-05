@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"time"
 
 	"image/color"
 	_ "image/png"
@@ -464,11 +465,33 @@ func (g *Game) fireWeapon() {
 		if projectile != nil {
 			weapon.TriggerCooldown()
 
+			// TODO: make projectiles spawned by player use their head-on facing angle for the first several frames to avoid
+			//       them using a facing that looks weird (like lasers are doing when fired from arm location)
+
 			pTemplate := projectileSpriteForWeapon(weapon)
 			pSprite := pTemplate.Clone()
 			pSprite.Entity = projectile
 			g.sprites.addProjectile(pSprite)
+
+			// use go routine to handle creation of multiple projectiles after time delay
+			if weapon.ProjectileCount() > 1 {
+				for i := 1; i < weapon.ProjectileCount(); i++ {
+					go g.delayedSpawnProjectile(float64(i)*weapon.ProjectileDelay(), weapon, g.player.Entity)
+				}
+			}
 		}
+	}
+}
+
+func (g *Game) delayedSpawnProjectile(delay float64, w model.Weapon, e model.Entity) {
+	time.Sleep(time.Duration(delay * float64(time.Second)))
+
+	projectile := w.SpawnProjectile(e.Angle(), e.Pitch(), e)
+	if projectile != nil {
+		pTemplate := projectileSpriteForWeapon(w)
+		pSprite := pTemplate.Clone()
+		pSprite.Entity = projectile
+		g.sprites.addProjectile(pSprite)
 	}
 }
 
@@ -530,6 +553,13 @@ func (g *Game) fireTestWeaponAtPlayer() {
 					pSprite := pTemplate.Clone()
 					pSprite.Entity = projectile
 					g.sprites.addProjectile(pSprite)
+
+					// use go routine to handle creation of multiple projectiles after time delay
+					if weapon.ProjectileCount() > 1 {
+						for i := 1; i < weapon.ProjectileCount(); i++ {
+							go g.delayedSpawnProjectile(float64(i)*weapon.ProjectileDelay(), weapon, entity)
+						}
+					}
 				}
 			}
 

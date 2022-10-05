@@ -31,6 +31,8 @@ type Weapon interface {
 	TriggerCooldown()
 
 	Offset() *geom.Vector2
+	ProjectileCount() int
+	ProjectileDelay() float64
 	SpawnProjectile(angle, pitch float64, spawnedBy Entity) *Projectile
 
 	Clone() Weapon
@@ -75,7 +77,13 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 	// convert distance and velocity to number of ticks for lifespan
 	pLifespan := w.distance * (1 / w.velocity) * TICKS_PER_SECOND
 
-	p := *NewProjectile(r.Projectile, w.damage, pVelocity, pLifespan, collisionRadius, collisionHeight, parent)
+	pDamage := w.damage
+	if w.ProjectileCount() > 1 {
+		// damage per projectile is divided from the total weapon damage
+		pDamage /= float64(w.ProjectileCount())
+	}
+
+	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, collisionRadius, collisionHeight, parent)
 	w.projectile = p
 	return w, p
 }
@@ -108,6 +116,14 @@ func WeaponPosition3D(e Entity, weaponOffX, weaponOffY float64) (float64, float6
 	wX, wY = wX+offLine.X2, wY+offLine.Y2
 
 	return wX, wY, wZ
+}
+
+func (w *EnergyWeapon) ProjectileCount() int {
+	return w.Resource.ProjectileCount
+}
+
+func (w *EnergyWeapon) ProjectileDelay() float64 {
+	return w.Resource.ProjectileDelay
 }
 
 func (w *EnergyWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Entity) *Projectile {

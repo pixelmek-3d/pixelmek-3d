@@ -12,6 +12,7 @@ distance: 750
 velocity: 325
 # cooldown in seconds
 cooldown: 3
+projectileCount: 1
 projectile:
   collisionRadius: 4
   collisionHeight: 8
