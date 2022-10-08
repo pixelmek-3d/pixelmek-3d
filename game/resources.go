@@ -407,7 +407,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		case model.ENERGY:
 			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[ERROR] weapon not found: energy/%s\n", armament.Weapon)
+				fmt.Printf("[%s] weapon not found: energy/%s\n", unit, armament.Weapon)
 				continue
 			}
 
@@ -460,7 +460,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		case model.MISSILE:
 			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[ERROR] weapon not found: missile/%s\n", armament.Weapon)
+				fmt.Printf("[%s] weapon not found: missile/%s\n", unit, armament.Weapon)
 				continue
 			}
 
@@ -513,7 +513,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		case model.BALLISTIC:
 			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[ERROR] weapon not found: ballistic/%s\n", armament.Weapon)
+				fmt.Printf("[%s] weapon not found: ballistic/%s\n", unit, armament.Weapon)
 				continue
 			}
 

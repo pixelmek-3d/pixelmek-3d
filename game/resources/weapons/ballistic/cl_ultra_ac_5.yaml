@@ -1,0 +1,41 @@
+---
+# https://www.sarna.net/wiki/Ultra_AC/5
+name: Ultra AC/5
+short: uAC5
+tech: clan
+tonnage: 7
+damage: 5
+heat: 1
+# max distance in meters: 20 (hexes) * 30 (meters/hex) = 600 (meters)
+distance: 600
+# velocity in meters/second
+velocity: 600
+# cooldown in seconds
+cooldown: 1.25
+projectileCount: 3
+projectileDelay: 0.12
+projectile:
+  collisionRadius: 6
+  collisionHeight: 12
+  scale: 0.1
+  image: bullet_tracer.png
+  imageSheet:
+    columns: 1
+    rows: 3
+    animationRate: 1
+    angleFacingRow:
+      0:   0
+      30:  1
+      90:  2
+      150: 1
+      180: 0
+      210: 1
+      270: 2
+      330: 1
+  impactEffect:
+    scale: 0.2
+    image: autocannon_small_impact.png
+    imageSheet:
+      columns: 5
+      rows: 3
+      animationRate: 2
