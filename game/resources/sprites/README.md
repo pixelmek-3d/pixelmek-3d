@@ -8,6 +8,9 @@
 - `laser_x_impact`: Ville Seppanen
   - https://opengameart.org/content/explosion-animated
 
+- `missile_impact`: "helpcomputer"
+  - https://opengameart.org/content/explosions-2
+
 * `ppc_impact`: "Skorpio"
   * https://opengameart.org/content/sci-fi-effects
 

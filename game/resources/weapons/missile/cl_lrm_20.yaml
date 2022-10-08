@@ -30,8 +30,8 @@ projectile:
       270: 3
   impactEffect:
     scale: 0.1
-    image: laser_red_impact.png
+    image: missile_impact.png
     imageSheet:
-      columns: 8
-      rows: 3
-      animationRate: 1
+      columns: 6
+      rows: 1
+      animationRate: 5
