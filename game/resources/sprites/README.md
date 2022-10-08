@@ -2,6 +2,9 @@
 
 ## ./effects
 
+- `autocannon_*_impact`: "JoesAlotofthings"
+  - https://opengameart.org/content/alotofimpacts-15-frame-impacts-wsmoke-3-variations
+
 - `bullet_impact`: "JoesAlotofthings"
   - https://opengameart.org/content/alotofimpacts-5-frame-impacts-4-variations-brown-orange-impacts-17of20
 
