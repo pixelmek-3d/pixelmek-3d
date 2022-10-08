@@ -406,6 +406,10 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		switch armament.Type.WeaponType {
 		case model.ENERGY:
 			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
+			if weaponResource == nil {
+				fmt.Printf("[ERROR] weapon not found: energy/%s\n", armament.Weapon)
+				continue
+			}
 
 			weaponOffX, weaponOffY := convertOffsetFromPx(
 				armament.Offset[0], armament.Offset[1], width, height, mechResource.Scale,
@@ -452,6 +456,113 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
 			)
 			setProjectileSpriteForWeapon(weapon, pSprite)
+
+		case model.MISSILE:
+			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
+			if weaponResource == nil {
+				fmt.Printf("[ERROR] weapon not found: missile/%s\n", armament.Weapon)
+				continue
+			}
+
+			weaponOffX, weaponOffY := convertOffsetFromPx(
+				armament.Offset[0], armament.Offset[1], width, height, mechResource.Scale,
+			)
+			weaponOffset := &geom.Vector2{X: weaponOffX, Y: weaponOffY}
+
+			// need to use the projectile image size to find the unit collision conversion from pixels
+			pResource := weaponResource.Projectile
+			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
+			projectileImg := getSpriteFromFile(projectileRelPath)
+			pColumns, pRows := 1, 1
+			if pResource.ImageSheet != nil {
+				pColumns = pResource.ImageSheet.Columns
+				pRows = pResource.ImageSheet.Rows
+			}
+
+			pWidth, pHeight := projectileImg.Size()
+			pWidth = pWidth / pColumns
+			pHeight = pHeight / pRows
+			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
+				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
+			)
+
+			// create the weapon and projectile model
+			weapon, projectile = model.NewMissileWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, modelMech)
+
+			// create the projectile and effect sprite templates
+
+			eResource := weaponResource.Projectile.ImpactEffect
+			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
+			effectImg := getSpriteFromFile(effectRelPath)
+			eColumns, eRows, eAnimationRate := 1, 1, 1
+			if eResource.ImageSheet != nil {
+				eColumns = eResource.ImageSheet.Columns
+				eRows = eResource.ImageSheet.Rows
+				eAnimationRate = eResource.ImageSheet.AnimationRate
+			}
+
+			// TODO: check for existing resource first
+			eSprite := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+
+			// TODO: check for existing resource first
+			pSprite := render.NewAnimatedProjectile(
+				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
+			)
+			setProjectileSpriteForWeapon(weapon, pSprite)
+
+		case model.BALLISTIC:
+			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
+			if weaponResource == nil {
+				fmt.Printf("[ERROR] weapon not found: ballistic/%s\n", armament.Weapon)
+				continue
+			}
+
+			weaponOffX, weaponOffY := convertOffsetFromPx(
+				armament.Offset[0], armament.Offset[1], width, height, mechResource.Scale,
+			)
+			weaponOffset := &geom.Vector2{X: weaponOffX, Y: weaponOffY}
+
+			// need to use the projectile image size to find the unit collision conversion from pixels
+			pResource := weaponResource.Projectile
+			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
+			projectileImg := getSpriteFromFile(projectileRelPath)
+			pColumns, pRows := 1, 1
+			if pResource.ImageSheet != nil {
+				pColumns = pResource.ImageSheet.Columns
+				pRows = pResource.ImageSheet.Rows
+			}
+
+			pWidth, pHeight := projectileImg.Size()
+			pWidth = pWidth / pColumns
+			pHeight = pHeight / pRows
+			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
+				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
+			)
+
+			// create the weapon and projectile model
+			weapon, projectile = model.NewBallisticWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, modelMech)
+
+			// create the projectile and effect sprite templates
+
+			eResource := weaponResource.Projectile.ImpactEffect
+			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
+			effectImg := getSpriteFromFile(effectRelPath)
+			eColumns, eRows, eAnimationRate := 1, 1, 1
+			if eResource.ImageSheet != nil {
+				eColumns = eResource.ImageSheet.Columns
+				eRows = eResource.ImageSheet.Rows
+				eAnimationRate = eResource.ImageSheet.AnimationRate
+			}
+
+			// TODO: check for existing resource first
+			eSprite := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+
+			// TODO: check for existing resource first
+			pSprite := render.NewAnimatedProjectile(
+				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
+			)
+			setProjectileSpriteForWeapon(weapon, pSprite)
+
 		}
 
 		if weapon != nil {

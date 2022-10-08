@@ -33,7 +33,23 @@ armament:
   type: energy
   location: ra
   offset: [-18, 32]
+- weapon: "cl_lrm_20.yaml"
+  type: missile
+  location: lt
+  offset: [12, 57]
 - weapon: "cl_medium_pulse_laser.yaml"
   type: energy
   location: lt
   offset: [4, 41]
+- weapon: "cl_lrm_20.yaml"
+  type: missile
+  location: rt
+  offset: [-12, 57]
+- weapon: "cl_machine_gun.yaml"
+  type: ballistic
+  location: rt
+  offset: [-4, 41]
+- weapon: "cl_machine_gun.yaml"
+  type: ballistic
+  location: ct
+  offset: [0, 39]

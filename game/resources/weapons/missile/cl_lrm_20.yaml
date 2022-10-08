@@ -1,0 +1,37 @@
+---
+# https://www.sarna.net/wiki/LRM-20
+name: Long Range Missile 20
+short: LRM20
+tech: clan
+tonnage: 5
+damage: 20
+heat: 6
+# max distance in meters: 21 (hexes) * 30 (meters/hex) = 630 (meters)
+distance: 630
+# velocity in meters/second
+velocity: 150
+# cooldown in seconds
+cooldown: 5
+projectileCount: 20
+projectileDelay: 0.05
+projectile:
+  collisionRadius: 2
+  collisionHeight: 4
+  scale: 0.2
+  image: missile.png
+  imageSheet:
+    columns: 1
+    rows: 4
+    animationRate: 1
+    angleFacingRow:
+      0:   0
+      90:  1
+      180: 2
+      270: 3
+  impactEffect:
+    scale: 0.1
+    image: laser_red_impact.png
+    imageSheet:
+      columns: 8
+      rows: 3
+      animationRate: 1

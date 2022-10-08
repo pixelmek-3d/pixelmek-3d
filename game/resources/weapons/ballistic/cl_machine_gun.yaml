@@ -1,0 +1,41 @@
+---
+# https://www.sarna.net/wiki/Machine_Gun
+name: Machine Gun
+short: MGUN
+tech: clan
+tonnage: 0.25
+damage: 2
+heat: 0
+# max distance in meters: 3 (hexes) * 30 (meters/hex) = 90 (meters)
+distance: 90
+# velocity in meters/second
+velocity: 250
+# cooldown in seconds
+cooldown: 1
+projectileCount: 5
+projectileDelay: 0.2
+projectile:
+  collisionRadius: 4
+  collisionHeight: 8
+  scale: 0.05
+  image: bullet_tracer.png
+  imageSheet:
+    columns: 1
+    rows: 3
+    animationRate: 1
+    angleFacingRow:
+      0:   0
+      30:  1
+      90:  2
+      150: 1
+      180: 0
+      210: 1
+      270: 2
+      330: 1
+  impactEffect:
+    scale: 0.08
+    image: bullet_impact.png
+    imageSheet:
+      columns: 4
+      rows: 2
+      animationRate: 6

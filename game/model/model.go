@@ -20,11 +20,13 @@ const (
 )
 
 type ModelResources struct {
-	Mechs         map[string]*ModelMechResource
-	Vehicles      map[string]*ModelVehicleResource
-	VTOLs         map[string]*ModelVTOLResource
-	Infantry      map[string]*ModelInfantryResource
-	EnergyWeapons map[string]*ModelEnergyWeaponResource
+	Mechs            map[string]*ModelMechResource
+	Vehicles         map[string]*ModelVehicleResource
+	VTOLs            map[string]*ModelVTOLResource
+	Infantry         map[string]*ModelInfantryResource
+	EnergyWeapons    map[string]*ModelEnergyWeaponResource
+	MissileWeapons   map[string]*ModelMissileWeaponResource
+	BallisticWeapons map[string]*ModelBallisticWeaponResource
 }
 
 const (
@@ -35,6 +37,8 @@ const (
 	ProjectilesResourceType string = "projectiles"
 	EffectsResourceType     string = "effects"
 	EnergyResourceType      string = "energy"
+	MissileResourceType     string = "missile"
+	BallisticResourceType   string = "ballistic"
 )
 
 type TechBase int
@@ -150,6 +154,36 @@ type ModelInfantryResource struct {
 }
 
 type ModelEnergyWeaponResource struct {
+	Name            string                   `yaml:"name" validate:"required"`
+	ShortName       string                   `yaml:"short" validate:"required"`
+	Tech            ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage         float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Damage          float64                  `yaml:"damage" validate:"gt=0"`
+	Heat            float64                  `yaml:"heat" validate:"gte=0"`
+	Distance        float64                  `yaml:"distance" validate:"gt=0"`
+	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
+	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
+	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
+	ProjectileDelay float64                  `yaml:"projectileDelay" validate:"gte=0"`
+	Projectile      *ModelProjectileResource `yaml:"projectile"`
+}
+
+type ModelMissileWeaponResource struct {
+	Name            string                   `yaml:"name" validate:"required"`
+	ShortName       string                   `yaml:"short" validate:"required"`
+	Tech            ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage         float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Damage          float64                  `yaml:"damage" validate:"gt=0"`
+	Heat            float64                  `yaml:"heat" validate:"gte=0"`
+	Distance        float64                  `yaml:"distance" validate:"gt=0"`
+	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
+	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
+	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
+	ProjectileDelay float64                  `yaml:"projectileDelay" validate:"gte=0"`
+	Projectile      *ModelProjectileResource `yaml:"projectile"`
+}
+
+type ModelBallisticWeaponResource struct {
 	Name            string                   `yaml:"name" validate:"required"`
 	ShortName       string                   `yaml:"short" validate:"required"`
 	Tech            ModelTech                `yaml:"tech" validate:"required"`
@@ -365,7 +399,7 @@ func (r *ModelResources) loadUnitResources() error {
 				m := &ModelMechResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				err = v.Struct(m)
@@ -379,7 +413,7 @@ func (r *ModelResources) loadUnitResources() error {
 				m := &ModelVehicleResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				err = v.Struct(m)
@@ -393,7 +427,7 @@ func (r *ModelResources) loadUnitResources() error {
 				m := &ModelVTOLResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				err = v.Struct(m)
@@ -407,7 +441,7 @@ func (r *ModelResources) loadUnitResources() error {
 				m := &ModelInfantryResource{}
 				err = yaml.Unmarshal(unitYaml, m)
 				if err != nil {
-					return err
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
 				err = v.Struct(m)
@@ -451,7 +485,10 @@ func (r *ModelResources) loadWeaponResources() error {
 		switch weaponType {
 		case EnergyResourceType:
 			r.EnergyWeapons = make(map[string]*ModelEnergyWeaponResource, len(weaponFiles))
-
+		case MissileResourceType:
+			r.MissileWeapons = make(map[string]*ModelMissileWeaponResource, len(weaponFiles))
+		case BallisticResourceType:
+			r.BallisticWeapons = make(map[string]*ModelBallisticWeaponResource, len(weaponFiles))
 		}
 
 		for _, u := range weaponFiles {
@@ -480,6 +517,34 @@ func (r *ModelResources) loadWeaponResources() error {
 				}
 
 				r.EnergyWeapons[fileName] = m
+
+			case MissileResourceType:
+				m := &ModelMissileWeaponResource{}
+				err = yaml.Unmarshal(weaponYaml, m)
+				if err != nil {
+					return err
+				}
+
+				err = v.Struct(m)
+				if err != nil {
+					return fmt.Errorf("[%s] %s", weaponFilePath, err.Error())
+				}
+
+				r.MissileWeapons[fileName] = m
+
+			case BallisticResourceType:
+				m := &ModelBallisticWeaponResource{}
+				err = yaml.Unmarshal(weaponYaml, m)
+				if err != nil {
+					return err
+				}
+
+				err = v.Struct(m)
+				if err != nil {
+					return fmt.Errorf("[%s] %s", weaponFilePath, err.Error())
+				}
+
+				r.BallisticWeapons[fileName] = m
 
 			}
 		}
@@ -518,6 +583,20 @@ func (r *ModelResources) GetInfantryResource(unit string) *ModelInfantryResource
 
 func (r *ModelResources) GetEnergyWeaponResource(weapon string) *ModelEnergyWeaponResource {
 	if m, ok := r.EnergyWeapons[weapon]; ok {
+		return m
+	}
+	return nil
+}
+
+func (r *ModelResources) GetMissileWeaponResource(weapon string) *ModelMissileWeaponResource {
+	if m, ok := r.MissileWeapons[weapon]; ok {
+		return m
+	}
+	return nil
+}
+
+func (r *ModelResources) GetBallisticWeaponResource(weapon string) *ModelBallisticWeaponResource {
+	if m, ok := r.BallisticWeapons[weapon]; ok {
 		return m
 	}
 	return nil

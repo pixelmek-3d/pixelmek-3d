@@ -27,8 +27,11 @@
 
 ## ./projectiles
 
-- `laser_x`: "Rawdanitsu"
+- `laser_x`, `bullet_tracer`: "Rawdanitsu"
   - https://opengameart.org/content/lasers-and-beams
+
+- `missile`: "diggy"
+  - https://opengameart.org/content/16-direction-rocket-projectile
 
 - `ppc_bolt`: Hansjörg Malthaner - http://opengameart.org/users/varkalandar
   - https://opengameart.org/content/animated-charged-bolt
