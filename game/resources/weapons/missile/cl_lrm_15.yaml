@@ -1,18 +1,18 @@
 ---
-# https://www.sarna.net/wiki/LRM-10
-name: Long Range Missile 10
-short: LRM10
+# https://www.sarna.net/wiki/LRM-15
+name: Long Range Missile 15
+short: LRM15
 tech: clan
-tonnage: 2.5
-damage: 10
-heat: 4
+tonnage: 3.5
+damage: 15
+heat: 5
 # max distance in meters: 21 (hexes) * 30 (meters/hex) = 630 (meters)
 distance: 630
 # velocity in meters/second
 velocity: 150
 # cooldown in seconds
-cooldown: 4
-projectileCount: 10
+cooldown: 4.5
+projectileCount: 15
 projectileDelay: 0.05
 projectile:
   collisionRadius: 2
