@@ -2,6 +2,9 @@
 
 ## ./effects
 
+- `bullet_impact`: "JoesAlotofthings"
+  - https://opengameart.org/content/alotofimpacts-5-frame-impacts-4-variations-brown-orange-impacts-17of20
+
 - `laser_x_impact`: Ville Seppanen
   - https://opengameart.org/content/explosion-animated
 
