@@ -13,7 +13,7 @@ velocity: 200
 # cooldown in seconds
 cooldown: 2.5
 projectileCount: 6
-projectileDelay: 0.1
+projectileDelay: 0.15
 projectile:
   collisionRadius: 2
   collisionHeight: 4

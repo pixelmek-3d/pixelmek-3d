@@ -1,6 +1,8 @@
 package model
 
 import (
+	"math"
+
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
 )
@@ -19,22 +21,27 @@ type MissileWeapon struct {
 	offset     *geom.Vector2
 	projectile Projectile
 	parent     Entity
+
+	missileTube       int
+	missileTubeOffset []*geom.Vector2
 }
 
-func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
+func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, onePxOffset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
 	w := &MissileWeapon{
-		Resource: r,
-		name:     r.Name,
-		short:    r.ShortName,
-		tech:     r.Tech.TechBase,
-		tonnage:  r.Tonnage,
-		damage:   r.Damage,
-		heat:     r.Heat,
-		distance: r.Distance,
-		velocity: r.Velocity,
-		cooldown: 0,
-		offset:   offset,
-		parent:   parent,
+		Resource:          r,
+		name:              r.Name,
+		short:             r.ShortName,
+		tech:              r.Tech.TechBase,
+		tonnage:           r.Tonnage,
+		damage:            r.Damage,
+		heat:              r.Heat,
+		distance:          r.Distance,
+		velocity:          r.Velocity,
+		cooldown:          0,
+		offset:            offset,
+		missileTube:       0,
+		missileTubeOffset: make([]*geom.Vector2, r.ProjectileCount),
+		parent:            parent,
 	}
 
 	// convert velocity from meters/second to unit distance per tick
@@ -49,9 +56,64 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 		pDamage /= float64(w.ProjectileCount())
 	}
 
+	// based on the number of tubes, create offsets for each missile so they spawn from slightly different positions
+	w.loadMissileTubes(onePxOffset)
+
 	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, collisionRadius, collisionHeight, parent)
 	w.projectile = p
 	return w, p
+}
+
+func (w *MissileWeapon) loadMissileTubes(onePxOffset *geom.Vector2) {
+	if w.ProjectileCount() <= 1 {
+		return
+	}
+
+	// distribute missile tubes somewhat evenly around the weapon offset center into rows
+	tubeCount := w.ProjectileCount()
+	tubeRows := 0
+	switch {
+	case tubeCount == 2:
+		tubeRows = 1
+	case tubeCount >= 4 && tubeCount < 10:
+		tubeRows = 2
+	case tubeCount >= 19 && tubeCount < 20:
+		tubeRows = 3
+	case tubeCount >= 20:
+		tubeRows = 4
+	default:
+		tubeRows = int(math.Sqrt(float64(tubeCount)))
+	}
+
+	if tubeRows == 0 {
+		return
+	}
+
+	// adjust x/y position used to approximate middle of missile tube box
+	tubeCols := int(math.Ceil(float64(tubeCount) / float64(tubeRows)))
+	adjustX, adjustY := float64(tubeCols)/2, float64(tubeRows)/2
+
+	tubeIndex := 0
+	for row := 0; row < tubeRows; row++ {
+		for col := 0; col < tubeCols; col++ {
+
+			tubeOffX, tubeOffY := (float64(col)-adjustX)*onePxOffset.X, (float64(row)-adjustY)*onePxOffset.Y
+			w.missileTubeOffset[tubeIndex] = &geom.Vector2{X: tubeOffX, Y: tubeOffY}
+
+			tubeIndex++
+			if tubeIndex >= tubeCount {
+				return
+			}
+		}
+	}
+}
+
+func (w *MissileWeapon) getMissileTubeOffset() *geom.Vector2 {
+	if w.missileTube >= len(w.missileTubeOffset) {
+		// "reload" tubes
+		w.missileTube = 0
+	}
+	return w.missileTubeOffset[w.missileTube]
 }
 
 func (w *MissileWeapon) Clone() Weapon {
@@ -75,8 +137,10 @@ func (w *MissileWeapon) ProjectileDelay() float64 {
 func (w *MissileWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Entity) *Projectile {
 	pSpawn := w.projectile.Clone().(*Projectile)
 
-	// add weapon position offset based on where it is mounted
-	x, y, z := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
+	// add weapon position offset based on where it is mounted, along with missile tube offset of current missile
+	tubeOffset := w.getMissileTubeOffset()
+	w.missileTube++
+	x, y, z := WeaponPosition3D(spawnedBy, w.offset.X+tubeOffset.X, w.offset.Y+tubeOffset.Y)
 
 	pSpawn.SetPos(&geom.Vector2{X: x, Y: y})
 	pSpawn.SetPosZ(z)

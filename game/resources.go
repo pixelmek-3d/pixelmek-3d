@@ -486,11 +486,18 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
 			)
 
+			// missile tube generated visual needs single pixel offset
+			onePxX, onePxY := convertOffsetFromPx(
+				1, 1, pWidth, pHeight, pResource.Scale,
+			)
+			onePxOffset := &geom.Vector2{X: onePxX, Y: onePxY}
+
 			// create the weapon and projectile model
-			weapon, projectile = model.NewMissileWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, modelMech)
+			weapon, projectile = model.NewMissileWeapon(
+				weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, onePxOffset, modelMech,
+			)
 
 			// create the projectile and effect sprite templates
-
 			eResource := weaponResource.Projectile.ImpactEffect
 			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
 			effectImg := getSpriteFromFile(effectRelPath)
