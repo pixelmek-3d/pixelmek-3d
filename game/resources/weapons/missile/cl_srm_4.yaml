@@ -1,0 +1,37 @@
+---
+# https://www.sarna.net/wiki/SRM-4
+name: Short Range Missile 4
+short: SRM4
+tech: clan
+tonnage: 1
+damage: 8
+heat: 3
+# max distance in meters: 9 (hexes) * 30 (meters/hex) = 270 (meters)
+distance: 270
+# velocity in meters/second
+velocity: 200
+# cooldown in seconds
+cooldown: 2.25
+projectileCount: 4
+projectileDelay: 0.1
+projectile:
+  collisionRadius: 2
+  collisionHeight: 4
+  scale: 0.35
+  image: missile.png
+  imageSheet:
+    columns: 1
+    rows: 4
+    animationRate: 1
+    angleFacingRow:
+      0:   0
+      90:  1
+      180: 2
+      270: 3
+  impactEffect:
+    scale: 0.15
+    image: missile_impact.png
+    imageSheet:
+      columns: 6
+      rows: 1
+      animationRate: 5
