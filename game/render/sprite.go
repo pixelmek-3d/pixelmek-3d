@@ -21,6 +21,7 @@ type Sprite struct {
 	w, h           int
 	scale          float64
 	AnimationRate  int
+	Focusable      bool
 	animReversed   bool
 	animCounter    int
 	loopCounter    int
@@ -62,13 +63,18 @@ func (s *Sprite) SetScreenRect(rect *image.Rectangle) {
 	s.screenRect = rect
 }
 
+func (s *Sprite) IsFocusable() bool {
+	return s.Focusable
+}
+
 func NewSprite(
 	modelEntity model.Entity, scale float64, img *ebiten.Image, mapColor color.RGBA,
 ) *Sprite {
 	s := &Sprite{
-		Entity:   modelEntity,
-		scale:    scale,
-		mapColor: mapColor,
+		Entity:    modelEntity,
+		Focusable: true,
+		scale:     scale,
+		mapColor:  mapColor,
 	}
 
 	s.w, s.h = img.Size()
@@ -83,9 +89,10 @@ func NewSpriteFromSheet(
 	mapColor color.RGBA, columns, rows, spriteIndex int,
 ) *Sprite {
 	s := &Sprite{
-		Entity:   modelEntity,
-		scale:    scale,
-		mapColor: mapColor,
+		Entity:    modelEntity,
+		Focusable: true,
+		scale:     scale,
+		mapColor:  mapColor,
 	}
 
 	s.texNum = spriteIndex
@@ -107,9 +114,10 @@ func NewAnimatedSprite(
 	mapColor color.RGBA, columns, rows, animationRate int,
 ) *Sprite {
 	s := &Sprite{
-		Entity:   modelEntity,
-		scale:    scale,
-		mapColor: mapColor,
+		Entity:    modelEntity,
+		Focusable: true,
+		scale:     scale,
+		mapColor:  mapColor,
 	}
 
 	s.AnimationRate = animationRate

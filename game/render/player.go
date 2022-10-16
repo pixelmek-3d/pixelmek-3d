@@ -7,13 +7,16 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 )
 
 type Player struct {
 	model.Entity
-	CameraZ  float64
-	Moved    bool
-	MapColor color.RGBA
+	CameraZ             float64
+	Moved               bool
+	MapColor            color.RGBA
+	ConvergenceDistance float64
+	ConvergencePoint    *geom3d.Vector3
 }
 
 func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {

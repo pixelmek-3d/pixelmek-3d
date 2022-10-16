@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/jinzhu/copier"
 )
 
@@ -72,14 +73,20 @@ func (w *BallisticWeapon) ProjectileDelay() float64 {
 	return w.Resource.ProjectileDelay
 }
 
+func (w *BallisticWeapon) SpawnProjectileToward(target *geom3d.Vector3, spawnedBy Entity) *Projectile {
+	wPos := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
+	angle, pitch := HeadingPitchTowardPoint3D(wPos, target)
+	return w.SpawnProjectile(angle, pitch, spawnedBy)
+}
+
 func (w *BallisticWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Entity) *Projectile {
 	pSpawn := w.projectile.Clone().(*Projectile)
 
 	// add weapon position offset based on where it is mounted
-	x, y, z := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
+	wPos := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
 
-	pSpawn.SetPos(&geom.Vector2{X: x, Y: y})
-	pSpawn.SetPosZ(z)
+	pSpawn.SetPos(&geom.Vector2{X: wPos.X, Y: wPos.Y})
+	pSpawn.SetPosZ(wPos.Z)
 	pSpawn.SetAngle(angle)
 	pSpawn.SetPitch(pitch)
 

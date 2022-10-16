@@ -334,6 +334,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Render raycast to screen
 	g.camera.Draw(screen)
 
+	// store raycasted convergence point for next Update
+	g.player.ConvergenceDistance = g.camera.GetConvergenceDistance()
+	g.player.ConvergencePoint = g.camera.GetConvergencePoint()
+
 	// draw target reticle
 	g.drawTargetReticle(screen)
 
@@ -453,15 +457,23 @@ func (g *Game) fireWeapon() {
 		return
 	}
 
-	// spawning projectile at offsets from player's center point of view
+	// in case convergence point not set, use player heading and pitch
 	pAngle, pPitch := g.player.Angle(), g.player.Pitch()
+	convergencePoint := g.player.ConvergencePoint
+	// convergenceDistance := g.player.ConvergenceDistance
 
 	for _, weapon := range armament {
 		if weapon.Cooldown() > 0 {
 			continue
 		}
 
-		projectile := weapon.SpawnProjectile(pAngle, pPitch, g.player.Entity)
+		var projectile *model.Projectile
+		if convergencePoint == nil {
+			projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Entity)
+		} else {
+			projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Entity)
+		}
+
 		if projectile != nil {
 			weapon.TriggerCooldown()
 
@@ -484,9 +496,18 @@ func (g *Game) fireWeapon() {
 }
 
 func (g *Game) delayedSpawnProjectile(delay float64, w model.Weapon, e model.Entity) {
+	// TODO: instead of go routine, just have a countdown that gets checked during Update?
 	time.Sleep(time.Duration(delay * float64(time.Second)))
 
-	projectile := w.SpawnProjectile(e.Angle(), e.Pitch(), e)
+	var projectile *model.Projectile
+
+	convergencePoint := g.player.ConvergencePoint
+	if e != g.player.Entity || convergencePoint == nil {
+		projectile = w.SpawnProjectile(e.Angle(), e.Pitch(), e)
+	} else {
+		projectile = w.SpawnProjectileToward(convergencePoint, e)
+	}
+
 	if projectile != nil {
 		pTemplate := projectileSpriteForWeapon(w)
 		pSprite := pTemplate.Clone()

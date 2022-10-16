@@ -23,6 +23,9 @@ func NewProjectile(
 		ImpactEffect: EffectSprite{},
 	}
 
+	// projectiles cannot be focused upon by player reticle
+	p.Focusable = false
+
 	return p
 }
 
@@ -47,6 +50,9 @@ func NewAnimatedProjectile(
 			p.SetTextureFacingMap(facingMap)
 		}
 	}
+
+	// projectiles cannot be focused upon by player reticle
+	p.Focusable = false
 
 	s := &ProjectileSprite{
 		Sprite:       p,

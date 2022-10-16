@@ -27,6 +27,9 @@ func NewAnimatedEffect(
 		LoopCount: loopCount,
 	}
 
+	// effects cannot be focused upon by player reticle
+	e.Sprite.Focusable = false
+
 	return e
 }
 

@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/jinzhu/copier"
 )
 
@@ -134,21 +135,28 @@ func (w *MissileWeapon) ProjectileDelay() float64 {
 	return w.Resource.ProjectileDelay
 }
 
+func (w *MissileWeapon) SpawnProjectileToward(target *geom3d.Vector3, spawnedBy Entity) *Projectile {
+	wPos := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
+	angle, pitch := HeadingPitchTowardPoint3D(wPos, target)
+	return w.SpawnProjectile(angle, pitch, spawnedBy)
+}
+
 func (w *MissileWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Entity) *Projectile {
 	pSpawn := w.projectile.Clone().(*Projectile)
 
 	// add weapon position offset based on where it is mounted, along with missile tube offset of current missile
 	tubeOffset := w.getMissileTubeOffset()
-	w.missileTube++
-	x, y, z := WeaponPosition3D(spawnedBy, w.offset.X+tubeOffset.X, w.offset.Y+tubeOffset.Y)
+	wPos := WeaponPosition3D(spawnedBy, w.offset.X+tubeOffset.X, w.offset.Y+tubeOffset.Y)
 
-	pSpawn.SetPos(&geom.Vector2{X: x, Y: y})
-	pSpawn.SetPosZ(z)
+	pSpawn.SetPos(&geom.Vector2{X: wPos.X, Y: wPos.Y})
+	pSpawn.SetPosZ(wPos.Z)
 	pSpawn.SetAngle(angle)
 	pSpawn.SetPitch(pitch)
 
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
+
+	w.missileTube++
 
 	return pSpawn
 }
