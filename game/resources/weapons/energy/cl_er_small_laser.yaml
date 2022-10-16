@@ -16,7 +16,7 @@ projectileCount: 1
 projectile:
   collisionRadius: 4
   collisionHeight: 8
-  scale: 0.15
+  scale: 0.075
   image: laser_red.png
   imageSheet:
     columns: 1
