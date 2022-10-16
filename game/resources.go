@@ -279,7 +279,7 @@ func (g *Game) loadMissionSprites() {
 			// handle if image has multiple rows/cols
 			if vehicleResource.ImageSheet != nil {
 				width = int(float64(width) / float64(vehicleResource.ImageSheet.Columns))
-				height = int(float64(width) / float64(vehicleResource.ImageSheet.Rows))
+				height = int(float64(height) / float64(vehicleResource.ImageSheet.Rows))
 			}
 
 			collisionRadius, collisionHeight := convertOffsetFromPx(
@@ -314,7 +314,7 @@ func (g *Game) loadMissionSprites() {
 			// handle if image has multiple rows/cols
 			if vtolResource.ImageSheet != nil {
 				width = int(float64(width) / float64(vtolResource.ImageSheet.Columns))
-				height = int(float64(width) / float64(vtolResource.ImageSheet.Rows))
+				height = int(float64(height) / float64(vtolResource.ImageSheet.Rows))
 			}
 
 			collisionRadius, collisionHeight := convertOffsetFromPx(
@@ -350,7 +350,7 @@ func (g *Game) loadMissionSprites() {
 			// handle if image has multiple rows/cols
 			if infantryResource.ImageSheet != nil {
 				width = int(float64(width) / float64(infantryResource.ImageSheet.Columns))
-				height = int(float64(width) / float64(infantryResource.ImageSheet.Rows))
+				height = int(float64(height) / float64(infantryResource.ImageSheet.Rows))
 			}
 
 			collisionRadius, collisionHeight := convertOffsetFromPx(
