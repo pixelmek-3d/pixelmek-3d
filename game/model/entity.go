@@ -9,6 +9,9 @@ import (
 )
 
 type Entity interface {
+	Name() string
+	Variant() string
+
 	Pos() *geom.Vector2
 	SetPos(*geom.Vector2)
 	PosZ() float64
@@ -38,6 +41,7 @@ type Entity interface {
 	MaxStructurePoints() float64
 
 	Armament() []Weapon
+	AddArmament(Weapon)
 
 	Clone() Entity
 	Parent() Entity
@@ -89,6 +93,16 @@ func (e *BasicEntity) Clone() Entity {
 	copier.Copy(eClone, e)
 	return eClone
 }
+
+func (e *BasicEntity) Name() string {
+	return "basic"
+}
+
+func (e *BasicEntity) Variant() string {
+	return "basic"
+}
+
+func (e *BasicEntity) AddArmament(Weapon) {}
 
 func (e *BasicEntity) Armament() []Weapon {
 	return nil

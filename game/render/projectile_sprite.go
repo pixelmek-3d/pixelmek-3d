@@ -65,11 +65,10 @@ func NewAnimatedProjectile(
 func (p *ProjectileSprite) Clone() *ProjectileSprite {
 	pClone := &ProjectileSprite{}
 	sClone := &Sprite{}
-	eClone := &model.Projectile{}
+	eClone := p.Entity.Clone()
 
 	copier.Copy(pClone, p)
 	copier.Copy(sClone, p.Sprite)
-	copier.Copy(eClone, p.Entity)
 
 	pClone.Sprite = sClone
 	pClone.Sprite.Entity = eClone

@@ -9,18 +9,19 @@ import (
 )
 
 type Infantry struct {
-	Resource                *ModelInfantryResource
-	position                *geom.Vector2
-	positionZ               float64
-	anchor                  raycaster.SpriteAnchor
-	angle                   float64
-	pitch                   float64
-	velocity                float64
-	collisionRadius         float64
-	collisionHeight         float64
-	armor, maxArmor         float64
-	structure, maxStructure float64
-	parent                  Entity
+	Resource        *ModelInfantryResource
+	position        *geom.Vector2
+	positionZ       float64
+	anchor          raycaster.SpriteAnchor
+	angle           float64
+	pitch           float64
+	velocity        float64
+	collisionRadius float64
+	collisionHeight float64
+	armor           float64
+	structure       float64
+	armament        []Weapon
+	parent          Entity
 }
 
 func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64) *Infantry {
@@ -30,9 +31,8 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		armor:           r.Armor,
-		maxArmor:        r.Armor,
 		structure:       r.Structure,
-		maxStructure:    r.Structure,
+		armament:        make([]Weapon, 0),
 	}
 	return m
 }
@@ -40,11 +40,30 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 func (e *Infantry) Clone() Entity {
 	eClone := &Infantry{}
 	copier.Copy(eClone, e)
+
+	// weapons needs to be cloned since copier does not handle them automatically
+	eClone.armament = make([]Weapon, 0, len(e.armament))
+	for _, weapon := range e.armament {
+		eClone.AddArmament(weapon.Clone())
+	}
+
 	return eClone
 }
 
+func (e *Infantry) Name() string {
+	return e.Resource.Name
+}
+
+func (e *Infantry) Variant() string {
+	return e.Resource.Variant
+}
+
+func (e *Infantry) AddArmament(w Weapon) {
+	e.armament = append(e.armament, w)
+}
+
 func (e *Infantry) Armament() []Weapon {
-	return nil
+	return e.armament
 }
 
 func (e *Infantry) Pos() *geom.Vector2 {
@@ -133,7 +152,7 @@ func (e *Infantry) SetArmorPoints(armor float64) {
 }
 
 func (e *Infantry) MaxArmorPoints() float64 {
-	return e.maxArmor
+	return e.Resource.Armor
 }
 
 func (e *Infantry) StructurePoints() float64 {
@@ -145,7 +164,7 @@ func (e *Infantry) SetStructurePoints(structure float64) {
 }
 
 func (e *Infantry) MaxStructurePoints() float64 {
-	return e.maxStructure
+	return e.Resource.Structure
 }
 
 func (e *Infantry) Parent() Entity {

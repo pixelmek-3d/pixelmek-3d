@@ -270,23 +270,12 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionVehicle := range g.mission.Vehicles {
 		if _, ok := vehicleSpriteTemplates[missionVehicle.Unit]; !ok {
+			modelVehicle := g.createModelVehicle(missionVehicle.Unit)
+
 			vehicleResource := g.resources.GetVehicleResource(missionVehicle.Unit)
-			vehicleRelPath := fmt.Sprintf("vehicles/%s", vehicleResource.Image)
+			vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
 			vehicleImg := getSpriteFromFile(vehicleRelPath)
 
-			// need to use the image size to find the unit collision conversion from pixels
-			width, height := vehicleImg.Size()
-			// handle if image has multiple rows/cols
-			if vehicleResource.ImageSheet != nil {
-				width = int(float64(width) / float64(vehicleResource.ImageSheet.Columns))
-				height = int(float64(height) / float64(vehicleResource.ImageSheet.Rows))
-			}
-
-			collisionRadius, collisionHeight := convertOffsetFromPx(
-				vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, vehicleResource.Scale,
-			)
-
-			modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight)
 			vehicleSpriteTemplates[missionVehicle.Unit] = render.NewVehicleSprite(modelVehicle, vehicleResource.Scale, vehicleImg)
 		}
 
@@ -305,23 +294,12 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionVTOL := range g.mission.VTOLs {
 		if _, ok := vtolSpriteTemplates[missionVTOL.Unit]; !ok {
+			modelVTOL := g.createModelVTOL(missionVTOL.Unit)
+
 			vtolResource := g.resources.GetVTOLResource(missionVTOL.Unit)
-			vtolRelPath := fmt.Sprintf("vtols/%s", vtolResource.Image)
+			vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
 			vtolImg := getSpriteFromFile(vtolRelPath)
 
-			// need to use the image size to find the unit collision conversion from pixels
-			width, height := vtolImg.Size()
-			// handle if image has multiple rows/cols
-			if vtolResource.ImageSheet != nil {
-				width = int(float64(width) / float64(vtolResource.ImageSheet.Columns))
-				height = int(float64(height) / float64(vtolResource.ImageSheet.Rows))
-			}
-
-			collisionRadius, collisionHeight := convertOffsetFromPx(
-				vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, vtolResource.Scale,
-			)
-
-			modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight)
 			vtolSpriteTemplates[missionVTOL.Unit] = render.NewVTOLSprite(modelVTOL, vtolResource.Scale, vtolImg)
 		}
 
@@ -341,23 +319,12 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionInfantry := range g.mission.Infantry {
 		if _, ok := infantrySpriteTemplates[missionInfantry.Unit]; !ok {
+			modelInfantry := g.createModelInfantry(missionInfantry.Unit)
+
 			infantryResource := g.resources.GetInfantryResource(missionInfantry.Unit)
-			infantryRelPath := fmt.Sprintf("infantry/%s", infantryResource.Image)
+			infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
 			infantryImg := getSpriteFromFile(infantryRelPath)
 
-			// need to use the image size to find the unit collision conversion from pixels
-			width, height := infantryImg.Size()
-			// handle if image has multiple rows/cols
-			if infantryResource.ImageSheet != nil {
-				width = int(float64(width) / float64(infantryResource.ImageSheet.Columns))
-				height = int(float64(height) / float64(infantryResource.ImageSheet.Rows))
-			}
-
-			collisionRadius, collisionHeight := convertOffsetFromPx(
-				infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, infantryResource.Scale,
-			)
-
-			modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight)
 			infantrySpriteTemplates[missionInfantry.Unit] = render.NewInfantrySprite(modelInfantry, infantryResource.Scale, infantryImg)
 		}
 
@@ -398,8 +365,83 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 	)
 
 	modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight)
+	g.loadUnitWeapons(modelMech, mechResource.Armament, width, height, mechResource.Scale)
 
-	for _, armament := range mechResource.Armament {
+	return modelMech
+}
+
+func (g *Game) createModelVehicle(unit string) *model.Vehicle {
+	vehicleResource := g.resources.GetVehicleResource(unit)
+	vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
+	vehicleImg := getSpriteFromFile(vehicleRelPath)
+
+	// need to use the image size to find the unit collision conversion from pixels
+	width, height := vehicleImg.Size()
+	// handle if image has multiple rows/cols
+	if vehicleResource.ImageSheet != nil {
+		width = int(float64(width) / float64(vehicleResource.ImageSheet.Columns))
+		height = int(float64(height) / float64(vehicleResource.ImageSheet.Rows))
+	}
+
+	collisionRadius, collisionHeight := convertOffsetFromPx(
+		vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, vehicleResource.Scale,
+	)
+
+	modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight)
+	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, vehicleResource.Scale)
+
+	return modelVehicle
+}
+
+func (g *Game) createModelVTOL(unit string) *model.VTOL {
+	vtolResource := g.resources.GetVTOLResource(unit)
+	vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
+	vtolImg := getSpriteFromFile(vtolRelPath)
+
+	// need to use the image size to find the unit collision conversion from pixels
+	width, height := vtolImg.Size()
+	// handle if image has multiple rows/cols
+	if vtolResource.ImageSheet != nil {
+		width = int(float64(width) / float64(vtolResource.ImageSheet.Columns))
+		height = int(float64(height) / float64(vtolResource.ImageSheet.Rows))
+	}
+
+	collisionRadius, collisionHeight := convertOffsetFromPx(
+		vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, vtolResource.Scale,
+	)
+
+	modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight)
+	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, vtolResource.Scale)
+
+	return modelVTOL
+}
+
+func (g *Game) createModelInfantry(unit string) *model.Infantry {
+	infantryResource := g.resources.GetInfantryResource(unit)
+	infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
+	infantryImg := getSpriteFromFile(infantryRelPath)
+
+	// need to use the image size to find the unit collision conversion from pixels
+	width, height := infantryImg.Size()
+	// handle if image has multiple rows/cols
+	if infantryResource.ImageSheet != nil {
+		width = int(float64(width) / float64(infantryResource.ImageSheet.Columns))
+		height = int(float64(height) / float64(infantryResource.ImageSheet.Rows))
+	}
+
+	collisionRadius, collisionHeight := convertOffsetFromPx(
+		infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, infantryResource.Scale,
+	)
+
+	modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight)
+	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, infantryResource.Scale)
+
+	return modelInfantry
+}
+
+func (g *Game) loadUnitWeapons(unit model.Entity, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
+
+	for _, armament := range armamentList {
 		var weapon model.Weapon
 		var projectile model.Projectile
 
@@ -407,12 +449,12 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		case model.ENERGY:
 			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s] weapon not found: energy/%s\n", unit, armament.Weapon)
+				fmt.Printf("[%s %s] weapon not found: energy/%s\n", unit.Name(), unit.Variant(), armament.Weapon)
 				continue
 			}
 
 			weaponOffX, weaponOffY := convertOffsetFromPx(
-				armament.Offset[0], armament.Offset[1], width, height, mechResource.Scale,
+				armament.Offset[0], armament.Offset[1], unitWidthPx, unitHeightPx, unitScale,
 			)
 			weaponOffset := &geom.Vector2{X: weaponOffX, Y: weaponOffY}
 
@@ -434,7 +476,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 			)
 
 			// create the weapon and projectile model
-			weapon, projectile = model.NewEnergyWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, modelMech)
+			weapon, projectile = model.NewEnergyWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, unit)
 
 			// create the projectile and effect sprite templates
 
@@ -460,12 +502,12 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		case model.MISSILE:
 			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s] weapon not found: missile/%s\n", unit, armament.Weapon)
+				fmt.Printf("[%s %s] weapon not found: missile/%s\n", unit.Name(), unit.Variant(), armament.Weapon)
 				continue
 			}
 
 			weaponOffX, weaponOffY := convertOffsetFromPx(
-				armament.Offset[0], armament.Offset[1], width, height, mechResource.Scale,
+				armament.Offset[0], armament.Offset[1], unitWidthPx, unitHeightPx, unitScale,
 			)
 			weaponOffset := &geom.Vector2{X: weaponOffX, Y: weaponOffY}
 
@@ -494,7 +536,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 
 			// create the weapon and projectile model
 			weapon, projectile = model.NewMissileWeapon(
-				weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, onePxOffset, modelMech,
+				weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, onePxOffset, unit,
 			)
 
 			// create the projectile and effect sprite templates
@@ -520,12 +562,12 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		case model.BALLISTIC:
 			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s] weapon not found: ballistic/%s\n", unit, armament.Weapon)
+				fmt.Printf("[%s %s] weapon not found: ballistic/%s\n", unit.Name(), unit.Variant(), armament.Weapon)
 				continue
 			}
 
 			weaponOffX, weaponOffY := convertOffsetFromPx(
-				armament.Offset[0], armament.Offset[1], width, height, mechResource.Scale,
+				armament.Offset[0], armament.Offset[1], unitWidthPx, unitHeightPx, unitScale,
 			)
 			weaponOffset := &geom.Vector2{X: weaponOffX, Y: weaponOffY}
 
@@ -547,7 +589,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 			)
 
 			// create the weapon and projectile model
-			weapon, projectile = model.NewBallisticWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, modelMech)
+			weapon, projectile = model.NewBallisticWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, unit)
 
 			// create the projectile and effect sprite templates
 
@@ -569,15 +611,12 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
 			)
 			setProjectileSpriteForWeapon(weapon, pSprite)
-
 		}
 
 		if weapon != nil {
-			modelMech.AddArmament(weapon)
+			unit.AddArmament(weapon)
 		}
 	}
-
-	return modelMech
 }
 
 func projectileSpriteForWeapon(w model.Weapon) *render.ProjectileSprite {

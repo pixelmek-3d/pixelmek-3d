@@ -20,3 +20,8 @@ structure: 1
 collisionRadius: 6
 collisionHeight: 24
 scale: 0.085
+armament:
+- weapon: "cl_machine_gun.yaml"
+  type: ballistic
+  location: ra
+  offset: [-5, 12]

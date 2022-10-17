@@ -84,6 +84,10 @@ const (
 	RIGHT_ARM
 	LEFT_LEG
 	RIGHT_LEG
+	FRONT
+	RIGHT
+	LEFT
+	TURRET
 )
 
 type ModelLocation struct {
@@ -121,6 +125,8 @@ type ModelVehicleResource struct {
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
 	Scale             float64                  `yaml:"scale" validate:"gt=0"`
+	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
+	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
 
 type ModelVTOLResource struct {
@@ -136,6 +142,8 @@ type ModelVTOLResource struct {
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
 	Scale             float64                  `yaml:"scale" validate:"gt=0"`
+	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
+	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
 
 type ModelInfantryResource struct {
@@ -151,6 +159,7 @@ type ModelInfantryResource struct {
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
 	Scale             float64                  `yaml:"scale" validate:"gt=0"`
+	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
 
 type ModelEnergyWeaponResource struct {
@@ -299,6 +308,7 @@ func (t *ModelLocation) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
 
 	hd, ct, lt, rt, la, ra, ll, rl := "hd", "ct", "lt", "rt", "la", "ra", "ll", "rl"
+	front, left, right, turret := "front", "left", "right", "turret"
 
 	switch str {
 	case hd:
@@ -317,6 +327,14 @@ func (t *ModelLocation) UnmarshalText(b []byte) error {
 		t.Location = LEFT_LEG
 	case rl:
 		t.Location = RIGHT_LEG
+	case front:
+		t.Location = FRONT
+	case left:
+		t.Location = LEFT
+	case right:
+		t.Location = RIGHT
+	case turret:
+		t.Location = TURRET
 	default:
 		return fmt.Errorf("unknown location value '%s'", str)
 	}

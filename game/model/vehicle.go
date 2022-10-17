@@ -9,18 +9,21 @@ import (
 )
 
 type Vehicle struct {
-	Resource                *ModelVehicleResource
-	position                *geom.Vector2
-	positionZ               float64
-	anchor                  raycaster.SpriteAnchor
-	angle                   float64
-	pitch                   float64
-	velocity                float64
-	collisionRadius         float64
-	collisionHeight         float64
-	armor, maxArmor         float64
-	structure, maxStructure float64
-	parent                  Entity
+	Resource        *ModelVehicleResource
+	position        *geom.Vector2
+	positionZ       float64
+	anchor          raycaster.SpriteAnchor
+	angle           float64
+	pitch           float64
+	velocity        float64
+	collisionRadius float64
+	collisionHeight float64
+	armor           float64
+	structure       float64
+	heatSinks       int
+	heatSinkType    ModelHeatSinkType
+	armament        []Weapon
+	parent          Entity
 }
 
 func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float64) *Vehicle {
@@ -30,9 +33,10 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		armor:           r.Armor,
-		maxArmor:        r.Armor,
 		structure:       r.Structure,
-		maxStructure:    r.Structure,
+		heatSinks:       r.HeatSinks.Quantity,
+		heatSinkType:    r.HeatSinks.Type,
+		armament:        make([]Weapon, 0),
 	}
 	return m
 }
@@ -40,11 +44,30 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 func (e *Vehicle) Clone() Entity {
 	eClone := &Vehicle{}
 	copier.Copy(eClone, e)
+
+	// weapons needs to be cloned since copier does not handle them automatically
+	eClone.armament = make([]Weapon, 0, len(e.armament))
+	for _, weapon := range e.armament {
+		eClone.AddArmament(weapon.Clone())
+	}
+
 	return eClone
 }
 
+func (e *Vehicle) Name() string {
+	return e.Resource.Name
+}
+
+func (e *Vehicle) Variant() string {
+	return e.Resource.Variant
+}
+
+func (e *Vehicle) AddArmament(w Weapon) {
+	e.armament = append(e.armament, w)
+}
+
 func (e *Vehicle) Armament() []Weapon {
-	return nil
+	return e.armament
 }
 
 func (e *Vehicle) Pos() *geom.Vector2 {
@@ -133,7 +156,7 @@ func (e *Vehicle) SetArmorPoints(armor float64) {
 }
 
 func (e *Vehicle) MaxArmorPoints() float64 {
-	return e.maxArmor
+	return e.Resource.Armor
 }
 
 func (e *Vehicle) StructurePoints() float64 {
@@ -145,7 +168,7 @@ func (e *Vehicle) SetStructurePoints(structure float64) {
 }
 
 func (e *Vehicle) MaxStructurePoints() float64 {
-	return e.maxStructure
+	return e.Resource.Structure
 }
 
 func (e *Vehicle) Parent() Entity {

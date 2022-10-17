@@ -50,11 +50,10 @@ func NewVTOLSprite(
 func (v *VTOLSprite) Clone() *VTOLSprite {
 	vClone := &VTOLSprite{}
 	sClone := &Sprite{}
-	eClone := &model.VTOL{}
+	eClone := v.Entity.Clone()
 
 	copier.Copy(vClone, v)
 	copier.Copy(sClone, v.Sprite)
-	copier.Copy(eClone, v.Entity)
 
 	vClone.Sprite = sClone
 	vClone.Sprite.Entity = eClone

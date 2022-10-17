@@ -1,5 +1,6 @@
 ---
 # https://www.sarna.net/wiki/Donar
+# https://github.com/MegaMek/megamek/blob/master/megamek/data/mechfiles/vehicles/3060u/Donar%20Assault%20Helicopter.blk
 name: Donar Assault Helicopter
 variant: VTOL-Donar
 image: attack_chopper.png
@@ -17,8 +18,24 @@ imageSheet:
 tech: clan
 tonnage: 21
 speed: 151
-armor: 50
-structure: 25
+armor: 57
+structure: 15 # 10% of weight (rounded up) as points per location (VTOL have 5 locations): 3 * 5 = 15
 collisionRadius: 16
 collisionHeight: 26
 scale: 0.75
+heatSinks:
+  quantity: 10
+  type: double
+armament:
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: front
+  offset: [0, -8]
+- weapon: "cl_srm_2.yaml"
+  type: missile
+  location: front
+  offset: [-9, -6]
+- weapon: "cl_srm_2.yaml"
+  type: missile
+  location: front
+  offset: [9, -6]

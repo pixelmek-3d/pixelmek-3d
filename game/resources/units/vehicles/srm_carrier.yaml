@@ -1,5 +1,6 @@
 ---
 # https://www.sarna.net/wiki/SRM_Carrier
+# https://github.com/MegaMek/megamek/blob/master/megamek/data/mechfiles/vehicles/3058Uu/SRM%20Carrier%20(3054%20Upgrade).blk
 name: SRM Carrier
 variant: Carrier-SRM
 image: rocket_tank.png
@@ -15,8 +16,36 @@ imageSheet:
 tech: clan
 tonnage: 60
 speed: 54
-armor: 50
-structure: 50
+armor: 53
+structure: 30 # 10% of weight (rounded up) as points per location (vehicles have 5 locations, with turret): 6 * 5 = 30
 collisionRadius: 16
 collisionHeight: 48
 scale: 0.35
+heatSinks:
+  quantity: 10
+  type: double
+armament:
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: front
+  offset: [0, 46]
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: front
+  offset: [0, 40]
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: turret
+  offset: [-6, 43]
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: turret
+  offset: [6, 43]
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: right
+  offset: [-9, 40]
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: left
+  offset: [9, 40]

@@ -534,19 +534,19 @@ func (g *Game) fireTestWeaponAtPlayer() {
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
 				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.2
 				entity = s.Entity
 
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
 				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()
 				entity = s.Entity
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
 				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
 				entity = s.Entity
 			}
 
@@ -559,6 +559,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 			// TESTING: needed until turret heading is separated from heading angle so projectiles come from correct postion
 			entity.SetAngle(pHeading)
+			entity.SetPitch(pPitch)
 
 			for _, weapon := range entity.Armament() {
 				if weapon.Cooldown() > 0 {
@@ -750,6 +751,7 @@ func (g *Game) updateSprites() {
 
 				g.updateVehiclePosition(s)
 				s.Update(g.player.Pos())
+				g.updateWeaponCooldowns(s.Entity)
 
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
@@ -761,6 +763,7 @@ func (g *Game) updateSprites() {
 
 				g.updateVTOLPosition(s)
 				s.Update(g.player.Pos())
+				g.updateWeaponCooldowns(s.Entity)
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
@@ -771,6 +774,7 @@ func (g *Game) updateSprites() {
 
 				g.updateInfantryPosition(s)
 				s.Update(g.player.Pos())
+				g.updateWeaponCooldowns(s.Entity)
 			}
 
 			return true

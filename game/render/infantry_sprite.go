@@ -51,11 +51,10 @@ func NewInfantrySprite(
 func (t *InfantrySprite) Clone() *InfantrySprite {
 	tClone := &InfantrySprite{}
 	sClone := &Sprite{}
-	eClone := &model.Infantry{}
+	eClone := t.Entity.Clone()
 
 	copier.Copy(tClone, t)
 	copier.Copy(sClone, t.Sprite)
-	copier.Copy(eClone, t.Entity)
 
 	tClone.Sprite = sClone
 	tClone.Sprite.Entity = eClone

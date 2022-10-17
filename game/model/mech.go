@@ -54,6 +54,14 @@ func (e *Mech) Clone() Entity {
 	return eClone
 }
 
+func (e *Mech) Name() string {
+	return e.Resource.Name
+}
+
+func (e *Mech) Variant() string {
+	return e.Resource.Variant
+}
+
 func (e *Mech) AddArmament(w Weapon) {
 	e.armament = append(e.armament, w)
 }

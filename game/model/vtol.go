@@ -20,6 +20,9 @@ type VTOL struct {
 	collisionHeight float64
 	armor           float64
 	structure       float64
+	heatSinks       int
+	heatSinkType    ModelHeatSinkType
+	armament        []Weapon
 	parent          Entity
 }
 
@@ -31,6 +34,9 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64) *VT
 		collisionHeight: collisionHeight,
 		armor:           r.Armor,
 		structure:       r.Structure,
+		heatSinks:       r.HeatSinks.Quantity,
+		heatSinkType:    r.HeatSinks.Type,
+		armament:        make([]Weapon, 0),
 	}
 	return m
 }
@@ -38,11 +44,30 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64) *VT
 func (e *VTOL) Clone() Entity {
 	eClone := &VTOL{}
 	copier.Copy(eClone, e)
+
+	// weapons needs to be cloned since copier does not handle them automatically
+	eClone.armament = make([]Weapon, 0, len(e.armament))
+	for _, weapon := range e.armament {
+		eClone.AddArmament(weapon.Clone())
+	}
+
 	return eClone
 }
 
+func (e *VTOL) Name() string {
+	return e.Resource.Name
+}
+
+func (e *VTOL) Variant() string {
+	return e.Resource.Variant
+}
+
+func (e *VTOL) AddArmament(w Weapon) {
+	e.armament = append(e.armament, w)
+}
+
 func (e *VTOL) Armament() []Weapon {
-	return nil
+	return e.armament
 }
 
 func (e *VTOL) Pos() *geom.Vector2 {

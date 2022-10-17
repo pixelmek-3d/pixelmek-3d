@@ -15,9 +15,9 @@ mechs:
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 vehicles:
 - unit: "srm_carrier.yaml"
-  position: [13.5, 13.5]
+  position: [18, 22.5]
 - unit: "srm_carrier.yaml"
-  position: [15.5, 14]
+  position: [15, 22.5]
 vtols:
 - unit: "donar.yaml"
   position: [13, 15]

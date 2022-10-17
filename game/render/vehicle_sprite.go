@@ -51,11 +51,10 @@ func NewVehicleSprite(
 func (v *VehicleSprite) Clone() *VehicleSprite {
 	vClone := &VehicleSprite{}
 	sClone := &Sprite{}
-	eClone := &model.Vehicle{}
+	eClone := v.Entity.Clone()
 
 	copier.Copy(vClone, v)
 	copier.Copy(sClone, v.Sprite)
-	copier.Copy(eClone, v.Entity)
 
 	vClone.Sprite = sClone
 	vClone.Sprite.Entity = eClone
