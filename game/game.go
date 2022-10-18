@@ -669,9 +669,6 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 		newPos, isCollision, collisions := g.getValidMove(p.Entity, xCheck, yCheck, zCheck, false)
 		if isCollision || p.PosZ() <= 0 {
-			// for testing purposes, projectiles instantly get deleted when collision occurs
-			p.ZeroLifespan()
-
 			var collisionEntity *EntityCollision
 			if len(collisions) > 0 {
 				// apply damage to the first sprite entity that was hit
@@ -691,6 +688,9 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 					fmt.Printf("[%0.2f%s] hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
 				}
 			}
+
+            // destroy projectile after applying damage so it can calculate dropoff if needed
+			p.Destroy()
 
 			// make a sprite/wall getting hit by projectile cause some visual effect
 			if p.ImpactEffect.Sprite != nil {

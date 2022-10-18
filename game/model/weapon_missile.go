@@ -49,7 +49,7 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
 
 	// convert distance and velocity to number of ticks for lifespan
-	pLifespan := w.distance * (1 / w.velocity) * TICKS_PER_SECOND
+	pLifespan := 2 * w.distance * (1 / w.velocity) * TICKS_PER_SECOND
 
 	pDamage := w.damage
 	if w.ProjectileCount() > 1 {

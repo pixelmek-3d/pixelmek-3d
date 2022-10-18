@@ -88,8 +88,8 @@ func (p *ProjectileSprite) DecreaseLifespan(decreaseBy float64) float64 {
 	return p.Entity.(*model.Projectile).DecreaseLifespan(decreaseBy)
 }
 
-func (p *ProjectileSprite) ZeroLifespan() {
-	p.Entity.(*model.Projectile).ZeroLifespan()
+func (p *ProjectileSprite) Destroy() {
+	p.Entity.(*model.Projectile).Destroy()
 }
 
 func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSprite {

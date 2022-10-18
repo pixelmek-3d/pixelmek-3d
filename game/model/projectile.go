@@ -17,6 +17,7 @@ type Projectile struct {
 	collisionRadius float64
 	collisionHeight float64
 	lifespan        float64
+	lifespanDropoff float64
 	damage          float64
 	parent          Entity
 }
@@ -30,6 +31,7 @@ func NewProjectile(r *ModelProjectileResource, damage, velocity, lifespan, colli
 		damage:          damage,
 		velocity:        velocity,
 		lifespan:        lifespan,
+		lifespanDropoff: lifespan / 2,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		parent:          parent,
@@ -58,7 +60,17 @@ func (e *Projectile) Armament() []Weapon {
 }
 
 func (e *Projectile) Damage() float64 {
-	return e.damage
+	actualDamage := e.damage
+	if e.lifespan >= 0 && e.lifespan < e.lifespanDropoff {
+		// linear damage dropoff based on lifespan/lifespanDropoff
+		actualDamage = (e.lifespan / e.lifespanDropoff) * actualDamage
+
+		if actualDamage < 0 {
+			actualDamage = 0
+		}
+	}
+
+	return actualDamage
 }
 
 func (e *Projectile) Lifespan() float64 {
@@ -68,12 +80,17 @@ func (e *Projectile) Lifespan() float64 {
 func (e *Projectile) DecreaseLifespan(decreaseBy float64) float64 {
 	if e.lifespan > 0 && decreaseBy > 0 {
 		e.lifespan -= decreaseBy
+
+		if e.lifespan < 0 {
+			e.lifespan = 0
+		}
 	}
+
 	return e.lifespan
 }
 
-func (e *Projectile) ZeroLifespan() {
-	e.lifespan = 0
+func (e *Projectile) Destroy() {
+	e.lifespan = -1
 }
 
 func (e *Projectile) Pos() *geom.Vector2 {
