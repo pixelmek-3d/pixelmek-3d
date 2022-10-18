@@ -233,10 +233,10 @@ func (g *Game) loadContent() {
 
 // loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
-	mechSpriteTemplates := make(map[string]*render.MechSprite, len(g.mission.Mechs))
-	vehicleSpriteTemplates := make(map[string]*render.VehicleSprite, len(g.mission.Vehicles))
-	vtolSpriteTemplates := make(map[string]*render.VTOLSprite, len(g.mission.VTOLs))
-	infantrySpriteTemplates := make(map[string]*render.InfantrySprite, len(g.mission.Infantry))
+	mechSpriteTemplates := g.sprites.mechSpriteTemplates
+	vehicleSpriteTemplates := g.sprites.vehicleSpriteTemplates
+	vtolSpriteTemplates := g.sprites.vtolSpriteTemplates
+	infantrySpriteTemplates := g.sprites.infantrySpriteTemplates
 
 	for _, missionMech := range g.mission.Mechs {
 		if _, ok := mechSpriteTemplates[missionMech.Unit]; !ok {
@@ -440,6 +440,7 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 }
 
 func (g *Game) loadUnitWeapons(unit model.Entity, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
+	projectileSpriteTemplates := g.sprites.projectileSpriteTemplates
 
 	for _, armament := range armamentList {
 		var weapon model.Weapon
@@ -449,7 +450,7 @@ func (g *Game) loadUnitWeapons(unit model.Entity, armamentList []*model.ModelRes
 		case model.ENERGY:
 			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s %s] weapon not found: energy/%s\n", unit.Name(), unit.Variant(), armament.Weapon)
+				fmt.Printf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.EnergyResourceType, armament.Weapon)
 				continue
 			}
 
@@ -478,31 +479,36 @@ func (g *Game) loadUnitWeapons(unit model.Entity, armamentList []*model.ModelRes
 			// create the weapon and projectile model
 			weapon, projectile = model.NewEnergyWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, unit)
 
-			// create the projectile and effect sprite templates
+			pTemplateKey := model.EnergyResourceType + "_" + armament.Weapon
+			if _, ok := projectileSpriteTemplates[pTemplateKey]; !ok {
+				// create the projectile and effect sprite templates
+				eResource := weaponResource.Projectile.ImpactEffect
+				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
+				effectImg := getSpriteFromFile(effectRelPath)
+				eColumns, eRows, eAnimationRate := 1, 1, 1
+				if eResource.ImageSheet != nil {
+					eColumns = eResource.ImageSheet.Columns
+					eRows = eResource.ImageSheet.Rows
+					eAnimationRate = eResource.ImageSheet.AnimationRate
+				}
 
-			eResource := weaponResource.Projectile.ImpactEffect
-			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
-			effectImg := getSpriteFromFile(effectRelPath)
-			eColumns, eRows, eAnimationRate := 1, 1, 1
-			if eResource.ImageSheet != nil {
-				eColumns = eResource.ImageSheet.Columns
-				eRows = eResource.ImageSheet.Rows
-				eAnimationRate = eResource.ImageSheet.AnimationRate
+				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+				pSpriteTemplate := render.NewAnimatedProjectile(
+					&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSpriteTemplate,
+				)
+
+				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
 			}
 
-			// TODO: check for existing resource first
-			eSprite := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+			pSpriteTemplate := projectileSpriteTemplates[pTemplateKey]
+			pSprite := pSpriteTemplate.Clone()
 
-			// TODO: check for existing resource first
-			pSprite := render.NewAnimatedProjectile(
-				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
-			)
 			setProjectileSpriteForWeapon(weapon, pSprite)
 
 		case model.MISSILE:
 			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s %s] weapon not found: missile/%s\n", unit.Name(), unit.Variant(), armament.Weapon)
+				fmt.Printf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.MissileResourceType, armament.Weapon)
 				continue
 			}
 
@@ -539,30 +545,36 @@ func (g *Game) loadUnitWeapons(unit model.Entity, armamentList []*model.ModelRes
 				weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, onePxOffset, unit,
 			)
 
-			// create the projectile and effect sprite templates
-			eResource := weaponResource.Projectile.ImpactEffect
-			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
-			effectImg := getSpriteFromFile(effectRelPath)
-			eColumns, eRows, eAnimationRate := 1, 1, 1
-			if eResource.ImageSheet != nil {
-				eColumns = eResource.ImageSheet.Columns
-				eRows = eResource.ImageSheet.Rows
-				eAnimationRate = eResource.ImageSheet.AnimationRate
+			pTemplateKey := model.MissileResourceType + "_" + armament.Weapon
+			if _, ok := projectileSpriteTemplates[pTemplateKey]; !ok {
+				// create the projectile and effect sprite templates
+				eResource := weaponResource.Projectile.ImpactEffect
+				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
+				effectImg := getSpriteFromFile(effectRelPath)
+				eColumns, eRows, eAnimationRate := 1, 1, 1
+				if eResource.ImageSheet != nil {
+					eColumns = eResource.ImageSheet.Columns
+					eRows = eResource.ImageSheet.Rows
+					eAnimationRate = eResource.ImageSheet.AnimationRate
+				}
+
+				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+				pSpriteTemplate := render.NewAnimatedProjectile(
+					&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSpriteTemplate,
+				)
+
+				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
 			}
 
-			// TODO: check for existing resource first
-			eSprite := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+			pSpriteTemplate := projectileSpriteTemplates[pTemplateKey]
+			pSprite := pSpriteTemplate.Clone()
 
-			// TODO: check for existing resource first
-			pSprite := render.NewAnimatedProjectile(
-				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
-			)
 			setProjectileSpriteForWeapon(weapon, pSprite)
 
 		case model.BALLISTIC:
 			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s %s] weapon not found: ballistic/%s\n", unit.Name(), unit.Variant(), armament.Weapon)
+				fmt.Printf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.BallisticResourceType, armament.Weapon)
 				continue
 			}
 
@@ -591,25 +603,30 @@ func (g *Game) loadUnitWeapons(unit model.Entity, armamentList []*model.ModelRes
 			// create the weapon and projectile model
 			weapon, projectile = model.NewBallisticWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, unit)
 
-			// create the projectile and effect sprite templates
+			pTemplateKey := model.BallisticResourceType + "_" + armament.Weapon
+			if _, ok := projectileSpriteTemplates[pTemplateKey]; !ok {
+				// create the projectile and effect sprite templates
+				eResource := weaponResource.Projectile.ImpactEffect
+				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
+				effectImg := getSpriteFromFile(effectRelPath)
+				eColumns, eRows, eAnimationRate := 1, 1, 1
+				if eResource.ImageSheet != nil {
+					eColumns = eResource.ImageSheet.Columns
+					eRows = eResource.ImageSheet.Rows
+					eAnimationRate = eResource.ImageSheet.AnimationRate
+				}
 
-			eResource := weaponResource.Projectile.ImpactEffect
-			effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
-			effectImg := getSpriteFromFile(effectRelPath)
-			eColumns, eRows, eAnimationRate := 1, 1, 1
-			if eResource.ImageSheet != nil {
-				eColumns = eResource.ImageSheet.Columns
-				eRows = eResource.ImageSheet.Rows
-				eAnimationRate = eResource.ImageSheet.AnimationRate
+				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+				pSpriteTemplate := render.NewAnimatedProjectile(
+					&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSpriteTemplate,
+				)
+
+				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
 			}
 
-			// TODO: check for existing resource first
-			eSprite := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+			pSpriteTemplate := projectileSpriteTemplates[pTemplateKey]
+			pSprite := pSpriteTemplate.Clone()
 
-			// TODO: check for existing resource first
-			pSprite := render.NewAnimatedProjectile(
-				&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSprite,
-			)
 			setProjectileSpriteForWeapon(weapon, pSprite)
 		}
 

@@ -13,6 +13,12 @@ import (
 
 type SpriteHandler struct {
 	sprites map[SpriteType]*sync.Map
+
+	mechSpriteTemplates       map[string]*render.MechSprite
+	vehicleSpriteTemplates    map[string]*render.VehicleSprite
+	vtolSpriteTemplates       map[string]*render.VTOLSprite
+	infantrySpriteTemplates   map[string]*render.InfantrySprite
+	projectileSpriteTemplates map[string]*render.ProjectileSprite
 }
 
 type SpriteType int
@@ -30,7 +36,12 @@ const (
 
 func NewSpriteHandler() *SpriteHandler {
 	s := &SpriteHandler{
-		sprites: make(map[SpriteType]*sync.Map, TotalSpriteTypes),
+		sprites:                   make(map[SpriteType]*sync.Map, TotalSpriteTypes),
+		mechSpriteTemplates:       make(map[string]*render.MechSprite),
+		vehicleSpriteTemplates:    make(map[string]*render.VehicleSprite),
+		vtolSpriteTemplates:       make(map[string]*render.VTOLSprite),
+		infantrySpriteTemplates:   make(map[string]*render.InfantrySprite),
+		projectileSpriteTemplates: make(map[string]*render.ProjectileSprite),
 	}
 	s.sprites[MechSpriteType] = &sync.Map{}
 	s.sprites[VehicleSpriteType] = &sync.Map{}
