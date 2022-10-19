@@ -17,21 +17,26 @@ type Projectile struct {
 	collisionRadius float64
 	collisionHeight float64
 	lifespan        float64
-	lifespanDropoff float64
+	extremeLifespan float64
+	inExtremeRange  bool
 	damage          float64
 	parent          Entity
 }
 
 const projectileHitPointsIgnored float64 = 0.12345
 
-func NewProjectile(r *ModelProjectileResource, damage, velocity, lifespan, collisionRadius, collisionHeight float64, parent Entity) *Projectile {
+func NewProjectile(
+	r *ModelProjectileResource, damage, velocity, optimalLifespan, extremeLifespan,
+	collisionRadius, collisionHeight float64, parent Entity,
+) *Projectile {
 	p := &Projectile{
 		Resource:        r,
 		anchor:          raycaster.AnchorCenter,
 		damage:          damage,
 		velocity:        velocity,
-		lifespan:        lifespan,
-		lifespanDropoff: lifespan / 2,
+		lifespan:        optimalLifespan,
+		extremeLifespan: extremeLifespan,
+		inExtremeRange:  false,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
 		parent:          parent,
@@ -61,9 +66,9 @@ func (e *Projectile) Armament() []Weapon {
 
 func (e *Projectile) Damage() float64 {
 	actualDamage := e.damage
-	if e.lifespan >= 0 && e.lifespan < e.lifespanDropoff {
-		// linear damage dropoff based on lifespan/lifespanDropoff
-		actualDamage = (e.lifespan / e.lifespanDropoff) * actualDamage
+	if e.inExtremeRange && e.lifespan >= 0 {
+		// linear damage dropoff based on lifespan/extremeLifespan
+		actualDamage = (e.lifespan / e.extremeLifespan) * actualDamage
 
 		if actualDamage < 0 {
 			actualDamage = 0
@@ -80,6 +85,12 @@ func (e *Projectile) Lifespan() float64 {
 func (e *Projectile) DecreaseLifespan(decreaseBy float64) float64 {
 	if e.lifespan > 0 && decreaseBy > 0 {
 		e.lifespan -= decreaseBy
+
+		if e.lifespan <= 0 && e.extremeLifespan > 0 && !e.inExtremeRange {
+			// enter extended range mode
+			e.lifespan += e.extremeLifespan
+			e.inExtremeRange = true
+		}
 
 		if e.lifespan < 0 {
 			e.lifespan = 0

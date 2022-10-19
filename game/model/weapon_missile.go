@@ -9,19 +9,20 @@ import (
 )
 
 type MissileWeapon struct {
-	Resource   *ModelMissileWeaponResource
-	name       string
-	short      string
-	tech       TechBase
-	tonnage    float64
-	damage     float64
-	heat       float64
-	distance   float64
-	velocity   float64
-	cooldown   float64
-	offset     *geom.Vector2
-	projectile Projectile
-	parent     Entity
+	Resource        *ModelMissileWeaponResource
+	name            string
+	short           string
+	tech            TechBase
+	tonnage         float64
+	damage          float64
+	heat            float64
+	distance        float64
+	extremeDistance float64
+	velocity        float64
+	cooldown        float64
+	offset          *geom.Vector2
+	projectile      Projectile
+	parent          Entity
 
 	missileTube       int
 	missileTubeOffset []*geom.Vector2
@@ -37,6 +38,7 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 		damage:            r.Damage,
 		heat:              r.Heat,
 		distance:          r.Distance,
+		extremeDistance:   r.ExtremeDistance,
 		velocity:          r.Velocity,
 		cooldown:          0,
 		offset:            offset,
@@ -57,10 +59,15 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 		pDamage /= float64(w.ProjectileCount())
 	}
 
+	if w.extremeDistance == 0 {
+		w.extremeDistance = 2 * w.distance
+	}
+	pExtreme := w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND
+
 	// based on the number of tubes, create offsets for each missile so they spawn from slightly different positions
 	w.loadMissileTubes(onePxOffset)
 
-	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, collisionRadius, collisionHeight, parent)
+	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight, parent)
 	w.projectile = p
 	return w, p
 }

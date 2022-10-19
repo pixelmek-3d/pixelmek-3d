@@ -632,7 +632,6 @@ func (g *Game) updateProjectiles() {
 		p := k.(*render.ProjectileSprite)
 		p.DecreaseLifespan(1)
 		if p.Lifespan() <= 0 {
-			// TODO: have projectiles fade out slowly, maybe do less damage at extreme range?
 			g.sprites.deleteProjectile(p)
 			return true
 		}
@@ -689,7 +688,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				}
 			}
 
-            // destroy projectile after applying damage so it can calculate dropoff if needed
+			// destroy projectile after applying damage so it can calculate dropoff if needed
 			p.Destroy()
 
 			// make a sprite/wall getting hit by projectile cause some visual effect

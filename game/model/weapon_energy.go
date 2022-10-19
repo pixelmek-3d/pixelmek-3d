@@ -7,42 +7,49 @@ import (
 )
 
 type EnergyWeapon struct {
-	Resource   *ModelEnergyWeaponResource
-	name       string
-	short      string
-	tech       TechBase
-	tonnage    float64
-	damage     float64
-	heat       float64
-	distance   float64
-	velocity   float64
-	cooldown   float64
-	offset     *geom.Vector2
-	projectile Projectile
-	parent     Entity
+	Resource        *ModelEnergyWeaponResource
+	name            string
+	short           string
+	tech            TechBase
+	tonnage         float64
+	damage          float64
+	heat            float64
+	distance        float64
+	extremeDistance float64
+	velocity        float64
+	cooldown        float64
+	offset          *geom.Vector2
+	projectile      Projectile
+	parent          Entity
 }
 
 func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) (*EnergyWeapon, Projectile) {
 	w := &EnergyWeapon{
-		Resource: r,
-		name:     r.Name,
-		short:    r.ShortName,
-		tech:     r.Tech.TechBase,
-		tonnage:  r.Tonnage,
-		damage:   r.Damage,
-		heat:     r.Heat,
-		distance: r.Distance,
-		velocity: r.Velocity,
-		cooldown: 0,
-		offset:   offset,
-		parent:   parent,
+		Resource:        r,
+		name:            r.Name,
+		short:           r.ShortName,
+		tech:            r.Tech.TechBase,
+		tonnage:         r.Tonnage,
+		damage:          r.Damage,
+		heat:            r.Heat,
+		distance:        r.Distance,
+		extremeDistance: r.ExtremeDistance,
+		velocity:        r.Velocity,
+		cooldown:        0,
+		offset:          offset,
+		parent:          parent,
 	}
 
 	// convert velocity from meters/second to unit distance per tick
 	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
 
 	// convert distance and velocity to number of ticks for lifespan
-	pLifespan := 2 * w.distance * (1 / w.velocity) * TICKS_PER_SECOND
+	pLifespan := w.distance * (1 / w.velocity) * TICKS_PER_SECOND
+
+	if w.extremeDistance == 0 {
+		w.extremeDistance = 2 * w.distance
+	}
+	pExtreme := w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND
 
 	pDamage := w.damage
 	if w.ProjectileCount() > 1 {
@@ -50,7 +57,7 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 		pDamage /= float64(w.ProjectileCount())
 	}
 
-	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, collisionRadius, collisionHeight, parent)
+	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight, parent)
 	w.projectile = p
 	return w, p
 }

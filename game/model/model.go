@@ -170,6 +170,7 @@ type ModelEnergyWeaponResource struct {
 	Damage          float64                  `yaml:"damage" validate:"gt=0"`
 	Heat            float64                  `yaml:"heat" validate:"gte=0"`
 	Distance        float64                  `yaml:"distance" validate:"gt=0"`
+	ExtremeDistance float64                  `yaml:"extremeDistance" validate:"gte=0"`
 	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
 	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
 	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
@@ -185,6 +186,7 @@ type ModelMissileWeaponResource struct {
 	Damage          float64                  `yaml:"damage" validate:"gt=0"`
 	Heat            float64                  `yaml:"heat" validate:"gte=0"`
 	Distance        float64                  `yaml:"distance" validate:"gt=0"`
+	ExtremeDistance float64                  `yaml:"extremeDistance" validate:"gte=0"`
 	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
 	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
 	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
@@ -200,6 +202,7 @@ type ModelBallisticWeaponResource struct {
 	Damage          float64                  `yaml:"damage" validate:"gt=0"`
 	Heat            float64                  `yaml:"heat" validate:"gte=0"`
 	Distance        float64                  `yaml:"distance" validate:"gt=0"`
+	ExtremeDistance float64                  `yaml:"extremeDistance" validate:"gte=0"`
 	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
 	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
 	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
