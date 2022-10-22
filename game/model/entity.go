@@ -32,6 +32,8 @@ type Entity interface {
 	CollisionHeight() float64
 	SetCollisionHeight(float64)
 
+	CockpitOffset() *geom.Vector2
+
 	ApplyDamage(float64)
 	ArmorPoints() float64
 	SetArmorPoints(float64)
@@ -170,6 +172,10 @@ func (e *BasicEntity) CollisionHeight() float64 {
 
 func (e *BasicEntity) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
+}
+
+func (e *BasicEntity) CockpitOffset() *geom.Vector2 {
+	return &geom.Vector2{}
 }
 
 func (e *BasicEntity) ApplyDamage(damage float64) {

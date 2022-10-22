@@ -425,30 +425,6 @@ func (g *Game) Pitch(pSpeed float64) {
 	g.player.Moved = true
 }
 
-func (g *Game) Stand() {
-	g.player.CameraZ = 0.5
-	g.player.Moved = true
-}
-
-func (g *Game) IsStanding() bool {
-	return g.player.CameraZ == 0.5
-}
-
-func (g *Game) Jump() {
-	g.player.CameraZ = 0.9
-	g.player.Moved = true
-}
-
-func (g *Game) Crouch() {
-	g.player.CameraZ = 0.3
-	g.player.Moved = true
-}
-
-func (g *Game) Prone() {
-	g.player.CameraZ = 0.1
-	g.player.Moved = true
-}
-
 // Update camera to match player position and orientation
 func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	if !g.player.Moved && !forceUpdate {

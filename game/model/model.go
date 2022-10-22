@@ -108,7 +108,7 @@ type ModelMechResource struct {
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	CockpitOffset     [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
@@ -127,6 +127,7 @@ type ModelVehicleResource struct {
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
@@ -145,6 +146,7 @@ type ModelVTOLResource struct {
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
@@ -163,6 +165,7 @@ type ModelInfantryResource struct {
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
 

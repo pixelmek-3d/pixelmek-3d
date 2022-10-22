@@ -166,16 +166,6 @@ func (g *Game) handleInput() {
 		backward = true
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyC) {
-		g.Crouch()
-	} else if ebiten.IsKeyPressed(ebiten.KeyZ) {
-		g.Prone()
-	} else if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		g.Jump()
-	} else if !g.IsStanding() {
-		g.Stand()
-	}
-
 	if forward {
 		g.Move(0.06 * moveModifier)
 	} else if backward {

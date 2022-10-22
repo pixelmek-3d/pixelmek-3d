@@ -369,7 +369,10 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 		mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, scale,
 	)
 
-	modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight)
+	cockpitPxX, cockpitPxY := mechResource.CockpitPxOffset[0], mechResource.CockpitPxOffset[1]
+	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelMech, mechResource.Armament, width, height, scale)
 
 	return modelMech

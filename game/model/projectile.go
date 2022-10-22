@@ -168,6 +168,10 @@ func (e *Projectile) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
+func (e *Projectile) CockpitOffset() *geom.Vector2 {
+	return &geom.Vector2{}
+}
+
 func (e *Projectile) ApplyDamage(damage float64) {
 	// projectileHitPointsIgnored
 }

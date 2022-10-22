@@ -22,7 +22,7 @@ type Player struct {
 func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {
 	p := &Player{
 		Entity:   unit,
-		CameraZ:  0.5,
+		CameraZ:  unit.CockpitOffset().Y, // TODO: support cockpit offset in sprite X direction
 		Moved:    false,
 		MapColor: color.RGBA{255, 0, 0, 255},
 	}

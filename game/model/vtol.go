@@ -134,6 +134,10 @@ func (e *VTOL) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
+func (e *VTOL) CockpitOffset() *geom.Vector2 {
+	return &geom.Vector2{}
+}
+
 func (e *VTOL) ApplyDamage(damage float64) {
 	if e.armor > 0 {
 		e.armor -= damage

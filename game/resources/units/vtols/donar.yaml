@@ -24,6 +24,7 @@ armor: 57
 structure: 15 # 10% of weight (rounded up) as points per location (VTOL have 5 locations): 3 * 5 = 15
 collisionRadius: 16
 collisionHeight: 26
+cockpitOffset: [0, -2]
 heatSinks:
   quantity: 10
   type: double

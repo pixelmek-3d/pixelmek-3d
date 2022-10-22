@@ -18,6 +18,7 @@ type Mech struct {
 	velocity        float64
 	collisionRadius float64
 	collisionHeight float64
+	cockpitOffset   *geom.Vector2
 	armor           float64
 	structure       float64
 	heatSinks       int
@@ -26,12 +27,13 @@ type Mech struct {
 	parent          Entity
 }
 
-func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64) *Mech {
+func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Mech {
 	m := &Mech{
 		Resource:        r,
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
+		cockpitOffset:   cockpitOffset,
 		armor:           r.Armor,
 		structure:       r.Structure,
 		heatSinks:       r.HeatSinks.Quantity,
@@ -132,6 +134,10 @@ func (e *Mech) CollisionHeight() float64 {
 
 func (e *Mech) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
+}
+
+func (e *Mech) CockpitOffset() *geom.Vector2 {
+	return e.cockpitOffset
 }
 
 func (e *Mech) ApplyDamage(damage float64) {

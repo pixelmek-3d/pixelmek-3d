@@ -130,6 +130,10 @@ func (e *Infantry) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
+func (e *Infantry) CockpitOffset() *geom.Vector2 {
+	return &geom.Vector2{}
+}
+
 func (e *Infantry) ApplyDamage(damage float64) {
 	if e.armor > 0 {
 		e.armor -= damage
