@@ -18,6 +18,7 @@ type VTOL struct {
 	velocity        float64
 	collisionRadius float64
 	collisionHeight float64
+	cockpitOffset   *geom.Vector2
 	armor           float64
 	structure       float64
 	heatSinks       int
@@ -26,12 +27,13 @@ type VTOL struct {
 	parent          Entity
 }
 
-func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64) *VTOL {
+func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *VTOL {
 	m := &VTOL{
 		Resource:        r,
 		anchor:          raycaster.AnchorCenter,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
+		cockpitOffset:   cockpitOffset,
 		armor:           r.Armor,
 		structure:       r.Structure,
 		heatSinks:       r.HeatSinks.Quantity,
@@ -135,7 +137,7 @@ func (e *VTOL) SetCollisionHeight(collisionHeight float64) {
 }
 
 func (e *VTOL) CockpitOffset() *geom.Vector2 {
-	return &geom.Vector2{}
+	return e.cockpitOffset
 }
 
 func (e *VTOL) ApplyDamage(damage float64) {

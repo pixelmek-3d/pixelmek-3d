@@ -18,18 +18,20 @@ type Infantry struct {
 	velocity        float64
 	collisionRadius float64
 	collisionHeight float64
+	cockpitOffset   *geom.Vector2
 	armor           float64
 	structure       float64
 	armament        []Weapon
 	parent          Entity
 }
 
-func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64) *Infantry {
+func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Infantry {
 	m := &Infantry{
 		Resource:        r,
 		anchor:          raycaster.AnchorBottom,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
+		cockpitOffset:   cockpitOffset,
 		armor:           r.Armor,
 		structure:       r.Structure,
 		armament:        make([]Weapon, 0),
@@ -131,7 +133,7 @@ func (e *Infantry) SetCollisionHeight(collisionHeight float64) {
 }
 
 func (e *Infantry) CockpitOffset() *geom.Vector2 {
-	return &geom.Vector2{}
+	return e.cockpitOffset
 }
 
 func (e *Infantry) ApplyDamage(damage float64) {

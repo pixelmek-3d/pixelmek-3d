@@ -396,7 +396,10 @@ func (g *Game) createModelVehicle(unit string) *model.Vehicle {
 		vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, scale,
 	)
 
-	modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight)
+	cockpitPxX, cockpitPxY := vehicleResource.CockpitPxOffset[0], vehicleResource.CockpitPxOffset[1]
+	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, scale)
 
 	return modelVehicle
@@ -420,7 +423,10 @@ func (g *Game) createModelVTOL(unit string) *model.VTOL {
 		vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, scale,
 	)
 
-	modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight)
+	cockpitPxX, cockpitPxY := vtolResource.CockpitPxOffset[0], vtolResource.CockpitPxOffset[1]
+	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, scale)
 
 	return modelVTOL
@@ -444,7 +450,10 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 		infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, scale,
 	)
 
-	modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight)
+	cockpitPxX, cockpitPxY := infantryResource.CockpitPxOffset[0], infantryResource.CockpitPxOffset[1]
+	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, scale)
 
 	return modelInfantry
