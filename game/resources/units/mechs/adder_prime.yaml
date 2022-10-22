@@ -1,0 +1,28 @@
+---
+# https://www.sarna.net/wiki/Adder_(Puma)
+name: Adder
+variant: ADR-Prime
+image: adder.png
+tech: clan
+tonnage: 35
+height: 10
+heightRatio: 1.077
+speed: 97
+jumpJets: 0
+armor: 114
+structure: 58
+collisionRadius: 19
+collisionHeight: 39
+cockpitOffset: [0, 34]
+heatSinks:
+  quantity: 10
+  type: double
+armament:
+- weapon: "cl_er_ppc.yaml"
+  type: energy
+  location: la
+  offset: [17, 24]
+- weapon: "cl_er_ppc.yaml"
+  type: energy
+  location: ra
+  offset: [-17, 24]

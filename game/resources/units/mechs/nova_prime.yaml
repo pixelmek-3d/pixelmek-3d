@@ -1,0 +1,68 @@
+---
+# https://www.sarna.net/wiki/Nova_(Black_Hawk)
+name: Nova
+variant: NVA-Prime
+image: nova.png
+tech: clan
+tonnage: 50
+height: 12
+heightRatio: 1.06
+speed: 86
+jumpJets: 5
+armor: 160
+structure: 83
+collisionRadius: 27
+collisionHeight: 49
+cockpitOffset: [0, 43]
+heatSinks:
+  quantity: 15
+  type: double
+armament:
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [22, 27]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [24, 27]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [26, 30]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [26, 32]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [24, 35]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [22, 35]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-22, 27]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-24, 27]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-26, 30]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-26, 32]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-24, 35]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-22, 35]
