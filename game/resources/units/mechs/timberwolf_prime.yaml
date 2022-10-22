@@ -5,13 +5,14 @@ variant: TBR-Prime
 image: timberwolf.png
 tech: clan
 tonnage: 75
+height: 15
+heightRatio: 1.082
 speed: 86
 jumpJets: 0
 armor: 230
 structure: 114
 collisionRadius: 21
 collisionHeight: 61
-scale: 0.75
 cockpitOffset: [0, 44]
 heatSinks:
   quantity: 15

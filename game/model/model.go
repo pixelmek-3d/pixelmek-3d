@@ -100,13 +100,14 @@ type ModelMechResource struct {
 	Image             string                   `yaml:"image" validate:"required"`
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=200"`
+	Height            float64                  `yaml:"height" validate:"gt=0"`
+	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 	CockpitOffset     [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
@@ -119,12 +120,13 @@ type ModelVehicleResource struct {
 	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=200"`
+	Height            float64                  `yaml:"height" validate:"gt=0"`
+	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
@@ -136,12 +138,13 @@ type ModelVTOLResource struct {
 	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Height            float64                  `yaml:"height" validate:"gt=0"`
+	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
@@ -152,13 +155,14 @@ type ModelInfantryResource struct {
 	Image             string                   `yaml:"image" validate:"required"`
 	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
+	Height            float64                  `yaml:"height" validate:"gt=0"`
+	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 }
 

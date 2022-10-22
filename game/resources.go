@@ -246,7 +246,8 @@ func (g *Game) loadMissionSprites() {
 			mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechResource.Image)
 			mechImg := getSpriteFromFile(mechRelPath)
 
-			mechSpriteTemplates[missionMech.Unit] = render.NewMechSprite(modelMech, mechResource.Scale, mechImg)
+			scale := convertHeightToScale(mechResource.Height, mechResource.HeightPxRatio)
+			mechSpriteTemplates[missionMech.Unit] = render.NewMechSprite(modelMech, scale, mechImg)
 		}
 
 		mechTemplate := mechSpriteTemplates[missionMech.Unit]
@@ -276,7 +277,8 @@ func (g *Game) loadMissionSprites() {
 			vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
 			vehicleImg := getSpriteFromFile(vehicleRelPath)
 
-			vehicleSpriteTemplates[missionVehicle.Unit] = render.NewVehicleSprite(modelVehicle, vehicleResource.Scale, vehicleImg)
+			scale := convertHeightToScale(vehicleResource.Height, vehicleResource.HeightPxRatio)
+			vehicleSpriteTemplates[missionVehicle.Unit] = render.NewVehicleSprite(modelVehicle, scale, vehicleImg)
 		}
 
 		vehicleTemplate := vehicleSpriteTemplates[missionVehicle.Unit]
@@ -300,7 +302,8 @@ func (g *Game) loadMissionSprites() {
 			vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
 			vtolImg := getSpriteFromFile(vtolRelPath)
 
-			vtolSpriteTemplates[missionVTOL.Unit] = render.NewVTOLSprite(modelVTOL, vtolResource.Scale, vtolImg)
+			scale := convertHeightToScale(vtolResource.Height, vtolResource.HeightPxRatio)
+			vtolSpriteTemplates[missionVTOL.Unit] = render.NewVTOLSprite(modelVTOL, scale, vtolImg)
 		}
 
 		vtolTemplate := vtolSpriteTemplates[missionVTOL.Unit]
@@ -325,7 +328,8 @@ func (g *Game) loadMissionSprites() {
 			infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
 			infantryImg := getSpriteFromFile(infantryRelPath)
 
-			infantrySpriteTemplates[missionInfantry.Unit] = render.NewInfantrySprite(modelInfantry, infantryResource.Scale, infantryImg)
+			scale := convertHeightToScale(infantryResource.Height, infantryResource.HeightPxRatio)
+			infantrySpriteTemplates[missionInfantry.Unit] = render.NewInfantrySprite(modelInfantry, scale, infantryImg)
 		}
 
 		infantryTemplate := infantrySpriteTemplates[missionInfantry.Unit]
@@ -360,12 +364,13 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := mechImg.Size()
 	width = width / 6 // all mech images are required to be six columns of images in a sheet
+	scale := convertHeightToScale(mechResource.Height, mechResource.HeightPxRatio)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
-		mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, mechResource.Scale,
+		mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, scale,
 	)
 
 	modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight)
-	g.loadUnitWeapons(modelMech, mechResource.Armament, width, height, mechResource.Scale)
+	g.loadUnitWeapons(modelMech, mechResource.Armament, width, height, scale)
 
 	return modelMech
 }
@@ -383,12 +388,13 @@ func (g *Game) createModelVehicle(unit string) *model.Vehicle {
 		height = int(float64(height) / float64(vehicleResource.ImageSheet.Rows))
 	}
 
+	scale := convertHeightToScale(vehicleResource.Height, vehicleResource.HeightPxRatio)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
-		vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, vehicleResource.Scale,
+		vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, scale,
 	)
 
 	modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight)
-	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, vehicleResource.Scale)
+	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, scale)
 
 	return modelVehicle
 }
@@ -406,12 +412,13 @@ func (g *Game) createModelVTOL(unit string) *model.VTOL {
 		height = int(float64(height) / float64(vtolResource.ImageSheet.Rows))
 	}
 
+	scale := convertHeightToScale(vtolResource.Height, vtolResource.HeightPxRatio)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
-		vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, vtolResource.Scale,
+		vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, scale,
 	)
 
 	modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight)
-	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, vtolResource.Scale)
+	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, scale)
 
 	return modelVTOL
 }
@@ -429,12 +436,13 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 		height = int(float64(height) / float64(infantryResource.ImageSheet.Rows))
 	}
 
+	scale := convertHeightToScale(infantryResource.Height, infantryResource.HeightPxRatio)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
-		infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, infantryResource.Scale,
+		infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, scale,
 	)
 
 	modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight)
-	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, infantryResource.Scale)
+	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, scale)
 
 	return modelInfantry
 }
@@ -644,6 +652,14 @@ func projectileSpriteForWeapon(w model.Weapon) *render.ProjectileSprite {
 func setProjectileSpriteForWeapon(w model.Weapon, p *render.ProjectileSprite) {
 	wKey := model.TechBaseString(w.Tech()) + "_" + w.Name()
 	projectileSpriteByWeapon[wKey] = p
+}
+
+func convertHeightToScale(height, pxRatio float64) float64 {
+	if pxRatio == 0 {
+		// if unset, default to 1.0
+		pxRatio = 1
+	}
+	return pxRatio * height / model.METERS_PER_UNIT
 }
 
 func convertOffsetFromPx(xPx, yPx float64, width, height int, scale float64) (offX float64, offY float64) {

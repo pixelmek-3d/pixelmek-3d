@@ -13,13 +13,13 @@ imageSheet:
     180: 2
     270: 3
 tech: clan
+height: 2
 speed: 7
 jumpJets: 0
 armor: 10
 structure: 1
 collisionRadius: 6
 collisionHeight: 24
-scale: 0.085
 armament:
 - weapon: "cl_machine_gun.yaml"
   type: ballistic

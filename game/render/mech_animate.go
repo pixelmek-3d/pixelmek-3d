@@ -32,7 +32,7 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 	// all mech sprite sheets have 6 columns of images in the sheet:
 	// [full, torso, left arm, right arm, left leg, right leg]
 	srcWidth, srcHeight := srcImage.Size()
-	uWidth, uHeight := srcWidth/int(NUM_PARTS), srcHeight
+	uWidth, uHeight := int(float64(srcWidth)/float64(NUM_PARTS)), srcHeight
 
 	uSize := uWidth
 	if uHeight > uWidth {

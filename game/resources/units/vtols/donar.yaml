@@ -17,12 +17,13 @@ imageSheet:
     300: 2
 tech: clan
 tonnage: 21
+height: 5
+heightRatio: 3.35 # 87 image pixel height / 26 unit pixel height = 3.35
 speed: 151
 armor: 57
 structure: 15 # 10% of weight (rounded up) as points per location (VTOL have 5 locations): 3 * 5 = 15
 collisionRadius: 16
 collisionHeight: 26
-scale: 0.75
 heatSinks:
   quantity: 10
   type: double

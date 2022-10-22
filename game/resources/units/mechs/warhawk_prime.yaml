@@ -5,13 +5,14 @@ variant: WHK-Prime
 image: warhawk.png
 tech: clan
 tonnage: 85
+height: 16
+heightRatio: 1.085
 speed: 64
 jumpJets: 0
 armor: 259
 structure: 130
 collisionRadius: 23
 collisionHeight: 59
-scale: 0.8
 cockpitOffset: [0, 48]
 heatSinks:
   quantity: 20
