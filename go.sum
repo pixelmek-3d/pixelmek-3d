@@ -140,6 +140,8 @@ github.com/hajimehoshi/oto v0.6.1/go.mod h1:0QXGEkbuJRohbJaxr7ZQSxnju7hEhseiPx2h
 github.com/hajimehoshi/oto/v2 v2.1.0/go.mod h1:9i0oYbpJ8BhVGkXDKdXKfFthX1JUNfXjeTp944W8TGM=
 github.com/harbdog/raycaster-go v1.6.0 h1:epn4XVG5bCjfDuBfjvaJG9kJXNYRRwnkDrqqEGkG7ok=
 github.com/harbdog/raycaster-go v1.6.0/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
+github.com/harbdog/raycaster-go v1.6.1 h1:raIXSk4dN0y/QyrsQVWZ2hdQ+o7SrJYFpgbUMt1x58U=
+github.com/harbdog/raycaster-go v1.6.1/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
