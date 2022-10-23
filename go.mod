@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/gabstv/ebiten-imgui v0.5.0
 	github.com/go-playground/validator/v10 v10.11.1
-	github.com/hajimehoshi/ebiten/v2 v2.3.5
+	github.com/hajimehoshi/ebiten/v2 v2.3.8
 	github.com/harbdog/raycaster-go v1.6.1
 	github.com/inkyblackness/imgui-go/v4 v4.4.0
 	github.com/jinzhu/copier v0.3.5
