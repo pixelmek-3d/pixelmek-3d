@@ -18,7 +18,7 @@ heatSinks:
   quantity: 16
   type: double
 armament:
-- weapon: "cl_ultra_ac_20.yaml" # TODO: cl_gauss_rifle.yaml
+- weapon: "cl_gauss_rifle.yaml"
   type: ballistic
   location: la
   offset: [19, 40]

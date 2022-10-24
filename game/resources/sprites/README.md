@@ -39,7 +39,7 @@
 - `laser_x`, `bullet_tracer`: "Rawdanitsu"
   - https://opengameart.org/content/lasers-and-beams
 
-- `missile`: "diggy"
+- `missile`, `gauss_slug`: "diggy"
   - https://opengameart.org/content/16-direction-rocket-projectile
 
 - `ppc_bolt`: Hansjörg Malthaner - http://opengameart.org/users/varkalandar

@@ -1,0 +1,36 @@
+---
+# https://www.sarna.net/wiki/Gauss_rifle
+name: Gauss Rifle
+short: GAUSS
+tech: clan
+tonnage: 12
+damage: 15
+heat: 1
+# max distance in meters: 22 (hexes) * 30 (meters/hex) = 660 (meters)
+distance: 660
+# velocity in meters/second
+velocity: 800
+# cooldown in seconds
+cooldown: 4
+projectileCount: 1
+projectile:
+  collisionRadius: 2
+  collisionHeight: 4
+  scale: 0.5
+  image: gauss_slug.png
+  imageSheet:
+    columns: 1
+    rows: 4
+    animationRate: 1
+    angleFacingRow:
+      0:   0
+      90:  1
+      180: 2
+      270: 3
+  impactEffect:
+    scale: 0.7
+    image: autocannon_large_impact.png
+    imageSheet:
+      columns: 5
+      rows: 3
+      animationRate: 3
