@@ -1,0 +1,40 @@
+---
+# https://www.sarna.net/wiki/Executioner_(Gladiator)
+name: Executioner
+variant: EXE-Prime
+image: executioner.png
+tech: clan
+tonnage: 95
+height: 17
+heightRatio: 1.075
+speed: 64 # TODO: MASC=86kph
+jumpJets: 4
+armor: 259
+structure: 145
+collisionRadius: 20
+collisionHeight: 66
+cockpitOffset: [0, 58]
+heatSinks:
+  quantity: 16
+  type: double
+armament:
+- weapon: "cl_ultra_ac_20.yaml" # TODO: cl_gauss_rifle.yaml
+  type: ballistic
+  location: la
+  offset: [19, 40]
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-17, 35]
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-20, 35]
+- weapon: "cl_machine_gun.yaml"
+  type: ballistic
+  location: rt
+  offset: [-6, 48]
+- weapon: "cl_machine_gun.yaml"
+  type: ballistic
+  location: rt
+  offset: [-8, 48]

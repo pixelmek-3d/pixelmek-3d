@@ -2,7 +2,7 @@ map: "testing_grounds.yaml"
 mechs:
 - unit: "warhawk_prime.yaml"
   position: [13, 14]
-- unit: "warhawk_prime.yaml"
+- unit: "executioner_prime.yaml"
   position: [17, 14]
 - unit: "nova_prime.yaml"
   position: [9, 23]
