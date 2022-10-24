@@ -23,6 +23,26 @@ func (g *Game) isInteractiveType(spriteType SpriteType) bool {
 	return false
 }
 
+func (g *Game) drawCompass(screen *ebiten.Image) {
+	if g.compass == nil {
+		return
+	}
+
+	g.compass.Update(g.player.Angle())
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.ColorM.ScaleWithColor(g.hudRGBA)
+
+	compassScale := g.compass.Scale() * g.renderScale * g.hudScale
+	op.GeoM.Scale(compassScale, compassScale)
+	op.GeoM.Translate(
+		float64(g.width)/2-float64(g.compass.Width())*compassScale/2,
+		float64(2*g.compass.Height())*compassScale/2,
+	)
+	screen.DrawImage(g.compass.Texture(), op)
+}
+
 func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 	if g.crosshairs == nil {
 		return
