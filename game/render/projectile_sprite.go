@@ -1,8 +1,8 @@
 package render
 
 import (
-	"fmt"
 	"image/color"
+	"math"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 
@@ -107,11 +107,17 @@ func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSpr
 }
 
 func (s *ProjectileSprite) Update(camPos *geom.Vector2) {
-	if s.AnimationRate <= 0 {
-		return
+	if s.Parent() != nil && s.Parent().IsPlayer() {
+		// Projectiles spawned by player weapons in the arms could initially use an angled facing
+		// instead of directly behind until further away. Facing angle override is used for first several
+		// frames to force the angle viewed as directly behind the projectile from player perspective.
+		if s.loopCounter < 7 {
+			// 180 degrees (Pi) forces perspective of directly behind projectile as travels away from player
+			s.camFacingOverride = &facingAngleOverride{angle: math.Pi}
+		} else {
+			s.camFacingOverride = nil
+		}
 	}
-
-	fmt.Printf("%v", s)
 
 	s.Sprite.Update(camPos)
 }

@@ -147,8 +147,8 @@ func NewGame() *Game {
 	g.loadContent()
 
 	// init player model
-	pX, pY, pDegrees := 8.5, 3.5, 60.0                   // TODO: get from mission
-	pMech := g.createModelMech("executioner_prime.yaml") // TODO: get from mission, initially?
+	pX, pY, pDegrees := 8.5, 3.5, 60.0                  // TODO: get from mission
+	pMech := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
 	g.player = render.NewPlayer(pMech, pX, pY, geom.Radians(pDegrees), 0)
 	g.player.SetCollisionRadius(pMech.CollisionRadius())
 	g.player.SetCollisionHeight(pMech.CollisionHeight())

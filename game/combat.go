@@ -46,9 +46,6 @@ func (g *Game) fireWeapon() {
 		if projectile != nil {
 			weapon.TriggerCooldown()
 
-			// TODO: make projectiles spawned by player use their head-on facing angle for the first several frames to avoid
-			//       them using a facing that looks weird (like lasers are doing when fired from arm location)
-
 			pTemplate := projectileSpriteForWeapon(weapon)
 			pSprite := pTemplate.Clone()
 			pSprite.Entity = projectile

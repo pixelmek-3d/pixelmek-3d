@@ -27,6 +27,8 @@ func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {
 		MapColor: color.RGBA{255, 0, 0, 255},
 	}
 
+	p.SetAsPlayer(true)
+
 	p.SetPos(&geom.Vector2{X: x, Y: y})
 	p.SetPosZ(0)
 	p.SetAngle(angle)
@@ -34,8 +36,6 @@ func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {
 	p.SetVelocity(0)
 	p.SetArmorPoints(math.MaxFloat64) // TODO: get from mech model
 	p.SetStructurePoints(math.MaxFloat64)
-
-	p.SetAsPlayer(true)
 
 	return p
 }

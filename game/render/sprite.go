@@ -18,21 +18,26 @@ import (
 
 type Sprite struct {
 	model.Entity
-	w, h           int
-	scale          float64
-	AnimationRate  int
-	Focusable      bool
-	animReversed   bool
-	animCounter    int
-	loopCounter    int
-	columns, rows  int
-	texNum, lenTex int
-	texFacingMap   map[float64]int
-	texFacingKeys  []float64
-	texRects       []image.Rectangle
-	textures       []*ebiten.Image
-	screenRect     *image.Rectangle
-	mapColor       color.RGBA
+	w, h              int
+	scale             float64
+	AnimationRate     int
+	Focusable         bool
+	animReversed      bool
+	animCounter       int
+	loopCounter       int
+	columns, rows     int
+	texNum, lenTex    int
+	camFacingOverride *facingAngleOverride
+	texFacingMap      map[float64]int
+	texFacingKeys     []float64
+	texRects          []image.Rectangle
+	textures          []*ebiten.Image
+	screenRect        *image.Rectangle
+	mapColor          color.RGBA
+}
+
+type facingAngleOverride struct {
+	angle float64
 }
 
 func (s *Sprite) Pos() *geom.Vector2 {
@@ -246,8 +251,14 @@ func (s *Sprite) Update(camPos *geom.Vector2) {
 			texRow := 0
 
 			// calculate angle from sprite relative to camera position by getting angle of line between them
-			lineToCam := geom.Line{X1: s.Pos().X, Y1: s.Pos().Y, X2: camPos.X, Y2: camPos.Y}
-			facingAngle := lineToCam.Angle() - s.Angle()
+			var facingAngle float64
+			if s.camFacingOverride != nil {
+				facingAngle = s.camFacingOverride.angle
+			} else {
+				lineToCam := geom.Line{X1: s.Pos().X, Y1: s.Pos().Y, X2: camPos.X, Y2: camPos.Y}
+				facingAngle = lineToCam.Angle() - s.Angle()
+			}
+
 			if facingAngle < 0 {
 				// convert to positive angle needed to determine facing index to use
 				facingAngle += geom.Pi2
