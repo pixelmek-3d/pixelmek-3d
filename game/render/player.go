@@ -35,5 +35,7 @@ func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {
 	p.SetArmorPoints(math.MaxFloat64) // TODO: get from mech model
 	p.SetStructurePoints(math.MaxFloat64)
 
+	p.SetAsPlayer(true)
+
 	return p
 }

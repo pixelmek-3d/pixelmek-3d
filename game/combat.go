@@ -124,7 +124,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 					pSprite.Entity = projectile
 					g.sprites.addProjectile(pSprite)
 
-					// use go routine to handle creation of multiple projectiles after time delay
+					// queue creation of multiple projectiles after time delay
 					if weapon.ProjectileCount() > 1 {
 						for i := 1; i < weapon.ProjectileCount(); i++ {
 							g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, entity)

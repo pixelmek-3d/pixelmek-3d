@@ -184,3 +184,8 @@ func (e *Vehicle) Parent() Entity {
 func (e *Vehicle) SetParent(parent Entity) {
 	e.parent = parent
 }
+
+func (e *Vehicle) SetAsPlayer(bool) {}
+func (e *Vehicle) IsPlayer() bool {
+	return false
+}

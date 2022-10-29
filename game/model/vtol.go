@@ -184,3 +184,8 @@ func (e *VTOL) Parent() Entity {
 func (e *VTOL) SetParent(parent Entity) {
 	e.parent = parent
 }
+
+func (e *VTOL) SetAsPlayer(bool) {}
+func (e *VTOL) IsPlayer() bool {
+	return false
+}

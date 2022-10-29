@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -103,4 +104,14 @@ func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSpr
 	e.SetParent(p.Parent())
 
 	return e
+}
+
+func (s *ProjectileSprite) Update(camPos *geom.Vector2) {
+	if s.AnimationRate <= 0 {
+		return
+	}
+
+	fmt.Printf("%v", s)
+
+	s.Sprite.Update(camPos)
 }

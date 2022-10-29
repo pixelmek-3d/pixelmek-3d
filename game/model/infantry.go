@@ -180,3 +180,8 @@ func (e *Infantry) Parent() Entity {
 func (e *Infantry) SetParent(parent Entity) {
 	e.parent = parent
 }
+
+func (e *Infantry) SetAsPlayer(bool) {}
+func (e *Infantry) IsPlayer() bool {
+	return false
+}

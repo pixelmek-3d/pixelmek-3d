@@ -207,3 +207,8 @@ func (e *Projectile) Parent() Entity {
 func (e *Projectile) SetParent(parent Entity) {
 	e.parent = parent
 }
+
+func (e *Projectile) SetAsPlayer(bool) {}
+func (e *Projectile) IsPlayer() bool {
+	return false
+}

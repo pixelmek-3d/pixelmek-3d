@@ -25,6 +25,7 @@ type Mech struct {
 	heatSinkType    ModelHeatSinkType
 	armament        []Weapon
 	parent          Entity
+	isPlayer        bool
 }
 
 func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Mech {
@@ -183,4 +184,11 @@ func (e *Mech) Parent() Entity {
 
 func (e *Mech) SetParent(parent Entity) {
 	e.parent = parent
+}
+
+func (e *Mech) SetAsPlayer(isPlayer bool) {
+	e.isPlayer = isPlayer
+}
+func (e *Mech) IsPlayer() bool {
+	return e.isPlayer
 }

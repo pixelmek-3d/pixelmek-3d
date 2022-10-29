@@ -45,6 +45,9 @@ type Entity interface {
 	Armament() []Weapon
 	AddArmament(Weapon)
 
+	SetAsPlayer(bool)
+	IsPlayer() bool
+
 	Clone() Entity
 	Parent() Entity
 	SetParent(Entity)
@@ -221,4 +224,9 @@ func (e *BasicEntity) Parent() Entity {
 
 func (e *BasicEntity) SetParent(parent Entity) {
 	e.parent = parent
+}
+
+func (e *BasicEntity) SetAsPlayer(bool) {}
+func (e *BasicEntity) IsPlayer() bool {
+	return false
 }
