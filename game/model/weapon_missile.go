@@ -157,7 +157,7 @@ func (w *MissileWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Entity) 
 
 	pSpawn.SetPos(&geom.Vector2{X: wPos.X, Y: wPos.Y})
 	pSpawn.SetPosZ(wPos.Z)
-	pSpawn.SetAngle(angle)
+	pSpawn.SetHeading(angle)
 	pSpawn.SetPitch(pitch)
 
 	// keep track of what spawned it

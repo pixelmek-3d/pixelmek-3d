@@ -97,7 +97,7 @@ func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSpr
 	e := p.ImpactEffect.Clone()
 	e.SetPos(&geom.Vector2{X: x, Y: y})
 	e.SetPosZ(z)
-	e.SetAngle(angle)
+	e.SetHeading(angle)
 	e.SetPitch(pitch)
 
 	// keep track of what spawned it

@@ -31,7 +31,7 @@ func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {
 
 	p.SetPos(&geom.Vector2{X: x, Y: y})
 	p.SetPosZ(0)
-	p.SetAngle(angle)
+	p.SetHeading(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
 	p.SetArmorPoints(math.MaxFloat64) // TODO: get from mech model

@@ -27,7 +27,7 @@ func (g *Game) fireWeapon() {
 	}
 
 	// in case convergence point not set, use player heading and pitch
-	pAngle, pPitch := g.player.Angle(), g.player.Pitch()
+	pAngle, pPitch := g.player.Heading(), g.player.Pitch()
 	convergencePoint := g.player.ConvergencePoint
 	// convergenceDistance := g.player.ConvergenceDistance
 
@@ -103,7 +103,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 
 			// TESTING: needed until turret heading is separated from heading angle so projectiles come from correct postion
-			entity.SetAngle(pHeading)
+			entity.SetHeading(pHeading)
 			entity.SetPitch(pPitch)
 
 			for _, weapon := range entity.Armament() {
@@ -175,7 +175,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 	if p.Velocity() != 0 {
 		pPosition := p.Pos()
-		trajectory := geom3d.Line3dFromAngle(pPosition.X, pPosition.Y, p.PosZ(), p.Angle(), p.Pitch(), p.Velocity())
+		trajectory := geom3d.Line3dFromAngle(pPosition.X, pPosition.Y, p.PosZ(), p.Heading(), p.Pitch(), p.Velocity())
 		xCheck := trajectory.X2
 		yCheck := trajectory.Y2
 		zCheck := trajectory.Z2
@@ -213,7 +213,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				}
 
 				// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
-				effect := p.SpawnEffect(newPos.X, newPos.Y, p.PosZ(), p.Angle(), p.Pitch())
+				effect := p.SpawnEffect(newPos.X, newPos.Y, p.PosZ(), p.Heading(), p.Pitch())
 
 				g.sprites.addEffect(effect)
 			}
@@ -254,7 +254,7 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 
 	convergencePoint := g.player.ConvergencePoint
 	if e != g.player.Entity || convergencePoint == nil {
-		projectile = w.SpawnProjectile(e.Angle(), e.Pitch(), e)
+		projectile = w.SpawnProjectile(e.Heading(), e.Pitch(), e)
 	} else {
 		projectile = w.SpawnProjectileToward(convergencePoint, e)
 	}

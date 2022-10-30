@@ -92,11 +92,11 @@ func (e *Infantry) SetAnchor(anchor raycaster.SpriteAnchor) {
 	e.anchor = anchor
 }
 
-func (e *Infantry) Angle() float64 {
+func (e *Infantry) Heading() float64 {
 	return e.angle
 }
 
-func (e *Infantry) SetAngle(angle float64) {
+func (e *Infantry) SetHeading(angle float64) {
 	e.angle = angle
 }
 

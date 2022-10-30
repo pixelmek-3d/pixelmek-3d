@@ -392,7 +392,7 @@ func (g *Game) setFovAngle(fovDegrees float64) {
 // Move player by move speed in the forward/backward direction
 func (g *Game) Move(mSpeed float64) {
 	playerPosition := g.player.Pos()
-	moveLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Angle(), mSpeed)
+	moveLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading(), mSpeed)
 	g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
 }
 
@@ -403,13 +403,13 @@ func (g *Game) Strafe(sSpeed float64) {
 		strafeAngle = -strafeAngle
 	}
 	playerPosition := g.player.Pos()
-	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Angle()-strafeAngle, math.Abs(sSpeed))
+	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading()-strafeAngle, math.Abs(sSpeed))
 	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2)
 }
 
 // Rotate player heading angle by rotation speed
 func (g *Game) Rotate(rSpeed float64) {
-	angle := g.player.Angle() + rSpeed
+	angle := g.player.Heading() + rSpeed
 
 	pi2 := geom.Pi2
 	if angle >= pi2 {
@@ -418,7 +418,7 @@ func (g *Game) Rotate(rSpeed float64) {
 		angle = angle + pi2
 	}
 
-	g.player.SetAngle(angle)
+	g.player.SetHeading(angle)
 	g.player.Moved = true
 }
 
@@ -441,7 +441,7 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 
 	g.camera.SetPosition(g.player.Pos().Copy())
 	g.camera.SetPositionZ(g.player.CameraZ)
-	g.camera.SetHeadingAngle(g.player.Angle())
+	g.camera.SetHeadingAngle(g.player.Heading())
 	g.camera.SetPitchAngle(g.player.Pitch())
 }
 
@@ -556,12 +556,12 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 			g.updateMechPosition(s)
 		} else {
 			// keep movements towards current patrol point
-			s.SetAngle(angle)
+			s.SetHeading(angle)
 		}
 	}
 
 	if s.Velocity() != 0 {
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
@@ -569,7 +569,7 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-math.Pi, math.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -601,12 +601,12 @@ func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
 			g.updateVehiclePosition(s)
 		} else {
 			// keep movements towards current patrol point
-			s.SetAngle(angle)
+			s.SetHeading(angle)
 		}
 	}
 
 	if s.Velocity() != 0 {
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
@@ -614,7 +614,7 @@ func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-math.Pi, math.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -646,12 +646,12 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 			g.updateVTOLPosition(s)
 		} else {
 			// keep movements towards current patrol point
-			s.SetAngle(angle)
+			s.SetHeading(angle)
 		}
 	}
 
 	if s.Velocity() != 0 {
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
@@ -659,7 +659,7 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-math.Pi, math.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -691,12 +691,12 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 			g.updateInfantryPosition(s)
 		} else {
 			// keep movements towards current patrol point
-			s.SetAngle(angle)
+			s.SetHeading(angle)
 		}
 	}
 
 	if s.Velocity() != 0 {
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
@@ -704,7 +704,7 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-math.Pi, math.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -715,7 +715,7 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 func (g *Game) updateSpritePosition(s *render.Sprite) {
 	if s.Velocity() != 0 {
 		sPosition := s.Pos()
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Angle(), s.Velocity())
+		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
@@ -723,7 +723,7 @@ func (g *Game) updateSpritePosition(s *render.Sprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetAngle(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-math.Pi, math.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)

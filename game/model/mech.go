@@ -97,11 +97,11 @@ func (e *Mech) SetAnchor(anchor raycaster.SpriteAnchor) {
 	e.anchor = anchor
 }
 
-func (e *Mech) Angle() float64 {
+func (e *Mech) Heading() float64 {
 	return e.angle
 }
 
-func (e *Mech) SetAngle(angle float64) {
+func (e *Mech) SetHeading(angle float64) {
 	e.angle = angle
 }
 

@@ -256,7 +256,7 @@ func (s *Sprite) Update(camPos *geom.Vector2) {
 				facingAngle = s.camFacingOverride.angle
 			} else {
 				lineToCam := geom.Line{X1: s.Pos().X, Y1: s.Pos().Y, X2: camPos.X, Y2: camPos.Y}
-				facingAngle = lineToCam.Angle() - s.Angle()
+				facingAngle = lineToCam.Angle() - s.Heading()
 			}
 
 			if facingAngle < 0 {

@@ -96,11 +96,11 @@ func (e *Vehicle) SetAnchor(anchor raycaster.SpriteAnchor) {
 	e.anchor = anchor
 }
 
-func (e *Vehicle) Angle() float64 {
+func (e *Vehicle) Heading() float64 {
 	return e.angle
 }
 
-func (e *Vehicle) SetAngle(angle float64) {
+func (e *Vehicle) SetHeading(angle float64) {
 	e.angle = angle
 }
 

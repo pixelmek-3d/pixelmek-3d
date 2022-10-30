@@ -20,8 +20,8 @@ type Entity interface {
 	Anchor() raycaster.SpriteAnchor
 	SetAnchor(raycaster.SpriteAnchor)
 
-	Angle() float64
-	SetAngle(float64)
+	Heading() float64
+	SetHeading(float64)
 	Pitch() float64
 	SetPitch(float64)
 	Velocity() float64
@@ -137,11 +137,11 @@ func (e *BasicEntity) SetAnchor(anchor raycaster.SpriteAnchor) {
 	e.anchor = anchor
 }
 
-func (e *BasicEntity) Angle() float64 {
+func (e *BasicEntity) Heading() float64 {
 	return e.angle
 }
 
-func (e *BasicEntity) SetAngle(angle float64) {
+func (e *BasicEntity) SetHeading(angle float64) {
 	e.angle = angle
 }
 

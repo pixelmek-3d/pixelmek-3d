@@ -96,11 +96,11 @@ func (e *VTOL) SetAnchor(anchor raycaster.SpriteAnchor) {
 	e.anchor = anchor
 }
 
-func (e *VTOL) Angle() float64 {
+func (e *VTOL) Heading() float64 {
 	return e.angle
 }
 
-func (e *VTOL) SetAngle(angle float64) {
+func (e *VTOL) SetHeading(angle float64) {
 	e.angle = angle
 }
 

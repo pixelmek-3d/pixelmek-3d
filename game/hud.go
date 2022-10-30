@@ -28,7 +28,7 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 		return
 	}
 
-	g.compass.Update(g.player.Angle())
+	g.compass.Update(g.player.Heading())
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest

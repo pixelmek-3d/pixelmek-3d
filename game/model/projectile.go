@@ -128,11 +128,11 @@ func (e *Projectile) SetAnchor(anchor raycaster.SpriteAnchor) {
 	e.anchor = anchor
 }
 
-func (e *Projectile) Angle() float64 {
+func (e *Projectile) Heading() float64 {
 	return e.angle
 }
 
-func (e *Projectile) SetAngle(angle float64) {
+func (e *Projectile) SetHeading(angle float64) {
 	e.angle = angle
 }
 
