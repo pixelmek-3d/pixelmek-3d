@@ -38,9 +38,9 @@ func (g *Game) fireWeapon() {
 
 		var projectile *model.Projectile
 		if convergencePoint == nil {
-			projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Entity)
+			projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Unit)
 		} else {
-			projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Entity)
+			projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Unit)
 		}
 
 		if projectile != nil {
@@ -54,7 +54,7 @@ func (g *Game) fireWeapon() {
 			// use go routine to handle creation of multiple projectiles after time delay
 			if weapon.ProjectileCount() > 1 {
 				for i := 1; i < weapon.ProjectileCount(); i++ {
-					g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, g.player.Entity)
+					g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, g.player.Unit)
 				}
 			}
 		}
@@ -67,32 +67,32 @@ func (g *Game) fireTestWeaponAtPlayer() {
 	for spriteType := range g.sprites.sprites {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 			var pX, pY, pZ float64
-			var entity model.Entity
+			var entity model.Unit
 
 			switch spriteType {
 			case MechSpriteType:
 				s := k.(*render.MechSprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				entity = s.Entity
+				entity = model.EntityUnit(s.Entity)
 
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.2
-				entity = s.Entity
+				entity = model.EntityUnit(s.Entity)
 
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()
-				entity = s.Entity
+				entity = model.EntityUnit(s.Entity)
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
-				entity = s.Entity
+				entity = model.EntityUnit(s.Entity)
 			}
 
 			if entity == nil {
@@ -188,7 +188,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				collisionEntity = collisions[0]
 				entity := collisionEntity.entity
 
-				if entity == g.player.Entity {
+				if entity == g.player.Unit {
 					// TODO: visual response to player being hit
 					println("ouch!")
 				} else {
@@ -253,7 +253,7 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 	var projectile *model.Projectile
 
 	convergencePoint := g.player.ConvergencePoint
-	if e != g.player.Entity || convergencePoint == nil {
+	if e != g.player.Unit || convergencePoint == nil {
 		projectile = w.SpawnProjectile(e.Heading(), e.Pitch(), e)
 	} else {
 		projectile = w.SpawnProjectileToward(convergencePoint, e)

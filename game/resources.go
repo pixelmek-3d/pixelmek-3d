@@ -462,7 +462,7 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 	return modelInfantry
 }
 
-func (g *Game) loadUnitWeapons(unit model.Entity, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
+func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
 	projectileSpriteTemplates := g.sprites.projectileSpriteTemplates
 
 	for _, armament := range armamentList {

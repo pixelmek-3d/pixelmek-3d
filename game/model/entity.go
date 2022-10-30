@@ -9,9 +9,6 @@ import (
 )
 
 type Entity interface {
-	Name() string
-	Variant() string
-
 	Pos() *geom.Vector2
 	SetPos(*geom.Vector2)
 	PosZ() float64
@@ -32,8 +29,6 @@ type Entity interface {
 	CollisionHeight() float64
 	SetCollisionHeight(float64)
 
-	CockpitOffset() *geom.Vector2
-
 	ApplyDamage(float64)
 	ArmorPoints() float64
 	SetArmorPoints(float64)
@@ -42,15 +37,36 @@ type Entity interface {
 	SetStructurePoints(float64)
 	MaxStructurePoints() float64
 
+	Clone() Entity
+	Parent() Entity
+	SetParent(Entity)
+}
+
+type Unit interface {
+	Entity
+	Name() string
+	Variant() string
+
+	CockpitOffset() *geom.Vector2
 	Armament() []Weapon
 	AddArmament(Weapon)
 
 	SetAsPlayer(bool)
 	IsPlayer() bool
 
-	Clone() Entity
-	Parent() Entity
-	SetParent(Entity)
+	CloneUnit() Unit
+}
+
+func EntityUnit(entity Entity) Unit {
+	if unit, ok := entity.(Unit); ok {
+		return unit
+	}
+	return nil
+}
+
+func IsEntityUnit(entity Entity) bool {
+	_, ok := entity.(Unit)
+	return ok
 }
 
 type BasicEntity struct {
@@ -97,20 +113,6 @@ func (e *BasicEntity) Clone() Entity {
 	eClone := &BasicEntity{}
 	copier.Copy(eClone, e)
 	return eClone
-}
-
-func (e *BasicEntity) Name() string {
-	return "basic"
-}
-
-func (e *BasicEntity) Variant() string {
-	return "basic"
-}
-
-func (e *BasicEntity) AddArmament(Weapon) {}
-
-func (e *BasicEntity) Armament() []Weapon {
-	return nil
 }
 
 func (e *BasicEntity) Pos() *geom.Vector2 {
@@ -177,10 +179,6 @@ func (e *BasicEntity) SetCollisionHeight(collisionHeight float64) {
 	e.collisionHeight = collisionHeight
 }
 
-func (e *BasicEntity) CockpitOffset() *geom.Vector2 {
-	return &geom.Vector2{}
-}
-
 func (e *BasicEntity) ApplyDamage(damage float64) {
 	if e.armor > 0 {
 		e.armor -= damage
@@ -224,9 +222,4 @@ func (e *BasicEntity) Parent() Entity {
 
 func (e *BasicEntity) SetParent(parent Entity) {
 	e.parent = parent
-}
-
-func (e *BasicEntity) SetAsPlayer(bool) {}
-func (e *BasicEntity) IsPlayer() bool {
-	return false
 }

@@ -310,7 +310,7 @@ func (g *Game) Update() error {
 		}
 
 		// handle player weapon updates
-		g.updateWeaponCooldowns(g.player.Entity)
+		g.updateWeaponCooldowns(g.player.Unit)
 
 		// handle player camera movement
 		g.updatePlayerCamera(false)
@@ -447,7 +447,7 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 
 func (g *Game) updatePlayerPosition(newX, newY float64) {
 	// Update player position
-	newPos, isCollision, collisions := g.getValidMove(g.player.Entity, newX, newY, g.player.PosZ(), true)
+	newPos, isCollision, collisions := g.getValidMove(g.player.Unit, newX, newY, g.player.PosZ(), true)
 	if !newPos.Equals(g.player.Pos()) {
 		g.player.SetPos(newPos)
 		g.player.Moved = true
@@ -489,7 +489,7 @@ func (g *Game) updateSprites() {
 
 				g.updateMechPosition(s)
 				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(s.Entity)
+				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
@@ -501,7 +501,7 @@ func (g *Game) updateSprites() {
 
 				g.updateVehiclePosition(s)
 				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(s.Entity)
+				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
@@ -513,7 +513,7 @@ func (g *Game) updateSprites() {
 
 				g.updateVTOLPosition(s)
 				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(s.Entity)
+				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
@@ -524,7 +524,7 @@ func (g *Game) updateSprites() {
 
 				g.updateInfantryPosition(s)
 				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(s.Entity)
+				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 			}
 
 			return true
@@ -731,11 +731,11 @@ func (g *Game) updateSpritePosition(s *render.Sprite) {
 	}
 }
 
-func (g *Game) updateWeaponCooldowns(entity model.Entity) {
-	if entity == nil {
+func (g *Game) updateWeaponCooldowns(unit model.Unit) {
+	if unit == nil {
 		return
 	}
-	armament := entity.Armament()
+	armament := unit.Armament()
 	if len(armament) == 0 {
 		return
 	}

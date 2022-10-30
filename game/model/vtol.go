@@ -43,7 +43,7 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 	return m
 }
 
-func (e *VTOL) Clone() Entity {
+func (e *VTOL) CloneUnit() Unit {
 	eClone := &VTOL{}
 	copier.Copy(eClone, e)
 
@@ -54,6 +54,10 @@ func (e *VTOL) Clone() Entity {
 	}
 
 	return eClone
+}
+
+func (e *VTOL) Clone() Entity {
+	return e.CloneUnit()
 }
 
 func (e *VTOL) Name() string {

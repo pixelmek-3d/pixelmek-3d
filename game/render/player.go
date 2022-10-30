@@ -11,7 +11,7 @@ import (
 )
 
 type Player struct {
-	model.Entity
+	model.Unit
 	CameraZ             float64
 	Moved               bool
 	MapColor            color.RGBA
@@ -19,9 +19,9 @@ type Player struct {
 	ConvergencePoint    *geom3d.Vector3
 }
 
-func NewPlayer(unit model.Entity, x, y, angle, pitch float64) *Player {
+func NewPlayer(unit model.Unit, x, y, angle, pitch float64) *Player {
 	p := &Player{
-		Entity:   unit,
+		Unit:     unit,
 		CameraZ:  unit.CockpitOffset().Y, // TODO: support cockpit offset in sprite X direction
 		Moved:    false,
 		MapColor: color.RGBA{255, 0, 0, 255},

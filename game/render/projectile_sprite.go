@@ -107,7 +107,7 @@ func (p *ProjectileSprite) SpawnEffect(x, y, z, angle, pitch float64) *EffectSpr
 }
 
 func (s *ProjectileSprite) Update(camPos *geom.Vector2) {
-	if s.Parent() != nil && s.Parent().IsPlayer() {
+	if s.Parent() != nil && model.IsEntityUnit(s.Parent()) && model.EntityUnit(s.Parent()).IsPlayer() {
 		// Projectiles spawned by player weapons in the arms could initially use an angled facing
 		// instead of directly behind until further away. Facing angle override is used for first several
 		// frames to force the angle viewed as directly behind the projectile from player perspective.

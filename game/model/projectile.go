@@ -50,20 +50,6 @@ func (e *Projectile) Clone() Entity {
 	return eClone
 }
 
-func (e *Projectile) Name() string {
-	return "projectile"
-}
-
-func (e *Projectile) Variant() string {
-	return "projectile"
-}
-
-func (e *Projectile) AddArmament(Weapon) {}
-
-func (e *Projectile) Armament() []Weapon {
-	return nil
-}
-
 func (e *Projectile) Damage() float64 {
 	actualDamage := e.damage
 	if e.inExtremeRange && e.lifespan >= 0 {
@@ -206,9 +192,4 @@ func (e *Projectile) Parent() Entity {
 
 func (e *Projectile) SetParent(parent Entity) {
 	e.parent = parent
-}
-
-func (e *Projectile) SetAsPlayer(bool) {}
-func (e *Projectile) IsPlayer() bool {
-	return false
 }

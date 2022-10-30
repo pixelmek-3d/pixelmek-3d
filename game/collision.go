@@ -71,13 +71,13 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 	}
 
 	// check sprite against player collision
-	if entity != g.player.Entity && entity.Parent() != g.player.Entity {
+	if entity != g.player.Unit && entity.Parent() != g.player.Unit {
 		// only check for collision if player is somewhat nearby
 		playerPosition := g.player.Pos()
 		playerCollisionRadius := g.player.CollisionRadius()
 		if pointInProximity(checkDist, newX, newY, playerPosition.X, playerPosition.Y) {
 			// quick check if intersects in Z-plane
-			zIntersect := zEntityIntersection(newZ, entity, g.player.Entity)
+			zIntersect := zEntityIntersection(newZ, entity, g.player.Unit)
 
 			// check if movement line intersects with combined collision radii
 			combinedCircle := geom.Circle{X: playerPosition.X, Y: playerPosition.Y, Radius: playerCollisionRadius + entityCollisionRadius}
@@ -92,7 +92,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 
 					for _, intersect := range intersectPoints {
 						collisionEntities = append(
-							collisionEntities, &EntityCollision{entity: g.player.Entity, collision: &intersect, collisionZ: zIntersect},
+							collisionEntities, &EntityCollision{entity: g.player.Unit, collision: &intersect, collisionZ: zIntersect},
 						)
 					}
 				}

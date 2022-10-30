@@ -44,7 +44,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 	return m
 }
 
-func (e *Mech) Clone() Entity {
+func (e *Mech) CloneUnit() Unit {
 	eClone := &Mech{}
 	copier.Copy(eClone, e)
 
@@ -55,6 +55,10 @@ func (e *Mech) Clone() Entity {
 	}
 
 	return eClone
+}
+
+func (e *Mech) Clone() Entity {
+	return e.CloneUnit()
 }
 
 func (e *Mech) Name() string {

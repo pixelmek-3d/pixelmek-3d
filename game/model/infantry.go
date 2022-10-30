@@ -39,7 +39,7 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 	return m
 }
 
-func (e *Infantry) Clone() Entity {
+func (e *Infantry) CloneUnit() Unit {
 	eClone := &Infantry{}
 	copier.Copy(eClone, e)
 
@@ -50,6 +50,10 @@ func (e *Infantry) Clone() Entity {
 	}
 
 	return eClone
+}
+
+func (e *Infantry) Clone() Entity {
+	return e.CloneUnit()
 }
 
 func (e *Infantry) Name() string {

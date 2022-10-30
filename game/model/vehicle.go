@@ -43,7 +43,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 	return m
 }
 
-func (e *Vehicle) Clone() Entity {
+func (e *Vehicle) CloneUnit() Unit {
 	eClone := &Vehicle{}
 	copier.Copy(eClone, e)
 
@@ -54,6 +54,10 @@ func (e *Vehicle) Clone() Entity {
 	}
 
 	return eClone
+}
+
+func (e *Vehicle) Clone() Entity {
+	return e.CloneUnit()
 }
 
 func (e *Vehicle) Name() string {
