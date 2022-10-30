@@ -27,7 +27,7 @@ func (g *Game) fireWeapon() {
 	}
 
 	// in case convergence point not set, use player heading and pitch
-	pAngle, pPitch := g.player.Heading(), g.player.Pitch()
+	pAngle, pPitch := g.player.TurretAngle(), g.player.Pitch()
 	convergencePoint := g.player.ConvergencePoint
 	// convergenceDistance := g.player.ConvergenceDistance
 
@@ -51,7 +51,7 @@ func (g *Game) fireWeapon() {
 			pSprite.Entity = projectile
 			g.sprites.addProjectile(pSprite)
 
-			// use go routine to handle creation of multiple projectiles after time delay
+			// queue creation of multiple projectiles after time delay
 			if weapon.ProjectileCount() > 1 {
 				for i := 1; i < weapon.ProjectileCount(); i++ {
 					g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, g.player.Unit)
@@ -68,51 +68,54 @@ func (g *Game) fireTestWeaponAtPlayer() {
 	for spriteType := range g.sprites.sprites {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 			var pX, pY, pZ float64
-			var entity model.Unit
+			var unit model.Unit
 
 			switch spriteType {
 			case MechSpriteType:
 				s := k.(*render.MechSprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				entity = model.EntityUnit(s.Entity)
+				unit = model.EntityUnit(s.Entity)
 
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.2
-				entity = model.EntityUnit(s.Entity)
+				unit = model.EntityUnit(s.Entity)
 
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()
-				entity = model.EntityUnit(s.Entity)
+				unit = model.EntityUnit(s.Entity)
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
-				entity = model.EntityUnit(s.Entity)
+				unit = model.EntityUnit(s.Entity)
 			}
 
-			if entity == nil {
+			if unit == nil {
 				return true
 			}
 
 			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: playerPositionZ + randFloat(0.1, 0.7)}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 
-			// TESTING: needed until turret heading is separated from heading angle so projectiles come from correct postion
-			entity.SetHeading(pHeading)
-			entity.SetPitch(pPitch)
+			if unit.HasTurret() {
+				unit.SetTurretAngle(pHeading)
+			} else {
+				unit.SetHeading(pHeading)
+			}
+			unit.SetPitch(pPitch)
 
-			for _, weapon := range entity.Armament() {
+			for _, weapon := range unit.Armament() {
 				if weapon.Cooldown() > 0 {
 					continue
 				}
 
-				projectile := weapon.SpawnProjectile(pHeading, pPitch, entity)
+				projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
 				if projectile != nil {
 					// TODO: add muzzle flash effect on being fired at
 					weapon.TriggerCooldown()
@@ -125,7 +128,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 					// queue creation of multiple projectiles after time delay
 					if weapon.ProjectileCount() > 1 {
 						for i := 1; i < weapon.ProjectileCount(); i++ {
-							g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, entity)
+							g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, unit)
 						}
 					}
 				}
@@ -250,12 +253,16 @@ func (g *Game) updateDelayedProjectiles() {
 func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 	delete(g.delayedProjectiles, p)
 
-	w, e := p.weapon, p.parent
+	w, e := p.weapon, model.EntityUnit(p.parent)
+	if e == nil {
+		return
+	}
+
 	var projectile *model.Projectile
 
 	convergencePoint := g.player.ConvergencePoint
 	if e != g.player.Unit || convergencePoint == nil {
-		projectile = w.SpawnProjectile(e.Heading(), e.Pitch(), e)
+		projectile = w.SpawnProjectile(e.TurretAngle(), e.Pitch(), e)
 	} else {
 		projectile = w.SpawnProjectileToward(convergencePoint, e)
 	}

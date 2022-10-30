@@ -79,7 +79,10 @@ func (e *VTOL) TurretAngle() float64 {
 	return e.Heading()
 }
 
-func (e *VTOL) SetTurretAngle(float64) {}
+func (e *VTOL) SetTurretAngle(angle float64) {
+	// VTOL have no turret, just set heading
+	e.SetHeading(angle)
+}
 
 func (e *VTOL) AddArmament(w Weapon) {
 	e.armament = append(e.armament, w)

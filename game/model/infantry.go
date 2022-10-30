@@ -75,7 +75,10 @@ func (e *Infantry) TurretAngle() float64 {
 	return e.Heading()
 }
 
-func (e *Infantry) SetTurretAngle(float64) {}
+func (e *Infantry) SetTurretAngle(angle float64) {
+	// infantry have no turret, just set heading
+	e.SetHeading(angle)
+}
 
 func (e *Infantry) AddArmament(w Weapon) {
 	e.armament = append(e.armament, w)

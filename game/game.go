@@ -147,10 +147,11 @@ func NewGame() *Game {
 	g.loadContent()
 
 	// init player model
-	pX, pY, pZ, pDegrees := 8.5, 3.5, 0.0, 60.0 // TODO: get from mission
-	//pUnit := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
+	pX, pY, pZ, pDegrees := 8.5, 3.5, 0.0, 60.0         // TODO: get from mission
+	pUnit := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
 	//pUnit := g.createModelInfantry("heavy_foot.yaml")
-	pUnit, pZ := g.createModelVTOL("donar.yaml"), 3.0
+	//pUnit := g.createModelVehicle("srm_carrier.yaml")
+	//pUnit, pZ := g.createModelVTOL("donar.yaml"), 3.0
 
 	g.player = render.NewPlayer(pUnit, pX, pY, pZ, geom.Radians(pDegrees), 0)
 	g.player.SetCollisionRadius(pUnit.CollisionRadius())
@@ -158,7 +159,11 @@ func NewGame() *Game {
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
-	g.mouseMode = MouseModeMove
+	if pUnit.HasTurret() {
+		g.mouseMode = MouseModeTurret
+	} else {
+		g.mouseMode = MouseModeBody
+	}
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
@@ -425,6 +430,26 @@ func (g *Game) Rotate(rSpeed float64) {
 	g.player.Moved = true
 }
 
+// Rotate player turret angle by rotation speed
+func (g *Game) RotateTurret(rSpeed float64) {
+	if !g.player.HasTurret() {
+		g.Rotate(rSpeed)
+		return
+	}
+
+	angle := g.player.TurretAngle() + rSpeed
+
+	pi2 := geom.Pi2
+	if angle >= pi2 {
+		angle = pi2 - angle
+	} else if angle <= -pi2 {
+		angle = angle + pi2
+	}
+
+	g.player.SetTurretAngle(angle)
+	g.player.Moved = true
+}
+
 // Update player pitch angle by pitch speed
 func (g *Game) Pitch(pSpeed float64) {
 	// current raycasting method can only allow up to 45 degree pitch in either direction
@@ -444,8 +469,13 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 
 	g.camera.SetPosition(g.player.Pos().Copy())
 	g.camera.SetPositionZ(g.player.CameraZ)
-	g.camera.SetHeadingAngle(g.player.Heading())
 	g.camera.SetPitchAngle(g.player.Pitch())
+
+	if g.player.HasTurret() {
+		g.camera.SetHeadingAngle(g.player.TurretAngle())
+	} else {
+		g.camera.SetHeadingAngle(g.player.Heading())
+	}
 }
 
 func (g *Game) updatePlayerPosition(newX, newY float64) {

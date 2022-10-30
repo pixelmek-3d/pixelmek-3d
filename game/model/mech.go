@@ -42,6 +42,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 		heatSinks:       r.HeatSinks.Quantity,
 		heatSinkType:    r.HeatSinks.Type,
 		armament:        make([]Weapon, 0),
+		hasTurret:       true,
 	}
 	return m
 }
@@ -89,6 +90,8 @@ func (e *Mech) TurretAngle() float64 {
 func (e *Mech) SetTurretAngle(angle float64) {
 	if e.hasTurret {
 		e.turretAngle = angle
+	} else {
+		e.SetHeading(angle)
 	}
 }
 
