@@ -25,6 +25,7 @@ type VTOL struct {
 	heatSinkType    ModelHeatSinkType
 	armament        []Weapon
 	parent          Entity
+	isPlayer        bool
 }
 
 func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *VTOL {
@@ -67,6 +68,18 @@ func (e *VTOL) Name() string {
 func (e *VTOL) Variant() string {
 	return e.Resource.Variant
 }
+
+func (e *VTOL) HasTurret() bool {
+	return false
+}
+
+func (e *VTOL) SetHasTurret(bool) {}
+
+func (e *VTOL) TurretAngle() float64 {
+	return e.Heading()
+}
+
+func (e *VTOL) SetTurretAngle(float64) {}
 
 func (e *VTOL) AddArmament(w Weapon) {
 	e.armament = append(e.armament, w)
@@ -189,7 +202,10 @@ func (e *VTOL) SetParent(parent Entity) {
 	e.parent = parent
 }
 
-func (e *VTOL) SetAsPlayer(bool) {}
+func (e *VTOL) SetAsPlayer(isPlayer bool) {
+	e.isPlayer = isPlayer
+}
+
 func (e *VTOL) IsPlayer() bool {
-	return false
+	return e.isPlayer
 }

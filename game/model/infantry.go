@@ -23,6 +23,7 @@ type Infantry struct {
 	structure       float64
 	armament        []Weapon
 	parent          Entity
+	isPlayer        bool
 }
 
 func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Infantry {
@@ -63,6 +64,18 @@ func (e *Infantry) Name() string {
 func (e *Infantry) Variant() string {
 	return e.Resource.Variant
 }
+
+func (e *Infantry) HasTurret() bool {
+	return false
+}
+
+func (e *Infantry) SetHasTurret(bool) {}
+
+func (e *Infantry) TurretAngle() float64 {
+	return e.Heading()
+}
+
+func (e *Infantry) SetTurretAngle(float64) {}
 
 func (e *Infantry) AddArmament(w Weapon) {
 	e.armament = append(e.armament, w)
@@ -185,7 +198,10 @@ func (e *Infantry) SetParent(parent Entity) {
 	e.parent = parent
 }
 
-func (e *Infantry) SetAsPlayer(bool) {}
+func (e *Infantry) SetAsPlayer(isPlayer bool) {
+	e.isPlayer = isPlayer
+}
+
 func (e *Infantry) IsPlayer() bool {
-	return false
+	return e.isPlayer
 }

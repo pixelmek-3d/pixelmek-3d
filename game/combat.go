@@ -64,6 +64,7 @@ func (g *Game) fireWeapon() {
 func (g *Game) fireTestWeaponAtPlayer() {
 	// Just for testing! Firing test projectiles at player
 	playerPosition := g.player.Pos()
+	playerPositionZ := g.player.PosZ()
 	for spriteType := range g.sprites.sprites {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 			var pX, pY, pZ float64
@@ -99,7 +100,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 				return true
 			}
 
-			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: randFloat(0.1, 0.7)}
+			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: playerPositionZ + randFloat(0.1, 0.7)}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 
 			// TESTING: needed until turret heading is separated from heading angle so projectiles come from correct postion

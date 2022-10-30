@@ -47,6 +47,11 @@ type Unit interface {
 	Name() string
 	Variant() string
 
+	HasTurret() bool
+	SetHasTurret(bool)
+	TurretAngle() float64
+	SetTurretAngle(float64)
+
 	CockpitOffset() *geom.Vector2
 	Armament() []Weapon
 	AddArmament(Weapon)

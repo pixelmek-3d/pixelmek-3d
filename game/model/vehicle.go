@@ -15,6 +15,8 @@ type Vehicle struct {
 	anchor          raycaster.SpriteAnchor
 	angle           float64
 	pitch           float64
+	hasTurret       bool
+	turretAngle     float64
 	velocity        float64
 	collisionRadius float64
 	collisionHeight float64
@@ -25,6 +27,7 @@ type Vehicle struct {
 	heatSinkType    ModelHeatSinkType
 	armament        []Weapon
 	parent          Entity
+	isPlayer        bool
 }
 
 func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Vehicle {
@@ -66,6 +69,27 @@ func (e *Vehicle) Name() string {
 
 func (e *Vehicle) Variant() string {
 	return e.Resource.Variant
+}
+
+func (e *Vehicle) HasTurret() bool {
+	return e.hasTurret
+}
+
+func (e *Vehicle) SetHasTurret(hasTurret bool) {
+	e.hasTurret = hasTurret
+}
+
+func (e *Vehicle) TurretAngle() float64 {
+	if e.hasTurret {
+		return e.turretAngle
+	}
+	return e.Heading()
+}
+
+func (e *Vehicle) SetTurretAngle(angle float64) {
+	if e.hasTurret {
+		e.turretAngle = angle
+	}
 }
 
 func (e *Vehicle) AddArmament(w Weapon) {
@@ -189,7 +213,10 @@ func (e *Vehicle) SetParent(parent Entity) {
 	e.parent = parent
 }
 
-func (e *Vehicle) SetAsPlayer(bool) {}
+func (e *Vehicle) SetAsPlayer(isPlayer bool) {
+	e.isPlayer = isPlayer
+}
+
 func (e *Vehicle) IsPlayer() bool {
-	return false
+	return e.isPlayer
 }

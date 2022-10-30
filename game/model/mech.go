@@ -15,6 +15,8 @@ type Mech struct {
 	anchor          raycaster.SpriteAnchor
 	angle           float64
 	pitch           float64
+	hasTurret       bool
+	turretAngle     float64
 	velocity        float64
 	collisionRadius float64
 	collisionHeight float64
@@ -67,6 +69,27 @@ func (e *Mech) Name() string {
 
 func (e *Mech) Variant() string {
 	return e.Resource.Variant
+}
+
+func (e *Mech) HasTurret() bool {
+	return e.hasTurret
+}
+
+func (e *Mech) SetHasTurret(hasTurret bool) {
+	e.hasTurret = hasTurret
+}
+
+func (e *Mech) TurretAngle() float64 {
+	if e.hasTurret {
+		return e.turretAngle
+	}
+	return e.Heading()
+}
+
+func (e *Mech) SetTurretAngle(angle float64) {
+	if e.hasTurret {
+		e.turretAngle = angle
+	}
 }
 
 func (e *Mech) AddArmament(w Weapon) {
@@ -193,6 +216,7 @@ func (e *Mech) SetParent(parent Entity) {
 func (e *Mech) SetAsPlayer(isPlayer bool) {
 	e.isPlayer = isPlayer
 }
+
 func (e *Mech) IsPlayer() bool {
 	return e.isPlayer
 }

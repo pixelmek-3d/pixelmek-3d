@@ -147,11 +147,14 @@ func NewGame() *Game {
 	g.loadContent()
 
 	// init player model
-	pX, pY, pDegrees := 8.5, 3.5, 60.0                  // TODO: get from mission
-	pMech := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
-	g.player = render.NewPlayer(pMech, pX, pY, geom.Radians(pDegrees), 0)
-	g.player.SetCollisionRadius(pMech.CollisionRadius())
-	g.player.SetCollisionHeight(pMech.CollisionHeight())
+	pX, pY, pZ, pDegrees := 8.5, 3.5, 0.0, 60.0 // TODO: get from mission
+	//pUnit := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
+	//pUnit := g.createModelInfantry("heavy_foot.yaml")
+	pUnit, pZ := g.createModelVTOL("donar.yaml"), 3.0
+
+	g.player = render.NewPlayer(pUnit, pX, pY, pZ, geom.Radians(pDegrees), 0)
+	g.player.SetCollisionRadius(pUnit.CollisionRadius())
+	g.player.SetCollisionHeight(pUnit.CollisionHeight())
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
