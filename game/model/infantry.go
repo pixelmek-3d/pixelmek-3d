@@ -72,7 +72,7 @@ func (e *Infantry) HasTurret() bool {
 func (e *Infantry) SetHasTurret(bool) {}
 
 func (e *Infantry) TurretAngle() float64 {
-	return e.Heading()
+	return 0
 }
 
 func (e *Infantry) SetTurretAngle(angle float64) {

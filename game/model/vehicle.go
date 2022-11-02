@@ -84,7 +84,7 @@ func (e *Vehicle) TurretAngle() float64 {
 	if e.hasTurret {
 		return e.turretAngle
 	}
-	return e.Heading()
+	return 0
 }
 
 func (e *Vehicle) SetTurretAngle(angle float64) {

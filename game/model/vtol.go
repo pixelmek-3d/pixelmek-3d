@@ -76,7 +76,7 @@ func (e *VTOL) HasTurret() bool {
 func (e *VTOL) SetHasTurret(bool) {}
 
 func (e *VTOL) TurretAngle() float64 {
-	return e.Heading()
+	return 0
 }
 
 func (e *VTOL) SetTurretAngle(angle float64) {

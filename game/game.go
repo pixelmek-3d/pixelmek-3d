@@ -419,18 +419,22 @@ func (g *Game) Strafe(sSpeed float64) {
 func (g *Game) Rotate(rSpeed float64) {
 	angle := g.player.Heading() + rSpeed
 
-	pi2 := geom.Pi2
-	if angle >= pi2 {
-		angle = pi2 - angle
-	} else if angle <= -pi2 {
-		angle = angle + pi2
+	if angle >= geom.Pi2 {
+		angle = geom.Pi2 - angle
+	} else if angle < 0 {
+		angle = angle + geom.Pi2
+	}
+
+	if angle < 0 {
+		// handle rounding errors
+		angle = 0
 	}
 
 	g.player.SetHeading(angle)
 	g.player.Moved = true
 }
 
-// Rotate player turret angle by rotation speed
+// Rotate player turret angle, relative to body heading, by rotation speed
 func (g *Game) RotateTurret(rSpeed float64) {
 	if !g.player.HasTurret() {
 		g.Rotate(rSpeed)
@@ -439,11 +443,10 @@ func (g *Game) RotateTurret(rSpeed float64) {
 
 	angle := g.player.TurretAngle() + rSpeed
 
-	pi2 := geom.Pi2
-	if angle >= pi2 {
-		angle = pi2 - angle
-	} else if angle <= -pi2 {
-		angle = angle + pi2
+	if angle > geom.Pi {
+		angle = geom.Pi
+	} else if angle < -geom.Pi {
+		angle = -geom.Pi
 	}
 
 	g.player.SetTurretAngle(angle)
@@ -453,7 +456,7 @@ func (g *Game) RotateTurret(rSpeed float64) {
 // Update player pitch angle by pitch speed
 func (g *Game) Pitch(pSpeed float64) {
 	// current raycasting method can only allow up to 45 degree pitch in either direction
-	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -math.Pi/8, math.Pi/4))
+	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -geom.Pi/8, geom.Pi/4))
 	g.player.Moved = true
 }
 
@@ -472,7 +475,7 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	g.camera.SetPitchAngle(g.player.Pitch())
 
 	if g.player.HasTurret() {
-		g.camera.SetHeadingAngle(g.player.TurretAngle())
+		g.camera.SetHeadingAngle(g.player.Heading() + g.player.TurretAngle())
 	} else {
 		g.camera.SetHeadingAngle(g.player.Heading())
 	}
@@ -602,7 +605,7 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -647,7 +650,7 @@ func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -692,7 +695,7 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -737,7 +740,7 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
@@ -756,7 +759,7 @@ func (g *Game) updateSpritePosition(s *render.Sprite) {
 		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-math.Pi, math.Pi))
+			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
