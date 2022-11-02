@@ -144,6 +144,8 @@ github.com/harbdog/raycaster-go v1.6.0 h1:epn4XVG5bCjfDuBfjvaJG9kJXNYRRwnkDrqqEG
 github.com/harbdog/raycaster-go v1.6.0/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
 github.com/harbdog/raycaster-go v1.6.1 h1:raIXSk4dN0y/QyrsQVWZ2hdQ+o7SrJYFpgbUMt1x58U=
 github.com/harbdog/raycaster-go v1.6.1/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
+github.com/harbdog/raycaster-go v1.6.2 h1:L7x75PDx4QgIk/KUw5CHR0TOxe6RNUARh4PtWAvZdKY=
+github.com/harbdog/raycaster-go v1.6.2/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
