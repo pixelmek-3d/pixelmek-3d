@@ -1,0 +1,37 @@
+---
+# https://www.sarna.net/wiki/Flamer
+name: Flamer
+short: FLAMER
+tech: clan
+tonnage: 0.5
+damage: 2
+# TODO: add heat transfer damage
+heat: 3
+# max distance in meters: 3 (hexes) * 30 (meters/hex) = 90 (meters)
+distance: 90
+# velocity in meters/second
+velocity: 200
+# cooldown in seconds
+cooldown: 1.5
+projectileCount: 1
+projectile:
+  collisionRadius: 6
+  collisionHeight: 12
+  scale: 0.35
+  image: flamer.png
+  imageSheet:
+    columns: 4
+    rows: 4
+    animationRate: 4
+    angleFacingRow:
+      0:   0
+      90:  1
+      180: 2
+      270: 3
+  impactEffect:
+    scale: 0.2
+    image: missile_impact.png
+    imageSheet:
+      columns: 6
+      rows: 1
+      animationRate: 5
