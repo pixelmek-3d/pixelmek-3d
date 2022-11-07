@@ -36,6 +36,9 @@
 
 ## ./projectiles
 
+- `flamer`: "dorkster"
+  - https://opengameart.org/content/animated-flame
+
 - `laser_x`, `bullet_tracer`: "Rawdanitsu"
   - https://opengameart.org/content/lasers-and-beams
 
