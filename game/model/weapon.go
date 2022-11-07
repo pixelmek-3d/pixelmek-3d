@@ -31,15 +31,15 @@ type Weapon interface {
 	Offset() *geom.Vector2
 	ProjectileCount() int
 	ProjectileDelay() float64
-	SpawnProjectile(angle, pitch float64, spawnedBy Entity) *Projectile
-	SpawnProjectileToward(convergencePoint *geom3d.Vector3, spawnedBy Entity) *Projectile
+	SpawnProjectile(angle, pitch float64, spawnedBy Unit) *Projectile
+	SpawnProjectileToward(convergencePoint *geom3d.Vector3, spawnedBy Unit) *Projectile
 
 	Clone() Weapon
 	Parent() Entity
 }
 
 // WeaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
-func WeaponPosition3D(e Entity, weaponOffX, weaponOffY float64) *geom3d.Vector3 {
+func WeaponPosition3D(e Unit, weaponOffX, weaponOffY float64) *geom3d.Vector3 {
 	unitPosition := e.Pos()
 	wX, wY, wZ := unitPosition.X, unitPosition.Y, e.PosZ()+weaponOffY
 
@@ -49,7 +49,7 @@ func WeaponPosition3D(e Entity, weaponOffX, weaponOffY float64) *geom3d.Vector3 
 	}
 
 	// calculate X,Y based on player orientation angle perpendicular to angle of view
-	offAngle := e.Heading() + geom.Pi/2
+	offAngle := e.Heading() + e.TurretAngle() + geom.Pi/2
 
 	// create line segment using offset angle and X offset to determine 3D position offset of X/Y
 	offLine := geom.LineFromAngle(0, 0, offAngle, weaponOffX)
