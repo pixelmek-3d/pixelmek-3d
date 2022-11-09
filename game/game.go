@@ -443,10 +443,10 @@ func (g *Game) RotateTurret(rSpeed float64) {
 
 	angle := g.player.TurretAngle() + rSpeed
 
-	if angle > geom.Pi {
-		angle = geom.Pi
-	} else if angle < -geom.Pi {
-		angle = -geom.Pi
+	if angle > geom.HalfPi {
+		angle = geom.HalfPi
+	} else if angle < -geom.HalfPi {
+		angle = -geom.HalfPi
 	}
 
 	g.player.SetTurretAngle(angle)
