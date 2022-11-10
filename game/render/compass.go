@@ -3,16 +3,19 @@ package render
 import (
 	"fmt"
 	"image/color"
+	"log"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/tinne26/etxt"
 )
 
 type Compass struct {
 	HUDSprite
 	image *ebiten.Image
+	font  *etxt.Font
 }
 
 //NewCompass creates a compass image to be rendered on demand
@@ -23,11 +26,31 @@ func NewCompass(width, height int) *Compass {
 		image:     img,
 	}
 
+	// TODO: refactor this to load from resources.go
+	font, fontName, err := etxt.ParseFontFrom("game/resources/fonts/TranscendsGames.otf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Font loaded: %s\n", fontName)
+	c.font = font
+
 	return c
 }
 
 func (c *Compass) Update(heading, turretAngle float64) {
 	c.image.Clear()
+
+	// create cache
+	cache := etxt.NewDefaultCache(1024 * 1024 * 10) // 10MB cache
+
+	// create and configure renderer
+	renderer := etxt.NewStdRenderer()
+	renderer.SetCacheHandler(cache.NewHandler())
+	renderer.SetSizePx(20)
+	renderer.SetFont(c.font)
+	renderer.SetAlign(etxt.Top, etxt.XCenter)
+	renderer.SetColor(color.RGBA{255, 255, 255, 255})
+	renderer.SetTarget(c.image)
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	compassTurretAngle := -turretAngle
@@ -82,7 +105,7 @@ func (c *Compass) Update(heading, turretAngle float64) {
 			}
 
 			if pipDegStr != "" {
-				ebitenutil.DebugPrintAt(c.image, pipDegStr, int(iX-pipWidth), int(float64(c.Height()/2)))
+				renderer.Draw(pipDegStr, int(iX), int(float64(c.Height()/2)))
 			}
 		}
 	}
