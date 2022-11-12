@@ -27,7 +27,7 @@ func NewCompass(width, height int) *Compass {
 	}
 
 	// TODO: refactor this to load from resources.go
-	font, fontName, err := etxt.ParseFontFrom("game/resources/fonts/TranscendsGames.otf")
+	font, fontName, err := etxt.ParseFontFrom("game/resources/fonts/Pixeloid.otf")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func (c *Compass) Update(heading, turretAngle float64) {
 	// create and configure renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(cache.NewHandler())
-	renderer.SetSizePx(20)
+	renderer.SetSizePx(16)
 	renderer.SetFont(c.font)
 	renderer.SetAlign(etxt.Top, etxt.XCenter)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -105,7 +105,7 @@ func (c *Compass) Update(heading, turretAngle float64) {
 			}
 
 			if pipDegStr != "" {
-				renderer.Draw(pipDegStr, int(iX), int(float64(c.Height()/2)))
+				renderer.Draw(pipDegStr, int(iX), int(float64(c.Height()/2))+2)
 			}
 		}
 	}
