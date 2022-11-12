@@ -3,7 +3,6 @@ package render
 import (
 	"fmt"
 	"image/color"
-	"log"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -14,25 +13,27 @@ import (
 
 type Compass struct {
 	HUDSprite
-	image *ebiten.Image
-	font  *etxt.Font
+	image        *ebiten.Image
+	fontRenderer *etxt.Renderer
 }
 
 //NewCompass creates a compass image to be rendered on demand
-func NewCompass(width, height int) *Compass {
+func NewCompass(width, height int, font *Font) *Compass {
 	img := ebiten.NewImage(width, height)
-	c := &Compass{
-		HUDSprite: NewHUDSprite(img, 1.0),
-		image:     img,
-	}
 
-	// TODO: refactor this to load from resources.go
-	font, fontName, err := etxt.ParseFontFrom("game/resources/fonts/Pixeloid.otf")
-	if err != nil {
-		log.Fatal(err)
+	// create and configure renderer
+	renderer := etxt.NewStdRenderer()
+	renderer.SetCacheHandler(font.FontCache.NewHandler())
+	renderer.SetSizePx(16)
+	renderer.SetFont(font.Font)
+	renderer.SetAlign(etxt.Top, etxt.XCenter)
+	renderer.SetColor(color.RGBA{255, 255, 255, 255})
+
+	c := &Compass{
+		HUDSprite:    NewHUDSprite(img, 1.0),
+		image:        img,
+		fontRenderer: renderer,
 	}
-	fmt.Printf("Font loaded: %s\n", fontName)
-	c.font = font
 
 	return c
 }
@@ -40,17 +41,7 @@ func NewCompass(width, height int) *Compass {
 func (c *Compass) Update(heading, turretAngle float64) {
 	c.image.Clear()
 
-	// create cache
-	cache := etxt.NewDefaultCache(1024 * 1024 * 10) // 10MB cache
-
-	// create and configure renderer
-	renderer := etxt.NewStdRenderer()
-	renderer.SetCacheHandler(cache.NewHandler())
-	renderer.SetSizePx(16)
-	renderer.SetFont(c.font)
-	renderer.SetAlign(etxt.Top, etxt.XCenter)
-	renderer.SetColor(color.RGBA{255, 255, 255, 255})
-	renderer.SetTarget(c.image)
+	c.fontRenderer.SetTarget(c.image)
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	compassTurretAngle := -turretAngle
@@ -105,7 +96,7 @@ func (c *Compass) Update(heading, turretAngle float64) {
 			}
 
 			if pipDegStr != "" {
-				renderer.Draw(pipDegStr, int(iX), int(float64(c.Height()/2))+2)
+				c.fontRenderer.Draw(pipDegStr, int(iX), int(float64(c.Height()/2))+2)
 			}
 		}
 	}

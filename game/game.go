@@ -58,6 +58,7 @@ type Game struct {
 	compass    *render.Compass
 	crosshairs *render.Crosshairs
 	reticle    *render.TargetReticle
+	fonts      *render.FontHandler
 
 	hudScale float64
 	hudRGBA  color.RGBA
@@ -102,6 +103,7 @@ type Game struct {
 func NewGame() *Game {
 	// initialize Game object
 	g := new(Game)
+	g.fonts = render.NewFontHandler()
 
 	g.initConfig()
 
@@ -110,7 +112,7 @@ func NewGame() *Game {
 	g.initCombatVariables()
 
 	ebiten.SetWindowTitle("PixelMek 3D")
-	ebiten.SetMaxTPS(int(model.TICKS_PER_SECOND))
+	ebiten.SetTPS(int(model.TICKS_PER_SECOND))
 
 	// use scale to keep the desired window width and height
 	g.setResolution(g.screenWidth, g.screenHeight)
@@ -226,6 +228,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault("screen.clutterDistance", 10.0)
 
 	viper.SetDefault("hud.scale", 1.0)
+	viper.SetDefault("hud.font", "pixeloid.otf")
 	viper.SetDefault("hud.color.red", 100)
 	viper.SetDefault("hud.color.green", 255)
 	viper.SetDefault("hud.color.blue", 230)
@@ -243,6 +246,11 @@ func (g *Game) initConfig() {
 	g.renderDistance = viper.GetFloat64("screen.renderDistance")
 	g.clutterDistance = viper.GetFloat64("screen.clutterDistance")
 
+	g.fonts.HUDFont, err = g.fonts.LoadFont(viper.GetString("hud.font"))
+	if err != nil {
+		log.Fatal(err)
+		exit(1)
+	}
 	g.hudScale = viper.GetFloat64("hud.scale")
 	g.hudRGBA = color.RGBA{
 		R: uint8(viper.GetUint("hud.color.red")),
@@ -359,7 +367,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.menu.draw(screen)
 
 	// draw FPS/TPS counter debug display
-	fps := fmt.Sprintf("FPS: %f\nTPS: %f/%v", ebiten.CurrentFPS(), ebiten.CurrentTPS(), ebiten.MaxTPS())
+	fps := fmt.Sprintf("FPS: %f\nTPS: %f/%v", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
 	ebitenutil.DebugPrint(screen, fps)
 }
 

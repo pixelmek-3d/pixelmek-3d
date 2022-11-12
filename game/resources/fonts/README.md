@@ -1,7 +1,7 @@
 # Font Resource Attribution
 
-- `3270`: https://fontesk.com/3270-font/
+- `pixeloid`: https://fontesk.com/pixeloid-font/
 
-- `Pixeloid`: https://fontesk.com/pixeloid-font/
+- `transcends_games`: https://fontlibrary.org/en/font/transcends-games
 
-- `TranscendsGames`: https://fontlibrary.org/en/font/transcends-games
+- `x3270`: https://fontesk.com/3270-font/

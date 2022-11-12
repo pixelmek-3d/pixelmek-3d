@@ -350,7 +350,7 @@ func (g *Game) loadMissionSprites() {
 func (g *Game) loadGameSprites() {
 	// load HUD elements
 	compassWidth, compassHeight := int(float64(g.width)/3), int(float64(g.height)/21)
-	g.compass = render.NewCompass(compassWidth, compassHeight)
+	g.compass = render.NewCompass(compassWidth, compassHeight, g.fonts.HUDFont)
 
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
 	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)

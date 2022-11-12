@@ -88,7 +88,7 @@ func (m *DemoMenu) update(g *Game) {
 		return
 	}
 
-	m.mgr.Update(1.0 / float32(ebiten.MaxTPS()))
+	m.mgr.Update(1.0 / float32(ebiten.TPS()))
 
 	m.mgr.BeginFrame()
 
