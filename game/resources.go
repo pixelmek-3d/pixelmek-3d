@@ -227,8 +227,8 @@ func (g *Game) loadContent() {
 	// load non-static mission sprites
 	g.loadMissionSprites()
 
-	// load all other game sprites
-	g.loadGameSprites()
+	// load HUD display elements
+	g.loadHUD()
 }
 
 // loadMissionSprites loads all mission sprite reources
@@ -344,19 +344,6 @@ func (g *Game) loadMissionSprites() {
 
 		g.sprites.addInfantrySprite(infantry)
 	}
-}
-
-// loadGameSprites loads all other game sprite reources
-func (g *Game) loadGameSprites() {
-	// load HUD elements
-	compassWidth, compassHeight := int(float64(g.width)/3), int(float64(g.height)/21)
-	g.compass = render.NewCompass(compassWidth, compassHeight, g.fonts.HUDFont)
-
-	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
-	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
-
-	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
-	g.reticle = render.NewTargetReticle(1.0, reticleSheet)
 }
 
 func (g *Game) createModelMech(unit string) *model.Mech {

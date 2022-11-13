@@ -55,6 +55,7 @@ type Game struct {
 	height int
 
 	player     *render.Player
+	armament   *render.Armament
 	compass    *render.Compass
 	crosshairs *render.Crosshairs
 	reticle    *render.TargetReticle
@@ -362,6 +363,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw compass with heading/turret orientation
 	g.drawCompass(screen)
+
+	// draw armament display
+	g.drawArmament(screen)
 
 	// draw menu (if active)
 	g.menu.draw(screen)

@@ -23,6 +23,41 @@ func (g *Game) isInteractiveType(spriteType SpriteType) bool {
 	return false
 }
 
+// loadHUD loads HUD elements
+func (g *Game) loadHUD() {
+	compassWidth, compassHeight := int(float64(3*g.width)/10), int(float64(g.height)/21)
+	g.compass = render.NewCompass(compassWidth, compassHeight, g.fonts.HUDFont)
+
+	armamentWidth, armamentHeight := int(float64(g.width)/3), int(float64(3*g.height)/8)
+	g.armament = render.NewArmament(armamentWidth, armamentHeight, g.fonts.HUDFont)
+
+	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
+
+	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
+	g.reticle = render.NewTargetReticle(1.0, reticleSheet)
+}
+
+func (g *Game) drawArmament(screen *ebiten.Image) {
+	if g.armament == nil {
+		return
+	}
+
+	g.armament.Update(g.player.Armament())
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.ColorM.ScaleWithColor(g.hudRGBA)
+
+	armamentScale := g.armament.Scale() * g.renderScale * g.hudScale
+	op.GeoM.Scale(armamentScale, armamentScale)
+	op.GeoM.Translate(
+		float64(g.width)-float64(g.armament.Width())*armamentScale,
+		float64(g.height/20)*armamentScale,
+	)
+	screen.DrawImage(g.armament.Texture(), op)
+}
+
 func (g *Game) drawCompass(screen *ebiten.Image) {
 	if g.compass == nil {
 		return
@@ -38,7 +73,7 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 	op.GeoM.Scale(compassScale, compassScale)
 	op.GeoM.Translate(
 		float64(g.width)/2-float64(g.compass.Width())*compassScale/2,
-		float64(2*g.compass.Height())*compassScale/2,
+		float64(g.height/20)*compassScale,
 	)
 	screen.DrawImage(g.compass.Texture(), op)
 }
