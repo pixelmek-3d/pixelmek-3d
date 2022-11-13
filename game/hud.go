@@ -43,7 +43,7 @@ func (g *Game) drawArmament(screen *ebiten.Image) {
 		return
 	}
 
-	g.armament.Update(g.player.Armament())
+	g.armament.Update()
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest

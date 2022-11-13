@@ -159,6 +159,7 @@ func NewGame() *Game {
 	g.player = render.NewPlayer(pUnit, pX, pY, pZ, geom.Radians(pDegrees), 0)
 	g.player.SetCollisionRadius(pUnit.CollisionRadius())
 	g.player.SetCollisionHeight(pUnit.CollisionHeight())
+	g.armament.SetWeapons(g.player.Armament())
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
