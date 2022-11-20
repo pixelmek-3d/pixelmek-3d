@@ -106,7 +106,7 @@ func (a *Armament) updateWeapon(w *Weapon) {
 	}
 
 	_, wHeight := w.image.Size()
-	wX, wY := 0, wHeight/2
+	wX, wY := 3, wHeight/2 // TODO: calculate better margin spacing
 
 	a.fontRenderer.Draw(weapon.ShortName(), wX, wY)
 }

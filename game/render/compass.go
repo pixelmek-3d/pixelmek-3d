@@ -21,7 +21,7 @@ type Compass struct {
 func NewCompass(width, height int, font *Font) *Compass {
 	img := ebiten.NewImage(width, height)
 
-	// create and configure renderer
+	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetSizePx(16)
@@ -102,7 +102,7 @@ func (c *Compass) Update(heading, turretAngle float64) {
 	}
 
 	// heading indicator line
-	hW, hH := 5.0, float64(c.Height()/2)
+	hW, hH := 5.0, float64(c.Height()/2) // TODO: calculate line width based on image width
 	ebitenutil.DrawRect(c.image, midX-hW/2, topY, hW, hH, color.RGBA{255, 255, 255, 255})
 }
 

@@ -28,6 +28,9 @@ func (g *Game) loadHUD() {
 	compassWidth, compassHeight := int(float64(3*g.width)/10), int(float64(g.height)/21)
 	g.compass = render.NewCompass(compassWidth, compassHeight, g.fonts.HUDFont)
 
+	radarWidth, radarHeight := int(float64(g.width)/3), int(float64(g.height)/3)
+	g.radar = render.NewRadar(radarWidth, radarHeight, g.fonts.HUDFont)
+
 	armamentWidth, armamentHeight := int(float64(g.width)/3), int(float64(3*g.height)/8)
 	g.armament = render.NewArmament(armamentWidth, armamentHeight, g.fonts.HUDFont)
 
@@ -76,6 +79,26 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 		float64(g.height/20)*compassScale,
 	)
 	screen.DrawImage(g.compass.Texture(), op)
+}
+
+func (g *Game) drawRadar(screen *ebiten.Image) {
+	if g.radar == nil {
+		return
+	}
+
+	g.radar.Update(g.player.Heading(), g.player.TurretAngle())
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.ColorM.ScaleWithColor(g.hudRGBA)
+
+	radarScale := g.radar.Scale() * g.renderScale * g.hudScale
+	op.GeoM.Scale(radarScale, radarScale)
+	op.GeoM.Translate(
+		float64(0)*radarScale, // TODO: add margin space
+		float64(g.height/20)*radarScale,
+	)
+	screen.DrawImage(g.radar.Texture(), op)
 }
 
 func (g *Game) drawCrosshairs(screen *ebiten.Image) {

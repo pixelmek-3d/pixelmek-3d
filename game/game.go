@@ -57,6 +57,7 @@ type Game struct {
 	player     *render.Player
 	armament   *render.Armament
 	compass    *render.Compass
+	radar      *render.Radar
 	crosshairs *render.Crosshairs
 	reticle    *render.TargetReticle
 	fonts      *render.FontHandler
@@ -364,6 +365,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw compass with heading/turret orientation
 	g.drawCompass(screen)
+
+	// draw radar with turret orientation
+	g.drawRadar(screen)
 
 	// draw armament display
 	g.drawArmament(screen)
