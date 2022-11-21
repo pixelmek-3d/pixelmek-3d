@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 )
 
@@ -27,6 +28,9 @@ func (g *Game) isInteractiveType(spriteType SpriteType) bool {
 func (g *Game) loadHUD() {
 	compassWidth, compassHeight := int(float64(3*g.width)/10), int(float64(g.height)/21)
 	g.compass = render.NewCompass(compassWidth, compassHeight, g.fonts.HUDFont)
+
+	altWidth, altHeight := int(float64(g.width)/24), int(float64(3*g.height)/12)
+	g.altimeter = render.NewAltimeter(altWidth, altHeight, g.fonts.HUDFont)
 
 	radarWidth, radarHeight := int(float64(g.width)/3), int(float64(g.height)/3)
 	g.radar = render.NewRadar(radarWidth, radarHeight, g.fonts.HUDFont)
@@ -79,6 +83,28 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 		float64(g.height/20)*compassScale,
 	)
 	screen.DrawImage(g.compass.Texture(), op)
+}
+
+func (g *Game) drawAltimeter(screen *ebiten.Image) {
+	if g.altimeter == nil {
+		return
+	}
+
+	// convert Z position to meters of altitude
+	altitude := g.player.PosZ() * model.METERS_PER_UNIT
+	g.altimeter.Update(altitude, g.player.Pitch())
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.ColorM.ScaleWithColor(g.hudRGBA)
+
+	altScale := g.altimeter.Scale() * g.renderScale * g.hudScale
+	op.GeoM.Scale(altScale, altScale)
+	op.GeoM.Translate(
+		float64(g.width/25)*altScale,
+		float64(g.height)/2-float64(g.altimeter.Height())*altScale/2,
+	)
+	screen.DrawImage(g.altimeter.Texture(), op)
 }
 
 func (g *Game) drawRadar(screen *ebiten.Image) {
