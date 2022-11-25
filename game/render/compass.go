@@ -102,7 +102,7 @@ func (c *Compass) Update(heading, turretAngle float64) {
 	}
 
 	// heading indicator line
-	hW, hH := 5.0, float64(c.Height()/2) // TODO: calculate line width based on image width
+	hW, hH := 5.0, float64(c.Height()/2) // TODO: calculate line thickness based on image height
 	ebitenutil.DrawRect(c.image, midX-hW/2, topY, hW, hH, color.RGBA{255, 255, 255, 255})
 }
 

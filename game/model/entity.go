@@ -47,6 +47,8 @@ type Unit interface {
 	Name() string
 	Variant() string
 
+	MaxVelocity() float64
+
 	HasTurret() bool
 	SetHasTurret(bool)
 	TurretAngle() float64

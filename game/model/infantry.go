@@ -16,6 +16,7 @@ type Infantry struct {
 	angle           float64
 	pitch           float64
 	velocity        float64
+	maxVelocity     float64
 	collisionRadius float64
 	collisionHeight float64
 	cockpitOffset   *geom.Vector2
@@ -36,6 +37,7 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 		armor:           r.Armor,
 		structure:       r.Structure,
 		armament:        make([]Weapon, 0),
+		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 	}
 	return m
 }
@@ -134,6 +136,10 @@ func (e *Infantry) Velocity() float64 {
 
 func (e *Infantry) SetVelocity(velocity float64) {
 	e.velocity = velocity
+}
+
+func (e *Infantry) MaxVelocity() float64 {
+	return e.maxVelocity
 }
 
 func (e *Infantry) CollisionRadius() float64 {

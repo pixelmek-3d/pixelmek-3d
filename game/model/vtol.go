@@ -16,6 +16,7 @@ type VTOL struct {
 	angle           float64
 	pitch           float64
 	velocity        float64
+	maxVelocity     float64
 	collisionRadius float64
 	collisionHeight float64
 	cockpitOffset   *geom.Vector2
@@ -40,6 +41,7 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 		heatSinks:       r.HeatSinks.Quantity,
 		heatSinkType:    r.HeatSinks.Type,
 		armament:        make([]Weapon, 0),
+		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 	}
 	return m
 }
@@ -138,6 +140,10 @@ func (e *VTOL) Velocity() float64 {
 
 func (e *VTOL) SetVelocity(velocity float64) {
 	e.velocity = velocity
+}
+
+func (e *VTOL) MaxVelocity() float64 {
+	return e.maxVelocity
 }
 
 func (e *VTOL) CollisionRadius() float64 {

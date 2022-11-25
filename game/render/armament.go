@@ -83,7 +83,10 @@ func (a *Armament) Update() {
 		// --- TESTING WEAPON SELECT BOX ---
 		if w.weapon.Cooldown() == 0 {
 			// TODO: move to Weapon update and add margins
-			var wT float64 = 2
+			// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
+			//        - import "github.com/hajimehoshi/ebiten/v2/vector"
+			//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, clr color.Color)
+			var wT float64 = 2 // TODO: calculate line thickness based on image height
 			wW, wH := float64(wWidth), float64(wHeight)
 			ebitenutil.DrawRect(a.image, wX, wY, wW, wT, color.RGBA{255, 255, 255, 255})
 			ebitenutil.DrawRect(a.image, wX+wW-wT, wY, wT, wH, color.RGBA{255, 255, 255, 255})

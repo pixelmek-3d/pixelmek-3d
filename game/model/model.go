@@ -17,6 +17,9 @@ const (
 	METERS_PER_UNIT  float64 = 20
 	TICKS_PER_SECOND float64 = 60
 	SECONDS_PER_TICK float64 = 1 / TICKS_PER_SECOND
+
+	VELOCITY_TO_KPH float64 = (METERS_PER_UNIT / 1000) * (TICKS_PER_SECOND * 60 * 60)
+	KPH_TO_VELOCITY float64 = 1 / VELOCITY_TO_KPH
 )
 
 type ModelResources struct {

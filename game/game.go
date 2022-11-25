@@ -59,6 +59,7 @@ type Game struct {
 	compass    *render.Compass
 	altimeter  *render.Altimeter
 	radar      *render.Radar
+	throttle   *render.Throttle
 	crosshairs *render.Crosshairs
 	reticle    *render.TargetReticle
 	fonts      *render.FontHandler
@@ -322,6 +323,7 @@ func (g *Game) Update() error {
 
 	if !g.paused {
 		// Perform logical updates
+		g.updatePlayer()
 		g.updateProjectiles()
 		g.updateSprites()
 
@@ -375,6 +377,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw armament display
 	g.drawArmament(screen)
+
+	// draw throttle display
+	g.drawThrottle(screen)
 
 	// draw menu (if active)
 	g.menu.draw(screen)
@@ -479,6 +484,16 @@ func (g *Game) Pitch(pSpeed float64) {
 	// current raycasting method can only allow up to 45 degree pitch in either direction
 	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -geom.Pi/8, geom.Pi/4))
 	g.player.Moved = true
+}
+
+func (g *Game) updatePlayer() {
+	if g.player.Velocity() == 0 {
+		return
+	}
+
+	position := g.player.Pos()
+	moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
+	g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
 }
 
 // Update camera to match player position and orientation

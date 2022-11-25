@@ -18,6 +18,7 @@ type Mech struct {
 	hasTurret       bool
 	turretAngle     float64
 	velocity        float64
+	maxVelocity     float64
 	collisionRadius float64
 	collisionHeight float64
 	cockpitOffset   *geom.Vector2
@@ -43,6 +44,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 		heatSinkType:    r.HeatSinks.Type,
 		armament:        make([]Weapon, 0),
 		hasTurret:       true,
+		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 	}
 	return m
 }
@@ -149,6 +151,10 @@ func (e *Mech) Velocity() float64 {
 
 func (e *Mech) SetVelocity(velocity float64) {
 	e.velocity = velocity
+}
+
+func (e *Mech) MaxVelocity() float64 {
+	return e.maxVelocity
 }
 
 func (e *Mech) CollisionRadius() float64 {

@@ -175,9 +175,13 @@ func (g *Game) handleInput() {
 	}
 
 	if forward {
-		g.Move(0.06 * moveModifier)
+		//g.Move(0.06 * moveModifier)
+		g.player.SetVelocity(g.player.MaxVelocity() * moveModifier)
 	} else if backward {
-		g.Move(-0.06 * moveModifier)
+		//g.Move(-0.06 * moveModifier)
+		g.player.SetVelocity(-g.player.MaxVelocity() / 2 * moveModifier)
+	} else {
+		g.player.SetVelocity(0)
 	}
 
 	if g.mouseMode == MouseModeBody {

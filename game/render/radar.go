@@ -72,7 +72,7 @@ func (r *Radar) Update(heading, turretAngle float64) {
 	ebitenutil.DrawLine(r.image, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, color.RGBA{255, 255, 255, 255})
 
 	// Draw unit reference shape
-	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line width based on image width
+	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line thickness based on image height
 	ebitenutil.DrawRect(r.image, midX-refW/2, midY-refT/2, refW, refT, color.RGBA{255, 255, 255, 255})
 	ebitenutil.DrawRect(r.image, midX-refW/2, midY-refH, refT, refH, color.RGBA{255, 255, 255, 255})
 	ebitenutil.DrawRect(r.image, midX+refW/2-refT, midY-refH, refT, refH, color.RGBA{255, 255, 255, 255})

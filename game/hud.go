@@ -38,6 +38,9 @@ func (g *Game) loadHUD() {
 	armamentWidth, armamentHeight := int(float64(g.width)/3), int(float64(3*g.height)/8)
 	g.armament = render.NewArmament(armamentWidth, armamentHeight, g.fonts.HUDFont)
 
+	throttleWidth, throttleHeight := int(float64(g.width)/8), int(float64(3*g.height)/8)
+	g.throttle = render.NewThrottle(throttleWidth, throttleHeight, g.fonts.HUDFont)
+
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
 	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
 
@@ -101,10 +104,33 @@ func (g *Game) drawAltimeter(screen *ebiten.Image) {
 	altScale := g.altimeter.Scale() * g.renderScale * g.hudScale
 	op.GeoM.Scale(altScale, altScale)
 	op.GeoM.Translate(
-		float64(g.width/25)*altScale,
+		float64(g.width/50)*altScale,
 		float64(g.height)/2-float64(g.altimeter.Height())*altScale/2,
 	)
 	screen.DrawImage(g.altimeter.Texture(), op)
+}
+
+func (g *Game) drawThrottle(screen *ebiten.Image) {
+	if g.throttle == nil {
+		return
+	}
+
+	// convert velocity from units per tick to kilometers per hour
+	kphVelocity := g.player.Velocity() * model.VELOCITY_TO_KPH
+	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
+	g.throttle.Update(kphVelocity, kphMax, kphMax/2)
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.ColorM.ScaleWithColor(g.hudRGBA)
+
+	tScale := g.throttle.Scale() * g.renderScale * g.hudScale
+	op.GeoM.Scale(tScale, tScale)
+	op.GeoM.Translate(
+		float64(g.width)-float64(g.throttle.Width())*tScale-float64(g.width/50)*tScale,
+		float64(g.height)-float64(g.throttle.Height()),
+	)
+	screen.DrawImage(g.throttle.Texture(), op)
 }
 
 func (g *Game) drawRadar(screen *ebiten.Image) {

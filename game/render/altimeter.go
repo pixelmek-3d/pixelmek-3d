@@ -86,7 +86,7 @@ func (a *Altimeter) Update(altitude, pitch float64) {
 	}
 
 	// heading indicator line
-	hW, hH := float64(a.Width()/2), 5.0 // TODO: calculate line width based on image height
+	hW, hH := float64(a.Width()/2), 5.0 // TODO: calculate line thickness based on image height
 	ebitenutil.DrawRect(a.image, midX, midY-hH/2, hW, hH, color.RGBA{255, 255, 255, 255})
 }
 
