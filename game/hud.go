@@ -117,8 +117,9 @@ func (g *Game) drawThrottle(screen *ebiten.Image) {
 
 	// convert velocity from units per tick to kilometers per hour
 	kphVelocity := g.player.Velocity() * model.VELOCITY_TO_KPH
+	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
-	g.throttle.Update(kphVelocity, kphMax, kphMax/2)
+	g.throttle.Update(kphVelocity, kphTgtVelocity, kphMax, kphMax/2)
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest

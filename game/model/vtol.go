@@ -16,6 +16,7 @@ type VTOL struct {
 	angle           float64
 	pitch           float64
 	velocity        float64
+	targetVelocity  float64
 	maxVelocity     float64
 	collisionRadius float64
 	collisionHeight float64
@@ -144,6 +145,43 @@ func (e *VTOL) SetVelocity(velocity float64) {
 
 func (e *VTOL) MaxVelocity() float64 {
 	return e.maxVelocity
+}
+
+func (e *VTOL) TargetVelocity() float64 {
+	return e.targetVelocity
+}
+
+func (e *VTOL) SetTargetVelocity(velocity float64) {
+	e.targetVelocity = velocity
+}
+
+func (e *VTOL) Update() bool {
+	if e.velocity == 0 && e.targetVelocity == 0 { // TODO: update for heading/targetHeading
+		// no position update needed
+		return false
+	}
+
+	if e.velocity != e.targetVelocity {
+		// TODO: move velocity toward target by amount allowed by calculated acceleration
+		var deltaV, newV float64
+		if e.targetVelocity > e.velocity {
+			deltaV = 0.0002 // FIXME: testing
+		} else {
+			deltaV = -0.0002 // FIXME: testing
+		}
+
+		newV = e.velocity + deltaV
+		if (deltaV > 0 && e.targetVelocity >= 0 && newV > e.targetVelocity) ||
+			(deltaV < 0 && e.targetVelocity <= 0 && newV < e.targetVelocity) {
+			// bound velocity changes to target velocity
+			newV = e.targetVelocity
+		}
+
+		e.velocity = newV
+	}
+
+	// position update needed
+	return true
 }
 
 func (e *VTOL) CollisionRadius() float64 {

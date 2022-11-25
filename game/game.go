@@ -487,13 +487,11 @@ func (g *Game) Pitch(pSpeed float64) {
 }
 
 func (g *Game) updatePlayer() {
-	if g.player.Velocity() == 0 {
-		return
+	if g.player.Update() {
+		position := g.player.Pos()
+		moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
+		g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
 	}
-
-	position := g.player.Pos()
-	moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
-	g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
 }
 
 // Update camera to match player position and orientation

@@ -16,6 +16,7 @@ type Infantry struct {
 	angle           float64
 	pitch           float64
 	velocity        float64
+	targetVelocity  float64
 	maxVelocity     float64
 	collisionRadius float64
 	collisionHeight float64
@@ -140,6 +141,28 @@ func (e *Infantry) SetVelocity(velocity float64) {
 
 func (e *Infantry) MaxVelocity() float64 {
 	return e.maxVelocity
+}
+
+func (e *Infantry) TargetVelocity() float64 {
+	return e.targetVelocity
+}
+
+func (e *Infantry) SetTargetVelocity(velocity float64) {
+	e.targetVelocity = velocity
+}
+
+func (e *Infantry) Update() bool {
+	if e.velocity == 0 && e.targetVelocity == 0 { // TODO: update for heading/targetHeading
+		// no position update needed
+		return false
+	}
+
+	if e.velocity != e.targetVelocity {
+		e.velocity = e.targetVelocity
+	}
+
+	// position update needed
+	return true
 }
 
 func (e *Infantry) CollisionRadius() float64 {

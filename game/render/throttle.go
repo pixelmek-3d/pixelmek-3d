@@ -36,43 +36,50 @@ func NewThrottle(width, height int, font *Font) *Throttle {
 	return t
 }
 
-func (t *Throttle) Update(velocity, maxVelocity, maxReverse float64) {
+func (t *Throttle) Update(velocity, targetVelocity, maxVelocity, maxReverse float64) {
 	t.image.Clear()
 
 	t.fontRenderer.SetTarget(t.image)
 
 	maxX, zeroY := float64(t.Width()), float64(t.Height())*maxVelocity/(maxVelocity+maxReverse)
 
-	// throttle velocity box
+	// current throttle velocity box
 	var velocityRatio float64 = velocity / (maxVelocity + maxReverse)
-	tW, tH := float64(t.Width())/6, -velocityRatio*float64(t.Height())
-	ebitenutil.DrawRect(t.image, maxX-tW, zeroY, tW, tH, color.RGBA{255, 255, 255, 128})
+	vW, vH := float64(t.Width())/6, -velocityRatio*float64(t.Height())
+	ebitenutil.DrawRect(t.image, maxX-vW, zeroY, vW, vH, color.RGBA{255, 255, 255, 128})
 
 	// throttle indicator outline
 	// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
 	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
 	//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, clr color.Color)
 	var oT float64 = 2 // TODO: calculate line thickness based on image height
-	oX, oY, oW, oH := maxX-tW, 0.0, tW, float64(t.Height())
+	oX, oY, oW, oH := maxX-vW, 0.0, vW, float64(t.Height())
 	ebitenutil.DrawRect(t.image, oX, oY, oW, oT, color.RGBA{255, 255, 255, 255})
 	ebitenutil.DrawRect(t.image, oX+oW-oT, oY, oT, oH, color.RGBA{255, 255, 255, 255})
 	ebitenutil.DrawRect(t.image, oX, oY+oH-oT, oW, oT, color.RGBA{255, 255, 255, 255})
 	ebitenutil.DrawRect(t.image, oX, oY, oT, oH, color.RGBA{255, 255, 255, 255})
 	ebitenutil.DrawRect(t.image, oX, zeroY, oW, oT, color.RGBA{255, 255, 255, 255})
 
-	// throttle indicator line
-	iW, iH := tW, 5.0 // TODO: calculate line thickness based on image height
-	iX, iY := oX, zeroY+tH-iH/2
-	ebitenutil.DrawRect(t.image, iX, iY, iW, iH, color.RGBA{255, 255, 255, 255})
-
-	// velocity text
+	// current throttle velocity text
 	velocityStr := fmt.Sprintf("%0.1f kph", velocity)
 	if velocity >= 0 {
 		t.fontRenderer.SetAlign(etxt.Top, etxt.Right)
 	} else {
 		t.fontRenderer.SetAlign(etxt.Bottom, etxt.Right)
 	}
-	t.fontRenderer.Draw(velocityStr, int(iX)-3, int(iY)) // TODO: calculate better margin spacing
+	t.fontRenderer.Draw(velocityStr, int(oX)-3, int(zeroY+vH)) // TODO: calculate better margin spacing
+
+	// target velocity throttle indicator line
+	var tgtVelocityRatio float64 = targetVelocity / (maxVelocity + maxReverse)
+	tH := -tgtVelocityRatio * float64(t.Height())
+	iW, iH := vW, 5.0 // TODO: calculate line thickness based on image height
+	iX, iY := oX, zeroY+tH-iH
+	if iY < 0 {
+		iY = 0
+	} else if iY > float64(t.Height())-iH {
+		iY = float64(t.Height()) - iH
+	}
+	ebitenutil.DrawRect(t.image, iX, iY, iW, iH, color.RGBA{255, 255, 255, 255})
 }
 
 func (t *Throttle) Texture() *ebiten.Image {

@@ -48,6 +48,9 @@ type Unit interface {
 	Variant() string
 
 	MaxVelocity() float64
+	TargetVelocity() float64
+	SetTargetVelocity(float64)
+	Update() bool
 
 	HasTurret() bool
 	SetHasTurret(bool)
