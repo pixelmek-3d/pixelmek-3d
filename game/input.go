@@ -30,10 +30,8 @@ func (g *Game) handleInput() {
 		return
 	}
 
-	forward := false
-	backward := false
-	rotLeft := false
-	rotRight := false
+	var stop, forward, backward bool
+	var rotLeft, rotRight bool
 
 	moveModifier := 1.0
 	if ebiten.IsKeyPressed(ebiten.KeyShift) {
@@ -174,14 +172,28 @@ func (g *Game) handleInput() {
 		backward = true
 	}
 
-	if forward {
-		//g.Move(0.06 * moveModifier)
-		g.player.SetTargetVelocity(g.player.MaxVelocity() * moveModifier)
-	} else if backward {
-		//g.Move(-0.06 * moveModifier)
-		g.player.SetTargetVelocity(-g.player.MaxVelocity() / 2 * moveModifier)
-	} else {
-		g.player.SetTargetVelocity(0)
+	if ebiten.IsKeyPressed(ebiten.KeyX) {
+		stop = true
+	}
+
+	switch g.throttleDecay {
+	case true:
+		if forward {
+			g.player.SetTargetVelocity(g.player.MaxVelocity())
+		} else if backward {
+			g.player.SetTargetVelocity(-g.player.MaxVelocity() / 2)
+		} else {
+			g.player.SetTargetVelocity(0)
+		}
+	case false:
+		deltaV := 0.0004 // FIXME: testing
+		if forward {
+			g.player.SetTargetVelocity(g.player.TargetVelocity() + deltaV)
+		} else if backward {
+			g.player.SetTargetVelocity(g.player.TargetVelocity() - deltaV)
+		} else if stop {
+			g.player.SetTargetVelocity(0)
+		}
 	}
 
 	if g.mouseMode == MouseModeBody {

@@ -220,6 +220,12 @@ func (m *DemoMenu) update(g *Game) {
 		}
 	}
 
+	// New section for control options
+	imgui.Separator()
+	imgui.Text("Controls:")
+
+	imgui.Checkbox("Throttle Decay", &g.throttleDecay)
+
 	// New section for lighting options (TODO: should be DEBUG only)
 	imgui.Separator()
 

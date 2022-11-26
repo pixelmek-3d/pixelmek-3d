@@ -97,6 +97,9 @@ type Game struct {
 
 	mapWidth, mapHeight int
 
+	// control options
+	throttleDecay bool
+
 	debug bool
 }
 
@@ -239,6 +242,8 @@ func (g *Game) initConfig() {
 	viper.SetDefault("hud.color.blue", 230)
 	viper.SetDefault("hud.color.alpha", 255)
 
+	viper.SetDefault("controls.throttleDecay", false)
+
 	err := viper.ReadInConfig()
 	if err != nil && g.debug {
 		log.Print(err)
@@ -263,6 +268,8 @@ func (g *Game) initConfig() {
 		B: uint8(viper.GetUint("hud.color.blue")),
 		A: uint8(viper.GetUint("hud.color.alpha")),
 	}
+
+	g.throttleDecay = viper.GetBool("controls.throttleDecay")
 
 	g.debug = viper.GetBool("debug")
 }
