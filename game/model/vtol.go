@@ -9,25 +9,27 @@ import (
 )
 
 type VTOL struct {
-	Resource        *ModelVTOLResource
-	position        *geom.Vector2
-	positionZ       float64
-	anchor          raycaster.SpriteAnchor
-	angle           float64
-	pitch           float64
-	velocity        float64
-	targetVelocity  float64
-	maxVelocity     float64
-	collisionRadius float64
-	collisionHeight float64
-	cockpitOffset   *geom.Vector2
-	armor           float64
-	structure       float64
-	heatSinks       int
-	heatSinkType    ModelHeatSinkType
-	armament        []Weapon
-	parent          Entity
-	isPlayer        bool
+	Resource         *ModelVTOLResource
+	position         *geom.Vector2
+	positionZ        float64
+	anchor           raycaster.SpriteAnchor
+	angle            float64
+	targetRelHeading float64
+	maxTurnRate      float64
+	pitch            float64
+	velocity         float64
+	targetVelocity   float64
+	maxVelocity      float64
+	collisionRadius  float64
+	collisionHeight  float64
+	cockpitOffset    *geom.Vector2
+	armor            float64
+	structure        float64
+	heatSinks        int
+	heatSinkType     ModelHeatSinkType
+	armament         []Weapon
+	parent           Entity
+	isPlayer         bool
 }
 
 func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *VTOL {
@@ -43,6 +45,7 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 		heatSinkType:    r.HeatSinks.Type,
 		armament:        make([]Weapon, 0),
 		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
+		maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
 	}
 	return m
 }
@@ -151,17 +154,37 @@ func (e *VTOL) TargetVelocity() float64 {
 	return e.targetVelocity
 }
 
-func (e *VTOL) SetTargetVelocity(velocity float64) {
-	e.targetVelocity = velocity
+func (e *VTOL) SetTargetVelocity(tVelocity float64) {
+	maxV := e.MaxVelocity()
+	if tVelocity > maxV {
+		tVelocity = maxV
+	} else if tVelocity < -maxV/2 {
+		tVelocity = -maxV / 2
+	}
+	e.targetVelocity = tVelocity
+}
+
+func (e *VTOL) TurnRate() float64 {
+	if e.velocity == 0 {
+		return e.maxTurnRate
+	}
+
+	// dynamic turn rate is half of the max turn rate when at max velocity
+	vTurnRatio := 0.5 + 0.5*(e.maxVelocity-math.Abs(e.velocity))/e.maxVelocity
+	return e.maxTurnRate * vTurnRatio
+}
+
+func (e *VTOL) SetTargetRelativeHeading(rHeading float64) {
+	e.targetRelHeading = rHeading
 }
 
 func (e *VTOL) Update() bool {
-	if e.velocity == 0 && e.targetVelocity == 0 { // TODO: update for heading/targetHeading
+	if e.velocity == 0 && e.targetVelocity == 0 && e.targetRelHeading == 0 {
 		// no position update needed
 		return false
 	}
 
-	if e.velocity != e.targetVelocity {
+	if e.targetVelocity != e.velocity {
 		// TODO: move velocity toward target by amount allowed by calculated acceleration
 		var deltaV, newV float64
 		if e.targetVelocity > e.velocity {
@@ -178,6 +201,40 @@ func (e *VTOL) Update() bool {
 		}
 
 		e.velocity = newV
+	}
+
+	if e.targetRelHeading != 0 {
+		// move by relative heading amount allowed by calculated turn rate
+		var deltaH, maxDeltaH, newH float64
+		newH = e.Heading()
+		maxDeltaH = e.TurnRate()
+		if e.targetRelHeading > 0 {
+			deltaH = e.targetRelHeading
+			if deltaH > maxDeltaH {
+				deltaH = maxDeltaH
+			}
+		} else {
+			deltaH = e.targetRelHeading
+			if deltaH < -maxDeltaH {
+				deltaH = -maxDeltaH
+			}
+		}
+
+		newH += deltaH
+
+		if newH >= geom.Pi2 {
+			newH = geom.Pi2 - newH
+		} else if newH < 0 {
+			newH = newH + geom.Pi2
+		}
+
+		if newH < 0 {
+			// handle rounding errors
+			newH = 0
+		}
+
+		e.targetRelHeading -= deltaH
+		e.angle = newH
 	}
 
 	// position update needed

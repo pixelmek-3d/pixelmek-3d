@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	METERS_PER_UNIT  float64 = 18
+	METERS_PER_UNIT  float64 = 20
 	TICKS_PER_SECOND float64 = 60
 	SECONDS_PER_TICK float64 = 1 / TICKS_PER_SECOND
 

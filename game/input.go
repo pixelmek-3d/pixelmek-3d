@@ -206,9 +206,13 @@ func (g *Game) handleInput() {
 		}
 	} else {
 		if rotLeft {
-			g.Rotate(0.03 * moveModifier)
+			//g.Rotate(0.03 * moveModifier)
+			turnAmount := g.player.TurnRate()
+			g.player.SetTargetRelativeHeading(turnAmount)
 		} else if rotRight {
-			g.Rotate(-0.03 * moveModifier)
+			//g.Rotate(-0.03 * moveModifier)
+			turnAmount := g.player.TurnRate()
+			g.player.SetTargetRelativeHeading(-turnAmount)
 		}
 	}
 }

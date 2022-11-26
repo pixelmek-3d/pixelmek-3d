@@ -47,6 +47,8 @@ type Unit interface {
 	Name() string
 	Variant() string
 
+	TurnRate() float64
+	SetTargetRelativeHeading(float64)
 	MaxVelocity() float64
 	TargetVelocity() float64
 	SetTargetVelocity(float64)

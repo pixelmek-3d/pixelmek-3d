@@ -498,6 +498,7 @@ func (g *Game) updatePlayer() {
 		position := g.player.Pos()
 		moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
 		g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
+		g.player.Moved = true
 	}
 }
 
