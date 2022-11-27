@@ -47,6 +47,10 @@ type Unit interface {
 	Name() string
 	Variant() string
 
+	Heat() float64
+	HeatDissipation() float64
+	TriggerWeapon(Weapon) bool
+
 	TurnRate() float64
 	SetTargetRelativeHeading(float64)
 	MaxVelocity() float64

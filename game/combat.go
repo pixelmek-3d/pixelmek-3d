@@ -35,26 +35,25 @@ func (g *Game) fireWeapon() {
 		if weapon.Cooldown() > 0 {
 			continue
 		}
+		if g.player.TriggerWeapon(weapon) {
+			var projectile *model.Projectile
+			if convergencePoint == nil {
+				projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Unit)
+			} else {
+				projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Unit)
+			}
 
-		var projectile *model.Projectile
-		if convergencePoint == nil {
-			projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Unit)
-		} else {
-			projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Unit)
-		}
+			if projectile != nil {
+				pTemplate := projectileSpriteForWeapon(weapon)
+				pSprite := pTemplate.Clone()
+				pSprite.Entity = projectile
+				g.sprites.addProjectile(pSprite)
 
-		if projectile != nil {
-			weapon.TriggerCooldown()
-
-			pTemplate := projectileSpriteForWeapon(weapon)
-			pSprite := pTemplate.Clone()
-			pSprite.Entity = projectile
-			g.sprites.addProjectile(pSprite)
-
-			// queue creation of multiple projectiles after time delay
-			if weapon.ProjectileCount() > 1 {
-				for i := 1; i < weapon.ProjectileCount(); i++ {
-					g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, g.player.Unit)
+				// queue creation of multiple projectiles after time delay
+				if weapon.ProjectileCount() > 1 {
+					for i := 1; i < weapon.ProjectileCount(); i++ {
+						g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, g.player.Unit)
+					}
 				}
 			}
 		}
@@ -115,20 +114,21 @@ func (g *Game) fireTestWeaponAtPlayer() {
 					continue
 				}
 
-				projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
-				if projectile != nil {
-					// TODO: add muzzle flash effect on being fired at
-					weapon.TriggerCooldown()
+				if unit.TriggerWeapon(weapon) {
+					projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
+					if projectile != nil {
+						// TODO: add muzzle flash effect on being fired at
 
-					pTemplate := projectileSpriteForWeapon(weapon)
-					pSprite := pTemplate.Clone()
-					pSprite.Entity = projectile
-					g.sprites.addProjectile(pSprite)
+						pTemplate := projectileSpriteForWeapon(weapon)
+						pSprite := pTemplate.Clone()
+						pSprite.Entity = projectile
+						g.sprites.addProjectile(pSprite)
 
-					// queue creation of multiple projectiles after time delay
-					if weapon.ProjectileCount() > 1 {
-						for i := 1; i < weapon.ProjectileCount(); i++ {
-							g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, unit)
+						// queue creation of multiple projectiles after time delay
+						if weapon.ProjectileCount() > 1 {
+							for i := 1; i < weapon.ProjectileCount(); i++ {
+								g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, unit)
+							}
 						}
 					}
 				}

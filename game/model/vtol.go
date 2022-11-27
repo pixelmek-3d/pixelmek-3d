@@ -25,8 +25,10 @@ type VTOL struct {
 	cockpitOffset    *geom.Vector2
 	armor            float64
 	structure        float64
+	heat             float64
+	heatDissipation  float64
 	heatSinks        int
-	heatSinkType     ModelHeatSinkType
+	heatSinkType     HeatSinkType
 	armament         []Weapon
 	parent           Entity
 	isPlayer         bool
@@ -42,11 +44,15 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 		armor:           r.Armor,
 		structure:       r.Structure,
 		heatSinks:       r.HeatSinks.Quantity,
-		heatSinkType:    r.HeatSinks.Type,
+		heatSinkType:    r.HeatSinks.Type.HeatSinkType,
 		armament:        make([]Weapon, 0),
 		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 		maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
 	}
+
+	// calculate heat dissipation per tick
+	m.heatDissipation = 5 * SECONDS_PER_TICK * float64(m.heatSinks) * float64(m.heatSinkType+1)
+
 	return m
 }
 
@@ -73,6 +79,24 @@ func (e *VTOL) Name() string {
 
 func (e *VTOL) Variant() string {
 	return e.Resource.Variant
+}
+
+func (e *VTOL) Heat() float64 {
+	return e.heat
+}
+
+func (e *VTOL) HeatDissipation() float64 {
+	return e.heatDissipation
+}
+
+func (e *VTOL) TriggerWeapon(w Weapon) bool {
+	if w.Cooldown() > 0 {
+		return false
+	}
+
+	w.TriggerCooldown()
+	e.heat += w.Heat()
+	return true
 }
 
 func (e *VTOL) HasTurret() bool {

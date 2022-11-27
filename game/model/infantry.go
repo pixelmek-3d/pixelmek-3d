@@ -71,6 +71,22 @@ func (e *Infantry) Variant() string {
 	return e.Resource.Variant
 }
 
+func (e *Infantry) Heat() float64 {
+	return 0
+}
+
+func (e *Infantry) HeatDissipation() float64 {
+	return 0
+}
+
+func (e *Infantry) TriggerWeapon(w Weapon) bool {
+	if w.Cooldown() > 0 {
+		return false
+	}
+	w.TriggerCooldown()
+	return true
+}
+
 func (e *Infantry) HasTurret() bool {
 	return false
 }

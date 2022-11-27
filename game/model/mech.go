@@ -27,8 +27,10 @@ type Mech struct {
 	cockpitOffset    *geom.Vector2
 	armor            float64
 	structure        float64
+	heat             float64
+	heatDissipation  float64
 	heatSinks        int
-	heatSinkType     ModelHeatSinkType
+	heatSinkType     HeatSinkType
 	armament         []Weapon
 	parent           Entity
 	isPlayer         bool
@@ -44,12 +46,16 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 		armor:           r.Armor,
 		structure:       r.Structure,
 		heatSinks:       r.HeatSinks.Quantity,
-		heatSinkType:    r.HeatSinks.Type,
+		heatSinkType:    r.HeatSinks.Type.HeatSinkType,
 		armament:        make([]Weapon, 0),
 		hasTurret:       true,
 		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 		maxTurnRate:     100 / r.Tonnage * 0.02, // FIXME: testing
 	}
+
+	// calculate heat dissipation per tick
+	m.heatDissipation = 5 * SECONDS_PER_TICK * float64(m.heatSinks) * float64(m.heatSinkType+1)
+
 	return m
 }
 
@@ -76,6 +82,24 @@ func (e *Mech) Name() string {
 
 func (e *Mech) Variant() string {
 	return e.Resource.Variant
+}
+
+func (e *Mech) Heat() float64 {
+	return e.heat
+}
+
+func (e *Mech) HeatDissipation() float64 {
+	return e.heatDissipation
+}
+
+func (e *Mech) TriggerWeapon(w Weapon) bool {
+	if w.Cooldown() > 0 {
+		return false
+	}
+
+	w.TriggerCooldown()
+	e.heat += w.Heat()
+	return true
 }
 
 func (e *Mech) HasTurret() bool {
@@ -190,6 +214,16 @@ func (e *Mech) SetTargetRelativeHeading(rHeading float64) {
 }
 
 func (e *Mech) Update() bool {
+	if e.heat > 0 {
+		// TODO: apply heat from movement based on velocity
+
+		// apply heat dissipation
+		e.heat -= e.HeatDissipation()
+		if e.heat < 0 {
+			e.heat = 0
+		}
+	}
+
 	if e.targetVelocity == 0 && e.velocity == 0 && e.targetRelHeading == 0 {
 		// no position update needed
 		return false
