@@ -54,7 +54,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 	}
 
 	// calculate heat dissipation per tick
-	m.heatDissipation = 5 * SECONDS_PER_TICK * float64(m.heatSinks) * float64(m.heatSinkType+1)
+	m.heatDissipation = SECONDS_PER_TICK / 4 * float64(m.heatSinks) * float64(m.heatSinkType)
 
 	return m
 }

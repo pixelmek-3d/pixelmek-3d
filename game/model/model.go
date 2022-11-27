@@ -68,8 +68,9 @@ type ModelTech struct {
 type HeatSinkType int
 
 const (
-	SINGLE HeatSinkType = iota
-	DOUBLE
+	NONE   HeatSinkType = iota // 0
+	SINGLE                     // 1
+	DOUBLE                     // 2
 )
 
 type ModelHeatSinkType struct {

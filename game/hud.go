@@ -32,6 +32,9 @@ func (g *Game) loadHUD() {
 	altWidth, altHeight := int(float64(g.width)/24), int(float64(3*g.height)/12)
 	g.altimeter = render.NewAltimeter(altWidth, altHeight, g.fonts.HUDFont)
 
+	heatWidth, heatHeight := int(float64(3*g.width)/10), int(float64(g.height)/18)
+	g.heat = render.NewHeatIndicator(heatWidth, heatHeight, g.fonts.HUDFont)
+
 	radarWidth, radarHeight := int(float64(g.width)/3), int(float64(g.height)/3)
 	g.radar = render.NewRadar(radarWidth, radarHeight, g.fonts.HUDFont)
 
@@ -110,6 +113,29 @@ func (g *Game) drawAltimeter(screen *ebiten.Image) {
 	screen.DrawImage(g.altimeter.Texture(), op)
 }
 
+func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
+	if g.heat == nil {
+		return
+	}
+
+	// convert heat dissipation to seconds
+	heat, maxHeat := g.player.Heat(), 100.0 // FIXME: add MaxHeat to model, determined based on # of heat sinks
+	dissipationPerSec := g.player.HeatDissipation() * model.TICKS_PER_SECOND
+	g.heat.Update(heat, maxHeat, dissipationPerSec)
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.ColorM.ScaleWithColor(g.hudRGBA)
+
+	heatScale := g.heat.Scale() * g.renderScale * g.hudScale
+	op.GeoM.Scale(heatScale, heatScale)
+	op.GeoM.Translate(
+		float64(g.width)/2-float64(g.heat.Width())*heatScale/2,
+		float64(g.height-g.heat.Height()-g.height/20)*heatScale, // FIXME: position when renderScale < 1.0
+	)
+	screen.DrawImage(g.heat.Texture(), op)
+}
+
 func (g *Game) drawThrottle(screen *ebiten.Image) {
 	if g.throttle == nil {
 		return
@@ -129,7 +155,7 @@ func (g *Game) drawThrottle(screen *ebiten.Image) {
 	op.GeoM.Scale(tScale, tScale)
 	op.GeoM.Translate(
 		float64(g.width)-float64(g.throttle.Width())*tScale-float64(g.width/50)*tScale,
-		float64(g.height)-float64(g.throttle.Height()),
+		float64(g.height)-float64(g.throttle.Height()), // FIXME: position when renderScale < 1.0
 	)
 	screen.DrawImage(g.throttle.Texture(), op)
 }

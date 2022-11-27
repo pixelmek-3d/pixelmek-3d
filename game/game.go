@@ -58,6 +58,7 @@ type Game struct {
 	armament   *render.Armament
 	compass    *render.Compass
 	altimeter  *render.Altimeter
+	heat       *render.HeatIndicator
 	radar      *render.Radar
 	throttle   *render.Throttle
 	crosshairs *render.Crosshairs
@@ -378,6 +379,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw altimeter with altitude and pitch
 	g.drawAltimeter(screen)
+
+	// draw heat indicator
+	g.drawHeatIndicator(screen)
 
 	// draw radar with turret orientation
 	g.drawRadar(screen)
