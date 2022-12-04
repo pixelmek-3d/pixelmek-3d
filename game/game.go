@@ -54,7 +54,9 @@ type Game struct {
 	width  int
 	height int
 
-	player     *render.Player
+	player       *render.Player
+	playerStatus *render.UnitStatus
+	//targetStatus *render.UnitStatus
 	armament   *render.Armament
 	compass    *render.Compass
 	altimeter  *render.Altimeter
@@ -163,10 +165,19 @@ func NewGame() *Game {
 	//pUnit := g.createModelVehicle("srm_carrier.yaml")
 	//pUnit, pZ := g.createModelVTOL("donar.yaml"), 3.0
 
-	g.player = render.NewPlayer(pUnit, pX, pY, pZ, geom.Radians(pDegrees), 0)
+	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, pUnit.Resource.Image)
+	mechImg := getSpriteFromFile(mechRelPath)
+
+	scale := convertHeightToScale(pUnit.Resource.Height, pUnit.Resource.HeightPxRatio)
+	pSprite := render.NewMechSprite(pUnit, scale, mechImg)
+
+	g.player = render.NewPlayer(pUnit, pSprite.Sprite, pX, pY, pZ, geom.Radians(pDegrees), 0)
 	g.player.SetCollisionRadius(pUnit.CollisionRadius())
 	g.player.SetCollisionHeight(pUnit.CollisionHeight())
 	g.armament.SetWeapons(g.player.Armament())
+
+	// set Sprite object for player unit to render its image in status display
+	g.playerStatus.SetUnit(pSprite.Sprite)
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -391,6 +402,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw throttle display
 	g.drawThrottle(screen)
+
+	// draw player status display
+	g.drawPlayerStatus(screen)
 
 	// draw menu (if active)
 	g.menu.draw(screen)

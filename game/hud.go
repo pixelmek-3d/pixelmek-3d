@@ -44,11 +44,34 @@ func (g *Game) loadHUD() {
 	throttleWidth, throttleHeight := int(float64(g.width)/8), int(float64(3*g.height)/8)
 	g.throttle = render.NewThrottle(throttleWidth, throttleHeight, g.fonts.HUDFont)
 
+	statusWidth, statusHeight := int(float64(g.width)/5), int(float64(g.height)/5)
+	g.playerStatus = render.NewUnitStatus(statusWidth, statusHeight, g.fonts.HUDFont)
+
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
 	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
 
 	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
 	g.reticle = render.NewTargetReticle(1.0, reticleSheet)
+}
+
+func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
+	if g.playerStatus == nil {
+		return
+	}
+
+	g.playerStatus.Update()
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.ColorM.ScaleWithColor(g.hudRGBA)
+
+	statusScale := g.playerStatus.Scale() * g.renderScale * g.hudScale
+	op.GeoM.Scale(statusScale, statusScale)
+	op.GeoM.Translate(
+		4*float64(g.width)/5-2*float64(g.playerStatus.Width())/3*statusScale,    // FIXME: terrible arbitrary offsets
+		float64(g.height)-float64(g.playerStatus.Height())-float64(g.height)/21, // FIXME: position when renderScale < 1.0
+	)
+	screen.DrawImage(g.playerStatus.Texture(), op)
 }
 
 func (g *Game) drawArmament(screen *ebiten.Image) {
