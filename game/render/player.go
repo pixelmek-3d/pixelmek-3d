@@ -2,7 +2,6 @@ package render
 
 import (
 	"image/color"
-	"math"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 
@@ -36,8 +35,6 @@ func NewPlayer(unit model.Unit, sprite *Sprite, x, y, z, angle, pitch float64) *
 	p.SetHeading(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
-	p.SetArmorPoints(math.MaxFloat64) // TODO: get from mech model
-	p.SetStructurePoints(math.MaxFloat64)
 
 	return p
 }

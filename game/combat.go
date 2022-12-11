@@ -192,17 +192,18 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				collisionEntity = collisions[0]
 				entity := collisionEntity.entity
 
+				damage := p.Damage()
+				entity.ApplyDamage(damage)
+
+				hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
+				percentHP := 100 * (hp / maxHP)
+
 				if entity == g.player.Unit {
 					// TODO: visual response to player being hit
-					println("ouch!")
+					fmt.Printf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
 				} else {
-					damage := p.Damage()
-					entity.ApplyDamage(damage)
-
 					// TODO: visual method for showing damage was done
-					hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
-					percentHP := 100 * (hp / maxHP)
-					fmt.Printf("[%0.2f%s] hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
+					fmt.Printf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
 				}
 			}
 

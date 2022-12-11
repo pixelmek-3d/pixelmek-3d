@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -26,7 +27,7 @@ func NewUnitStatus(width, height int, font *Font) *UnitStatus {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetSizePx(16)
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.YCenter, etxt.Right)
+	renderer.SetAlign(etxt.YCenter, etxt.Left)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	u := &UnitStatus{
@@ -47,7 +48,7 @@ func (u *UnitStatus) SetUnit(unit *Sprite) {
 	uTexture := unit.Texture()
 
 	op := &ebiten.DrawImageOptions{}
-	// // Reset RGB (not Alpha) 0 forcibly
+	// Reset RGB (not Alpha) 0 forcibly
 	op.ColorM.Scale(0, 0, 0, 1)
 
 	// Set color
@@ -74,6 +75,16 @@ func (u *UnitStatus) Update() {
 	// unit image
 	op := &ebiten.DrawImageOptions{}
 	u.image.DrawImage(u.unitImage, op)
+
+	// armor readout
+	armorPercent := 100 * u.unit.ArmorPoints() / u.unit.MaxArmorPoints()
+	armorStr := fmt.Sprintf("ARMOR\n%0.0f%%", armorPercent)
+	u.fontRenderer.Draw(armorStr, int(2*bW/3), int(bH/3))
+
+	// internal structure readout
+	internalPercent := 100 * u.unit.StructurePoints() / u.unit.MaxStructurePoints()
+	internalStr := fmt.Sprintf("STRUCT\n%0.0f%%", internalPercent)
+	u.fontRenderer.Draw(internalStr, int(2*bW/3), int(2*bH/3))
 }
 
 func (u *UnitStatus) Texture() *ebiten.Image {
