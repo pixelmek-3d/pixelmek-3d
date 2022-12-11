@@ -51,6 +51,9 @@ type Unit interface {
 	HeatDissipation() float64
 	TriggerWeapon(Weapon) bool
 
+	Target() Entity
+	SetTarget(Entity)
+
 	TurnRate() float64
 	SetTargetRelativeHeading(float64)
 	MaxVelocity() float64

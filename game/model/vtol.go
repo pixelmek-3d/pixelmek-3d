@@ -30,6 +30,7 @@ type VTOL struct {
 	heatSinks        int
 	heatSinkType     HeatSinkType
 	armament         []Weapon
+	target           Entity
 	parent           Entity
 	isPlayer         bool
 }
@@ -97,6 +98,14 @@ func (e *VTOL) TriggerWeapon(w Weapon) bool {
 	w.TriggerCooldown()
 	e.heat += w.Heat()
 	return true
+}
+
+func (e *VTOL) Target() Entity {
+	return e.target
+}
+
+func (e *VTOL) SetTarget(t Entity) {
+	e.target = t
 }
 
 func (e *VTOL) HasTurret() bool {

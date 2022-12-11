@@ -43,9 +43,12 @@ func NewUnitStatus(width, height int, font *Font) *UnitStatus {
 func (u *UnitStatus) SetUnit(unit *Sprite) {
 	u.unit = unit
 	u.unitImage.Clear()
+	if unit == nil {
+		return
+	}
 
 	// create static outline image of unit and store it
-	uTexture := unit.Texture()
+	uTexture := unit.Texture() // FIXME: unit texture needs to always be the static, front facing image
 
 	op := &ebiten.DrawImageOptions{}
 	// Reset RGB (not Alpha) 0 forcibly
@@ -65,6 +68,12 @@ func (u *UnitStatus) SetUnit(unit *Sprite) {
 
 func (u *UnitStatus) Update() {
 	u.image.Clear()
+	if u.unit == nil {
+		// TESTING!
+		bW, bH := float64(u.Width()), float64(u.Height())
+		ebitenutil.DrawRect(u.image, 0, 0, bW, bH, color.RGBA{255, 255, 255, 24})
+		return
+	}
 
 	u.fontRenderer.SetTarget(u.image)
 

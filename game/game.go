@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"runtime"
+	"sort"
 
 	"image/color"
 	_ "image/png"
@@ -56,16 +57,16 @@ type Game struct {
 
 	player       *render.Player
 	playerStatus *render.UnitStatus
-	//targetStatus *render.UnitStatus
-	armament   *render.Armament
-	compass    *render.Compass
-	altimeter  *render.Altimeter
-	heat       *render.HeatIndicator
-	radar      *render.Radar
-	throttle   *render.Throttle
-	crosshairs *render.Crosshairs
-	reticle    *render.TargetReticle
-	fonts      *render.FontHandler
+	targetStatus *render.UnitStatus
+	armament     *render.Armament
+	compass      *render.Compass
+	altimeter    *render.Altimeter
+	heat         *render.HeatIndicator
+	radar        *render.Radar
+	throttle     *render.Throttle
+	crosshairs   *render.Crosshairs
+	reticle      *render.TargetReticle
+	fonts        *render.FontHandler
 
 	hudScale float64
 	hudRGBA  color.RGBA
@@ -406,6 +407,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// draw player status display
 	g.drawPlayerStatus(screen)
 
+	// draw target status display
+	g.drawTargetStatus(screen)
+
 	// draw menu (if active)
 	g.menu.draw(screen)
 
@@ -557,6 +561,63 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 		collisionEntity.entity.ApplyDamage(collisionDamage)
 		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.ArmorPoints())
 	}
+}
+
+func (g *Game) cycleTarget() {
+	// TODO: add support for nearest and prev target cycle
+	targetables := make([]*render.Sprite, 0, 64)
+
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+			if !g.isInteractiveType(spriteType) {
+				// only cycle on certain sprite types (skip projectiles, effects, etc.)
+				return true
+			}
+
+			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			targetables = append(targetables, s)
+
+			return true
+		})
+	}
+
+	if len(targetables) == 0 {
+		g.player.SetTarget(nil)
+		g.targetStatus.SetUnit(nil)
+		return
+	}
+
+	// sort by rough estimate of distance to player
+	playerPos := g.player.Pos()
+	sort.Slice(targetables, func(a, b int) bool {
+		sA, sB := targetables[a], targetables[b]
+		dA := math.Abs(sA.Pos().X-playerPos.X) + math.Abs(sA.Pos().Y-playerPos.Y)
+		dB := math.Abs(sB.Pos().X-playerPos.X) + math.Abs(sB.Pos().Y-playerPos.Y)
+		return dA < dB
+	})
+
+	var newTarget *render.Sprite
+	prevTarget := g.player.Target()
+	for _, t := range targetables {
+		if prevTarget == nil {
+			newTarget = t
+			break
+		}
+
+		if prevTarget == t.Entity {
+			// allow next loop iteration to select as new target
+			prevTarget = nil
+			continue
+		}
+	}
+
+	if newTarget == nil {
+		newTarget = targetables[0]
+	}
+
+	g.player.SetTarget(newTarget.Entity)
+	g.targetStatus.SetUnit(newTarget)
+
 }
 
 func (g *Game) updateSprites() {

@@ -158,6 +158,11 @@ func (g *Game) handleInput() {
 		}
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
+		// cycle player targets
+		g.cycleTarget()
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		rotLeft = true
 	}

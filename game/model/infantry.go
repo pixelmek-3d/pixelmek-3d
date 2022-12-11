@@ -26,6 +26,7 @@ type Infantry struct {
 	armor            float64
 	structure        float64
 	armament         []Weapon
+	target           Entity
 	parent           Entity
 	isPlayer         bool
 }
@@ -85,6 +86,14 @@ func (e *Infantry) TriggerWeapon(w Weapon) bool {
 	}
 	w.TriggerCooldown()
 	return true
+}
+
+func (e *Infantry) Target() Entity {
+	return e.target
+}
+
+func (e *Infantry) SetTarget(t Entity) {
+	e.target = t
 }
 
 func (e *Infantry) HasTurret() bool {

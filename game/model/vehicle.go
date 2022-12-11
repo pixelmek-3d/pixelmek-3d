@@ -32,6 +32,7 @@ type Vehicle struct {
 	heatSinks        int
 	heatSinkType     HeatSinkType
 	armament         []Weapon
+	target           Entity
 	parent           Entity
 	isPlayer         bool
 }
@@ -100,6 +101,14 @@ func (e *Vehicle) TriggerWeapon(w Weapon) bool {
 	w.TriggerCooldown()
 	e.heat += w.Heat()
 	return true
+}
+
+func (e *Vehicle) Target() Entity {
+	return e.target
+}
+
+func (e *Vehicle) SetTarget(t Entity) {
+	e.target = t
 }
 
 func (e *Vehicle) HasTurret() bool {

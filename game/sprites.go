@@ -181,3 +181,29 @@ func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
 		panic(fmt.Errorf("unable to get model.Entity from type %v", interfaceType))
 	}
 }
+
+func (g *Game) getSpriteFromEntity(entity model.Entity) *render.Sprite {
+	var found *render.Sprite
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+			if !g.isInteractiveType(spriteType) {
+				// only show on certain sprite types (skip projectiles, effects, etc.)
+				return true
+			}
+
+			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			if entity == s.Entity {
+				found = s
+				return false // found, stop Range iteration
+			}
+
+			return true
+		})
+
+		if found != nil {
+			return found
+		}
+	}
+
+	return nil
+}

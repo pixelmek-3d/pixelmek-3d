@@ -32,6 +32,7 @@ type Mech struct {
 	heatSinks        int
 	heatSinkType     HeatSinkType
 	armament         []Weapon
+	target           Entity
 	parent           Entity
 	isPlayer         bool
 }
@@ -100,6 +101,14 @@ func (e *Mech) TriggerWeapon(w Weapon) bool {
 	w.TriggerCooldown()
 	e.heat += w.Heat()
 	return true
+}
+
+func (e *Mech) Target() Entity {
+	return e.target
+}
+
+func (e *Mech) SetTarget(t Entity) {
+	e.target = t
 }
 
 func (e *Mech) HasTurret() bool {
