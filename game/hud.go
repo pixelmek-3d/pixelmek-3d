@@ -54,7 +54,7 @@ func (g *Game) loadHUD() {
 }
 
 func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
-	if g.playerStatus == nil {
+	if !g.hudEnabled || g.playerStatus == nil {
 		return
 	}
 
@@ -74,7 +74,7 @@ func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
 }
 
 func (g *Game) drawTargetStatus(screen *ebiten.Image) {
-	if g.targetStatus == nil {
+	if !g.hudEnabled || g.targetStatus == nil {
 		return
 	}
 
@@ -94,7 +94,7 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image) {
 }
 
 func (g *Game) drawArmament(screen *ebiten.Image) {
-	if g.armament == nil {
+	if !g.hudEnabled || g.armament == nil {
 		return
 	}
 
@@ -114,7 +114,7 @@ func (g *Game) drawArmament(screen *ebiten.Image) {
 }
 
 func (g *Game) drawCompass(screen *ebiten.Image) {
-	if g.compass == nil {
+	if !g.hudEnabled || g.compass == nil {
 		return
 	}
 
@@ -134,7 +134,7 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 }
 
 func (g *Game) drawAltimeter(screen *ebiten.Image) {
-	if g.altimeter == nil {
+	if !g.hudEnabled || g.altimeter == nil {
 		return
 	}
 
@@ -156,7 +156,7 @@ func (g *Game) drawAltimeter(screen *ebiten.Image) {
 }
 
 func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
-	if g.heat == nil {
+	if !g.hudEnabled || g.heat == nil {
 		return
 	}
 
@@ -179,7 +179,7 @@ func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
 }
 
 func (g *Game) drawThrottle(screen *ebiten.Image) {
-	if g.throttle == nil {
+	if !g.hudEnabled || g.throttle == nil {
 		return
 	}
 
@@ -203,7 +203,7 @@ func (g *Game) drawThrottle(screen *ebiten.Image) {
 }
 
 func (g *Game) drawRadar(screen *ebiten.Image) {
-	if g.radar == nil {
+	if !g.hudEnabled || g.radar == nil {
 		return
 	}
 
@@ -223,7 +223,7 @@ func (g *Game) drawRadar(screen *ebiten.Image) {
 }
 
 func (g *Game) drawCrosshairs(screen *ebiten.Image) {
-	if g.crosshairs == nil {
+	if !g.hudEnabled || g.crosshairs == nil {
 		return
 	}
 
@@ -241,7 +241,7 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 }
 
 func (g *Game) drawTargetReticle(screen *ebiten.Image) {
-	if g.reticle == nil || g.player.Target() == nil {
+	if !g.hudEnabled || g.reticle == nil || g.player.Target() == nil {
 		return
 	}
 

@@ -68,8 +68,9 @@ type Game struct {
 	reticle      *render.TargetReticle
 	fonts        *render.FontHandler
 
-	hudScale float64
-	hudRGBA  color.RGBA
+	hudEnabled bool
+	hudScale   float64
+	hudRGBA    color.RGBA
 
 	//--define camera and renderer--//
 	camera *raycaster.Camera
@@ -248,6 +249,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault("screen.renderDistance", -1)
 	viper.SetDefault("screen.clutterDistance", 10.0)
 
+	viper.SetDefault("hud.enabled", true)
 	viper.SetDefault("hud.scale", 1.0)
 	viper.SetDefault("hud.font", "pixeloid.otf")
 	viper.SetDefault("hud.color.red", 100)
@@ -274,6 +276,7 @@ func (g *Game) initConfig() {
 		log.Fatal(err)
 		exit(1)
 	}
+	g.hudEnabled = viper.GetBool("hud.enabled")
 	g.hudScale = viper.GetFloat64("hud.scale")
 	g.hudRGBA = color.RGBA{
 		R: uint8(viper.GetUint("hud.color.red")),

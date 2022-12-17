@@ -203,6 +203,8 @@ func (m *DemoMenu) update(g *Game) {
 	imgui.Separator()
 	imgui.Text("HUD:")
 
+	imgui.Checkbox("Show HUD", &g.hudEnabled)
+
 	if imgui.SliderFloatV("Scaling", &m.newHudScale, 0.2, 5.0, "%.1f", imgui.SliderFlagsNone) {
 		g.hudScale = float64(m.newHudScale)
 	}
