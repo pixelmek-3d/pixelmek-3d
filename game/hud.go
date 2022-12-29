@@ -35,8 +35,7 @@ func (g *Game) loadHUD() {
 
 	g.radar = render.NewRadar(g.fonts.HUDFont)
 
-	armamentWidth, armamentHeight := int(float64(g.width)/3), int(float64(3*g.height)/8)
-	g.armament = render.NewArmament(armamentWidth, armamentHeight, g.fonts.HUDFont)
+	g.armament = render.NewArmament(g.fonts.HUDFont)
 
 	g.throttle = render.NewThrottle(g.fonts.HUDFont)
 
@@ -75,8 +74,8 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	// draw radar with turret orientation
 	g.drawRadar(screen)
 
-	// // draw armament display
-	// g.drawArmament(screen)
+	// draw armament display
+	g.drawArmament(screen)
 
 	// draw throttle display
 	g.drawThrottle(screen)
@@ -133,19 +132,13 @@ func (g *Game) drawArmament(screen *ebiten.Image) {
 		return
 	}
 
-	g.armament.Update()
-
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(g.hudRGBA)
-
 	armamentScale := g.armament.Scale() * g.renderScale * g.hudScale
-	op.GeoM.Scale(armamentScale, armamentScale)
-	op.GeoM.Translate(
-		float64(g.width)-float64(g.armament.Width())*armamentScale,
-		float64(g.height/20)*armamentScale,
+	armamentWidth, armamentHeight := int(armamentScale*float64(g.width)/3), int(armamentScale*float64(3*g.height)/8)
+	aX, aY := float64(g.width)-float64(armamentWidth), 0.0
+	aBounds := image.Rect(
+		int(aX), int(aY), int(aX)+armamentWidth, int(aY)+armamentHeight,
 	)
-	screen.DrawImage(g.armament.Texture(), op)
+	g.armament.Draw(screen, aBounds, &g.hudRGBA)
 }
 
 func (g *Game) drawCompass(screen *ebiten.Image) {
