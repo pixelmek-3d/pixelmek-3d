@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"math"
 
@@ -14,14 +15,11 @@ import (
 
 type Altimeter struct {
 	HUDSprite
-	image        *ebiten.Image
 	fontRenderer *etxt.Renderer
 }
 
 //NewAltimeter creates a compass image to be rendered on demand
-func NewAltimeter(width, height int, font *Font) *Altimeter {
-	img := ebiten.NewImage(width, height)
-
+func NewAltimeter(font *Font) *Altimeter {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
@@ -31,30 +29,31 @@ func NewAltimeter(width, height int, font *Font) *Altimeter {
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	a := &Altimeter{
-		HUDSprite:    NewHUDSprite(img, 1.0),
-		image:        img,
+		HUDSprite:    NewHUDSprite(nil, 1.0),
 		fontRenderer: renderer,
 	}
 
 	return a
 }
 
-func (a *Altimeter) Update(altitude, pitch float64) {
-	a.image.Clear()
+func (a *Altimeter) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, altitude, pitch float64) {
+	a.fontRenderer.SetTarget(screen)
+	a.fontRenderer.SetColor(clr)
 
-	a.fontRenderer.SetTarget(a.image)
+	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
 	// use opposite pitch value so indicator will draw upward from center when postive angle
 	relPitchAngle := -pitch
 	relPitchDeg := geom.Degrees(relPitchAngle)
 
-	midX, midY := float64(a.Width())/2, float64(a.Height())/2
+	midX, midY := float64(bX)+float64(bW)/2, float64(bY)+float64(bH)/2
 
 	// pitch indicator box
 	var maxPitchDeg float64 = 45
 	pitchRatio := relPitchDeg / maxPitchDeg
-	tW, tH := float64(a.Width())/4, pitchRatio*float64(a.Height()/2)
-	ebitenutil.DrawRect(a.image, midX, midY, tW, tH, color.RGBA{255, 255, 255, 192})
+	tW, tH := float64(bW)/4, pitchRatio*float64(bH/2)
+	pAlpha := uint8(4 * int(clr.A) / 5)
+	ebitenutil.DrawRect(screen, midX, midY, tW, tH, color.RGBA{clr.R, clr.G, clr.B, pAlpha})
 
 	// altimeter pips
 	var maxAltitude float64 = model.METERS_PER_UNIT
@@ -63,19 +62,19 @@ func (a *Altimeter) Update(altitude, pitch float64) {
 
 		var pipWidth, pipHeight float64
 		if actualAlt%5 == 0 {
-			pipWidth = float64(a.Width() / 4)
+			pipWidth = float64(bW / 4)
 			pipHeight = 2
 		}
 		if actualAlt%10 == 0 {
-			pipWidth = float64(a.Width() / 2)
+			pipWidth = float64(bW / 2)
 			pipHeight = 3
 		}
 
 		if pipWidth > 0 {
 			// pip shows relative based on index (i) where negative is above center, positive is below
 			iRatio := float64(-i) / maxAltitude
-			iY := float64(a.Height())/2 + iRatio*float64(a.Height())/2
-			ebitenutil.DrawRect(a.image, midX, iY-pipHeight/2, pipWidth, pipHeight, color.RGBA{255, 255, 255, 255})
+			iY := float64(bY) + float64(bH)/2 + iRatio*float64(bH)/2
+			ebitenutil.DrawRect(screen, midX, iY-pipHeight/2, pipWidth, pipHeight, clr)
 
 			var pipAltStr string = fmt.Sprintf("%d", actualAlt)
 
@@ -86,10 +85,6 @@ func (a *Altimeter) Update(altitude, pitch float64) {
 	}
 
 	// heading indicator line
-	hW, hH := float64(a.Width()/2), 5.0 // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(a.image, midX, midY-hH/2, hW, hH, color.RGBA{255, 255, 255, 255})
-}
-
-func (a *Altimeter) Texture() *ebiten.Image {
-	return a.image
+	hW, hH := float64(bW/2), 5.0 // TODO: calculate line thickness based on image height
+	ebitenutil.DrawRect(screen, midX, midY-hH/2, hW, hH, clr)
 }

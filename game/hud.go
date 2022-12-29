@@ -29,8 +29,7 @@ func (g *Game) loadHUD() {
 
 	g.compass = render.NewCompass(g.fonts.HUDFont)
 
-	altWidth, altHeight := int(float64(g.width)/24), int(float64(3*g.height)/12)
-	g.altimeter = render.NewAltimeter(altWidth, altHeight, g.fonts.HUDFont)
+	g.altimeter = render.NewAltimeter(g.fonts.HUDFont)
 
 	g.heat = render.NewHeatIndicator(g.fonts.HUDFont)
 
@@ -67,8 +66,8 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	// draw compass with heading/turret orientation
 	g.drawCompass(screen)
 
-	// // draw altimeter with altitude and pitch
-	// g.drawAltimeter(screen)
+	// draw altimeter with altitude and pitch
+	g.drawAltimeter(screen)
 
 	// draw heat indicator
 	g.drawHeatIndicator(screen)
@@ -154,9 +153,9 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 		return
 	}
 
-	compassWidth, compassHeight := int(float64(3*g.width)/10), int(float64(g.height)/21)
 	compassScale := g.compass.Scale() * g.renderScale * g.hudScale
-	cX, cY := float64(g.width)/2-float64(compassWidth)*compassScale/2, 0.0
+	compassWidth, compassHeight := int(compassScale*float64(3*g.width)/10), int(compassScale*float64(g.height)/21)
+	cX, cY := float64(g.width)/2-float64(compassWidth)/2, 0.0
 	cBounds := image.Rect(
 		int(cX), int(cY), int(cX)+compassWidth, int(cY)+compassHeight,
 	)
@@ -170,19 +169,14 @@ func (g *Game) drawAltimeter(screen *ebiten.Image) {
 
 	// convert Z position to meters of altitude
 	altitude := g.player.PosZ() * model.METERS_PER_UNIT
-	g.altimeter.Update(altitude, g.player.Pitch())
-
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(g.hudRGBA)
 
 	altScale := g.altimeter.Scale() * g.renderScale * g.hudScale
-	op.GeoM.Scale(altScale, altScale)
-	op.GeoM.Translate(
-		float64(g.width/50)*altScale,
-		float64(g.height)/2-float64(g.altimeter.Height())*altScale/2,
+	altWidth, altHeight := int(altScale*float64(g.width)/24), int(altScale*float64(3*g.height)/12)
+	aX, aY := 0.0, float64(g.height)/2-float64(altHeight)/2
+	aBounds := image.Rect(
+		int(aX), int(aY), int(aX)+altWidth, int(aY)+altHeight,
 	)
-	screen.DrawImage(g.altimeter.Texture(), op)
+	g.altimeter.Draw(screen, aBounds, &g.hudRGBA, altitude, g.player.Pitch())
 }
 
 func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
@@ -194,9 +188,9 @@ func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
 	heat, maxHeat := g.player.Heat(), 100.0 // FIXME: add MaxHeat to model, determined based on # of heat sinks
 	dissipationPerSec := g.player.HeatDissipation() * model.TICKS_PER_SECOND
 
-	heatWidth, heatHeight := int(float64(3*g.width)/10), int(float64(g.height)/18)
 	heatScale := g.heat.Scale() * g.renderScale * g.hudScale
-	hX, hY := float64(g.width)/2-float64(heatWidth)*heatScale/2, float64(g.height-heatHeight)*heatScale
+	heatWidth, heatHeight := int(heatScale*float64(3*g.width)/10), int(heatScale*float64(g.height)/18)
+	hX, hY := float64(g.width)/2-float64(heatWidth)/2, float64(g.height-heatHeight)
 	hBounds := image.Rect(
 		int(hX), int(hY), int(hX)+heatWidth, int(hY)+heatHeight,
 	)
@@ -228,8 +222,10 @@ func (g *Game) drawRadar(screen *ebiten.Image) {
 	}
 
 	radarScale := g.radar.Scale() * g.renderScale * g.hudScale
+	radarWidth, radarHeight := int(radarScale*float64(g.width)/3), int(radarScale*float64(g.height)/3)
+	rX, rY := 0.0, 0.0
 	radarBounds := image.Rect(
-		0, 0, int(radarScale*float64(g.width)/3), int(radarScale*float64(g.height)/3),
+		int(rX), int(rY), int(rX)+radarWidth, int(rY)+radarHeight,
 	)
 	g.radar.Draw(screen, radarBounds, &g.hudRGBA, g.player.Heading(), g.player.TurretAngle())
 }
