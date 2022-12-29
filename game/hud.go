@@ -26,8 +26,8 @@ func (g *Game) isInteractiveType(spriteType SpriteType) bool {
 
 // loadHUD loads HUD elements
 func (g *Game) loadHUD() {
-	compassWidth, compassHeight := int(float64(3*g.width)/10), int(float64(g.height)/21)
-	g.compass = render.NewCompass(compassWidth, compassHeight, g.fonts.HUDFont)
+
+	g.compass = render.NewCompass(g.fonts.HUDFont)
 
 	altWidth, altHeight := int(float64(g.width)/24), int(float64(3*g.height)/12)
 	g.altimeter = render.NewAltimeter(altWidth, altHeight, g.fonts.HUDFont)
@@ -65,8 +65,8 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	// draw crosshairs
 	g.drawCrosshairs(screen)
 
-	// // draw compass with heading/turret orientation
-	// g.drawCompass(screen)
+	// draw compass with heading/turret orientation
+	g.drawCompass(screen)
 
 	// // draw altimeter with altitude and pitch
 	// g.drawAltimeter(screen)
@@ -155,19 +155,13 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 		return
 	}
 
-	g.compass.Update(g.player.Heading(), g.player.TurretAngle())
-
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(g.hudRGBA)
-
+	compassWidth, compassHeight := int(float64(3*g.width)/10), int(float64(g.height)/21)
 	compassScale := g.compass.Scale() * g.renderScale * g.hudScale
-	op.GeoM.Scale(compassScale, compassScale)
-	op.GeoM.Translate(
-		float64(g.width)/2-float64(g.compass.Width())*compassScale/2,
-		float64(g.height/20)*compassScale,
+	cX, cY := float64(g.width)/2-float64(compassWidth)*compassScale/2, 0.0
+	cBounds := image.Rect(
+		int(cX), int(cY), int(cX)+compassWidth, int(cY)+compassHeight,
 	)
-	screen.DrawImage(g.compass.Texture(), op)
+	g.compass.Draw(screen, cBounds, &g.hudRGBA, g.player.Heading(), g.player.TurretAngle())
 }
 
 func (g *Game) drawAltimeter(screen *ebiten.Image) {
@@ -225,7 +219,8 @@ func (g *Game) drawThrottle(screen *ebiten.Image) {
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
 
-	throttleWidth, throttleHeight := int(float64(g.width)/8), int(float64(3*g.height)/8)
+	throttleScale := g.throttle.Scale() * g.renderScale * g.hudScale
+	throttleWidth, throttleHeight := int(throttleScale*float64(g.width)/8), int(throttleScale*float64(3*g.height)/8)
 	tBounds := image.Rect(
 		g.width-throttleWidth, g.height-throttleHeight,
 		g.width, g.height,

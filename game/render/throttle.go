@@ -38,16 +38,13 @@ func (t *Throttle) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color
 	t.fontRenderer.SetColor(clr)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
-	if bX < 0 || bY < 0 {
-		return
-	}
-
 	maxX, zeroY := float64(bW), float64(bH)*maxVelocity/(maxVelocity+maxReverse)
 
 	// current throttle velocity box
 	var velocityRatio float64 = velocity / (maxVelocity + maxReverse)
 	vW, vH := float64(bW)/6, -velocityRatio*float64(bH)
-	ebitenutil.DrawRect(screen, float64(bX)+maxX-vW, float64(bY)+zeroY, vW, vH, color.RGBA{clr.R, clr.G, clr.B, clr.A / 2})
+	vAlpha := uint8(4 * int(clr.A) / 5)
+	ebitenutil.DrawRect(screen, float64(bX)+maxX-vW, float64(bY)+zeroY, vW, vH, color.RGBA{clr.R, clr.G, clr.B, vAlpha})
 
 	// throttle indicator outline
 	// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect

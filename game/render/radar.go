@@ -39,9 +39,6 @@ func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RG
 	r.fontRenderer.SetColor(clr)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
-	if bX < 0 || bY < 0 {
-		return
-	}
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	// and offset by -90 degrees to make 0 degree turret angle as relative from the forward (up) position
@@ -53,6 +50,10 @@ func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RG
 		radius = midY - 1
 	}
 
+	// add target bounds offset for draw position
+	midX += float64(bX)
+	midY += float64(bY)
+
 	// Draw radar range text
 	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
 	r.fontRenderer.Draw(radarStr, 3, 3) // TODO: calculate better margin spacing
@@ -61,7 +62,8 @@ func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RG
 	// FIXME: when ebitengine v2.5 releases can draw circle outline using StrokeCircle
 	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
 	//        - vector.StrokeCircle(r.image, float32(midX), float32(midY), float32(radius), float32(3), clr)
-	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{clr.R, clr.G, clr.B, clr.A / 5})
+	oAlpha := uint8(clr.A / 5)
+	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{clr.R, clr.G, clr.B, oAlpha})
 
 	// Draw turret angle reference lines
 	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
