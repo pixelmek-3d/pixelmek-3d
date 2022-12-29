@@ -38,8 +38,8 @@ func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RG
 	r.fontRenderer.SetTarget(screen)
 	r.fontRenderer.SetColor(clr)
 
-	rX, rY, rW, rH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
-	if rX < 0 || rY < 0 {
+	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	if bX < 0 || bY < 0 {
 		return
 	}
 
@@ -47,7 +47,7 @@ func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RG
 	// and offset by -90 degrees to make 0 degree turret angle as relative from the forward (up) position
 	radarTurretAngle := -turretAngle - geom.HalfPi
 
-	midX, midY := float64(rW)/2, float64(rH)/2
+	midX, midY := float64(bW)/2, float64(bH)/2
 	radius := midX - 1
 	if midY < midX {
 		radius = midY - 1

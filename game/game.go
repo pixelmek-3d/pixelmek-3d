@@ -383,35 +383,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.player.ConvergenceDistance = g.camera.GetConvergenceDistance()
 	g.player.ConvergencePoint = g.camera.GetConvergencePoint()
 
-	// draw target reticle
-	g.drawTargetReticle(screen)
-
-	// draw crosshairs
-	g.drawCrosshairs(screen)
-
-	// // draw compass with heading/turret orientation
-	// g.drawCompass(screen)
-
-	// // draw altimeter with altitude and pitch
-	// g.drawAltimeter(screen)
-
-	// // draw heat indicator
-	// g.drawHeatIndicator(screen)
-
-	// draw radar with turret orientation
-	g.drawRadar(screen)
-
-	// // draw armament display
-	// g.drawArmament(screen)
-
-	// // draw throttle display
-	// g.drawThrottle(screen)
-
-	// // draw player status display
-	// g.drawPlayerStatus(screen)
-
-	// // draw target status display
-	// g.drawTargetStatus(screen)
+	// draw HUD elements
+	g.drawHUD(screen)
 
 	// draw menu (if active)
 	g.menu.draw(screen)

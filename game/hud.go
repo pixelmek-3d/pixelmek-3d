@@ -40,8 +40,7 @@ func (g *Game) loadHUD() {
 	armamentWidth, armamentHeight := int(float64(g.width)/3), int(float64(3*g.height)/8)
 	g.armament = render.NewArmament(armamentWidth, armamentHeight, g.fonts.HUDFont)
 
-	throttleWidth, throttleHeight := int(float64(g.width)/8), int(float64(3*g.height)/8)
-	g.throttle = render.NewThrottle(throttleWidth, throttleHeight, g.fonts.HUDFont)
+	g.throttle = render.NewThrottle(g.fonts.HUDFont)
 
 	statusWidth, statusHeight := int(float64(g.width)/5), int(float64(g.height)/5)
 	g.playerStatus = render.NewUnitStatus(statusWidth, statusHeight, g.fonts.HUDFont)
@@ -54,8 +53,45 @@ func (g *Game) loadHUD() {
 	g.reticle = render.NewTargetReticle(1.0, reticleSheet)
 }
 
+// drawHUD draws HUD elements on the screen
+func (g *Game) drawHUD(screen *ebiten.Image) {
+	if !g.hudEnabled {
+		return
+	}
+
+	// draw target reticle
+	g.drawTargetReticle(screen)
+
+	// draw crosshairs
+	g.drawCrosshairs(screen)
+
+	// // draw compass with heading/turret orientation
+	// g.drawCompass(screen)
+
+	// // draw altimeter with altitude and pitch
+	// g.drawAltimeter(screen)
+
+	// // draw heat indicator
+	// g.drawHeatIndicator(screen)
+
+	// draw radar with turret orientation
+	g.drawRadar(screen)
+
+	// // draw armament display
+	// g.drawArmament(screen)
+
+	// draw throttle display
+	g.drawThrottle(screen)
+
+	// // draw player status display
+	// g.drawPlayerStatus(screen)
+
+	// // draw target status display
+	// g.drawTargetStatus(screen)
+}
+
 func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
-	if !g.hudEnabled || g.playerStatus == nil {
+	if g.playerStatus == nil {
 		return
 	}
 
@@ -75,7 +111,7 @@ func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
 }
 
 func (g *Game) drawTargetStatus(screen *ebiten.Image) {
-	if !g.hudEnabled || g.targetStatus == nil {
+	if g.targetStatus == nil {
 		return
 	}
 
@@ -95,7 +131,7 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image) {
 }
 
 func (g *Game) drawArmament(screen *ebiten.Image) {
-	if !g.hudEnabled || g.armament == nil {
+	if g.armament == nil {
 		return
 	}
 
@@ -115,7 +151,7 @@ func (g *Game) drawArmament(screen *ebiten.Image) {
 }
 
 func (g *Game) drawCompass(screen *ebiten.Image) {
-	if !g.hudEnabled || g.compass == nil {
+	if g.compass == nil {
 		return
 	}
 
@@ -135,7 +171,7 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 }
 
 func (g *Game) drawAltimeter(screen *ebiten.Image) {
-	if !g.hudEnabled || g.altimeter == nil {
+	if g.altimeter == nil {
 		return
 	}
 
@@ -157,7 +193,7 @@ func (g *Game) drawAltimeter(screen *ebiten.Image) {
 }
 
 func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
-	if !g.hudEnabled || g.heat == nil {
+	if g.heat == nil {
 		return
 	}
 
@@ -180,7 +216,7 @@ func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
 }
 
 func (g *Game) drawThrottle(screen *ebiten.Image) {
-	if !g.hudEnabled || g.throttle == nil {
+	if g.throttle == nil {
 		return
 	}
 
@@ -188,23 +224,17 @@ func (g *Game) drawThrottle(screen *ebiten.Image) {
 	kphVelocity := g.player.Velocity() * model.VELOCITY_TO_KPH
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
-	g.throttle.Update(kphVelocity, kphTgtVelocity, kphMax, kphMax/2)
 
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(g.hudRGBA)
-
-	tScale := g.throttle.Scale() * g.renderScale * g.hudScale
-	op.GeoM.Scale(tScale, tScale)
-	op.GeoM.Translate(
-		float64(g.width)-float64(g.throttle.Width())*tScale-float64(g.width/50)*tScale,
-		float64(g.height)-float64(g.throttle.Height()), // FIXME: position when renderScale < 1.0
+	throttleWidth, throttleHeight := int(float64(g.width)/8), int(float64(3*g.height)/8)
+	tBounds := image.Rect(
+		g.width-throttleWidth, g.height-throttleHeight,
+		g.width, g.height,
 	)
-	screen.DrawImage(g.throttle.Texture(), op)
+	g.throttle.Draw(screen, tBounds, &g.hudRGBA, kphVelocity, kphTgtVelocity, kphMax, kphMax/2)
 }
 
 func (g *Game) drawRadar(screen *ebiten.Image) {
-	if !g.hudEnabled || g.radar == nil {
+	if g.radar == nil {
 		return
 	}
 
@@ -216,7 +246,7 @@ func (g *Game) drawRadar(screen *ebiten.Image) {
 }
 
 func (g *Game) drawCrosshairs(screen *ebiten.Image) {
-	if !g.hudEnabled || g.crosshairs == nil {
+	if g.crosshairs == nil {
 		return
 	}
 
@@ -234,7 +264,7 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 }
 
 func (g *Game) drawTargetReticle(screen *ebiten.Image) {
-	if !g.hudEnabled || g.reticle == nil || g.player.Target() == nil {
+	if g.reticle == nil || g.player.Target() == nil {
 		return
 	}
 
