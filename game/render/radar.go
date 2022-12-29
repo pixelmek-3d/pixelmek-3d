@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,14 +13,11 @@ import (
 
 type Radar struct {
 	HUDSprite
-	image        *ebiten.Image
 	fontRenderer *etxt.Renderer
 }
 
 //NewRadar creates a radar image to be rendered on demand
-func NewRadar(width, height int, font *Font) *Radar {
-	img := ebiten.NewImage(width, height)
-
+func NewRadar(font *Font) *Radar {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
@@ -29,24 +27,27 @@ func NewRadar(width, height int, font *Font) *Radar {
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	r := &Radar{
-		HUDSprite:    NewHUDSprite(img, 1.0),
-		image:        img,
+		HUDSprite:    NewHUDSprite(nil, 1.0),
 		fontRenderer: renderer,
 	}
 
 	return r
 }
 
-func (r *Radar) Update(heading, turretAngle float64) {
-	r.image.Clear()
+func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heading, turretAngle float64) {
+	r.fontRenderer.SetTarget(screen)
+	r.fontRenderer.SetColor(clr)
 
-	r.fontRenderer.SetTarget(r.image)
+	rX, rY, rW, rH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	if rX < 0 || rY < 0 {
+		return
+	}
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	// and offset by -90 degrees to make 0 degree turret angle as relative from the forward (up) position
 	radarTurretAngle := -turretAngle - geom.HalfPi
 
-	midX, midY := float64(r.Width())/2, float64(r.Height())/2
+	midX, midY := float64(rW)/2, float64(rH)/2
 	radius := midX - 1
 	if midY < midX {
 		radius = midY - 1
@@ -60,7 +61,7 @@ func (r *Radar) Update(heading, turretAngle float64) {
 	// FIXME: when ebitengine v2.5 releases can draw circle outline using StrokeCircle
 	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
 	//        - vector.StrokeCircle(r.image, float32(midX), float32(midY), float32(radius), float32(3), clr)
-	ebitenutil.DrawCircle(r.image, midX, midY, radius, color.RGBA{255, 255, 255, 48})
+	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{clr.R, clr.G, clr.B, clr.A / 5})
 
 	// Draw turret angle reference lines
 	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
@@ -68,16 +69,12 @@ func (r *Radar) Update(heading, turretAngle float64) {
 	quarterPi := geom.HalfPi / 2
 	turretL := geom.LineFromAngle(midX, midY, radarTurretAngle-quarterPi, radius)
 	turretR := geom.LineFromAngle(midX, midY, radarTurretAngle+quarterPi, radius)
-	ebitenutil.DrawLine(r.image, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, color.RGBA{255, 255, 255, 255})
-	ebitenutil.DrawLine(r.image, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, color.RGBA{255, 255, 255, 255})
+	ebitenutil.DrawLine(screen, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, clr)
+	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, clr)
 
 	// Draw unit reference shape
 	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(r.image, midX-refW/2, midY-refT/2, refW, refT, color.RGBA{255, 255, 255, 255})
-	ebitenutil.DrawRect(r.image, midX-refW/2, midY-refH, refT, refH, color.RGBA{255, 255, 255, 255})
-	ebitenutil.DrawRect(r.image, midX+refW/2-refT, midY-refH, refT, refH, color.RGBA{255, 255, 255, 255})
-}
-
-func (r *Radar) Texture() *ebiten.Image {
-	return r.image
+	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, clr)
+	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, clr)
+	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, clr)
 }

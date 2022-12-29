@@ -27,8 +27,10 @@ func NewHUDSprite(img *ebiten.Image, scale float64) *BasicHUD {
 		scale: scale,
 	}
 
-	b.w, b.h = img.Size()
-	b.textures, _ = GetSpriteSheetSlices(img, 1, 1)
+	if img != nil {
+		b.w, b.h = img.Size()
+		b.textures, _ = GetSpriteSheetSlices(img, 1, 1)
+	}
 
 	return b
 }

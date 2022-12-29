@@ -1,6 +1,8 @@
 package game
 
 import (
+	"image"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
@@ -33,8 +35,7 @@ func (g *Game) loadHUD() {
 	heatWidth, heatHeight := int(float64(3*g.width)/10), int(float64(g.height)/18)
 	g.heat = render.NewHeatIndicator(heatWidth, heatHeight, g.fonts.HUDFont)
 
-	radarWidth, radarHeight := int(float64(g.width)/3), int(float64(g.height)/3)
-	g.radar = render.NewRadar(radarWidth, radarHeight, g.fonts.HUDFont)
+	g.radar = render.NewRadar(g.fonts.HUDFont)
 
 	armamentWidth, armamentHeight := int(float64(g.width)/3), int(float64(3*g.height)/8)
 	g.armament = render.NewArmament(armamentWidth, armamentHeight, g.fonts.HUDFont)
@@ -207,19 +208,11 @@ func (g *Game) drawRadar(screen *ebiten.Image) {
 		return
 	}
 
-	g.radar.Update(g.player.Heading(), g.player.TurretAngle())
-
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(g.hudRGBA)
-
 	radarScale := g.radar.Scale() * g.renderScale * g.hudScale
-	op.GeoM.Scale(radarScale, radarScale)
-	op.GeoM.Translate(
-		float64(0)*radarScale, // TODO: add margin space
-		float64(g.height/20)*radarScale,
+	radarBounds := image.Rect(
+		0, 0, int(radarScale*float64(g.width)/3), int(radarScale*float64(g.height)/3),
 	)
-	screen.DrawImage(g.radar.Texture(), op)
+	g.radar.Draw(screen, radarBounds, &g.hudRGBA, g.player.Heading(), g.player.TurretAngle())
 }
 
 func (g *Game) drawCrosshairs(screen *ebiten.Image) {

@@ -389,29 +389,29 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// draw crosshairs
 	g.drawCrosshairs(screen)
 
-	// draw compass with heading/turret orientation
-	g.drawCompass(screen)
+	// // draw compass with heading/turret orientation
+	// g.drawCompass(screen)
 
-	// draw altimeter with altitude and pitch
-	g.drawAltimeter(screen)
+	// // draw altimeter with altitude and pitch
+	// g.drawAltimeter(screen)
 
-	// draw heat indicator
-	g.drawHeatIndicator(screen)
+	// // draw heat indicator
+	// g.drawHeatIndicator(screen)
 
 	// draw radar with turret orientation
 	g.drawRadar(screen)
 
-	// draw armament display
-	g.drawArmament(screen)
+	// // draw armament display
+	// g.drawArmament(screen)
 
-	// draw throttle display
-	g.drawThrottle(screen)
+	// // draw throttle display
+	// g.drawThrottle(screen)
 
-	// draw player status display
-	g.drawPlayerStatus(screen)
+	// // draw player status display
+	// g.drawPlayerStatus(screen)
 
-	// draw target status display
-	g.drawTargetStatus(screen)
+	// // draw target status display
+	// g.drawTargetStatus(screen)
 
 	// draw menu (if active)
 	g.menu.draw(screen)
