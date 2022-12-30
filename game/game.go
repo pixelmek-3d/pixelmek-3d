@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"strings"
 
 	"image/color"
 	_ "image/png"
@@ -40,7 +41,8 @@ type Game struct {
 	resources *model.ModelResources
 
 	//--create slicer and declare slices--//
-	tex *TextureHandler
+	tex                *TextureHandler
+	initRenderFloorTex bool
 
 	// window resolution and scaling
 	screenWidth  int
@@ -129,8 +131,8 @@ func NewGame() *Game {
 	// use scale to keep the desired window width and height
 	g.setResolution(g.screenWidth, g.screenHeight)
 	g.setRenderScale(g.renderScale)
-	g.setFullscreen(false)
-	g.setVsyncEnabled(true)
+	g.setFullscreen(g.fullscreen)
+	g.setVsyncEnabled(g.vsync)
 
 	var err error
 	g.resources, err = model.LoadModelResources()
@@ -151,6 +153,7 @@ func NewGame() *Game {
 
 	// load texture handler
 	g.tex = NewTextureHandler(g.mission.Map())
+	g.tex.renderFloorTex = g.initRenderFloorTex
 
 	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
 	worldMap := g.mission.Map().Level(0)
@@ -232,6 +235,8 @@ func (g *Game) initConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
 	viper.SetEnvPrefix("pixelmek")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 
 	userHomePath, _ := os.UserHomeDir()
 	if userHomePath != "" {
@@ -246,6 +251,9 @@ func (g *Game) initConfig() {
 	viper.SetDefault("screen.width", 1024)
 	viper.SetDefault("screen.height", 768)
 	viper.SetDefault("screen.renderScale", 1.0)
+	viper.SetDefault("screen.fullscreen", false)
+	viper.SetDefault("screen.vsync", true)
+	viper.SetDefault("screen.renderFloor", true)
 	viper.SetDefault("screen.renderDistance", -1)
 	viper.SetDefault("screen.clutterDistance", 10.0)
 
@@ -268,6 +276,9 @@ func (g *Game) initConfig() {
 	g.screenWidth = viper.GetInt("screen.width")
 	g.screenHeight = viper.GetInt("screen.height")
 	g.renderScale = viper.GetFloat64("screen.renderScale")
+	g.fullscreen = viper.GetBool("screen.fullscreen")
+	g.vsync = viper.GetBool("screen.vsync")
+	g.initRenderFloorTex = viper.GetBool("screen.renderFloor")
 	g.renderDistance = viper.GetFloat64("screen.renderDistance")
 	g.clutterDistance = viper.GetFloat64("screen.clutterDistance")
 
