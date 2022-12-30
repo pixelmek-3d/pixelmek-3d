@@ -21,7 +21,6 @@ func NewUnitStatus(font *Font) *UnitStatus {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetSizePx(16)
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.YCenter, etxt.Left)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -41,6 +40,7 @@ func (u *UnitStatus) SetUnit(unit *Sprite) {
 func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
 	u.fontRenderer.SetTarget(screen)
 	u.fontRenderer.SetColor(clr)
+	u.fontRenderer.SetSizePx(int(16.0 * u.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 

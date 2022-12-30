@@ -26,7 +26,6 @@ func NewArmament(font *Font) *Armament {
 	// create and configure renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetSizePx(20)
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.YCenter, etxt.Left)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -88,6 +87,7 @@ func (a *Armament) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color
 func (a *Armament) drawWeapon(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, w *Weapon) {
 	a.fontRenderer.SetTarget(screen)
 	a.fontRenderer.SetColor(clr)
+	a.fontRenderer.SetSizePx(int(20.0 * a.Scale()))
 
 	bX, bY, bH := bounds.Min.X, bounds.Min.Y, bounds.Dy()
 

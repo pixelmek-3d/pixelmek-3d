@@ -23,7 +23,6 @@ func NewAltimeter(font *Font) *Altimeter {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetSizePx(12)
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.YCenter, etxt.Right)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -39,6 +38,7 @@ func NewAltimeter(font *Font) *Altimeter {
 func (a *Altimeter) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, altitude, pitch float64) {
 	a.fontRenderer.SetTarget(screen)
 	a.fontRenderer.SetColor(clr)
+	a.fontRenderer.SetSizePx(int(12.0 * a.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 

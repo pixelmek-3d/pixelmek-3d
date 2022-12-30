@@ -21,7 +21,6 @@ func NewRadar(font *Font) *Radar {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetSizePx(16)
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.Left)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -37,6 +36,7 @@ func NewRadar(font *Font) *Radar {
 func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heading, turretAngle float64) {
 	r.fontRenderer.SetTarget(screen)
 	r.fontRenderer.SetColor(clr)
+	r.fontRenderer.SetSizePx(int(16.0 * r.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 

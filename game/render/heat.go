@@ -20,7 +20,6 @@ func NewHeatIndicator(font *Font) *HeatIndicator {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetSizePx(16)
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.Left)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -36,6 +35,7 @@ func NewHeatIndicator(font *Font) *HeatIndicator {
 func (h *HeatIndicator) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heat, maxHeat, dissipation float64) {
 	h.fontRenderer.SetTarget(screen)
 	h.fontRenderer.SetColor(clr)
+	h.fontRenderer.SetSizePx(int(16.0 * h.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 

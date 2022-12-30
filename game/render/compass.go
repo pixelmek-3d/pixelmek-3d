@@ -22,7 +22,6 @@ func NewCompass(font *Font) *Compass {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetSizePx(16)
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.XCenter)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -38,6 +37,7 @@ func NewCompass(font *Font) *Compass {
 func (c *Compass) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heading, turretAngle float64) {
 	c.fontRenderer.SetTarget(screen)
 	c.fontRenderer.SetColor(clr)
+	c.fontRenderer.SetSizePx(int(16.0 * c.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 

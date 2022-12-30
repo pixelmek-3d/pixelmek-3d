@@ -91,13 +91,14 @@ func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
 		return
 	}
 
-	statusScale := g.playerStatus.Scale() * g.renderScale * g.hudScale
+	statusScale := g.renderScale * g.hudScale
 	statusWidth, statusHeight := int(statusScale*float64(g.width)/5), int(statusScale*float64(g.height)/5)
 	// FIXME: terrible arbitrary offsets
 	sX, sY := 4*float64(g.width)/5-2*float64(statusWidth)/3, float64(g.height)-float64(statusHeight)
 	sBounds := image.Rect(
 		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
+	g.playerStatus.SetScale(statusScale)
 	g.playerStatus.Draw(screen, sBounds, &g.hudRGBA)
 }
 
@@ -106,13 +107,14 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image) {
 		return
 	}
 
-	statusScale := g.targetStatus.Scale() * g.renderScale * g.hudScale
+	statusScale := g.renderScale * g.hudScale
 	statusWidth, statusHeight := int(statusScale*float64(g.width)/5), int(statusScale*float64(g.height)/5)
 	// FIXME: terrible arbitrary offsets
 	sX, sY := 0.0, float64(g.height)-float64(statusHeight)
 	sBounds := image.Rect(
 		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
+	g.targetStatus.SetScale(statusScale)
 	g.targetStatus.Draw(screen, sBounds, &g.hudRGBA)
 }
 
@@ -121,12 +123,13 @@ func (g *Game) drawArmament(screen *ebiten.Image) {
 		return
 	}
 
-	armamentScale := g.armament.Scale() * g.renderScale * g.hudScale
+	armamentScale := g.renderScale * g.hudScale
 	armamentWidth, armamentHeight := int(armamentScale*float64(g.width)/3), int(armamentScale*float64(3*g.height)/8)
 	aX, aY := float64(g.width)-float64(armamentWidth), 0.0
 	aBounds := image.Rect(
 		int(aX), int(aY), int(aX)+armamentWidth, int(aY)+armamentHeight,
 	)
+	g.armament.SetScale(armamentScale)
 	g.armament.Draw(screen, aBounds, &g.hudRGBA)
 }
 
@@ -135,12 +138,13 @@ func (g *Game) drawCompass(screen *ebiten.Image) {
 		return
 	}
 
-	compassScale := g.compass.Scale() * g.renderScale * g.hudScale
+	compassScale := g.renderScale * g.hudScale
 	compassWidth, compassHeight := int(compassScale*float64(3*g.width)/10), int(compassScale*float64(g.height)/21)
 	cX, cY := float64(g.width)/2-float64(compassWidth)/2, 0.0
 	cBounds := image.Rect(
 		int(cX), int(cY), int(cX)+compassWidth, int(cY)+compassHeight,
 	)
+	g.compass.SetScale(compassScale)
 	g.compass.Draw(screen, cBounds, &g.hudRGBA, g.player.Heading(), g.player.TurretAngle())
 }
 
@@ -152,12 +156,13 @@ func (g *Game) drawAltimeter(screen *ebiten.Image) {
 	// convert Z position to meters of altitude
 	altitude := g.player.PosZ() * model.METERS_PER_UNIT
 
-	altScale := g.altimeter.Scale() * g.renderScale * g.hudScale
+	altScale := g.renderScale * g.hudScale
 	altWidth, altHeight := int(altScale*float64(g.width)/24), int(altScale*float64(3*g.height)/12)
 	aX, aY := 0.0, float64(g.height)/2-float64(altHeight)/2
 	aBounds := image.Rect(
 		int(aX), int(aY), int(aX)+altWidth, int(aY)+altHeight,
 	)
+	g.altimeter.SetScale(altScale)
 	g.altimeter.Draw(screen, aBounds, &g.hudRGBA, altitude, g.player.Pitch())
 }
 
@@ -170,12 +175,13 @@ func (g *Game) drawHeatIndicator(screen *ebiten.Image) {
 	heat, maxHeat := g.player.Heat(), 100.0 // FIXME: add MaxHeat to model, determined based on # of heat sinks
 	dissipationPerSec := g.player.HeatDissipation() * model.TICKS_PER_SECOND
 
-	heatScale := g.heat.Scale() * g.renderScale * g.hudScale
+	heatScale := g.renderScale * g.hudScale
 	heatWidth, heatHeight := int(heatScale*float64(3*g.width)/10), int(heatScale*float64(g.height)/18)
 	hX, hY := float64(g.width)/2-float64(heatWidth)/2, float64(g.height-heatHeight)
 	hBounds := image.Rect(
 		int(hX), int(hY), int(hX)+heatWidth, int(hY)+heatHeight,
 	)
+	g.heat.SetScale(heatScale)
 	g.heat.Draw(screen, hBounds, &g.hudRGBA, heat, maxHeat, dissipationPerSec)
 }
 
@@ -189,12 +195,13 @@ func (g *Game) drawThrottle(screen *ebiten.Image) {
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
 
-	throttleScale := g.throttle.Scale() * g.renderScale * g.hudScale
+	throttleScale := g.renderScale * g.hudScale
 	throttleWidth, throttleHeight := int(throttleScale*float64(g.width)/8), int(throttleScale*float64(3*g.height)/8)
 	tBounds := image.Rect(
 		g.width-throttleWidth, g.height-throttleHeight,
 		g.width, g.height,
 	)
+	g.throttle.SetScale(throttleScale)
 	g.throttle.Draw(screen, tBounds, &g.hudRGBA, kphVelocity, kphTgtVelocity, kphMax, kphMax/2)
 }
 
@@ -203,12 +210,13 @@ func (g *Game) drawRadar(screen *ebiten.Image) {
 		return
 	}
 
-	radarScale := g.radar.Scale() * g.renderScale * g.hudScale
+	radarScale := g.renderScale * g.hudScale
 	radarWidth, radarHeight := int(radarScale*float64(g.width)/3), int(radarScale*float64(g.height)/3)
 	rX, rY := 0.0, 0.0
 	radarBounds := image.Rect(
 		int(rX), int(rY), int(rX)+radarWidth, int(rY)+radarHeight,
 	)
+	g.radar.SetScale(radarScale)
 	g.radar.Draw(screen, radarBounds, &g.hudRGBA, g.player.Heading(), g.player.TurretAngle())
 }
 
@@ -221,7 +229,7 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 	op.Filter = ebiten.FilterNearest
 	op.ColorM.ScaleWithColor(g.hudRGBA)
 
-	crosshairScale := g.crosshairs.Scale() * g.renderScale * g.hudScale
+	crosshairScale := g.renderScale * g.hudScale
 	op.GeoM.Scale(crosshairScale, crosshairScale)
 	op.GeoM.Translate(
 		float64(g.width)/2-float64(g.crosshairs.Width())*crosshairScale/2,
@@ -235,7 +243,7 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		return
 	}
 
-	rScale := g.reticle.Scale() * g.renderScale * g.hudScale
+	rScale := g.renderScale * g.hudScale
 	rOff := rScale * float64(g.reticle.Width()) / 2
 
 	var op *ebiten.DrawImageOptions

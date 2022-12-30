@@ -20,7 +20,6 @@ func NewThrottle(font *Font) *Throttle {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetSizePx(16)
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.YCenter, etxt.Right)
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
@@ -36,6 +35,7 @@ func NewThrottle(font *Font) *Throttle {
 func (t *Throttle) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, velocity, targetVelocity, maxVelocity, maxReverse float64) {
 	t.fontRenderer.SetTarget(screen)
 	t.fontRenderer.SetColor(clr)
+	t.fontRenderer.SetSizePx(int(16.0 * t.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	maxX, zeroY := float64(bW), float64(bH)*maxVelocity/(maxVelocity+maxReverse)
