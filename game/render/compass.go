@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
+	"github.com/tinne26/etxt/efixed"
 )
 
 type Compass struct {
@@ -34,12 +35,23 @@ func NewCompass(font *Font) *Compass {
 	return c
 }
 
+func (c *Compass) updateFontSize(width, height int) {
+	// set font size based on element size
+	pxSize := float64(height) / 2
+	if pxSize < 1 {
+		pxSize = 1
+	}
+
+	fractSize, _ := efixed.FromFloat64(pxSize)
+	c.fontRenderer.SetSizePxFract(fractSize)
+}
+
 func (c *Compass) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heading, turretAngle float64) {
 	c.fontRenderer.SetTarget(screen)
 	c.fontRenderer.SetColor(clr)
-	c.fontRenderer.SetSizePx(int(16.0 * c.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	c.updateFontSize(bW, bH)
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	compassTurretAngle := -turretAngle

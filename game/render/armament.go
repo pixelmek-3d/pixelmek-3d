@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
+	"github.com/tinne26/etxt/efixed"
 )
 
 type Armament struct {
@@ -49,14 +50,35 @@ func (a *Armament) SetWeapons(weapons []model.Weapon) {
 	}
 }
 
-func (a *Armament) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
-	bX, bY, bW := bounds.Min.X, bounds.Min.Y, bounds.Dx()
+func (a *Armament) updateFontSize(width, height int) {
+	// set font size based on individual weapon element size
+	pxSize := float64(height) / 2
+	if pxSize < 1 {
+		pxSize = 1
+	}
 
-	fontPx := a.fontRenderer.GetSizePxFract().Ceil()
-	wWidth, wHeight := bW/2, fontPx*2
+	fractSize, _ := efixed.FromFloat64(pxSize)
+	a.fontRenderer.SetSizePxFract(fractSize)
+}
+
+func (a *Armament) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
+	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+
+	// individual weapon size based on number of weapons and size of armament area
+	numWeapons := len(a.weapons)
+	numForSizing := 10
+	if numWeapons > numForSizing {
+		// reduce sizing if weapon count gets overly high
+		numForSizing = numWeapons
+		if numForSizing%2 != 0 {
+			numForSizing++
+		}
+	}
+
+	wWidth, wHeight := bW/2, int(float64(bH)/float64(numForSizing/2))
+	a.updateFontSize(wWidth, wHeight)
 
 	// render weapons as individual sub-images within the display
-	numWeapons := len(a.weapons)
 	for i, w := range a.weapons {
 		var wX, wY float64 = float64(bX), float64(bY) + float64(i*wHeight)
 		if i >= numWeapons/2 {
@@ -87,7 +109,6 @@ func (a *Armament) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color
 func (a *Armament) drawWeapon(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, w *Weapon) {
 	a.fontRenderer.SetTarget(screen)
 	a.fontRenderer.SetColor(clr)
-	a.fontRenderer.SetSizePx(int(20.0 * a.Scale()))
 
 	bX, bY, bH := bounds.Min.X, bounds.Min.Y, bounds.Dy()
 

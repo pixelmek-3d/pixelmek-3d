@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tinne26/etxt"
+	"github.com/tinne26/etxt/efixed"
 )
 
 type UnitStatus struct {
@@ -37,12 +38,23 @@ func (u *UnitStatus) SetUnit(unit *Sprite) {
 	u.unit = unit
 }
 
+func (u *UnitStatus) updateFontSize(width, height int) {
+	// set font size based on element size
+	pxSize := float64(height) / 8
+	if pxSize < 1 {
+		pxSize = 1
+	}
+
+	fractSize, _ := efixed.FromFloat64(pxSize)
+	u.fontRenderer.SetSizePxFract(fractSize)
+}
+
 func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
 	u.fontRenderer.SetTarget(screen)
 	u.fontRenderer.SetColor(clr)
-	u.fontRenderer.SetSizePx(int(16.0 * u.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	u.updateFontSize(bW, bH)
 
 	if u.unit == nil {
 		// TESTING!
@@ -80,11 +92,11 @@ func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *col
 
 	// armor readout
 	armorPercent := 100 * u.unit.ArmorPoints() / u.unit.MaxArmorPoints()
-	armorStr := fmt.Sprintf("ARMOR\n%0.0f%%", armorPercent)
-	u.fontRenderer.Draw(armorStr, int(sX)+int(2*sW/3), int(sY)+int(sH/3))
+	armorStr := fmt.Sprintf("ARMOR\n %0.0f%%", armorPercent)
+	u.fontRenderer.Draw(armorStr, int(sX)+int(3*sW/5), int(sY)+int(sH/3))
 
 	// internal structure readout
 	internalPercent := 100 * u.unit.StructurePoints() / u.unit.MaxStructurePoints()
-	internalStr := fmt.Sprintf("STRUCT\n%0.0f%%", internalPercent)
-	u.fontRenderer.Draw(internalStr, int(sX)+int(2*sW/3), int(sY)+int(2*sH/3))
+	internalStr := fmt.Sprintf("STRUCT\n %0.0f%%", internalPercent)
+	u.fontRenderer.Draw(internalStr, int(sX)+int(3*sW/5), int(sY)+int(2*sH/3))
 }

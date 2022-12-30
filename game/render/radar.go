@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
+	"github.com/tinne26/etxt/efixed"
 )
 
 type Radar struct {
@@ -33,12 +34,23 @@ func NewRadar(font *Font) *Radar {
 	return r
 }
 
+func (r *Radar) updateFontSize(width, height int) {
+	// set font size based on element size
+	pxSize := float64(height) / 12
+	if pxSize < 1 {
+		pxSize = 1
+	}
+
+	fractSize, _ := efixed.FromFloat64(pxSize)
+	r.fontRenderer.SetSizePxFract(fractSize)
+}
+
 func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heading, turretAngle float64) {
 	r.fontRenderer.SetTarget(screen)
 	r.fontRenderer.SetColor(clr)
-	r.fontRenderer.SetSizePx(int(16.0 * r.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	r.updateFontSize(bW, bH)
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	// and offset by -90 degrees to make 0 degree turret angle as relative from the forward (up) position

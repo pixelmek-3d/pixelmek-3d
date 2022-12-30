@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tinne26/etxt"
+	"github.com/tinne26/etxt/efixed"
 )
 
 type Throttle struct {
@@ -32,12 +33,24 @@ func NewThrottle(font *Font) *Throttle {
 	return t
 }
 
+func (t *Throttle) updateFontSize(width, height int) {
+	// set font size based on element size
+	pxSize := float64(height) / 18
+	if pxSize < 1 {
+		pxSize = 1
+	}
+
+	fractSize, _ := efixed.FromFloat64(pxSize)
+	t.fontRenderer.SetSizePxFract(fractSize)
+}
+
 func (t *Throttle) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, velocity, targetVelocity, maxVelocity, maxReverse float64) {
 	t.fontRenderer.SetTarget(screen)
 	t.fontRenderer.SetColor(clr)
-	t.fontRenderer.SetSizePx(int(16.0 * t.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	t.updateFontSize(bW, bH)
+
 	maxX, zeroY := float64(bW), float64(bH)*maxVelocity/(maxVelocity+maxReverse)
 
 	// current throttle velocity box

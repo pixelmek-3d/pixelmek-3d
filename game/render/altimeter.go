@@ -11,6 +11,7 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
+	"github.com/tinne26/etxt/efixed"
 )
 
 type Altimeter struct {
@@ -35,12 +36,23 @@ func NewAltimeter(font *Font) *Altimeter {
 	return a
 }
 
+func (a *Altimeter) updateFontSize(width, height int) {
+	// set font size based on element size
+	pxSize := float64(height) / 14
+	if pxSize < 1 {
+		pxSize = 1
+	}
+
+	fractSize, _ := efixed.FromFloat64(pxSize)
+	a.fontRenderer.SetSizePxFract(fractSize)
+}
+
 func (a *Altimeter) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, altitude, pitch float64) {
 	a.fontRenderer.SetTarget(screen)
 	a.fontRenderer.SetColor(clr)
-	a.fontRenderer.SetSizePx(int(12.0 * a.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	a.updateFontSize(bW, bH)
 
 	// use opposite pitch value so indicator will draw upward from center when postive angle
 	relPitchAngle := -pitch

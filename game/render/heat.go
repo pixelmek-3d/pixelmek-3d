@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tinne26/etxt"
+	"github.com/tinne26/etxt/efixed"
 )
 
 type HeatIndicator struct {
@@ -32,12 +33,23 @@ func NewHeatIndicator(font *Font) *HeatIndicator {
 	return h
 }
 
+func (h *HeatIndicator) updateFontSize(width, height int) {
+	// set font size based on element size
+	pxSize := float64(height) / 3
+	if pxSize < 1 {
+		pxSize = 1
+	}
+
+	fractSize, _ := efixed.FromFloat64(pxSize)
+	h.fontRenderer.SetSizePxFract(fractSize)
+}
+
 func (h *HeatIndicator) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heat, maxHeat, dissipation float64) {
 	h.fontRenderer.SetTarget(screen)
 	h.fontRenderer.SetColor(clr)
-	h.fontRenderer.SetSizePx(int(16.0 * h.Scale()))
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+	h.updateFontSize(bW, bH)
 
 	midX := float64(bX) + float64(bW)/2
 
