@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -11,17 +12,12 @@ import (
 
 type UnitStatus struct {
 	HUDSprite
-	image        *ebiten.Image
 	fontRenderer *etxt.Renderer
 	unit         *Sprite
-	unitImage    *ebiten.Image
 }
 
 //NewUnitStatus creates a unit status element image to be rendered on demand
-func NewUnitStatus(width, height int, font *Font) *UnitStatus {
-	img := ebiten.NewImage(width, height)
-	unitImg := ebiten.NewImage(width, height)
-
+func NewUnitStatus(font *Font) *UnitStatus {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
@@ -31,9 +27,7 @@ func NewUnitStatus(width, height int, font *Font) *UnitStatus {
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	u := &UnitStatus{
-		HUDSprite:    NewHUDSprite(img, 1.0),
-		image:        img,
-		unitImage:    unitImg,
+		HUDSprite:    NewHUDSprite(nil, 1.0),
 		fontRenderer: renderer,
 	}
 
@@ -42,60 +36,55 @@ func NewUnitStatus(width, height int, font *Font) *UnitStatus {
 
 func (u *UnitStatus) SetUnit(unit *Sprite) {
 	u.unit = unit
-	u.unitImage.Clear()
-	if unit == nil {
+}
+
+func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
+	u.fontRenderer.SetTarget(screen)
+	u.fontRenderer.SetColor(clr)
+
+	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
+
+	if u.unit == nil {
+		// TESTING!
+		sW, sH := float64(bW), float64(bH)
+		sX, sY := float64(bX), float64(bY)
+		sAlpha := uint8(int(clr.A) / 10)
+		ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{clr.R, clr.G, clr.B, sAlpha})
 		return
 	}
 
+	// background box
+	sW, sH := float64(bW), float64(bH)
+	sX, sY := float64(bX), float64(bY)
+	sAlpha := uint8(int(clr.A) / 5)
+	ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{clr.R, clr.G, clr.B, sAlpha})
+
+	// unit image
 	// create static outline image of unit and store it
-	uTexture := unit.Texture() // FIXME: unit texture needs to always be the static, front facing image
+	uTexture := u.unit.Texture() // FIXME: unit texture needs to always be the static, front facing image
 
 	op := &ebiten.DrawImageOptions{}
 	// Reset RGB (not Alpha) 0 forcibly
 	op.ColorM.Scale(0, 0, 0, 1)
 
 	// Set color
-	r, g, b := 1.0, 1.0, 1.0
+	r, g, b := float64(clr.R)/255, float64(clr.G)/255, float64(clr.B)/255
 	op.ColorM.Translate(r, g, b, 0)
 
-	_, iH := u.image.Size()
-	_, uH := uTexture.Size()
+	iH := bounds.Dy()
+	uH := uTexture.Bounds().Dy()
 	uScale := (0.9 * float64(iH)) / float64(uH)
 	op.GeoM.Scale(uScale, uScale)
-
-	u.unitImage.DrawImage(uTexture, op)
-}
-
-func (u *UnitStatus) Update() {
-	u.image.Clear()
-	if u.unit == nil {
-		// TESTING!
-		bW, bH := float64(u.Width()), float64(u.Height())
-		ebitenutil.DrawRect(u.image, 0, 0, bW, bH, color.RGBA{255, 255, 255, 24})
-		return
-	}
-
-	u.fontRenderer.SetTarget(u.image)
-
-	// background box
-	bW, bH := float64(u.Width()), float64(u.Height())
-	ebitenutil.DrawRect(u.image, 0, 0, bW, bH, color.RGBA{255, 255, 255, 48})
-
-	// unit image
-	op := &ebiten.DrawImageOptions{}
-	u.image.DrawImage(u.unitImage, op)
+	op.GeoM.Translate(sX, sY)
+	screen.DrawImage(uTexture, op)
 
 	// armor readout
 	armorPercent := 100 * u.unit.ArmorPoints() / u.unit.MaxArmorPoints()
 	armorStr := fmt.Sprintf("ARMOR\n%0.0f%%", armorPercent)
-	u.fontRenderer.Draw(armorStr, int(2*bW/3), int(bH/3))
+	u.fontRenderer.Draw(armorStr, int(sX)+int(2*sW/3), int(sY)+int(sH/3))
 
 	// internal structure readout
 	internalPercent := 100 * u.unit.StructurePoints() / u.unit.MaxStructurePoints()
 	internalStr := fmt.Sprintf("STRUCT\n%0.0f%%", internalPercent)
-	u.fontRenderer.Draw(internalStr, int(2*bW/3), int(2*bH/3))
-}
-
-func (u *UnitStatus) Texture() *ebiten.Image {
-	return u.image
+	u.fontRenderer.Draw(internalStr, int(sX)+int(2*sW/3), int(sY)+int(2*sH/3))
 }

@@ -39,9 +39,8 @@ func (g *Game) loadHUD() {
 
 	g.throttle = render.NewThrottle(g.fonts.HUDFont)
 
-	statusWidth, statusHeight := int(float64(g.width)/5), int(float64(g.height)/5)
-	g.playerStatus = render.NewUnitStatus(statusWidth, statusHeight, g.fonts.HUDFont)
-	g.targetStatus = render.NewUnitStatus(statusWidth, statusHeight, g.fonts.HUDFont)
+	g.playerStatus = render.NewUnitStatus(g.fonts.HUDFont)
+	g.targetStatus = render.NewUnitStatus(g.fonts.HUDFont)
 
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
 	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
@@ -80,11 +79,11 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	// draw throttle display
 	g.drawThrottle(screen)
 
-	// // draw player status display
-	// g.drawPlayerStatus(screen)
+	// draw player status display
+	g.drawPlayerStatus(screen)
 
-	// // draw target status display
-	// g.drawTargetStatus(screen)
+	// draw target status display
+	g.drawTargetStatus(screen)
 }
 
 func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
@@ -92,19 +91,14 @@ func (g *Game) drawPlayerStatus(screen *ebiten.Image) {
 		return
 	}
 
-	g.playerStatus.Update()
-
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(g.hudRGBA)
-
 	statusScale := g.playerStatus.Scale() * g.renderScale * g.hudScale
-	op.GeoM.Scale(statusScale, statusScale)
-	op.GeoM.Translate(
-		4*float64(g.width)/5-2*float64(g.playerStatus.Width())/3*statusScale,    // FIXME: terrible arbitrary offsets
-		float64(g.height)-float64(g.playerStatus.Height())-float64(g.height)/21, // FIXME: position when renderScale < 1.0
+	statusWidth, statusHeight := int(statusScale*float64(g.width)/5), int(statusScale*float64(g.height)/5)
+	// FIXME: terrible arbitrary offsets
+	sX, sY := 4*float64(g.width)/5-2*float64(statusWidth)/3, float64(g.height)-float64(statusHeight)
+	sBounds := image.Rect(
+		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
-	screen.DrawImage(g.playerStatus.Texture(), op)
+	g.playerStatus.Draw(screen, sBounds, &g.hudRGBA)
 }
 
 func (g *Game) drawTargetStatus(screen *ebiten.Image) {
@@ -112,19 +106,14 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image) {
 		return
 	}
 
-	g.targetStatus.Update()
-
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(g.hudRGBA)
-
 	statusScale := g.targetStatus.Scale() * g.renderScale * g.hudScale
-	op.GeoM.Scale(statusScale, statusScale)
-	op.GeoM.Translate(
-		float64(g.width)/21, // FIXME: terrible arbitrary offsets
-		float64(g.height)-float64(g.targetStatus.Height())-float64(g.height)/21, // FIXME: position when renderScale < 1.0
+	statusWidth, statusHeight := int(statusScale*float64(g.width)/5), int(statusScale*float64(g.height)/5)
+	// FIXME: terrible arbitrary offsets
+	sX, sY := 0.0, float64(g.height)-float64(statusHeight)
+	sBounds := image.Rect(
+		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
-	screen.DrawImage(g.targetStatus.Texture(), op)
+	g.targetStatus.Draw(screen, sBounds, &g.hudRGBA)
 }
 
 func (g *Game) drawArmament(screen *ebiten.Image) {
