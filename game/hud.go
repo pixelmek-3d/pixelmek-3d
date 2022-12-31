@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/raycaster-go/geom3d"
 )
 
 func (g *Game) initInteractiveTypes() {
@@ -39,8 +40,8 @@ func (g *Game) loadHUD() {
 
 	g.throttle = render.NewThrottle(g.fonts.HUDFont)
 
-	g.playerStatus = render.NewUnitStatus(g.fonts.HUDFont)
-	g.targetStatus = render.NewUnitStatus(g.fonts.HUDFont)
+	g.playerStatus = render.NewUnitStatus(true, g.fonts.HUDFont)
+	g.targetStatus = render.NewUnitStatus(false, g.fonts.HUDFont)
 
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
 	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
@@ -113,6 +114,18 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image) {
 	sBounds := image.Rect(
 		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
+
+	targetUnit := g.targetStatus.Unit()
+	if targetUnit != nil {
+		pPos, pZ := g.player.Pos(), g.player.PosZ()
+		tPos, tZ := targetUnit.Pos(), targetUnit.PosZ()
+		targetLine := geom3d.Line3d{
+			X1: pPos.X, Y1: pPos.Y, Z1: pZ,
+			X2: tPos.X, Y2: tPos.Y, Z2: tZ,
+		}
+		targetDistance := targetLine.Distance() * model.METERS_PER_UNIT
+		g.targetStatus.SetUnitDistance(targetDistance)
+	}
 	g.targetStatus.Draw(screen, sBounds, &g.hudRGBA)
 }
 
