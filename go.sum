@@ -243,6 +243,8 @@ github.com/hajimehoshi/ebiten/v2 v2.3.5/go.mod h1:vxwpo0q0oSi1cIll0Q3Ui33TVZgeHu
 github.com/hajimehoshi/ebiten/v2 v2.4.1/go.mod h1:z9L4JZ3XHQqvCuVuAQ1qTByIV2YHGS1w6keUSVC9NDA=
 github.com/hajimehoshi/ebiten/v2 v2.4.12 h1:exd4SRImAKJkoRGV3nlYUeFGmM6U/rVD3vWlgnO2mUo=
 github.com/hajimehoshi/ebiten/v2 v2.4.12/go.mod h1:BZcqCU4XHmScUi+lsKexocWcf4offMFwfp8dVGIB/G4=
+github.com/hajimehoshi/ebiten/v2 v2.4.15 h1:yvhCrDv9y7TpdHtdux5ES/IwP6Pfplz5rJVxE0Z+ZPU=
+github.com/hajimehoshi/ebiten/v2 v2.4.15/go.mod h1:BZcqCU4XHmScUi+lsKexocWcf4offMFwfp8dVGIB/G4=
 github.com/hajimehoshi/file2byteslice v0.0.0-20210813153925-5340248a8f41 h1:s01qIIRG7vN/5ndLwkDktjx44ulFk6apvAjVBYR50Yo=
 github.com/hajimehoshi/file2byteslice v0.0.0-20210813153925-5340248a8f41/go.mod h1:CqqAHp7Dk/AqQiwuhV1yT2334qbA/tFWQW0MD2dGqUE=
 github.com/hajimehoshi/file2byteslice v1.0.0 h1:ljd5KTennqyJ4vG9i/5jS8MD1prof97vlH5JOdtw3WU=
@@ -254,6 +256,10 @@ github.com/hajimehoshi/oto/v2 v2.3.0/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/Sisy
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
 github.com/harbdog/raycaster-go v1.6.2 h1:L7x75PDx4QgIk/KUw5CHR0TOxe6RNUARh4PtWAvZdKY=
 github.com/harbdog/raycaster-go v1.6.2/go.mod h1:lw21+NIcyMew3U+lvFhBicsgH+ns7mrR9KxXj55A2oA=
+github.com/harbdog/raycaster-go v1.6.3 h1:SJwKalSViXGFFTQs01JWt6gXbpp8UoDxb8lhVBVtyyU=
+github.com/harbdog/raycaster-go v1.6.3/go.mod h1:CoETh4pPX87LqPyzwPdbsCzOVnIoylg7EdI2Ye4qRfs=
+github.com/harbdog/raycaster-go v1.6.4 h1:8wC4YrXTs8iKgungpa4o4RssnuH2HCvYo2NS0Zs9V/Y=
+github.com/harbdog/raycaster-go v1.6.4/go.mod h1:CoETh4pPX87LqPyzwPdbsCzOVnIoylg7EdI2Ye4qRfs=
 github.com/hashicorp/consul/api v1.12.0/go.mod h1:6pVBMo0ebnYdt2S3H87XhekM/HHrUoTD2XXb/VrZVy0=
 github.com/hashicorp/consul/sdk v0.8.0/go.mod h1:GBvyrGALthsZObzUGsfgHZQDXjg4lOjagTIwIR1vPms=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
