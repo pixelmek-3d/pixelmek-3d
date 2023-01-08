@@ -67,10 +67,11 @@ func (u *UnitStatus) updateFontSize(width, height int) {
 	u.fontRenderer.SetSizePxFract(fractSize)
 }
 
-func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
+func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
+	screen := hudOpts.Screen
 	u.fontRenderer.SetTarget(screen)
 	u.fontRenderer.SetAlign(etxt.YCenter, etxt.Left)
-	u.fontRenderer.SetColor(clr)
+	u.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	u.updateFontSize(bW, bH)
@@ -79,16 +80,16 @@ func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *col
 		// TESTING!
 		sW, sH := float64(bW), float64(bH)
 		sX, sY := float64(bX), float64(bY)
-		sAlpha := uint8(int(clr.A) / 10)
-		ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{clr.R, clr.G, clr.B, sAlpha})
+		sAlpha := uint8(int(hudOpts.Color.A) / 10)
+		ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, sAlpha})
 		return
 	}
 
 	// background box
 	sW, sH := float64(bW), float64(bH)
 	sX, sY := float64(bX), float64(bY)
-	sAlpha := uint8(int(clr.A) / 5)
-	ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{clr.R, clr.G, clr.B, sAlpha})
+	sAlpha := uint8(int(hudOpts.Color.A) / 5)
+	ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, sAlpha})
 
 	// unit image
 	// create static outline image of unit and store it
@@ -99,7 +100,7 @@ func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *col
 	op.ColorM.Scale(0, 0, 0, 1)
 
 	// Set color
-	r, g, b := float64(clr.R)/255, float64(clr.G)/255, float64(clr.B)/255
+	r, g, b := float64(hudOpts.Color.R)/255, float64(hudOpts.Color.G)/255, float64(hudOpts.Color.B)/255
 	op.ColorM.Translate(r, g, b, 0)
 
 	iH := bounds.Dy()
@@ -145,6 +146,6 @@ func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *col
 
 	if u.targetReticle != nil {
 		// render target reticles on outer corners of status display
-		u.targetReticle.Draw(screen, bounds, clr)
+		u.targetReticle.Draw(bounds, hudOpts)
 	}
 }

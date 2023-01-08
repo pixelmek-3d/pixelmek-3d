@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
@@ -44,9 +43,10 @@ func (h *HeatIndicator) updateFontSize(width, height int) {
 	h.fontRenderer.SetSizePxFract(fractSize)
 }
 
-func (h *HeatIndicator) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heat, maxHeat, dissipation float64) {
+func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heat, maxHeat, dissipation float64) {
+	screen := hudOpts.Screen
 	h.fontRenderer.SetTarget(screen)
-	h.fontRenderer.SetColor(clr)
+	h.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	h.updateFontSize(bW, bH)
@@ -60,21 +60,21 @@ func (h *HeatIndicator) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *
 	}
 	hW, hH := heatRatio*float64(bW), float64(bH)/2
 	hX, hY := midX-hW/2, float64(bY)
-	hAlpha := uint8(4 * (int(clr.A) / 5))
-	ebitenutil.DrawRect(screen, hX, hY, hW, hH, color.RGBA{clr.R, clr.G, clr.B, hAlpha})
+	hAlpha := uint8(4 * (int(hudOpts.Color.A) / 5))
+	ebitenutil.DrawRect(screen, hX, hY, hW, hH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, hAlpha})
 
 	// TODO: make current heat level box appear to flash when near/over maxHeat?
 
 	// heat indicator outline
 	// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
 	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
-	//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, clr color.Color)
+	//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, hudOpts.Color color.Color)
 	var oT float64 = 2 // TODO: calculate line thickness based on image height
 	oX, oY, oW, oH := float64(bX), float64(bY), float64(bW), float64(bH)/2
-	ebitenutil.DrawRect(screen, oX, oY, oW, oT, clr)
-	ebitenutil.DrawRect(screen, oX+oW-oT, oY, oT, oH, clr)
-	ebitenutil.DrawRect(screen, oX, oY+oH-oT, oW, oT, clr)
-	ebitenutil.DrawRect(screen, oX, oY, oT, oH, clr)
+	ebitenutil.DrawRect(screen, oX, oY, oW, oT, hudOpts.Color)
+	ebitenutil.DrawRect(screen, oX+oW-oT, oY, oT, oH, hudOpts.Color)
+	ebitenutil.DrawRect(screen, oX, oY+oH-oT, oW, oT, hudOpts.Color)
+	ebitenutil.DrawRect(screen, oX, oY, oT, oH, hudOpts.Color)
 
 	// current heat level text
 	heatStr := fmt.Sprintf("Heat: %0.1f", heat)

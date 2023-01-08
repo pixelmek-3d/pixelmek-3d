@@ -6,7 +6,6 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
@@ -46,9 +45,10 @@ func (c *Compass) updateFontSize(width, height int) {
 	c.fontRenderer.SetSizePxFract(fractSize)
 }
 
-func (c *Compass) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heading, turretAngle float64) {
+func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle float64) {
+	screen := hudOpts.Screen
 	c.fontRenderer.SetTarget(screen)
-	c.fontRenderer.SetColor(clr)
+	c.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	c.updateFontSize(bW, bH)
@@ -64,8 +64,8 @@ func (c *Compass) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.
 	var maxTurretDeg float64 = 90
 	relTurretRatio := relTurretDeg / maxTurretDeg
 	tW, tH := relTurretRatio*float64(bW)/2, float64(bH/4)
-	tAlpha := uint8(4 * int(clr.A) / 5)
-	ebitenutil.DrawRect(screen, midX, topY, tW, tH, color.RGBA{clr.R, clr.G, clr.B, tAlpha})
+	tAlpha := uint8(4 * int(hudOpts.Color.A) / 5)
+	ebitenutil.DrawRect(screen, midX, topY, tW, tH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, tAlpha})
 	// compass pips
 	for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
 		actualDeg := i + int(math.Round(headingDeg))
@@ -89,7 +89,7 @@ func (c *Compass) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.
 			// pip shows relative based on index (i) where negative is right of center, positive is left
 			iRatio := float64(-i) / maxTurretDeg
 			iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
-			ebitenutil.DrawRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, clr)
+			ebitenutil.DrawRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, hudOpts.Color)
 
 			// TODO: switch statement
 			var pipDegStr string
@@ -113,5 +113,5 @@ func (c *Compass) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.
 
 	// heading indicator line
 	hW, hH := 5.0, float64(bH/2) // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(screen, midX-hW/2, topY, hW, hH, clr)
+	ebitenutil.DrawRect(screen, midX-hW/2, topY, hW, hH, hudOpts.Color)
 }

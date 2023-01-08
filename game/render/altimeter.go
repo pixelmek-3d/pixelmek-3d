@@ -6,7 +6,6 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
@@ -47,9 +46,10 @@ func (a *Altimeter) updateFontSize(width, height int) {
 	a.fontRenderer.SetSizePxFract(fractSize)
 }
 
-func (a *Altimeter) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, altitude, pitch float64) {
+func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitude, pitch float64) {
+	screen := hudOpts.Screen
 	a.fontRenderer.SetTarget(screen)
-	a.fontRenderer.SetColor(clr)
+	a.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	a.updateFontSize(bW, bH)
@@ -64,8 +64,8 @@ func (a *Altimeter) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *colo
 	var maxPitchDeg float64 = 45
 	pitchRatio := relPitchDeg / maxPitchDeg
 	tW, tH := float64(bW)/4, pitchRatio*float64(bH/2)
-	pAlpha := uint8(4 * int(clr.A) / 5)
-	ebitenutil.DrawRect(screen, midX, midY, tW, tH, color.RGBA{clr.R, clr.G, clr.B, pAlpha})
+	pAlpha := uint8(4 * int(hudOpts.Color.A) / 5)
+	ebitenutil.DrawRect(screen, midX, midY, tW, tH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, pAlpha})
 
 	// altimeter pips
 	var maxAltitude float64 = model.METERS_PER_UNIT
@@ -86,7 +86,7 @@ func (a *Altimeter) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *colo
 			// pip shows relative based on index (i) where negative is above center, positive is below
 			iRatio := float64(-i) / maxAltitude
 			iY := float64(bY) + float64(bH)/2 + iRatio*float64(bH)/2
-			ebitenutil.DrawRect(screen, midX, iY-pipHeight/2, pipWidth, pipHeight, clr)
+			ebitenutil.DrawRect(screen, midX, iY-pipHeight/2, pipWidth, pipHeight, hudOpts.Color)
 
 			var pipAltStr string = fmt.Sprintf("%d", actualAlt)
 
@@ -98,5 +98,5 @@ func (a *Altimeter) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *colo
 
 	// heading indicator line
 	hW, hH := float64(bW/2), 5.0 // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(screen, midX, midY-hH/2, hW, hH, clr)
+	ebitenutil.DrawRect(screen, midX, midY-hH/2, hW, hH, hudOpts.Color)
 }

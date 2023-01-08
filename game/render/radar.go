@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
@@ -45,9 +44,10 @@ func (r *Radar) updateFontSize(width, height int) {
 	r.fontRenderer.SetSizePxFract(fractSize)
 }
 
-func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, heading, turretAngle float64) {
+func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle float64) {
+	screen := hudOpts.Screen
 	r.fontRenderer.SetTarget(screen)
-	r.fontRenderer.SetColor(clr)
+	r.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	r.updateFontSize(bW, bH)
@@ -73,22 +73,22 @@ func (r *Radar) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RG
 	// Draw radar circle outline
 	// FIXME: when ebitengine v2.5 releases can draw circle outline using StrokeCircle
 	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
-	//        - vector.StrokeCircle(r.image, float32(midX), float32(midY), float32(radius), float32(3), clr)
-	oAlpha := uint8(clr.A / 5)
-	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{clr.R, clr.G, clr.B, oAlpha})
+	//        - vector.StrokeCircle(r.image, float32(midX), float32(midY), float32(radius), float32(3), hudOpts.Color)
+	oAlpha := uint8(hudOpts.Color.A / 5)
+	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, oAlpha})
 
 	// Draw turret angle reference lines
 	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
-	//        - vector.StrokeLine(r.image, float32(x1), float32(y1), float32(x2), float32(y2), float32(3), clr)
+	//        - vector.StrokeLine(r.image, float32(x1), float32(y1), float32(x2), float32(y2), float32(3), hudOpts.Color)
 	quarterPi := geom.HalfPi / 2
 	turretL := geom.LineFromAngle(midX, midY, radarTurretAngle-quarterPi, radius)
 	turretR := geom.LineFromAngle(midX, midY, radarTurretAngle+quarterPi, radius)
-	ebitenutil.DrawLine(screen, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, clr)
-	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, clr)
+	ebitenutil.DrawLine(screen, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, hudOpts.Color)
+	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, hudOpts.Color)
 
 	// Draw unit reference shape
 	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, clr)
-	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, clr)
-	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, clr)
+	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, hudOpts.Color)
+	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, hudOpts.Color)
+	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, hudOpts.Color)
 }

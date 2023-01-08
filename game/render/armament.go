@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
@@ -61,7 +60,8 @@ func (a *Armament) updateFontSize(width, height int) {
 	a.fontRenderer.SetSizePxFract(fractSize)
 }
 
-func (a *Armament) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
+func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
+	screen := hudOpts.Screen
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
 	// individual weapon size based on number of weapons and size of armament area
@@ -88,36 +88,37 @@ func (a *Armament) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color
 		wBounds := image.Rect(
 			int(wX), int(wY), int(wX)+wWidth, int(wY)+wHeight,
 		)
-		a.drawWeapon(screen, wBounds, clr, w)
+		a.drawWeapon(wBounds, hudOpts, w)
 
 		// --- TESTING WEAPON SELECT BOX ---
 		if w.weapon.Cooldown() == 0 {
 			// TODO: move to Weapon update and add margins
 			// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
 			//        - import "github.com/hajimehoshi/ebiten/v2/vector"
-			//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, clr color.Color)
+			//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, hudOpts.Color color.Color)
 			var wT float64 = 2 // TODO: calculate line thickness based on image height
 			wW, wH := float64(wWidth), float64(wHeight)
-			ebitenutil.DrawRect(screen, wX, wY, wW, wT, clr)
-			ebitenutil.DrawRect(screen, wX+wW-wT, wY, wT, wH, clr)
-			ebitenutil.DrawRect(screen, wX, wY+wH-wT, wW, wT, clr)
-			ebitenutil.DrawRect(screen, wX, wY, wT, wH, clr)
+			ebitenutil.DrawRect(screen, wX, wY, wW, wT, hudOpts.Color)
+			ebitenutil.DrawRect(screen, wX+wW-wT, wY, wT, wH, hudOpts.Color)
+			ebitenutil.DrawRect(screen, wX, wY+wH-wT, wW, wT, hudOpts.Color)
+			ebitenutil.DrawRect(screen, wX, wY, wT, wH, hudOpts.Color)
 		}
 	}
 }
 
-func (a *Armament) drawWeapon(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA, w *Weapon) {
+func (a *Armament) drawWeapon(bounds image.Rectangle, hudOpts *DrawHudOptions, w *Weapon) {
+	screen := hudOpts.Screen
 	a.fontRenderer.SetTarget(screen)
-	a.fontRenderer.SetColor(clr)
+	a.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bH := bounds.Min.X, bounds.Min.Y, bounds.Dy()
 
 	weapon := w.weapon
 	if weapon.Cooldown() == 0 {
-		a.fontRenderer.SetColor(clr)
+		a.fontRenderer.SetColor(hudOpts.Color)
 	} else {
-		wAlpha := uint8(2 * (int(clr.A) / 5))
-		a.fontRenderer.SetColor(color.RGBA{clr.R, clr.G, clr.B, wAlpha})
+		wAlpha := uint8(2 * (int(hudOpts.Color.A) / 5))
+		a.fontRenderer.SetColor(color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, wAlpha})
 	}
 
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing

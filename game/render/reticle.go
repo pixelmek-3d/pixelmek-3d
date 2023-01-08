@@ -2,7 +2,6 @@ package render
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -20,19 +19,21 @@ func NewTargetReticle(scale float64, img *ebiten.Image) *TargetReticle {
 	return r
 }
 
-func (t *TargetReticle) Draw(screen *ebiten.Image, rect image.Rectangle, clr *color.RGBA) {
+func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
+	screen := hudOpts.Screen
+
 	// set minimum scale size based on screen size
 	screenW, screenH := screen.Size()
-	screenDim := screenW
+	screenDim := int(float64(screenW) * hudOpts.RenderScale)
 	if screenH > screenW {
-		screenDim = screenH
+		screenDim = int(float64(screenH) * hudOpts.RenderScale)
 	}
 	screenMinScale := float64(screenDim) / (50 * float64(t.Width()))
 
 	// adjust scale based on size of rect target being placed around
-	targetDim := rect.Dx()
-	if rect.Dy() > targetDim {
-		targetDim = rect.Dy()
+	targetDim := bounds.Dx()
+	if bounds.Dy() > targetDim {
+		targetDim = bounds.Dy()
 	}
 	rScale := float64(targetDim) / (10 * float64(t.Width()))
 	if rScale < screenMinScale {
@@ -40,14 +41,14 @@ func (t *TargetReticle) Draw(screen *ebiten.Image, rect image.Rectangle, clr *co
 	}
 	rOff := rScale * float64(t.Width()) / 2
 
-	minX, minY, maxX, maxY := float64(rect.Min.X), float64(rect.Min.Y), float64(rect.Max.X), float64(rect.Max.Y)
+	minX, minY, maxX, maxY := float64(bounds.Min.X), float64(bounds.Min.Y), float64(bounds.Max.X), float64(bounds.Max.Y)
 
 	// setup some common draw modifications
 	var op *ebiten.DrawImageOptions
 	geoM := ebiten.GeoM{}
 	geoM.Scale(rScale, rScale)
 	colorM := ebiten.ColorM{}
-	colorM.ScaleWithColor(clr)
+	colorM.ScaleWithColor(hudOpts.Color)
 
 	// top left corner
 	t.SetTextureFrame(0)

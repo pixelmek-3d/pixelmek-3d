@@ -1,6 +1,8 @@
 package render
 
 import (
+	"image/color"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -20,6 +22,13 @@ type BasicHUD struct {
 	scale          float64
 	texNum, lenTex int
 	textures       []*ebiten.Image
+}
+
+type DrawHudOptions struct {
+	Screen           *ebiten.Image
+	RenderScale      float64
+	MarginX, MarginY int
+	Color            color.RGBA
 }
 
 func NewHUDSprite(img *ebiten.Image, scale float64) *BasicHUD {

@@ -59,42 +59,51 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	screenW, screenH := screen.Size()
 	marginX, marginY := screenW/50, screenH/50
 
+	hudOpts := &render.DrawHudOptions{
+		Screen:      screen,
+		RenderScale: g.renderScale,
+		MarginX:     marginX,
+		MarginY:     marginY,
+		Color:       g.hudRGBA,
+	}
+
 	// draw target reticle
-	g.drawTargetReticle(screen)
+	g.drawTargetReticle(hudOpts)
 
 	// draw crosshairs
-	g.drawCrosshairs(screen)
+	g.drawCrosshairs(hudOpts)
 
 	// draw compass with heading/turret orientation
-	g.drawCompass(screen, marginX, marginY)
+	g.drawCompass(hudOpts)
 
 	// draw altimeter with altitude and pitch
-	g.drawAltimeter(screen, marginX, marginY)
+	g.drawAltimeter(hudOpts)
 
 	// draw heat indicator
-	g.drawHeatIndicator(screen, marginX, marginY)
+	g.drawHeatIndicator(hudOpts)
 
 	// draw radar with turret orientation
-	g.drawRadar(screen, marginX, marginY)
+	g.drawRadar(hudOpts)
 
 	// draw armament display
-	g.drawArmament(screen, marginX, marginY)
+	g.drawArmament(hudOpts)
 
 	// draw throttle display
-	g.drawThrottle(screen, marginX, marginY)
+	g.drawThrottle(hudOpts)
 
 	// draw player status display
-	g.drawPlayerStatus(screen, marginX, marginY)
+	g.drawPlayerStatus(hudOpts)
 
 	// draw target status display
-	g.drawTargetStatus(screen, marginX, marginY)
+	g.drawTargetStatus(hudOpts)
 }
 
-func (g *Game) drawPlayerStatus(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {
 	if g.playerStatus == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	statusScale := g.playerStatus.Scale() * g.renderScale * g.hudScale
@@ -104,14 +113,15 @@ func (g *Game) drawPlayerStatus(screen *ebiten.Image, marginX, marginY int) {
 	sBounds := image.Rect(
 		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
-	g.playerStatus.Draw(screen, sBounds, &g.hudRGBA)
+	g.playerStatus.Draw(sBounds, hudOpts)
 }
 
-func (g *Game) drawTargetStatus(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 	if g.targetStatus == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	statusScale := g.targetStatus.Scale() * g.renderScale * g.hudScale
@@ -134,14 +144,15 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image, marginX, marginY int) {
 		g.targetStatus.SetUnitDistance(targetDistance)
 	}
 	g.targetStatus.SetTargetReticle(g.reticle)
-	g.targetStatus.Draw(screen, sBounds, &g.hudRGBA)
+	g.targetStatus.Draw(sBounds, hudOpts)
 }
 
-func (g *Game) drawArmament(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 	if g.armament == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	armamentScale := g.armament.Scale() * g.renderScale * g.hudScale
@@ -150,14 +161,15 @@ func (g *Game) drawArmament(screen *ebiten.Image, marginX, marginY int) {
 	aBounds := image.Rect(
 		aX, aY, aX+armamentWidth, aY+armamentHeight,
 	)
-	g.armament.Draw(screen, aBounds, &g.hudRGBA)
+	g.armament.Draw(aBounds, hudOpts)
 }
 
-func (g *Game) drawCompass(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 	if g.compass == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	compassScale := g.compass.Scale() * g.renderScale * g.hudScale
@@ -166,14 +178,15 @@ func (g *Game) drawCompass(screen *ebiten.Image, marginX, marginY int) {
 	cBounds := image.Rect(
 		int(cX), int(cY), int(cX)+compassWidth, int(cY)+compassHeight,
 	)
-	g.compass.Draw(screen, cBounds, &g.hudRGBA, g.player.Heading(), g.player.TurretAngle())
+	g.compass.Draw(cBounds, hudOpts, g.player.Heading(), g.player.TurretAngle())
 }
 
-func (g *Game) drawAltimeter(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawAltimeter(hudOpts *render.DrawHudOptions) {
 	if g.altimeter == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	// convert Z position to meters of altitude
@@ -185,14 +198,15 @@ func (g *Game) drawAltimeter(screen *ebiten.Image, marginX, marginY int) {
 	aBounds := image.Rect(
 		int(aX), int(aY), int(aX)+altWidth, int(aY)+altHeight,
 	)
-	g.altimeter.Draw(screen, aBounds, &g.hudRGBA, altitude, g.player.Pitch())
+	g.altimeter.Draw(aBounds, hudOpts, altitude, g.player.Pitch())
 }
 
-func (g *Game) drawHeatIndicator(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawHeatIndicator(hudOpts *render.DrawHudOptions) {
 	if g.heat == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	// convert heat dissipation to seconds
@@ -205,14 +219,15 @@ func (g *Game) drawHeatIndicator(screen *ebiten.Image, marginX, marginY int) {
 	hBounds := image.Rect(
 		int(hX), int(hY), int(hX)+heatWidth, int(hY)+heatHeight,
 	)
-	g.heat.Draw(screen, hBounds, &g.hudRGBA, heat, maxHeat, dissipationPerSec)
+	g.heat.Draw(hBounds, hudOpts, heat, maxHeat, dissipationPerSec)
 }
 
-func (g *Game) drawThrottle(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 	if g.throttle == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	// convert velocity from units per tick to kilometers per hour
@@ -226,14 +241,15 @@ func (g *Game) drawThrottle(screen *ebiten.Image, marginX, marginY int) {
 		g.width-throttleWidth-marginX, g.height-throttleHeight-marginY,
 		g.width-marginX, g.height-marginY,
 	)
-	g.throttle.Draw(screen, tBounds, &g.hudRGBA, kphVelocity, kphTgtVelocity, kphMax, kphMax/2)
+	g.throttle.Draw(tBounds, hudOpts, kphVelocity, kphTgtVelocity, kphMax, kphMax/2)
 }
 
-func (g *Game) drawRadar(screen *ebiten.Image, marginX, marginY int) {
+func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	if g.radar == nil {
 		return
 	}
 
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
 	hudW, hudH := g.width-marginX*2, g.height-marginY*2
 
 	radarScale := g.radar.Scale() * g.renderScale * g.hudScale
@@ -242,10 +258,10 @@ func (g *Game) drawRadar(screen *ebiten.Image, marginX, marginY int) {
 	radarBounds := image.Rect(
 		rX, rY, rX+radarWidth, rY+radarHeight,
 	)
-	g.radar.Draw(screen, radarBounds, &g.hudRGBA, g.player.Heading(), g.player.TurretAngle())
+	g.radar.Draw(radarBounds, hudOpts, g.player.Heading(), g.player.TurretAngle())
 }
 
-func (g *Game) drawCrosshairs(screen *ebiten.Image) {
+func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 	if g.crosshairs == nil {
 		return
 	}
@@ -258,10 +274,10 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 		int(cX), int(cY), int(cX+cWidth), int(cY+cHeight),
 	)
 
-	g.crosshairs.Draw(screen, crosshairBounds, &g.hudRGBA)
+	g.crosshairs.Draw(crosshairBounds, hudOpts)
 }
 
-func (g *Game) drawTargetReticle(screen *ebiten.Image) {
+func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 	if g.reticle == nil || g.player.Target() == nil {
 		return
 	}
@@ -271,10 +287,10 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		return
 	}
 
-	rect := s.ScreenRect()
-	if rect == nil {
+	targetBounds := s.ScreenRect()
+	if targetBounds == nil {
 		return
 	}
 
-	g.reticle.Draw(screen, *rect, &g.hudRGBA)
+	g.reticle.Draw(*targetBounds, hudOpts)
 }
