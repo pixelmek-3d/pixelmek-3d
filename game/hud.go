@@ -250,8 +250,15 @@ func (g *Game) drawCrosshairs(screen *ebiten.Image) {
 		return
 	}
 
-	crosshairScale := g.crosshairs.Scale() * g.renderScale * g.hudScale
-	g.crosshairs.Draw(screen, crosshairScale, &g.hudRGBA)
+	cScale := g.crosshairs.Scale() * g.renderScale * g.hudScale
+	cWidth, cHeight := cScale*float64(g.crosshairs.Width()), cScale*float64(g.crosshairs.Height())
+	cX, cY := float64(g.width)/2-cWidth/2, float64(g.height)/2-cHeight/2
+
+	crosshairBounds := image.Rect(
+		int(cX), int(cY), int(cX+cWidth), int(cY+cHeight),
+	)
+
+	g.crosshairs.Draw(screen, crosshairBounds, &g.hudRGBA)
 }
 
 func (g *Game) drawTargetReticle(screen *ebiten.Image) {

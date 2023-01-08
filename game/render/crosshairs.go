@@ -1,6 +1,7 @@
 package render
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,18 +21,16 @@ func NewCrosshairs(
 	return c
 }
 
-func (c *Crosshairs) Draw(screen *ebiten.Image, scale float64, clr *color.RGBA) {
+func (c *Crosshairs) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.RGBA) {
+	bX, bY, bW := bounds.Min.X, bounds.Min.Y, bounds.Dx()
 
-	screenW, screenH := screen.Size()
+	cScale := float64(bW) / float64(c.Width())
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
 	op.ColorM.ScaleWithColor(clr)
 
-	op.GeoM.Scale(scale, scale)
-	op.GeoM.Translate(
-		float64(screenW)/2-scale*float64(c.Width())/2,
-		float64(screenH)/2-scale*float64(c.Height())/2,
-	)
+	op.GeoM.Scale(cScale, cScale)
+	op.GeoM.Translate(float64(bX), float64(bY))
 	screen.DrawImage(c.Texture(), op)
 }
