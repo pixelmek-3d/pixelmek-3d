@@ -56,6 +56,10 @@ func (s *Sprite) VerticalAnchor() raycaster.SpriteAnchor {
 	return s.Entity.Anchor()
 }
 
+func (s *Sprite) StaticTexture() *ebiten.Image {
+	return s.textures[0]
+}
+
 func (s *Sprite) Texture() *ebiten.Image {
 	return s.textures[s.texNum]
 }

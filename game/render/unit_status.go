@@ -87,7 +87,7 @@ func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *col
 
 	// unit image
 	// create static outline image of unit and store it
-	uTexture := u.unit.Texture() // FIXME: unit texture needs to always be the static, front facing image
+	uTexture := u.unit.StaticTexture()
 
 	op := &ebiten.DrawImageOptions{}
 	// Reset RGB (not Alpha) 0 forcibly
