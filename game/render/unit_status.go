@@ -15,10 +15,11 @@ import (
 
 type UnitStatus struct {
 	HUDSprite
-	fontRenderer *etxt.Renderer
-	unit         *Sprite
-	unitDistance float64
-	isPlayer     bool
+	fontRenderer  *etxt.Renderer
+	unit          *Sprite
+	unitDistance  float64
+	isPlayer      bool
+	targetReticle *TargetReticle
 }
 
 //NewUnitStatus creates a unit status element image to be rendered on demand
@@ -49,6 +50,10 @@ func (u *UnitStatus) SetUnit(unit *Sprite) {
 
 func (u *UnitStatus) SetUnitDistance(distance float64) {
 	u.unitDistance = distance
+}
+
+func (u *UnitStatus) SetTargetReticle(reticle *TargetReticle) {
+	u.targetReticle = reticle
 }
 
 func (u *UnitStatus) updateFontSize(width, height int) {
@@ -136,5 +141,10 @@ func (u *UnitStatus) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *col
 			distanceStr := fmt.Sprintf("%0.0fm", u.unitDistance)
 			u.fontRenderer.Draw(distanceStr, bX+bW/2, bY+bH)
 		}
+	}
+
+	if u.targetReticle != nil {
+		// render target reticles on outer corners of status display
+		u.targetReticle.Draw(screen, bounds, clr)
 	}
 }

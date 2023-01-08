@@ -110,7 +110,7 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image) {
 	statusScale := g.targetStatus.Scale() * g.renderScale * g.hudScale
 	statusWidth, statusHeight := int(statusScale*float64(g.width)/5), int(statusScale*float64(g.height)/5)
 	// FIXME: terrible arbitrary offsets
-	sX, sY := 0.0, float64(g.height)-float64(statusHeight)
+	sX, sY := 10.0, float64(g.height)-float64(statusHeight)-10
 	sBounds := image.Rect(
 		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
@@ -126,6 +126,7 @@ func (g *Game) drawTargetStatus(screen *ebiten.Image) {
 		targetDistance := targetLine.Distance() * model.METERS_PER_UNIT
 		g.targetStatus.SetUnitDistance(targetDistance)
 	}
+	g.targetStatus.SetTargetReticle(g.reticle)
 	g.targetStatus.Draw(screen, sBounds, &g.hudRGBA)
 }
 
@@ -248,18 +249,6 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		return
 	}
 
-	rScale := g.reticle.Scale() * g.renderScale * g.hudScale
-	rOff := rScale * float64(g.reticle.Width()) / 2
-
-	var op *ebiten.DrawImageOptions
-
-	// setup some common draw modifications
-	geoM := ebiten.GeoM{}
-	geoM.Scale(rScale, rScale)
-
-	colorM := ebiten.ColorM{}
-	colorM.ScaleWithColor(g.hudRGBA)
-
 	s := g.getSpriteFromEntity(g.player.Target())
 	if s == nil {
 		return
@@ -270,33 +259,5 @@ func (g *Game) drawTargetReticle(screen *ebiten.Image) {
 		return
 	}
 
-	minX, minY, maxX, maxY := float64(rect.Min.X), float64(rect.Min.Y), float64(rect.Max.X), float64(rect.Max.Y)
-
-	// top left corner
-	g.reticle.SetTextureFrame(0)
-	op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-	op.Filter = ebiten.FilterNearest
-	op.GeoM.Translate(minX-rOff, minY-rOff)
-	screen.DrawImage(g.reticle.Texture(), op)
-
-	// top right corner
-	g.reticle.SetTextureFrame(1)
-	op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-	op.Filter = ebiten.FilterNearest
-	op.GeoM.Translate(maxX-rOff, minY-rOff)
-	screen.DrawImage(g.reticle.Texture(), op)
-
-	// bottom left corner
-	g.reticle.SetTextureFrame(2)
-	op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-	op.Filter = ebiten.FilterNearest
-	op.GeoM.Translate(minX-rOff, maxY-rOff)
-	screen.DrawImage(g.reticle.Texture(), op)
-
-	// bottom right corner
-	g.reticle.SetTextureFrame(3)
-	op = &ebiten.DrawImageOptions{ColorM: colorM, GeoM: geoM}
-	op.Filter = ebiten.FilterNearest
-	op.GeoM.Translate(maxX-rOff, maxY-rOff)
-	screen.DrawImage(g.reticle.Texture(), op)
+	g.reticle.Draw(screen, *rect, &g.hudRGBA)
 }
