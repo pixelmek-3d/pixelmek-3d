@@ -106,7 +106,7 @@ func (c *Compass) Draw(screen *ebiten.Image, bounds image.Rectangle, clr *color.
 			}
 
 			if pipDegStr != "" {
-				c.fontRenderer.Draw(pipDegStr, int(iX), int(float64(bH/2))+2)
+				c.fontRenderer.Draw(pipDegStr, int(iX), int(topY+float64(bH/2))+2)
 			}
 		}
 	}
