@@ -140,7 +140,7 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 			X1: pPos.X, Y1: pPos.Y, Z1: pZ,
 			X2: tPos.X, Y2: tPos.Y, Z2: tZ,
 		}
-		targetDistance := targetLine.Distance() * model.METERS_PER_UNIT
+		targetDistance := (targetLine.Distance() - targetUnit.CollisionRadius() - g.player.CollisionRadius()) * model.METERS_PER_UNIT
 		g.targetStatus.SetUnitDistance(targetDistance)
 	}
 	g.targetStatus.SetTargetReticle(g.reticle)
