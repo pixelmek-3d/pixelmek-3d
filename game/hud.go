@@ -268,6 +268,8 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	playerPos := g.player.Pos()
 	playerAngle := g.player.Heading()
+	playerTarget := g.player.Target()
+
 	count := 0
 	for _, spriteMap := range g.sprites.sprites {
 		spriteMap.Range(func(k, _ interface{}) bool {
@@ -292,7 +294,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			// determine angle of unit relative from player heading
 			relAngle := playerAngle - unitLine.Angle()
 			blip := &render.RadarBlip{
-				Unit: unit, Distance: unitDistance, Angle: relAngle,
+				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: playerTarget == entity,
 			}
 
 			radarBlips = append(radarBlips, blip)

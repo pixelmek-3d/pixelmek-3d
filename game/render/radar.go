@@ -22,6 +22,7 @@ type RadarBlip struct {
 	Unit     model.Unit
 	Angle    float64
 	Distance float64
+	IsTarget bool
 }
 
 //NewRadar creates a radar image to be rendered on demand
@@ -99,7 +100,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, hudOpts.Color)
 
 	// Draw unit reference shape
-	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line thickness based on image height
+	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line thickness based on image size
 	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, hudOpts.Color)
 	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, hudOpts.Color)
 	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, hudOpts.Color)
@@ -113,7 +114,15 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 			// TODO: assumes radar is always 1km range
 			radarDistancePx := radius * blip.Distance * model.METERS_PER_UNIT / 1000
 			bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
-			ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, hudOpts.Color)
+
+			if blip.IsTarget {
+				// draw target square around lighter colored blip
+				tAlpha := uint8(hudOpts.Color.A / 3)
+				tColor := color.RGBA{R: hudOpts.Color.R, G: hudOpts.Color.G, B: hudOpts.Color.B, A: tAlpha}
+				ebitenutil.DrawRect(screen, bLine.X2-6, bLine.Y2-6, 12, 12, tColor) // TODO: calculate thickness based on image size
+			}
+
+			ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, hudOpts.Color) // TODO: calculate thickness based on image size
 		}
 	}
 }
