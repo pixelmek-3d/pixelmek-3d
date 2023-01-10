@@ -6,6 +6,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/raycaster-go"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 )
 
@@ -258,6 +260,49 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	radarBounds := image.Rect(
 		rX, rY, rX+radarWidth, rY+radarHeight,
 	)
+
+	// find all units within range
+	radarBlips := make([]*render.RadarBlip, 0, 128)
+	maxDistanceMeters := 1000.0 // TODO: set in Radar object and game config
+	maxDistanceUnits := maxDistanceMeters / model.METERS_PER_UNIT
+
+	playerPos := g.player.Pos()
+	playerAngle := g.player.Heading()
+	count := 0
+	for _, spriteMap := range g.sprites.sprites {
+		spriteMap.Range(func(k, _ interface{}) bool {
+			spriteInterface := k.(raycaster.Sprite)
+			entity := getEntityFromInterface(spriteInterface)
+			unit := model.EntityUnit(entity)
+			if unit == nil {
+				return true
+			}
+
+			unitPos := unit.Pos()
+			unitLine := geom.Line{
+				X1: playerPos.X, Y1: playerPos.Y,
+				X2: unitPos.X, Y2: unitPos.Y,
+			}
+
+			unitDistance := unitLine.Distance()
+			if unitDistance > maxDistanceUnits {
+				return true
+			}
+
+			// determine angle of unit relative from player heading
+			relAngle := playerAngle - unitLine.Angle()
+			blip := &render.RadarBlip{
+				Unit: unit, Distance: unitDistance, Angle: relAngle,
+			}
+
+			radarBlips = append(radarBlips, blip)
+			count++
+			return true
+		})
+	}
+
+	g.radar.SetRadarBlips(radarBlips[:count])
+
 	g.radar.Draw(radarBounds, hudOpts, g.player.Heading(), g.player.TurretAngle())
 }
 

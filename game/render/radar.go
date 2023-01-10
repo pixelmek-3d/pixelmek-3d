@@ -6,6 +6,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
@@ -14,6 +15,13 @@ import (
 type Radar struct {
 	HUDSprite
 	fontRenderer *etxt.Renderer
+	radarBlips   []*RadarBlip
+}
+
+type RadarBlip struct {
+	Unit     model.Unit
+	Angle    float64
+	Distance float64
 }
 
 //NewRadar creates a radar image to be rendered on demand
@@ -42,6 +50,10 @@ func (r *Radar) updateFontSize(width, height int) {
 
 	fractSize, _ := efixed.FromFloat64(pxSize)
 	r.fontRenderer.SetSizePxFract(fractSize)
+}
+
+func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
+	r.radarBlips = blips
 }
 
 func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle float64) {
@@ -91,4 +103,17 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, hudOpts.Color)
 	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, hudOpts.Color)
 	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, hudOpts.Color)
+
+	// Draw radar blips
+	if len(r.radarBlips) > 0 {
+		for _, blip := range r.radarBlips {
+			// convert heading angle into relative radar angle where "up" is forward
+			radarAngle := blip.Angle - geom.HalfPi
+
+			// TODO: assumes radar is always 1km range
+			radarDistancePx := radius * blip.Distance * model.METERS_PER_UNIT / 1000
+			bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
+			ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, hudOpts.Color)
+		}
+	}
 }
