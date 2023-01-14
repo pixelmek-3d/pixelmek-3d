@@ -33,11 +33,6 @@ func (g *Game) handleInput() {
 	var stop, forward, backward bool
 	var rotLeft, rotRight bool
 
-	moveModifier := 1.0
-	if ebiten.IsKeyPressed(ebiten.KeyShift) {
-		moveModifier = 2.0
-	}
-
 	switch {
 	case ebiten.IsKeyPressed(ebiten.KeyControl):
 		if g.mouseMode != MouseModeCursor {
@@ -76,18 +71,18 @@ func (g *Game) handleInput() {
 			g.fireWeapon()
 		}
 
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
-			// hold right click to zoom view in this mode
-			if g.camera.FovDepth() != g.zoomFovDepth {
-				zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
-				g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-				g.camera.SetPitchAngle(g.player.Pitch())
-			}
-		} else if g.camera.FovDepth() == g.zoomFovDepth {
-			// unzoom
-			g.camera.SetFovAngle(g.fovDegrees, 1.0)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		}
+		// if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		// 	if g.camera.FovDepth() != g.zoomFovDepth {
+		// 		// zoom in
+		// 		zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
+		// 		g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
+		// 		g.camera.SetPitchAngle(g.player.Pitch())
+		// 	} else {
+		// 		// zoom out
+		// 		g.camera.SetFovAngle(g.fovDegrees, 1.0)
+		// 		g.camera.SetPitchAngle(g.player.Pitch())
+		// 	}
+		// }
 
 		switch {
 		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
@@ -101,11 +96,11 @@ func (g *Game) handleInput() {
 			g.mouseX, g.mouseY = x, y
 
 			if dx != 0 {
-				g.Rotate(0.005 * float64(dx) * moveModifier)
+				g.Rotate(0.005 * float64(dx) / g.zoomFovDepth)
 			}
 
 			if dy != 0 {
-				g.Pitch(0.005 * float64(dy))
+				g.Pitch(0.005 * float64(dy) / g.zoomFovDepth)
 			}
 		}
 	case MouseModeTurret:
@@ -120,18 +115,18 @@ func (g *Game) handleInput() {
 			g.fireTestWeaponAtPlayer()
 		}
 
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
-			// hold right click to zoom view in this mode
-			if g.camera.FovDepth() != g.zoomFovDepth {
-				zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
-				g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-				g.camera.SetPitchAngle(g.player.Pitch())
-			}
-		} else if g.camera.FovDepth() == g.zoomFovDepth {
-			// unzoom
-			g.camera.SetFovAngle(g.fovDegrees, 1.0)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		}
+		// if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		// 	if g.camera.FovDepth() != g.zoomFovDepth {
+		// 		// zoom in
+		// 		zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
+		// 		g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
+		// 		g.camera.SetPitchAngle(g.player.Pitch())
+		// 	} else {
+		// 		// zoom out
+		// 		g.camera.SetFovAngle(g.fovDegrees, 1.0)
+		// 		g.camera.SetPitchAngle(g.player.Pitch())
+		// 	}
+		// }
 
 		switch {
 		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
@@ -146,9 +141,9 @@ func (g *Game) handleInput() {
 
 			if dx != 0 {
 				if g.player.HasTurret() {
-					g.RotateTurret(0.005 * float64(dx) * moveModifier)
+					g.RotateTurret(0.005 * float64(dx) / g.zoomFovDepth)
 				} else {
-					g.Rotate(0.005 * float64(dx) * moveModifier)
+					g.Rotate(0.005 * float64(dx) / g.zoomFovDepth)
 				}
 			}
 
@@ -161,6 +156,20 @@ func (g *Game) handleInput() {
 	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
 		// cycle player targets
 		g.cycleTarget()
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
+		// toggle zoom
+		if g.camera.FovDepth() != g.zoomFovDepth {
+			// zoom in
+			zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
+			g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
+			g.camera.SetPitchAngle(g.player.Pitch())
+		} else {
+			// zoom out
+			g.camera.SetFovAngle(g.fovDegrees, 1.0)
+			g.camera.SetPitchAngle(g.player.Pitch())
+		}
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
@@ -205,9 +214,9 @@ func (g *Game) handleInput() {
 		// TODO: only infantry/battle armor and VTOL can strafe
 		// strafe instead of rotate
 		if rotLeft {
-			g.Strafe(-0.05 * moveModifier)
+			g.Strafe(-0.05)
 		} else if rotRight {
-			g.Strafe(0.05 * moveModifier)
+			g.Strafe(0.05)
 		}
 	} else {
 		if rotLeft {
