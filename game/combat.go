@@ -28,7 +28,7 @@ func (g *Game) fireWeapon() {
 
 	// in case convergence point not set, use player heading and pitch
 	pAngle, pPitch := g.player.Heading()+g.player.TurretAngle(), g.player.Pitch()
-	convergencePoint := g.player.ConvergencePoint
+	convergencePoint := g.player.convergencePoint
 	// convergenceDistance := g.player.ConvergenceDistance
 
 	for _, weapon := range armament {
@@ -263,7 +263,7 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 
 	var projectile *model.Projectile
 
-	convergencePoint := g.player.ConvergencePoint
+	convergencePoint := g.player.convergencePoint
 	if e != g.player.Unit || convergencePoint == nil {
 		projectile = w.SpawnProjectile(e.Heading()+e.TurretAngle(), e.Pitch(), e)
 	} else {

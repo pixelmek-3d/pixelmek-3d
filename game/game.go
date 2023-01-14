@@ -57,7 +57,7 @@ type Game struct {
 	width  int
 	height int
 
-	player       *render.Player
+	player       *Player
 	playerStatus *render.UnitStatus
 	targetStatus *render.UnitStatus
 	armament     *render.Armament
@@ -176,7 +176,7 @@ func NewGame() *Game {
 	scale := convertHeightToScale(pUnit.Resource.Height, pUnit.Resource.HeightPxRatio)
 	pSprite := render.NewMechSprite(pUnit, scale, mechImg)
 
-	g.player = render.NewPlayer(pUnit, pSprite.Sprite, pX, pY, pZ, geom.Radians(pDegrees), 0)
+	g.player = NewPlayer(pUnit, pSprite.Sprite, pX, pY, pZ, geom.Radians(pDegrees), 0)
 	g.player.SetCollisionRadius(pUnit.CollisionRadius())
 	g.player.SetCollisionHeight(pUnit.CollisionHeight())
 	g.armament.SetWeapons(g.player.Armament())
@@ -391,8 +391,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.camera.Draw(screen)
 
 	// store raycasted convergence point for next Update
-	g.player.ConvergenceDistance = g.camera.GetConvergenceDistance()
-	g.player.ConvergencePoint = g.camera.GetConvergencePoint()
+	g.player.convergenceDistance = g.camera.GetConvergenceDistance()
+	g.player.convergencePoint = g.camera.GetConvergencePoint()
 
 	// draw HUD elements
 	g.drawHUD(screen)
@@ -473,7 +473,7 @@ func (g *Game) Rotate(rSpeed float64) {
 	}
 
 	g.player.SetHeading(angle)
-	g.player.Moved = true
+	g.player.moved = true
 }
 
 // Rotate player turret angle, relative to body heading, by rotation speed
@@ -492,14 +492,14 @@ func (g *Game) RotateTurret(rSpeed float64) {
 	}
 
 	g.player.SetTurretAngle(angle)
-	g.player.Moved = true
+	g.player.moved = true
 }
 
 // Update player pitch angle by pitch speed
 func (g *Game) Pitch(pSpeed float64) {
 	// current raycasting method can only allow up to 45 degree pitch in either direction
 	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -geom.Pi/8, geom.Pi/4))
-	g.player.Moved = true
+	g.player.moved = true
 }
 
 func (g *Game) updatePlayer() {
@@ -507,22 +507,22 @@ func (g *Game) updatePlayer() {
 		position := g.player.Pos()
 		moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
 		g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
-		g.player.Moved = true
+		g.player.moved = true
 	}
 }
 
 // Update camera to match player position and orientation
 func (g *Game) updatePlayerCamera(forceUpdate bool) {
-	if !g.player.Moved && !forceUpdate {
+	if !g.player.moved && !forceUpdate {
 		// only update camera position if player moved or forceUpdate set
 		return
 	}
 
 	// reset player moved flag to only update camera when necessary
-	g.player.Moved = false
+	g.player.moved = false
 
 	g.camera.SetPosition(g.player.Pos().Copy())
-	g.camera.SetPositionZ(g.player.CameraZ)
+	g.camera.SetPositionZ(g.player.cameraZ)
 	g.camera.SetPitchAngle(g.player.Pitch())
 
 	if g.player.HasTurret() {
@@ -537,7 +537,7 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 	newPos, isCollision, collisions := g.getValidMove(g.player.Unit, newX, newY, g.player.PosZ(), true)
 	if !newPos.Equals(g.player.Pos()) {
 		g.player.SetPos(newPos)
-		g.player.Moved = true
+		g.player.moved = true
 	}
 
 	if isCollision && len(collisions) > 0 {

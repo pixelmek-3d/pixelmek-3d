@@ -23,7 +23,7 @@ func NewClutterHandler() *ClutterHandler {
 }
 
 func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
-	if !g.player.Moved && !forceUpdate {
+	if !g.player.moved && !forceUpdate {
 		// only update clutter position if camera moved or forceUpdate set
 		return
 	}
