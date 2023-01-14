@@ -33,7 +33,6 @@ type Sprite struct {
 	texRects          []image.Rectangle
 	textures          []*ebiten.Image
 	screenRect        *image.Rectangle
-	mapColor          color.RGBA
 }
 
 type facingAngleOverride struct {
@@ -77,13 +76,12 @@ func (s *Sprite) IsFocusable() bool {
 }
 
 func NewSprite(
-	modelEntity model.Entity, scale float64, img *ebiten.Image, mapColor color.RGBA,
+	modelEntity model.Entity, scale float64, img *ebiten.Image,
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
 		Focusable: true,
 		scale:     scale,
-		mapColor:  mapColor,
 	}
 
 	s.w, s.h = img.Size()
@@ -95,13 +93,12 @@ func NewSprite(
 
 func NewSpriteFromSheet(
 	modelEntity model.Entity, scale float64, img *ebiten.Image,
-	mapColor color.RGBA, columns, rows, spriteIndex int,
+	columns, rows, spriteIndex int,
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
 		Focusable: true,
 		scale:     scale,
-		mapColor:  mapColor,
 	}
 
 	s.texNum = spriteIndex
@@ -120,13 +117,12 @@ func NewSpriteFromSheet(
 
 func NewAnimatedSprite(
 	modelEntity model.Entity, scale float64, img *ebiten.Image,
-	mapColor color.RGBA, columns, rows, animationRate int,
+	columns, rows, animationRate int,
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
 		Focusable: true,
 		scale:     scale,
-		mapColor:  mapColor,
 	}
 
 	s.AnimationRate = animationRate

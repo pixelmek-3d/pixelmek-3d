@@ -1,7 +1,6 @@
 package render
 
 import (
-	"image/color"
 	_ "image/png"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -27,10 +26,10 @@ func NewVehicleSprite(
 
 	if sheet == nil {
 		p = NewSprite(
-			vehicle, scale, img, color.RGBA{},
+			vehicle, scale, img,
 		)
 	} else {
-		p = NewAnimatedSprite(vehicle, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(vehicle, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {

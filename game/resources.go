@@ -217,7 +217,7 @@ func (g *Game) loadContent() {
 
 			sprite := render.NewSprite(
 				model.BasicCollisionEntity(x, y, z, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight, hitPoints),
-				s.Scale, spriteImg, color.RGBA{0, 255, 0, 196},
+				s.Scale, spriteImg,
 			)
 
 			g.sprites.addMapSprite(sprite)
@@ -504,7 +504,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSpriteTemplate,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -570,7 +570,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSpriteTemplate,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -628,7 +628,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, color.RGBA{}, *eSpriteTemplate,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate

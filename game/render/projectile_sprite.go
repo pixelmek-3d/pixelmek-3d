@@ -1,7 +1,6 @@
 package render
 
 import (
-	"image/color"
 	"math"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -17,10 +16,10 @@ type ProjectileSprite struct {
 }
 
 func NewProjectile(
-	projectile *model.Projectile, scale float64, img *ebiten.Image, mapColor color.RGBA,
+	projectile *model.Projectile, scale float64, img *ebiten.Image,
 ) *ProjectileSprite {
 	p := &ProjectileSprite{
-		Sprite:       NewSprite(projectile, scale, img, mapColor),
+		Sprite:       NewSprite(projectile, scale, img),
 		ImpactEffect: EffectSprite{},
 	}
 
@@ -31,17 +30,17 @@ func NewProjectile(
 }
 
 func NewAnimatedProjectile(
-	projectile *model.Projectile, scale float64, img *ebiten.Image, mapColor color.RGBA, impactEffect EffectSprite,
+	projectile *model.Projectile, scale float64, img *ebiten.Image, impactEffect EffectSprite,
 ) *ProjectileSprite {
 	var p *Sprite
 	sheet := projectile.Resource.ImageSheet
 
 	if sheet == nil {
 		p = NewSprite(
-			projectile, scale, img, color.RGBA{},
+			projectile, scale, img,
 		)
 	} else {
-		p = NewAnimatedSprite(projectile, scale, img, color.RGBA{}, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(projectile, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {

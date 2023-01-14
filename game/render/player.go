@@ -1,8 +1,6 @@
 package render
 
 import (
-	"image/color"
-
 	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/harbdog/raycaster-go/geom"
@@ -14,18 +12,16 @@ type Player struct {
 	Sprite              *Sprite
 	CameraZ             float64
 	Moved               bool
-	MapColor            color.RGBA
 	ConvergenceDistance float64
 	ConvergencePoint    *geom3d.Vector3
 }
 
 func NewPlayer(unit model.Unit, sprite *Sprite, x, y, z, angle, pitch float64) *Player {
 	p := &Player{
-		Unit:     unit,
-		Sprite:   sprite,
-		CameraZ:  z + unit.CockpitOffset().Y, // TODO: support cockpit offset in sprite X direction
-		Moved:    false,
-		MapColor: color.RGBA{255, 0, 0, 255},
+		Unit:    unit,
+		Sprite:  sprite,
+		CameraZ: z + unit.CockpitOffset().Y, // TODO: support cockpit offset in sprite X direction
+		Moved:   false,
 	}
 
 	p.SetAsPlayer(true)

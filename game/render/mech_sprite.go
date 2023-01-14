@@ -1,7 +1,6 @@
 package render
 
 import (
-	"image/color"
 	_ "image/png"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -46,7 +45,7 @@ func NewMechSprite(
 	// [full, torso, left arm, right arm, left leg, right leg]
 	mechAnimate := NewMechAnimationSheetFromImage(img)
 	p := NewAnimatedSprite(
-		mech, scale, mechAnimate.sheet, color.RGBA{},
+		mech, scale, mechAnimate.sheet,
 		mechAnimate.maxCols, mechAnimate.maxRows, 0,
 	)
 	s := &MechSprite{
