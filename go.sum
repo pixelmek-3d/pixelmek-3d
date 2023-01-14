@@ -262,6 +262,8 @@ github.com/harbdog/raycaster-go v1.6.4 h1:8wC4YrXTs8iKgungpa4o4RssnuH2HCvYo2NS0Z
 github.com/harbdog/raycaster-go v1.6.4/go.mod h1:CoETh4pPX87LqPyzwPdbsCzOVnIoylg7EdI2Ye4qRfs=
 github.com/harbdog/raycaster-go v1.6.5 h1:5CdrFYVEp8bp3uuCkS4CJrgwsHKYDpd3fMcTjFBX3XM=
 github.com/harbdog/raycaster-go v1.6.5/go.mod h1:CoETh4pPX87LqPyzwPdbsCzOVnIoylg7EdI2Ye4qRfs=
+github.com/harbdog/raycaster-go v1.6.6 h1:qu1zoR3CRqzkh/0aymlpYTw0kLTFvDtSgH9w9jUKuT4=
+github.com/harbdog/raycaster-go v1.6.6/go.mod h1:CoETh4pPX87LqPyzwPdbsCzOVnIoylg7EdI2Ye4qRfs=
 github.com/hashicorp/consul/api v1.12.0/go.mod h1:6pVBMo0ebnYdt2S3H87XhekM/HHrUoTD2XXb/VrZVy0=
 github.com/hashicorp/consul/sdk v0.8.0/go.mod h1:GBvyrGALthsZObzUGsfgHZQDXjg4lOjagTIwIR1vPms=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
