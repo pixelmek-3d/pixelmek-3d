@@ -255,6 +255,20 @@ func (g *Game) handleInput() {
 		}
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
+		// toggle reverse throttle
+		if g.player.TargetVelocity() > 0 {
+			// switch to reverse
+			vPercent := g.player.TargetVelocity() / g.player.MaxVelocity()
+			g.player.SetTargetVelocity(-vPercent * g.player.MaxVelocity() / 2)
+		} else if g.player.TargetVelocity() < 0 {
+			// switch to forward
+			vPercent := math.Abs(g.player.TargetVelocity()) / (g.player.MaxVelocity() / 2)
+			g.player.SetTargetVelocity(vPercent * g.player.MaxVelocity())
+		}
+
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		rotLeft = true
 	}
