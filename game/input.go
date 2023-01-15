@@ -79,16 +79,7 @@ func (g *Game) handleInput() {
 		}
 
 		// if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-		// 	if g.camera.FovDepth() != g.zoomFovDepth {
-		// 		// zoom in
-		// 		zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
-		// 		g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-		// 		g.camera.SetPitchAngle(g.player.Pitch())
-		// 	} else {
-		// 		// zoom out
-		// 		g.camera.SetFovAngle(g.fovDegrees, 1.0)
-		// 		g.camera.SetPitchAngle(g.player.Pitch())
-		// 	}
+		//     TODO: refactor the new stuff for chain/group fire using shared functions
 		// }
 
 		switch {
@@ -121,10 +112,28 @@ func (g *Game) handleInput() {
 
 		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 			if g.player.fireMode == model.CHAIN_FIRE {
-				// TODO: cycle to next weapon only in same group (g.player.selectedGroup)
-				g.player.selectedWeapon++
-				if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
-					g.player.selectedWeapon = 0
+				// cycle to next weapon only in same group (g.player.selectedGroup)
+				prevWeapon := g.player.Armament()[g.player.selectedWeapon]
+				groupWeapons := g.player.weaponGroups[g.player.selectedGroup]
+
+				var nextWeapon model.Weapon
+				nextIndex := 0
+				for i, w := range groupWeapons {
+					if w == prevWeapon {
+						nextIndex = i + 1
+						break
+					}
+				}
+				if nextIndex >= len(groupWeapons) {
+					nextIndex = 0
+				}
+				nextWeapon = groupWeapons[nextIndex]
+
+				for i, w := range g.player.Armament() {
+					if w == nextWeapon {
+						g.player.selectedWeapon = uint(i)
+						break
+					}
 				}
 			}
 		}
@@ -135,10 +144,21 @@ func (g *Game) handleInput() {
 				if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
 					g.player.selectedGroup = 0
 				}
+				// TODO: set selectedGroup only if >0 weapons in the next group
+
 			} else if g.player.fireMode == model.CHAIN_FIRE {
 				g.player.selectedWeapon++
 				if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
 					g.player.selectedWeapon = 0
+				}
+
+				// set selectedGroup if the newly selected weapon is in different group
+				newSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
+				groups := model.GetGroupsForWeapon(newSelectedWeapon, g.player.weaponGroups)
+				if len(groups) == 0 {
+					g.player.selectedGroup = 0
+				} else {
+					g.player.selectedGroup = groups[0]
 				}
 			}
 		}
@@ -203,6 +223,7 @@ func (g *Game) handleInput() {
 
 			// add to selected group
 			g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
+			g.player.selectedGroup = uint(setGroupIndex)
 		}
 	}
 
