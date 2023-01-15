@@ -144,7 +144,16 @@ func (g *Game) handleInput() {
 				if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
 					g.player.selectedGroup = 0
 				}
-				// TODO: set selectedGroup only if >0 weapons in the next group
+
+				// set next selectedGroup only if >0 weapons in it
+				weaponsInGroup := len(g.player.weaponGroups[g.player.selectedGroup])
+				for weaponsInGroup == 0 {
+					g.player.selectedGroup++
+					if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
+						g.player.selectedGroup = 0
+					}
+					weaponsInGroup = len(g.player.weaponGroups[g.player.selectedGroup])
+				}
 
 			} else if g.player.fireMode == model.CHAIN_FIRE {
 				g.player.selectedWeapon++
