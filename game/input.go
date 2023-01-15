@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go/geom"
 )
 
 type MouseMode int
@@ -33,6 +34,11 @@ func (g *Game) handleInput() {
 
 	var stop, forward, backward bool
 	var rotLeft, rotRight bool
+
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
+		// TESTING purposes only
+		g.fireTestWeaponAtPlayer()
+	}
 
 	switch {
 	case ebiten.IsKeyPressed(ebiten.KeyControl):
@@ -97,7 +103,9 @@ func (g *Game) handleInput() {
 			g.mouseX, g.mouseY = x, y
 
 			if dx != 0 {
-				g.Rotate(0.005 * float64(dx) / g.zoomFovDepth)
+				turnRate := g.player.TurnRate()
+				turnAmount := geom.Clamp(0.1*float64(dx), -turnRate, turnRate)
+				g.player.SetTargetRelativeHeading(turnAmount)
 			}
 
 			if dy != 0 {
@@ -119,11 +127,6 @@ func (g *Game) handleInput() {
 					g.player.selectedWeapon = 0
 				}
 			}
-		}
-
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
-			// TESTING purposes only
-			g.fireTestWeaponAtPlayer()
 		}
 
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
@@ -155,7 +158,9 @@ func (g *Game) handleInput() {
 				if g.player.HasTurret() {
 					g.RotateTurret(0.005 * float64(dx) / g.zoomFovDepth)
 				} else {
-					g.Rotate(0.005 * float64(dx) / g.zoomFovDepth)
+					turnRate := g.player.TurnRate()
+					turnAmount := geom.Clamp(0.005*float64(dx), -turnRate, turnRate)
+					g.player.SetTargetRelativeHeading(turnAmount)
 				}
 			}
 
@@ -307,9 +312,19 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.mouseMode == MouseModeBody {
-		// TODO: only infantry/battle armor and VTOL can strafe
-		// strafe instead of rotate
+	isStrafe := false
+	if !g.player.HasTurret() && (rotLeft || rotRight) {
+		// only infantry/battle armor and VTOL can strafe
+		_, isInfantry := g.player.Unit.(*model.Infantry)
+		_, isVTOL := g.player.Unit.(*model.VTOL)
+		if isInfantry || isVTOL {
+			// strafe instead of rotate
+			isStrafe = true
+		}
+	}
+
+	if isStrafe {
+		// TODO: use unit max velocity to determine strafe speed
 		if rotLeft {
 			g.Strafe(-0.05)
 		} else if rotRight {
@@ -317,11 +332,9 @@ func (g *Game) handleInput() {
 		}
 	} else {
 		if rotLeft {
-			//g.Rotate(0.03 * moveModifier)
 			turnAmount := g.player.TurnRate()
 			g.player.SetTargetRelativeHeading(turnAmount)
 		} else if rotRight {
-			//g.Rotate(-0.03 * moveModifier)
 			turnAmount := g.player.TurnRate()
 			g.player.SetTargetRelativeHeading(-turnAmount)
 		}

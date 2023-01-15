@@ -171,10 +171,12 @@ func NewGame() *Game {
 	//pUnit, pZ := g.createModelVTOL("donar.yaml"), 3.0
 
 	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, pUnit.Resource.Image)
+	//mechRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, pUnit.Resource.Image)
 	mechImg := getSpriteFromFile(mechRelPath)
 
 	scale := convertHeightToScale(pUnit.Resource.Height, pUnit.Resource.HeightPxRatio)
 	pSprite := render.NewMechSprite(pUnit, scale, mechImg)
+	//pSprite := render.NewVTOLSprite(pUnit, scale, mechImg)
 
 	g.player = NewPlayer(pUnit, pSprite.Sprite, pX, pY, pZ, geom.Radians(pDegrees), 0)
 	g.player.SetCollisionRadius(pUnit.CollisionRadius())
