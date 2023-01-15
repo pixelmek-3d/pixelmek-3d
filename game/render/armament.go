@@ -60,8 +60,13 @@ func (a *Armament) SetWeaponGroups(weaponGroups [][]model.Weapon) {
 }
 
 func (a *Armament) SetSelectedWeapon(weaponOrGroupIndex uint, weaponFireMode model.WeaponFireMode) {
-	a.selectedWeapon = weaponOrGroupIndex
 	a.fireMode = weaponFireMode
+	switch weaponFireMode {
+	case model.CHAIN_FIRE:
+		a.selectedWeapon = weaponOrGroupIndex
+	case model.GROUP_FIRE:
+		a.selectedGroup = weaponOrGroupIndex
+	}
 }
 
 func (a *Armament) updateFontSize(width, height int) {
@@ -96,9 +101,9 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// render weapons as individual sub-images within the display
 	for i, w := range a.weapons {
-		var wX, wY float64 = float64(bX), float64(bY) + float64(i*wHeight)
-		if i >= numWeapons/2 {
-			wX, wY = float64(bX)+float64(bW)/2, float64(bY)+float64((i-numWeapons/2)*(wHeight))
+		var wX, wY float64 = float64(bX), float64(bY) + float64((i/2)*wHeight)
+		if i%2 != 0 {
+			wX, wY = float64(bX)+float64(bW)/2, float64(bY)+float64((i/2)*wHeight)
 		}
 
 		wBounds := image.Rect(
@@ -108,7 +113,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 		// render weapon select box
 		isWeaponSelected := (a.fireMode == model.CHAIN_FIRE && i == int(a.selectedWeapon)) ||
-			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedWeapon, a.weaponGroups))
+			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups))
 
 		if isWeaponSelected {
 			// TODO: move to Weapon update and add margins
