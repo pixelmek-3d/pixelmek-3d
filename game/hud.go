@@ -163,6 +163,13 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 	aBounds := image.Rect(
 		aX, aY, aX+armamentWidth, aY+armamentHeight,
 	)
+
+	weaponOrGroupIndex := g.player.selectedWeapon
+	if g.player.fireMode == model.GROUP_FIRE {
+		weaponOrGroupIndex = g.player.selectedGroup
+	}
+	g.armament.SetWeaponGroups(g.player.weaponGroups)
+	g.armament.SetSelectedWeapon(weaponOrGroupIndex, g.player.fireMode)
 	g.armament.Draw(aBounds, hudOpts)
 }
 

@@ -13,6 +13,13 @@ const (
 	MISSILE
 )
 
+type WeaponFireMode int
+
+const (
+	CHAIN_FIRE WeaponFireMode = iota
+	GROUP_FIRE
+)
+
 type Weapon interface {
 	Name() string
 	ShortName() string
@@ -66,4 +73,35 @@ func HeadingPitchTowardPoint3D(source, target *geom3d.Vector3) (float64, float64
 	}
 	heading, pitch = convergenceLine3d.Heading(), convergenceLine3d.Pitch()
 	return heading, pitch
+}
+
+func GetGroupsForWeapon(w Weapon, weaponGroups [][]Weapon) []uint {
+	groupsForWeapon := make([]uint, 0, len(weaponGroups))
+	if w == nil {
+		return groupsForWeapon
+	}
+
+	for g, weapons := range weaponGroups {
+		for _, gWeapon := range weapons {
+			if w == gWeapon {
+				groupsForWeapon = append(groupsForWeapon, uint(g))
+			}
+		}
+	}
+
+	return groupsForWeapon
+}
+
+func IsWeaponInGroup(w Weapon, g uint, weaponGroups [][]Weapon) bool {
+	if w == nil || int(g) >= len(weaponGroups) {
+		return false
+	}
+
+	for _, gWeapon := range weaponGroups[g] {
+		if w == gWeapon {
+			return true
+		}
+	}
+
+	return false
 }

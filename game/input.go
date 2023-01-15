@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
 type MouseMode int
@@ -110,23 +111,34 @@ func (g *Game) handleInput() {
 			g.fireWeapon()
 		}
 
+		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+			if g.player.fireMode == model.CHAIN_FIRE {
+				// TODO: cycle to next weapon only in same group (g.player.selectedGroup)
+				g.player.selectedWeapon++
+				if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
+					g.player.selectedWeapon = 0
+				}
+			}
+		}
+
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
 			// TESTING purposes only
 			g.fireTestWeaponAtPlayer()
 		}
 
-		// if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-		// 	if g.camera.FovDepth() != g.zoomFovDepth {
-		// 		// zoom in
-		// 		zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
-		// 		g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-		// 		g.camera.SetPitchAngle(g.player.Pitch())
-		// 	} else {
-		// 		// zoom out
-		// 		g.camera.SetFovAngle(g.fovDegrees, 1.0)
-		// 		g.camera.SetPitchAngle(g.player.Pitch())
-		// 	}
-		// }
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+			if g.player.fireMode == model.GROUP_FIRE {
+				g.player.selectedGroup++
+				if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
+					g.player.selectedGroup = 0
+				}
+			} else if g.player.fireMode == model.CHAIN_FIRE {
+				g.player.selectedWeapon++
+				if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
+					g.player.selectedWeapon = 0
+				}
+			}
+		}
 
 		switch {
 		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
@@ -149,6 +161,77 @@ func (g *Game) handleInput() {
 
 			if dy != 0 {
 				g.Pitch(0.005 * float64(dy))
+			}
+		}
+	}
+
+	if g.player.fireMode == model.CHAIN_FIRE && ebiten.IsKeyPressed(ebiten.KeyShift) {
+		// set group for selected weapon
+		setGroupIndex := -1
+		switch {
+		case inpututil.IsKeyJustPressed(ebiten.Key1):
+			setGroupIndex = 0
+		case inpututil.IsKeyJustPressed(ebiten.Key2):
+			setGroupIndex = 1
+		case inpututil.IsKeyJustPressed(ebiten.Key3):
+			setGroupIndex = 2
+		}
+
+		if setGroupIndex >= 0 {
+			weapon := g.player.Armament()[g.player.selectedWeapon]
+			groups := model.GetGroupsForWeapon(weapon, g.player.weaponGroups)
+			for _, gIndex := range groups {
+				if int(gIndex) == setGroupIndex {
+					// already in group
+					return
+				} else {
+					// remove from current group
+					weaponsInGroup := g.player.weaponGroups[gIndex]
+					g.player.weaponGroups[gIndex] = make([]model.Weapon, 0, len(weaponsInGroup)-1)
+					for _, chkWeapon := range weaponsInGroup {
+						if chkWeapon != weapon {
+							g.player.weaponGroups[gIndex] = append(g.player.weaponGroups[gIndex], chkWeapon)
+						}
+					}
+				}
+			}
+
+			// add to selected group
+			g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
+		}
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyBackslash) {
+		// toggle group fire mode
+		switch g.player.fireMode {
+		case model.CHAIN_FIRE:
+			g.player.fireMode = model.GROUP_FIRE
+		case model.GROUP_FIRE:
+			g.player.fireMode = model.CHAIN_FIRE
+		}
+
+		if g.player.fireMode == model.GROUP_FIRE {
+			// select the first appropriate group from selected weapon when switching to group mode
+			prevSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
+			groups := model.GetGroupsForWeapon(prevSelectedWeapon, g.player.weaponGroups)
+			if len(groups) == 0 {
+				g.player.selectedGroup = 0
+			} else {
+				g.player.selectedGroup = groups[0]
+			}
+		} else if g.player.fireMode == model.CHAIN_FIRE {
+			// select the first weapon of the group that was selected when switching to chain mode
+			prevSelectedGroup := g.player.selectedGroup
+			weapons := g.player.weaponGroups[prevSelectedGroup]
+			if len(weapons) == 0 {
+				g.player.selectedWeapon = 0
+			} else {
+				for i, w := range g.player.Armament() {
+					if w == weapons[0] {
+						g.player.selectedWeapon = uint(i)
+						break
+					}
+				}
 			}
 		}
 	}

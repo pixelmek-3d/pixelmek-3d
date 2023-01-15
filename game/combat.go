@@ -31,10 +31,17 @@ func (g *Game) fireWeapon() {
 	convergencePoint := g.player.convergencePoint
 	// convergenceDistance := g.player.ConvergenceDistance
 
-	for _, weapon := range armament {
+	for i, weapon := range armament {
 		if weapon.Cooldown() > 0 {
 			continue
 		}
+
+		isWeaponSelected := (g.player.fireMode == model.CHAIN_FIRE && i == int(g.player.selectedWeapon)) ||
+			(g.player.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(weapon, g.player.selectedGroup, g.player.weaponGroups))
+		if !isWeaponSelected {
+			continue
+		}
+
 		if g.player.TriggerWeapon(weapon) {
 			var projectile *model.Projectile
 			if convergencePoint == nil {

@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 
@@ -8,12 +9,19 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
+	"golang.org/x/image/math/fixed"
 )
 
 type Armament struct {
 	HUDSprite
-	fontRenderer *etxt.Renderer
-	weapons      []*Weapon
+	fontRenderer    *etxt.Renderer
+	fontSizeWeapons fixed.Int26_6
+	fontSizeGroups  fixed.Int26_6
+	weapons         []*Weapon
+	weaponGroups    [][]model.Weapon
+	selectedWeapon  uint
+	selectedGroup   uint
+	fireMode        model.WeaponFireMode
 }
 
 type Weapon struct {
@@ -27,8 +35,6 @@ func NewArmament(font *Font) *Armament {
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.YCenter, etxt.Left)
-	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	a := &Armament{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -49,6 +55,15 @@ func (a *Armament) SetWeapons(weapons []model.Weapon) {
 	}
 }
 
+func (a *Armament) SetWeaponGroups(weaponGroups [][]model.Weapon) {
+	a.weaponGroups = weaponGroups
+}
+
+func (a *Armament) SetSelectedWeapon(weaponOrGroupIndex uint, weaponFireMode model.WeaponFireMode) {
+	a.selectedWeapon = weaponOrGroupIndex
+	a.fireMode = weaponFireMode
+}
+
 func (a *Armament) updateFontSize(width, height int) {
 	// set font size based on individual weapon element size
 	pxSize := float64(height) / 2
@@ -57,7 +72,8 @@ func (a *Armament) updateFontSize(width, height int) {
 	}
 
 	fractSize, _ := efixed.FromFloat64(pxSize)
-	a.fontRenderer.SetSizePxFract(fractSize)
+	a.fontSizeWeapons = fractSize
+	a.fontSizeGroups = fractSize / 2
 }
 
 func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
@@ -90,8 +106,11 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		)
 		a.drawWeapon(wBounds, hudOpts, w)
 
-		// --- TESTING WEAPON SELECT BOX ---
-		if w.weapon.Cooldown() == 0 {
+		// render weapon select box
+		isWeaponSelected := (a.fireMode == model.CHAIN_FIRE && i == int(a.selectedWeapon)) ||
+			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedWeapon, a.weaponGroups))
+
+		if isWeaponSelected {
 			// TODO: move to Weapon update and add margins
 			// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
 			//        - import "github.com/hajimehoshi/ebiten/v2/vector"
@@ -109,10 +128,13 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 func (a *Armament) drawWeapon(bounds image.Rectangle, hudOpts *DrawHudOptions, w *Weapon) {
 	screen := hudOpts.Screen
 	a.fontRenderer.SetTarget(screen)
+	a.fontRenderer.SetAlign(etxt.YCenter, etxt.Left)
 	a.fontRenderer.SetColor(hudOpts.Color)
+	a.fontRenderer.SetSizePxFract(a.fontSizeWeapons)
 
-	bX, bY, bH := bounds.Min.X, bounds.Min.Y, bounds.Dy()
+	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
+	// render weapon name and status indicator
 	weapon := w.weapon
 	if weapon.Cooldown() == 0 {
 		a.fontRenderer.SetColor(hudOpts.Color)
@@ -124,4 +146,19 @@ func (a *Armament) drawWeapon(bounds image.Rectangle, hudOpts *DrawHudOptions, w
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing
 
 	a.fontRenderer.Draw(weapon.ShortName(), wX, wY)
+
+	// render weapon group indicator
+	if len(a.weaponGroups) > 0 {
+		a.fontRenderer.SetAlign(etxt.Top, etxt.Right)
+		a.fontRenderer.SetSizePxFract(a.fontSizeGroups)
+
+		var groupsTxt string
+		for _, g := range model.GetGroupsForWeapon(w.weapon, a.weaponGroups) {
+			groupsTxt += fmt.Sprintf("%d ", g+1)
+		}
+
+		if len(groupsTxt) > 0 {
+			a.fontRenderer.Draw(groupsTxt, bX+bW, bY+2) // TODO: calculate better margin spacing
+		}
+	}
 }
