@@ -17,13 +17,13 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/render"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/spf13/viper"
 )
 
 const (
+	title = "PixelMek 3D"
 	//--RaycastEngine constants
 	//--set constant, texture size to be the wall (and sprite) texture size--//
 	texWidth = 256
@@ -108,7 +108,8 @@ type Game struct {
 	// control options
 	throttleDecay bool
 
-	debug bool
+	debug           bool
+	debugFpsCounter int
 }
 
 // NewGame - Allows the game to perform any initialization it needs to before starting to run.
@@ -126,7 +127,7 @@ func NewGame() *Game {
 	g.initCollisionTypes()
 	g.initCombatVariables()
 
-	ebiten.SetWindowTitle("PixelMek 3D")
+	ebiten.SetWindowTitle(title)
 	ebiten.SetTPS(int(model.TICKS_PER_SECOND))
 
 	// use scale to keep the desired window width and height
@@ -380,6 +381,17 @@ func (g *Game) Update() error {
 	// update the menu (if active)
 	g.menu.update(g)
 
+	if g.debug {
+		if g.debugFpsCounter == 0 {
+			g.debugFpsCounter = ebiten.TPS()
+			// draw FPS/TPS counter debug display
+			fps := fmt.Sprintf("FPS: %f\nTPS: %f/%v", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
+			ebiten.SetWindowTitle(title + " | " + fps)
+		} else {
+			g.debugFpsCounter--
+		}
+	}
+
 	return nil
 }
 
@@ -404,10 +416,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw menu (if active)
 	g.menu.draw(screen)
-
-	// draw FPS/TPS counter debug display
-	fps := fmt.Sprintf("FPS: %f\nTPS: %f/%v", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
-	ebitenutil.DebugPrint(screen, fps)
 }
 
 func (g *Game) setFullscreen(fullscreen bool) {
