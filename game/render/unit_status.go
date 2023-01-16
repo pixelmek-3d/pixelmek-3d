@@ -13,6 +13,14 @@ import (
 	"github.com/tinne26/etxt/efixed"
 )
 
+var (
+	_colorStatusOk         = color.RGBA{R: 0, G: 155, B: 255, A: 255}
+	_colorStatusWarn       = _colorDefaultYellow
+	_colorStatusCritical   = color.RGBA{R: 255, G: 30, B: 30, A: 255}
+	_colorStatusBackground = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	_colorStatusText       = _colorDefaultGreen
+)
+
 type UnitStatus struct {
 	HUDSprite
 	fontRenderer  *etxt.Renderer
@@ -71,36 +79,53 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
 	u.fontRenderer.SetTarget(screen)
 	u.fontRenderer.SetAlign(etxt.YCenter, etxt.Left)
-	u.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	u.updateFontSize(bW, bH)
 
 	if u.unit == nil {
-		// TESTING!
-		sW, sH := float64(bW), float64(bH)
-		sX, sY := float64(bX), float64(bY)
-		sAlpha := uint8(int(hudOpts.Color.A) / 10)
-		ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, sAlpha})
 		return
 	}
 
-	// background box
+	// determine unit status
+	armorPercent := 100 * u.unit.ArmorPoints() / u.unit.MaxArmorPoints()
+	internalPercent := 100 * u.unit.StructurePoints() / u.unit.MaxStructurePoints()
+
 	sW, sH := float64(bW), float64(bH)
 	sX, sY := float64(bX), float64(bY)
-	sAlpha := uint8(int(hudOpts.Color.A) / 5)
-	ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, sAlpha})
 
-	// unit image
-	// create static outline image of unit and store it
+	if !u.isPlayer {
+		// background box
+		bColor := _colorStatusBackground
+		if hudOpts.UseCustomColor {
+			bColor = hudOpts.Color
+		}
+
+		sAlpha := uint8(int(bColor.A) / 3)
+		ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{bColor.R, bColor.G, bColor.B, sAlpha})
+	}
+
+	// create static outline image of unit
 	uTexture := u.unit.StaticTexture()
 
 	op := &ebiten.DrawImageOptions{}
 	// Reset RGB (not Alpha) 0 forcibly
 	op.ColorM.Scale(0, 0, 0, 1)
 
-	// Set color
-	r, g, b := float64(hudOpts.Color.R)/255, float64(hudOpts.Color.G)/255, float64(hudOpts.Color.B)/255
+	// Set unit image color based on health status
+	var uColor color.RGBA
+	if hudOpts.UseCustomColor {
+		uColor = hudOpts.Color
+	} else {
+		if armorPercent >= 25 {
+			uColor = _colorStatusOk
+		} else if internalPercent >= 50 {
+			uColor = _colorStatusWarn
+		} else {
+			uColor = _colorStatusCritical
+		}
+	}
+	r, g, b := float64(uColor.R)/255, float64(uColor.G)/255, float64(uColor.B)/255
 	op.ColorM.Translate(r, g, b, 0)
 
 	iH := bounds.Dy()
@@ -117,30 +142,41 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op.GeoM.Translate(sX, sY+sH/2-uScale*float64(uH)/2)
 	screen.DrawImage(uTexture, op)
 
+	// setup text color
+	tColor := _colorStatusText
+	if hudOpts.UseCustomColor {
+		tColor = hudOpts.Color
+	}
+	u.fontRenderer.SetColor(tColor)
+
 	// armor readout
-	armorPercent := 100 * u.unit.ArmorPoints() / u.unit.MaxArmorPoints()
 	armorStr := fmt.Sprintf("ARMOR\n %0.0f%%", armorPercent)
 	u.fontRenderer.Draw(armorStr, int(sX)+int(3*sW/5), int(sY)+int(sH/3))
 
 	// internal structure readout
-	internalPercent := 100 * u.unit.StructurePoints() / u.unit.MaxStructurePoints()
 	internalStr := fmt.Sprintf("STRUCT\n %0.0f%%", internalPercent)
 	u.fontRenderer.Draw(internalStr, int(sX)+int(3*sW/5), int(sY)+int(2*sH/3))
 
 	if !u.isPlayer {
-		// target chassis name
-		tUnit := model.EntityUnit(u.unit.Entity)
-		if tUnit != nil {
-			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
-			chassisVariant := strings.ToUpper(tUnit.Variant())
-			u.fontRenderer.Draw(chassisVariant, bX+bW/2, bY)
-		}
-
 		// target distance
 		if u.unitDistance >= 0 {
 			u.fontRenderer.SetAlign(etxt.Bottom, etxt.XCenter)
 			distanceStr := fmt.Sprintf("%0.0fm", u.unitDistance)
 			u.fontRenderer.Draw(distanceStr, bX+bW/2, bY+bH)
+		}
+
+		// enemy target chassis name
+		tUnit := model.EntityUnit(u.unit.Entity)
+		if tUnit != nil {
+			eColor := _colorEnemy
+			if hudOpts.UseCustomColor {
+				eColor = hudOpts.Color
+			}
+			u.fontRenderer.SetColor(eColor)
+
+			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
+			chassisVariant := strings.ToUpper(tUnit.Variant())
+			u.fontRenderer.Draw(chassisVariant, bX+bW/2, bY)
 		}
 	}
 
