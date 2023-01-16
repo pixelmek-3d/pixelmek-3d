@@ -11,6 +11,9 @@ import (
 type Mission struct {
 	missionMap *Map
 	MapPath    string            `yaml:"map"`
+	Lighting   *MapLighting      `yaml:"lighting,omitempty"`
+	FloorBox   *MapTexture       `yaml:"floorBox,omitempty"`
+	SkyBox     *MapTexture       `yaml:"skyBox,omitempty"`
 	Mechs      []MissionMech     `yaml:"mechs"`
 	Vehicles   []MissionVehicle  `yaml:"vehicles"`
 	VTOLs      []MissionVTOL     `yaml:"vtols"`
@@ -67,6 +70,17 @@ func LoadMission(missionFile string) (*Mission, error) {
 	if err != nil {
 		log.Println("Error loading map", m.MapPath)
 		return nil, err
+	}
+
+	// apply optional overrides to map
+	if m.Lighting != nil {
+		m.missionMap.Lighting = *m.Lighting
+	}
+	if m.FloorBox != nil {
+		m.missionMap.FloorBox = *m.FloorBox
+	}
+	if m.SkyBox != nil {
+		m.missionMap.SkyBox = *m.SkyBox
 	}
 
 	return m, nil
