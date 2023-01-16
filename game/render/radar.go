@@ -12,6 +12,12 @@ import (
 	"github.com/tinne26/etxt/efixed"
 )
 
+var (
+	_colorRadar        = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorRadarOutline = color.RGBA{R: 197, G: 145, B: 0, A: 255}
+	_colorEnemy        = color.RGBA{R: 255, G: 0, B: 12, A: 255}
+)
+
 type Radar struct {
 	HUDSprite
 	fontRenderer *etxt.Renderer
@@ -60,7 +66,6 @@ func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
 func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle, fovDegrees float64) {
 	screen := hudOpts.Screen
 	r.fontRenderer.SetTarget(screen)
-	r.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	r.updateFontSize(bW, bH)
@@ -80,15 +85,26 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 	midY += float64(bY)
 
 	// Draw radar range text
+	rColor := _colorRadar
+	if hudOpts.UseCustomColor {
+		rColor = hudOpts.Color
+	}
+	r.fontRenderer.SetColor(rColor)
+
 	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
 	r.fontRenderer.Draw(radarStr, 3, 3) // TODO: calculate better margin spacing
 
 	// Draw radar circle outline
+	oColor := _colorRadarOutline
+	if hudOpts.UseCustomColor {
+		oColor = hudOpts.Color
+	}
+
 	// FIXME: when ebitengine v2.5 releases can draw circle outline using StrokeCircle
 	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
 	//        - vector.StrokeCircle(r.image, float32(midX), float32(midY), float32(radius), float32(3), hudOpts.Color)
-	oAlpha := uint8(hudOpts.Color.A / 5)
-	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, oAlpha})
+	oAlpha := uint8(oColor.A / 5)
+	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{oColor.R, oColor.G, oColor.B, oAlpha})
 
 	// Draw turret angle reference lines
 	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
@@ -96,16 +112,21 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 	fovAngle := geom.Radians(fovDegrees)
 	turretL := geom.LineFromAngle(midX, midY, radarTurretAngle-fovAngle/2, radius)
 	turretR := geom.LineFromAngle(midX, midY, radarTurretAngle+fovAngle/2, radius)
-	ebitenutil.DrawLine(screen, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, hudOpts.Color)
-	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, hudOpts.Color)
+	ebitenutil.DrawLine(screen, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, oColor)
+	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, oColor)
 
 	// Draw unit reference shape
 	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line thickness based on image size
-	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, hudOpts.Color)
-	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, hudOpts.Color)
-	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, hudOpts.Color)
+	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, rColor)
+	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, rColor)
+	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, rColor)
 
 	// Draw radar blips
+	bColor := _colorEnemy
+	if hudOpts.UseCustomColor {
+		bColor = hudOpts.Color
+	}
+
 	if len(r.radarBlips) > 0 {
 		for _, blip := range r.radarBlips {
 			// convert heading angle into relative radar angle where "up" is forward
@@ -117,12 +138,12 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 
 			if blip.IsTarget {
 				// draw target square around lighter colored blip
-				tAlpha := uint8(hudOpts.Color.A / 3)
-				tColor := color.RGBA{R: hudOpts.Color.R, G: hudOpts.Color.G, B: hudOpts.Color.B, A: tAlpha}
+				tAlpha := uint8(bColor.A / 3)
+				tColor := color.RGBA{R: bColor.R, G: bColor.G, B: bColor.B, A: tAlpha}
 				ebitenutil.DrawRect(screen, bLine.X2-6, bLine.Y2-6, 12, 12, tColor) // TODO: calculate thickness based on image size
 			}
 
-			ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, hudOpts.Color) // TODO: calculate thickness based on image size
+			ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, bColor) // TODO: calculate thickness based on image size
 		}
 	}
 }

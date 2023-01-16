@@ -14,9 +14,9 @@ import (
 
 var (
 	// define default colors
-	_colorWeaponGroup1 color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
-	_colorWeaponGroup2 color.RGBA = color.RGBA{R: 240, G: 240, B: 240, A: 255}
-	_colorWeaponGroup3 color.RGBA = color.RGBA{R: 255, G: 206, B: 0, A: 255}
+	_colorWeaponGroup1 = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorWeaponGroup2 = color.RGBA{R: 240, G: 240, B: 240, A: 255}
+	_colorWeaponGroup3 = color.RGBA{R: 255, G: 206, B: 0, A: 255}
 )
 
 type Armament struct {

@@ -43,12 +43,17 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	minX, minY, maxX, maxY := float64(bounds.Min.X), float64(bounds.Min.Y), float64(bounds.Max.X), float64(bounds.Max.Y)
 
+	rColor := _colorEnemy
+	if hudOpts.UseCustomColor {
+		rColor = hudOpts.Color
+	}
+
 	// setup some common draw modifications
 	var op *ebiten.DrawImageOptions
 	geoM := ebiten.GeoM{}
 	geoM.Scale(rScale, rScale)
 	colorM := ebiten.ColorM{}
-	colorM.ScaleWithColor(hudOpts.Color)
+	colorM.ScaleWithColor(rColor)
 
 	// top left corner
 	t.SetTextureFrame(0)

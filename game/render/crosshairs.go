@@ -2,8 +2,13 @@ package render
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+)
+
+var (
+	_colorCrosshair color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
 )
 
 type Crosshairs struct {
@@ -26,9 +31,14 @@ func (c *Crosshairs) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	cScale := float64(bW) / float64(c.Width())
 
+	cColor := _colorCrosshair
+	if hudOpts.UseCustomColor {
+		cColor = hudOpts.Color
+	}
+
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(hudOpts.Color)
+	op.ColorM.ScaleWithColor(cColor)
 
 	op.GeoM.Scale(cScale, cScale)
 	op.GeoM.Translate(float64(bX), float64(bY))

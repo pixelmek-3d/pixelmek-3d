@@ -14,9 +14,9 @@ import (
 
 var (
 	// define default colors
-	_colorCompass       color.RGBA = color.RGBA{R: 0, G: 255, B: 67, A: 255}
-	_colorCompassPips   color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
-	_colorCompassTurret color.RGBA = color.RGBA{R: 0, G: 127, B: 0, A: 255}
+	_colorCompass       = color.RGBA{R: 0, G: 255, B: 67, A: 255}
+	_colorCompassPips   = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorCompassTurret = color.RGBA{R: 0, G: 127, B: 0, A: 255}
 )
 
 type Compass struct {

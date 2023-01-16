@@ -15,9 +15,9 @@ import (
 
 var (
 	// define default colors
-	_colorAltimeter      color.RGBA = color.RGBA{R: 0, G: 255, B: 67, A: 255}
-	_colorAltimeterPips  color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
-	_colorAltimeterPitch color.RGBA = color.RGBA{R: 0, G: 127, B: 0, A: 255}
+	_colorAltimeter      = color.RGBA{R: 0, G: 255, B: 67, A: 255}
+	_colorAltimeterPips  = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorAltimeterPitch = color.RGBA{R: 0, G: 127, B: 0, A: 255}
 )
 
 type Altimeter struct {
