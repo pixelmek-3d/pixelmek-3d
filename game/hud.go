@@ -311,8 +311,8 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	}
 
 	g.radar.SetRadarBlips(radarBlips[:count])
-
-	g.radar.Draw(radarBounds, hudOpts, g.player.Heading(), g.player.TurretAngle())
+	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
+	g.radar.Draw(radarBounds, hudOpts, g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
 }
 
 func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {

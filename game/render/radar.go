@@ -57,7 +57,7 @@ func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
 	r.radarBlips = blips
 }
 
-func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle float64) {
+func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle, fovDegrees float64) {
 	screen := hudOpts.Screen
 	r.fontRenderer.SetTarget(screen)
 	r.fontRenderer.SetColor(hudOpts.Color)
@@ -93,9 +93,9 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 	// Draw turret angle reference lines
 	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
 	//        - vector.StrokeLine(r.image, float32(x1), float32(y1), float32(x2), float32(y2), float32(3), hudOpts.Color)
-	quarterPi := geom.HalfPi / 2
-	turretL := geom.LineFromAngle(midX, midY, radarTurretAngle-quarterPi, radius)
-	turretR := geom.LineFromAngle(midX, midY, radarTurretAngle+quarterPi, radius)
+	fovAngle := geom.Radians(fovDegrees)
+	turretL := geom.LineFromAngle(midX, midY, radarTurretAngle-fovAngle/2, radius)
+	turretR := geom.LineFromAngle(midX, midY, radarTurretAngle+fovAngle/2, radius)
 	ebitenutil.DrawLine(screen, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, hudOpts.Color)
 	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, hudOpts.Color)
 
