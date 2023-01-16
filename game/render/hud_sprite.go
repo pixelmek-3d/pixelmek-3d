@@ -7,7 +7,9 @@ import (
 )
 
 var (
+	_colorDefaultRed   = color.RGBA{R: 225, G: 0, B: 0, A: 255}
 	_colorDefaultGreen = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorDefaultBlue  = color.RGBA{R: 0, G: 0, B: 203, A: 255}
 	_colorEnemy        = color.RGBA{R: 255, G: 0, B: 12, A: 255}
 )
 
