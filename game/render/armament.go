@@ -12,6 +12,13 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+var (
+	// define default colors
+	_colorWeaponGroup1 color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorWeaponGroup2 color.RGBA = color.RGBA{R: 240, G: 240, B: 240, A: 255}
+	_colorWeaponGroup3 color.RGBA = color.RGBA{R: 255, G: 206, B: 0, A: 255}
+)
+
 type Armament struct {
 	HUDSprite
 	fontRenderer    *etxt.Renderer
@@ -26,7 +33,8 @@ type Armament struct {
 
 type Weapon struct {
 	HUDSprite
-	weapon model.Weapon
+	weapon      model.Weapon
+	weaponColor color.RGBA
 }
 
 //NewArmament creates a weapon list image to be rendered on demand
@@ -57,6 +65,24 @@ func (a *Armament) SetWeapons(weapons []model.Weapon) {
 
 func (a *Armament) SetWeaponGroups(weaponGroups [][]model.Weapon) {
 	a.weaponGroups = weaponGroups
+
+	// set default group colors on weapon displays
+	for _, w := range a.weapons {
+		groups := model.GetGroupsForWeapon(w.weapon, weaponGroups)
+		if len(groups) == 0 {
+			w.weaponColor = _colorWeaponGroup1
+			continue
+		}
+
+		switch groups[0] {
+		case 0:
+			w.weaponColor = _colorWeaponGroup1
+		case 1:
+			w.weaponColor = _colorWeaponGroup2
+		case 2:
+			w.weaponColor = _colorWeaponGroup3
+		}
+	}
 }
 
 func (a *Armament) SetSelectedWeapon(weaponOrGroupIndex uint, weaponFireMode model.WeaponFireMode) {
@@ -109,43 +135,58 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		wBounds := image.Rect(
 			int(wX), int(wY), int(wX)+wWidth, int(wY)+wHeight,
 		)
-		a.drawWeapon(wBounds, hudOpts, w)
+
+		a.drawWeapon(w, wBounds, hudOpts)
 
 		// render weapon select box
 		isWeaponSelected := (a.fireMode == model.CHAIN_FIRE && i == int(a.selectedWeapon)) ||
 			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups))
 
 		if isWeaponSelected {
+			weaponColor := w.weaponColor
+			if hudOpts.UseCustomColor {
+				weaponColor = hudOpts.Color
+			}
+
+			if w.weapon.Cooldown() > 0 {
+				wAlpha := uint8(2 * (int(weaponColor.A) / 5))
+				weaponColor = color.RGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha}
+			}
+
 			// TODO: move to Weapon update and add margins
 			// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
 			//        - import "github.com/hajimehoshi/ebiten/v2/vector"
 			//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, hudOpts.Color color.Color)
 			var wT float64 = 2 // TODO: calculate line thickness based on image height
 			wW, wH := float64(wWidth), float64(wHeight)
-			ebitenutil.DrawRect(screen, wX, wY, wW, wT, hudOpts.Color)
-			ebitenutil.DrawRect(screen, wX+wW-wT, wY, wT, wH, hudOpts.Color)
-			ebitenutil.DrawRect(screen, wX, wY+wH-wT, wW, wT, hudOpts.Color)
-			ebitenutil.DrawRect(screen, wX, wY, wT, wH, hudOpts.Color)
+			ebitenutil.DrawRect(screen, wX, wY, wW, wT, weaponColor)
+			ebitenutil.DrawRect(screen, wX+wW-wT, wY, wT, wH, weaponColor)
+			ebitenutil.DrawRect(screen, wX, wY+wH-wT, wW, wT, weaponColor)
+			ebitenutil.DrawRect(screen, wX, wY, wT, wH, weaponColor)
 		}
 	}
 }
 
-func (a *Armament) drawWeapon(bounds image.Rectangle, hudOpts *DrawHudOptions, w *Weapon) {
+func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
 	a.fontRenderer.SetTarget(screen)
 	a.fontRenderer.SetAlign(etxt.YCenter, etxt.Left)
-	a.fontRenderer.SetColor(hudOpts.Color)
 	a.fontRenderer.SetSizePxFract(a.fontSizeWeapons)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
+	weaponColor := w.weaponColor
+	if hudOpts.UseCustomColor {
+		weaponColor = hudOpts.Color
+	}
+
 	// render weapon name and status indicator
 	weapon := w.weapon
 	if weapon.Cooldown() == 0 {
-		a.fontRenderer.SetColor(hudOpts.Color)
+		a.fontRenderer.SetColor(weaponColor)
 	} else {
-		wAlpha := uint8(2 * (int(hudOpts.Color.A) / 5))
-		a.fontRenderer.SetColor(color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, wAlpha})
+		wAlpha := uint8(2 * (int(weaponColor.A) / 5))
+		a.fontRenderer.SetColor(color.RGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha})
 	}
 
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing

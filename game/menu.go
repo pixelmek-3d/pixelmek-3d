@@ -209,6 +209,8 @@ func (m *DemoMenu) update(g *Game) {
 		g.hudScale = float64(m.newHudScale)
 	}
 
+	imgui.Checkbox("Use Custom Color", &g.hudUseCustomColor)
+
 	hudColorChanged := false
 	if imgui.ColorEdit4V("Color", &m.newHudRGBA, imgui.ColorEditFlagsAlphaBar) {
 		hudColorChanged = true

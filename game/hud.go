@@ -62,11 +62,12 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	marginX, marginY := screenW/50, screenH/50
 
 	hudOpts := &render.DrawHudOptions{
-		Screen:      screen,
-		RenderScale: g.renderScale,
-		MarginX:     marginX,
-		MarginY:     marginY,
-		Color:       g.hudRGBA,
+		Screen:         screen,
+		RenderScale:    g.renderScale,
+		MarginX:        marginX,
+		MarginY:        marginY,
+		UseCustomColor: g.hudUseCustomColor,
+		Color:          g.hudRGBA,
 	}
 
 	// draw target reticle

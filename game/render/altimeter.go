@@ -13,6 +13,13 @@ import (
 	"github.com/tinne26/etxt/efixed"
 )
 
+var (
+	// define default colors
+	_colorAltimeter      color.RGBA = color.RGBA{R: 0, G: 255, B: 67, A: 255}
+	_colorAltimeterPips  color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorAltimeterPitch color.RGBA = color.RGBA{R: 0, G: 127, B: 0, A: 255}
+)
+
 type Altimeter struct {
 	HUDSprite
 	fontRenderer *etxt.Renderer
@@ -61,24 +68,35 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	midX, midY := float64(bX)+float64(bW)/2, float64(bY)+float64(bH)/2
 
 	// pitch indicator box
+	pitchColor := _colorAltimeterPitch
+	if hudOpts.UseCustomColor {
+		pitchColor = hudOpts.Color
+	}
+
 	var maxPitchDeg float64 = 45
 	pitchRatio := relPitchDeg / maxPitchDeg
 	tW, tH := float64(bW)/4, pitchRatio*float64(bH/2)
-	pAlpha := uint8(4 * int(hudOpts.Color.A) / 5)
-	ebitenutil.DrawRect(screen, midX, midY, tW, tH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, pAlpha})
+	pAlpha := uint8(4 * int(pitchColor.A) / 5)
+	ebitenutil.DrawRect(screen, midX, midY, tW, tH, color.RGBA{pitchColor.R, pitchColor.G, pitchColor.B, pAlpha})
 
 	// altimeter pips
+	pipColor := _colorAltimeterPips
+	if hudOpts.UseCustomColor {
+		pipColor = hudOpts.Color
+	}
+	a.fontRenderer.SetColor(pipColor)
+
 	var maxAltitude float64 = model.METERS_PER_UNIT
 	for i := int(-maxAltitude); i <= int(maxAltitude); i++ {
 		actualAlt := i + int(math.Round(altitude))
 
 		var pipWidth, pipHeight float64
 		if actualAlt%5 == 0 {
-			pipWidth = float64(bW / 4)
+			pipWidth = float64(bW) / 4
 			pipHeight = 2
 		}
 		if actualAlt%10 == 0 {
-			pipWidth = float64(bW / 2)
+			pipWidth = float64(bW) / 2
 			pipHeight = 3
 		}
 
@@ -86,7 +104,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 			// pip shows relative based on index (i) where negative is above center, positive is below
 			iRatio := float64(-i) / maxAltitude
 			iY := float64(bY) + float64(bH)/2 + iRatio*float64(bH)/2
-			ebitenutil.DrawRect(screen, midX, iY-pipHeight/2, pipWidth, pipHeight, hudOpts.Color)
+			ebitenutil.DrawRect(screen, midX, iY-pipHeight/2, pipWidth, pipHeight, pipColor)
 
 			var pipAltStr string = fmt.Sprintf("%d", actualAlt)
 
@@ -96,7 +114,12 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 		}
 	}
 
-	// heading indicator line
-	hW, hH := float64(bW/2), 5.0 // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(screen, midX, midY-hH/2, hW, hH, hudOpts.Color)
+	// altitude indicator line
+	altColor := _colorAltimeter
+	if hudOpts.UseCustomColor {
+		altColor = hudOpts.Color
+	}
+
+	hW, hH := 2*float64(bW)/3, 5.0 // TODO: calculate line thickness based on image height
+	ebitenutil.DrawRect(screen, midX, midY-hH/2, hW, hH, altColor)
 }

@@ -12,6 +12,13 @@ import (
 	"github.com/tinne26/etxt/efixed"
 )
 
+var (
+	// define default colors
+	_colorCompass       color.RGBA = color.RGBA{R: 0, G: 255, B: 67, A: 255}
+	_colorCompassPips   color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorCompassTurret color.RGBA = color.RGBA{R: 0, G: 127, B: 0, A: 255}
+)
+
 type Compass struct {
 	HUDSprite
 	fontRenderer *etxt.Renderer
@@ -61,12 +68,24 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	midX, topY := float64(bX)+float64(bW)/2, float64(bY)
 
 	// turret indicator box
+	turretColor := _colorCompassTurret
+	if hudOpts.UseCustomColor {
+		turretColor = hudOpts.Color
+	}
+
 	var maxTurretDeg float64 = 90
 	relTurretRatio := relTurretDeg / maxTurretDeg
 	tW, tH := relTurretRatio*float64(bW)/2, float64(bH/4)
-	tAlpha := uint8(4 * int(hudOpts.Color.A) / 5)
-	ebitenutil.DrawRect(screen, midX, topY, tW, tH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, tAlpha})
+	tAlpha := uint8(4 * int(turretColor.A) / 5)
+	ebitenutil.DrawRect(screen, midX, topY, tW, tH, color.RGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha})
+
 	// compass pips
+	pipColor := _colorCompassPips
+	if hudOpts.UseCustomColor {
+		pipColor = hudOpts.Color
+	}
+	c.fontRenderer.SetColor(pipColor)
+
 	for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
 		actualDeg := i + int(math.Round(headingDeg))
 		if actualDeg < 0 {
@@ -78,18 +97,18 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		var pipWidth, pipHeight float64
 		if actualDeg%10 == 0 {
 			pipWidth = 2
-			pipHeight = float64(bH / 4)
+			pipHeight = float64(bH) / 4
 		}
 		if actualDeg%30 == 0 {
 			pipWidth = 3
-			pipHeight = float64(bH / 2)
+			pipHeight = float64(bH) / 3
 		}
 
 		if pipWidth > 0 {
 			// pip shows relative based on index (i) where negative is right of center, positive is left
 			iRatio := float64(-i) / maxTurretDeg
 			iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
-			ebitenutil.DrawRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, hudOpts.Color)
+			ebitenutil.DrawRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, pipColor)
 
 			// TODO: switch statement
 			var pipDegStr string
@@ -106,12 +125,17 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			}
 
 			if pipDegStr != "" {
-				c.fontRenderer.Draw(pipDegStr, int(iX), int(topY+float64(bH/2))+2)
+				c.fontRenderer.Draw(pipDegStr, int(iX), int(topY+float64(bH)/2)+2)
 			}
 		}
 	}
 
 	// heading indicator line
-	hW, hH := 5.0, float64(bH/2) // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(screen, midX-hW/2, topY, hW, hH, hudOpts.Color)
+	headingColor := _colorAltimeter
+	if hudOpts.UseCustomColor {
+		headingColor = hudOpts.Color
+	}
+
+	hW, hH := 5.0, float64(bH)/2 // TODO: calculate line thickness based on image height
+	ebitenutil.DrawRect(screen, midX-hW/2, topY, hW, hH, headingColor)
 }

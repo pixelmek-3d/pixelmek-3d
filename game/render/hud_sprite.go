@@ -28,6 +28,7 @@ type DrawHudOptions struct {
 	Screen           *ebiten.Image
 	RenderScale      float64
 	MarginX, MarginY int
+	UseCustomColor   bool
 	Color            color.RGBA
 }
 

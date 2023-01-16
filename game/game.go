@@ -70,9 +70,10 @@ type Game struct {
 	reticle      *render.TargetReticle
 	fonts        *render.FontHandler
 
-	hudEnabled bool
-	hudScale   float64
-	hudRGBA    color.RGBA
+	hudEnabled        bool
+	hudScale          float64
+	hudRGBA           color.RGBA
+	hudUseCustomColor bool
 
 	//--define camera and renderer--//
 	camera *raycaster.Camera
@@ -262,6 +263,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault("hud.enabled", true)
 	viper.SetDefault("hud.scale", 1.0)
 	viper.SetDefault("hud.font", "pixeloid.otf")
+	viper.SetDefault("hud.color.useCustom", false)
 	viper.SetDefault("hud.color.red", 100)
 	viper.SetDefault("hud.color.green", 255)
 	viper.SetDefault("hud.color.blue", 230)
@@ -291,6 +293,7 @@ func (g *Game) initConfig() {
 	}
 	g.hudEnabled = viper.GetBool("hud.enabled")
 	g.hudScale = viper.GetFloat64("hud.scale")
+	g.hudUseCustomColor = viper.GetBool("hud.color.useCustom")
 	g.hudRGBA = color.RGBA{
 		R: uint8(viper.GetUint("hud.color.red")),
 		G: uint8(viper.GetUint("hud.color.green")),
