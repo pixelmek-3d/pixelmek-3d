@@ -6,6 +6,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+var (
+	_colorDefaultGreen = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorEnemy        = color.RGBA{R: 255, G: 0, B: 12, A: 255}
+)
+
 type HUDSprite interface {
 	Width() int
 	Height() int

@@ -16,7 +16,7 @@ import (
 var (
 	// define default colors
 	_colorAltimeter      = color.RGBA{R: 0, G: 255, B: 67, A: 255}
-	_colorAltimeterPips  = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorAltimeterPips  = _colorDefaultGreen
 	_colorAltimeterPitch = color.RGBA{R: 0, G: 127, B: 0, A: 255}
 )
 

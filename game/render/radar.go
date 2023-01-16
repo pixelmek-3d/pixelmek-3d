@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	_colorRadar        = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorRadar        = _colorDefaultGreen
 	_colorRadarOutline = color.RGBA{R: 197, G: 145, B: 0, A: 255}
-	_colorEnemy        = color.RGBA{R: 255, G: 0, B: 12, A: 255}
 )
 
 type Radar struct {

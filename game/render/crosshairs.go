@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	_colorCrosshair color.RGBA = color.RGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorCrosshair color.RGBA = _colorDefaultGreen
 )
 
 type Crosshairs struct {

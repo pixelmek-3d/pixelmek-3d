@@ -10,6 +10,13 @@ import (
 	"github.com/tinne26/etxt/efixed"
 )
 
+var (
+	_colorHeatHot  = color.RGBA{R: 225, G: 0, B: 0, A: 255}
+	_colorHeatWarm = color.RGBA{R: 255, G: 205, B: 0, A: 255}
+	_colorHeatCool = color.RGBA{R: 0, G: 155, B: 255, A: 255}
+	_colorHeatText = _colorDefaultGreen
+)
+
 type HeatIndicator struct {
 	HUDSprite
 	fontRenderer *etxt.Renderer
@@ -46,7 +53,6 @@ func (h *HeatIndicator) updateFontSize(width, height int) {
 func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heat, maxHeat, dissipation float64) {
 	screen := hudOpts.Screen
 	h.fontRenderer.SetTarget(screen)
-	h.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	h.updateFontSize(bW, bH)
@@ -60,23 +66,44 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	}
 	hW, hH := heatRatio*float64(bW), float64(bH)/2
 	hX, hY := midX-hW/2, float64(bY)
-	hAlpha := uint8(4 * (int(hudOpts.Color.A) / 5))
-	ebitenutil.DrawRect(screen, hX, hY, hW, hH, color.RGBA{hudOpts.Color.R, hudOpts.Color.G, hudOpts.Color.B, hAlpha})
+
+	var hColor color.RGBA
+	if hudOpts.UseCustomColor {
+		hColor = hudOpts.Color
+	} else {
+		hColor = _colorHeatCool
+		if heatRatio > 0.7 {
+			hColor = _colorHeatHot
+		} else if heatRatio > 0.35 {
+			hColor = _colorHeatWarm
+		}
+	}
+
+	ebitenutil.DrawRect(screen, hX, hY, hW, hH, hColor)
 
 	// TODO: make current heat level box appear to flash when near/over maxHeat?
 
 	// heat indicator outline
+	oAlpha := uint8(4 * (int(hColor.A) / 5))
+	oColor := color.RGBA{hColor.R, hColor.G, hColor.B, oAlpha}
+
 	// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
 	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
 	//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, hudOpts.Color color.Color)
 	var oT float64 = 2 // TODO: calculate line thickness based on image height
 	oX, oY, oW, oH := float64(bX), float64(bY), float64(bW), float64(bH)/2
-	ebitenutil.DrawRect(screen, oX, oY, oW, oT, hudOpts.Color)
-	ebitenutil.DrawRect(screen, oX+oW-oT, oY, oT, oH, hudOpts.Color)
-	ebitenutil.DrawRect(screen, oX, oY+oH-oT, oW, oT, hudOpts.Color)
-	ebitenutil.DrawRect(screen, oX, oY, oT, oH, hudOpts.Color)
+	ebitenutil.DrawRect(screen, oX, oY, oW, oT, oColor)
+	ebitenutil.DrawRect(screen, oX+oW-oT, oY, oT, oH, oColor)
+	ebitenutil.DrawRect(screen, oX, oY+oH-oT, oW, oT, oColor)
+	ebitenutil.DrawRect(screen, oX, oY, oT, oH, oColor)
 
 	// current heat level text
+	tColor := _colorHeatText
+	if hudOpts.UseCustomColor {
+		tColor = hudOpts.Color
+	}
+	h.fontRenderer.SetColor(tColor)
+
 	heatStr := fmt.Sprintf("Heat: %0.1f", heat)
 	h.fontRenderer.SetAlign(etxt.Top, etxt.Left)
 	h.fontRenderer.Draw(heatStr, int(oX+2*oT), int(oY+oH+2*oT)) // TODO: calculate better margin spacing
