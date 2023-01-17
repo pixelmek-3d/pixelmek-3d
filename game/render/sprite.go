@@ -20,6 +20,7 @@ type Sprite struct {
 	model.Entity
 	w, h              int
 	scale             float64
+	illumination      float64
 	AnimationRate     int
 	Focusable         bool
 	animReversed      bool
@@ -65,6 +66,10 @@ func (s *Sprite) Texture() *ebiten.Image {
 
 func (s *Sprite) TextureRect() image.Rectangle {
 	return s.texRects[s.texNum]
+}
+
+func (s *Sprite) Illumination() float64 {
+	return s.illumination
 }
 
 func (s *Sprite) SetScreenRect(rect *image.Rectangle) {

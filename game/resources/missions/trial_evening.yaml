@@ -1,8 +1,8 @@
 map: "testing_grounds.yaml"
 lighting:
-  falloff: -150
-  illumination: 400
-  minLightRGB: [100, 125, 150]
+  falloff: -500
+  illumination: 350
+  minLightRGB: [130, 165, 200]
   maxLightRGB: [255, 255, 255]
 floorBox:
   image: "floors/floor_green_evening.png"
