@@ -15,6 +15,7 @@ import (
 var (
 	_colorRadar        = _colorDefaultGreen
 	_colorRadarOutline = color.RGBA{R: 197, G: 145, B: 0, A: 255}
+	radarRangeMeters   = 1000.0
 )
 
 type Radar struct {
@@ -105,6 +106,10 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 	oAlpha := uint8(oColor.A / 5)
 	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{oColor.R, oColor.G, oColor.B, oAlpha})
 
+	// TODO: Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
+	// radarRange := radarRangeMeters / model.METERS_PER_UNIT
+	// for x := -radarRange
+
 	// Draw turret angle reference lines
 	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
 	//        - vector.StrokeLine(r.image, float32(x1), float32(y1), float32(x2), float32(y2), float32(3), hudOpts.Color)
@@ -131,8 +136,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 			// convert heading angle into relative radar angle where "up" is forward
 			radarAngle := blip.Angle - geom.HalfPi
 
-			// TODO: assumes radar is always 1km range
-			radarDistancePx := radius * blip.Distance * model.METERS_PER_UNIT / 1000
+			radarDistancePx := radius * blip.Distance * model.METERS_PER_UNIT / radarRangeMeters
 			bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
 
 			if blip.IsTarget {

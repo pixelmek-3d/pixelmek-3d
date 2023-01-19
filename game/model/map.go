@@ -380,20 +380,28 @@ func (m *Map) generateMapLevels() error {
 	return nil
 }
 
-func (m *Map) GetCollisionLines(clipDistance float64) []geom.Line {
+func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 	if len(m.Levels) == 0 || len(m.Levels[0]) == 0 || len(m.Levels[0][0]) == 0 {
-		return []geom.Line{}
+		return []*geom.Line{}
 	}
 
 	firstLevel := m.Levels[0]
-	lines := geom.Rect(clipDistance, clipDistance,
+	lines := make([]*geom.Line, 0, 4*len(firstLevel)*len(firstLevel[0]))
+
+	rectLines := geom.Rect(clipDistance, clipDistance,
 		float64(len(firstLevel))-2*clipDistance, float64(len(firstLevel[0]))-2*clipDistance)
+	for i := 0; i < len(rectLines); i++ {
+		lines = append(lines, &rectLines[i])
+	}
 
 	for x, row := range firstLevel {
 		for y, value := range row {
 			if value > 0 {
-				lines = append(lines, geom.Rect(float64(x)-clipDistance, float64(y)-clipDistance,
-					1.0+(2*clipDistance), 1.0+(2*clipDistance))...)
+				rectLines = geom.Rect(float64(x)-clipDistance, float64(y)-clipDistance,
+					1.0+(2*clipDistance), 1.0+(2*clipDistance))
+				for i := 0; i < len(rectLines); i++ {
+					lines = append(lines, &rectLines[i])
+				}
 			}
 		}
 	}

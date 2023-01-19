@@ -95,7 +95,7 @@ type Game struct {
 
 	// Mission and map
 	mission      *model.Mission
-	collisionMap []geom.Line
+	collisionMap []*geom.Line
 
 	sprites                *SpriteHandler
 	clutter                *ClutterHandler

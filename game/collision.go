@@ -65,7 +65,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 			continue
 		}
 
-		if px, py, ok := geom.LineIntersection(moveLine, borderLine); ok {
+		if px, py, ok := geom.LineIntersection(moveLine, *borderLine); ok {
 			intersectPoints = append(intersectPoints, geom.Vector2{X: px, Y: py})
 		}
 	}
