@@ -15,6 +15,7 @@ type Player struct {
 	moved               bool
 	convergenceDistance float64
 	convergencePoint    *geom3d.Vector3
+	convergenceSprite   *render.Sprite
 	weaponGroups        [][]model.Weapon
 	selectedWeapon      uint
 	selectedGroup       uint

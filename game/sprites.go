@@ -141,6 +141,10 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 }
 
 func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
+	if sInterface == nil {
+		return nil
+	}
+
 	switch interfaceType := sInterface.(type) {
 	case *render.Sprite:
 		return sInterface.(*render.Sprite)

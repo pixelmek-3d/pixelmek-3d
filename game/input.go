@@ -271,9 +271,10 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	// if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-	// 	 TODO: add support for target under crosshair
-	// }
+	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+		// target on crosshairs
+		g.targetCrosshairs()
+	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyE) {
 		// target nearest to player

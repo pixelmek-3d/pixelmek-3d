@@ -418,6 +418,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// store raycasted convergence point for next Update
 	g.player.convergenceDistance = g.camera.GetConvergenceDistance()
 	g.player.convergencePoint = g.camera.GetConvergencePoint()
+	g.player.convergenceSprite = getSpriteFromInterface(g.camera.GetConvergenceSprite())
 
 	// draw HUD elements
 	g.drawHUD(screen)
@@ -568,6 +569,14 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 		collisionDamage := 1.0 // TODO: determine collision damage based on player mech and speed
 		collisionEntity.entity.ApplyDamage(collisionDamage)
 		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.ArmorPoints())
+	}
+}
+
+func (g *Game) targetCrosshairs() {
+	newTarget := g.player.convergenceSprite
+	if newTarget != nil {
+		g.player.SetTarget(newTarget.Entity)
+		g.targetStatus.SetUnit(newTarget)
 	}
 }
 
