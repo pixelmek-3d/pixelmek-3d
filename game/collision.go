@@ -60,8 +60,8 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 	// check wall collisions
 	for _, borderLine := range g.collisionMap {
 		// only check intersection of nearby wall cells instead of all of them
-		if !(pointInProximity(checkDist, newX, newY, borderLine.X1, borderLine.Y1) ||
-			pointInProximity(checkDist, newX, newY, borderLine.X2, borderLine.Y2)) {
+		if !(model.PointInProximity(checkDist, newX, newY, borderLine.X1, borderLine.Y1) ||
+			model.PointInProximity(checkDist, newX, newY, borderLine.X2, borderLine.Y2)) {
 			continue
 		}
 
@@ -75,7 +75,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 		// only check for collision if player is somewhat nearby
 		playerPosition := g.player.Pos()
 		playerCollisionRadius := g.player.CollisionRadius()
-		if pointInProximity(checkDist, newX, newY, playerPosition.X, playerPosition.Y) {
+		if model.PointInProximity(checkDist, newX, newY, playerPosition.X, playerPosition.Y) {
 			// quick check if intersects in Z-plane
 			zIntersect := zEntityIntersection(newZ, entity, g.player.Unit)
 
@@ -117,7 +117,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 			sEntityCr := sEntity.CollisionRadius()
 
 			// only check intersection of nearby sprites instead of all of them
-			if !pointInProximity(checkDist, newX, newY, sEntityPosition.X, sEntityPosition.Y) {
+			if !model.PointInProximity(checkDist, newX, newY, sEntityPosition.X, sEntityPosition.Y) {
 				return true
 			}
 
@@ -240,12 +240,6 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 	}
 
 	return &geom.Vector2{X: posX, Y: posY}, isCollision, collisionEntities
-}
-
-func pointInProximity(distance, srcX, srcY, tgtX, tgtY float64) bool {
-	distance = math.Ceil(distance)
-	return (srcX-distance <= tgtX && tgtX <= srcX+distance &&
-		srcY-distance <= tgtY && tgtY <= srcY+distance)
 }
 
 // zEntityIntersection returns the best positionZ intersection point on the target from the source (-1 if no intersection)

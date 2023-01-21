@@ -21,6 +21,7 @@ var (
 type Radar struct {
 	HUDSprite
 	fontRenderer *etxt.Renderer
+	mapLines     []*geom.Line
 	radarBlips   []*RadarBlip
 }
 
@@ -59,11 +60,15 @@ func (r *Radar) updateFontSize(width, height int) {
 	r.fontRenderer.SetSizePxFract(fractSize)
 }
 
+func (r *Radar) SetMapLines(lines []*geom.Line) {
+	r.mapLines = lines
+}
+
 func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
 	r.radarBlips = blips
 }
 
-func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle, fovDegrees float64) {
+func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *geom.Vector2, heading, turretAngle, fovDegrees float64) {
 	screen := hudOpts.Screen
 	r.fontRenderer.SetTarget(screen)
 
@@ -106,9 +111,36 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 	oAlpha := uint8(oColor.A / 5)
 	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{oColor.R, oColor.G, oColor.B, oAlpha})
 
-	// TODO: Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
-	// radarRange := radarRangeMeters / model.METERS_PER_UNIT
-	// for x := -radarRange
+	// Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
+	posX, posY := position.X, position.Y
+	radarRange := radarRangeMeters / model.METERS_PER_UNIT
+	radarHudSizeFactor := radius / radarRange
+	for _, borderLine := range r.mapLines {
+		// quick range check for nearby wall cells
+		if !(model.PointInProximity(radarRange, posX, posY, borderLine.X1, borderLine.Y1) ||
+			model.PointInProximity(radarRange, posX, posY, borderLine.X2, borderLine.Y2)) {
+			continue
+		}
+
+		wColor := _colorRadarOutline
+		if hudOpts.UseCustomColor {
+			wColor = hudOpts.Color
+		}
+
+		// TODO: determine distance to wall line, convert to relative radar angle and draw
+		line1 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X1, Y2: borderLine.Y1}
+		angle1 := heading - line1.Angle() - geom.HalfPi
+		dist1 := line1.Distance() * radarHudSizeFactor
+
+		line2 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X2, Y2: borderLine.Y2}
+		angle2 := heading - line2.Angle() - geom.HalfPi
+		dist2 := line2.Distance() * radarHudSizeFactor
+
+		rLine1 := geom.LineFromAngle(midX, midY, angle1, dist1)
+		rLine2 := geom.LineFromAngle(midX, midY, angle2, dist2)
+
+		ebitenutil.DrawLine(screen, rLine1.X2, rLine1.Y2, rLine2.X2, rLine2.Y2, wColor)
+	}
 
 	// Draw turret angle reference lines
 	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
@@ -136,7 +168,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, t
 			// convert heading angle into relative radar angle where "up" is forward
 			radarAngle := blip.Angle - geom.HalfPi
 
-			radarDistancePx := radius * blip.Distance * model.METERS_PER_UNIT / radarRangeMeters
+			radarDistancePx := blip.Distance * radarHudSizeFactor
 			bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
 
 			if blip.IsTarget {

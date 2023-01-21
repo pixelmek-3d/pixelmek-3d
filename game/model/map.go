@@ -386,7 +386,7 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 	}
 
 	firstLevel := m.Levels[0]
-	lines := make([]*geom.Line, 0, 4*len(firstLevel)*len(firstLevel[0]))
+	lines := make([]*geom.Line, 0, 4*len(firstLevel))
 
 	rectLines := geom.Rect(clipDistance, clipDistance,
 		float64(len(firstLevel))-2*clipDistance, float64(len(firstLevel[0]))-2*clipDistance)

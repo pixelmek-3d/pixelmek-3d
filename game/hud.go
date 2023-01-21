@@ -37,6 +37,7 @@ func (g *Game) loadHUD() {
 	g.heat = render.NewHeatIndicator(g.fonts.HUDFont)
 
 	g.radar = render.NewRadar(g.fonts.HUDFont)
+	g.radar.SetMapLines(g.collisionMap)
 
 	g.armament = render.NewArmament(g.fonts.HUDFont)
 
@@ -313,7 +314,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	g.radar.SetRadarBlips(radarBlips[:count])
 	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
-	g.radar.Draw(radarBounds, hudOpts, g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
+	g.radar.Draw(radarBounds, hudOpts, g.player.Pos(), g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
 }
 
 func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
