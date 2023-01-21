@@ -563,8 +563,7 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 	}
 }
 
-func (g *Game) cycleTarget() {
-	// TODO: add support for nearest and prev target cycle
+func (g *Game) targetCycle(reverse bool) {
 	targetables := make([]*render.Sprite, 0, 64)
 
 	for spriteType := range g.sprites.sprites {
@@ -589,24 +588,34 @@ func (g *Game) cycleTarget() {
 
 	// sort by rough estimate of distance to player
 	playerPos := g.player.Pos()
-	sort.Slice(targetables, func(a, b int) bool {
-		sA, sB := targetables[a], targetables[b]
-		dA := math.Abs(sA.Pos().X-playerPos.X) + math.Abs(sA.Pos().Y-playerPos.Y)
-		dB := math.Abs(sB.Pos().X-playerPos.X) + math.Abs(sB.Pos().Y-playerPos.Y)
-		return dA < dB
-	})
+
+	if reverse {
+		sort.Slice(targetables, func(a, b int) bool {
+			sA, sB := targetables[a], targetables[b]
+			dA := math.Abs(sA.Pos().X-playerPos.X) + math.Abs(sA.Pos().Y-playerPos.Y)
+			dB := math.Abs(sB.Pos().X-playerPos.X) + math.Abs(sB.Pos().Y-playerPos.Y)
+			return dA > dB
+		})
+	} else {
+		sort.Slice(targetables, func(a, b int) bool {
+			sA, sB := targetables[a], targetables[b]
+			dA := math.Abs(sA.Pos().X-playerPos.X) + math.Abs(sA.Pos().Y-playerPos.Y)
+			dB := math.Abs(sB.Pos().X-playerPos.X) + math.Abs(sB.Pos().Y-playerPos.Y)
+			return dA < dB
+		})
+	}
 
 	var newTarget *render.Sprite
-	prevTarget := g.player.Target()
+	currentTarget := g.player.Target()
 	for _, t := range targetables {
-		if prevTarget == nil {
+		if currentTarget == nil {
 			newTarget = t
 			break
 		}
 
-		if prevTarget == t.Entity {
+		if currentTarget == t.Entity {
 			// allow next loop iteration to select as new target
-			prevTarget = nil
+			currentTarget = nil
 			continue
 		}
 	}

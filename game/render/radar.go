@@ -127,7 +127,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 			wColor = hudOpts.Color
 		}
 
-		// TODO: determine distance to wall line, convert to relative radar angle and draw
+		// determine distance to wall line, convert to relative radar angle and draw
 		line1 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X1, Y2: borderLine.Y1}
 		angle1 := heading - line1.Angle() - geom.HalfPi
 		dist1 := line1.Distance()
