@@ -112,6 +112,14 @@ type Game struct {
 	debugFpsCounter int
 }
 
+type TargetCycleType int
+
+const (
+	TARGET_NEXT TargetCycleType = iota
+	TARGET_PREVIOUS
+	TARGET_NEAREST
+)
+
 // NewGame - Allows the game to perform any initialization it needs to before starting to run.
 // This is where it can query for any required services and load any non-graphic
 // related content.  Calling base.Initialize will enumerate through any components
@@ -563,7 +571,7 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 	}
 }
 
-func (g *Game) targetCycle(reverse bool) {
+func (g *Game) targetCycle(cycleType TargetCycleType) {
 	targetables := make([]*render.Sprite, 0, 64)
 
 	for spriteType := range g.sprites.sprites {
@@ -589,7 +597,7 @@ func (g *Game) targetCycle(reverse bool) {
 	// sort by rough estimate of distance to player
 	playerPos := g.player.Pos()
 
-	if reverse {
+	if cycleType == TARGET_PREVIOUS {
 		sort.Slice(targetables, func(a, b int) bool {
 			sA, sB := targetables[a], targetables[b]
 			dA := math.Abs(sA.Pos().X-playerPos.X) + math.Abs(sA.Pos().Y-playerPos.Y)
@@ -606,17 +614,20 @@ func (g *Game) targetCycle(reverse bool) {
 	}
 
 	var newTarget *render.Sprite
-	currentTarget := g.player.Target()
-	for _, t := range targetables {
-		if currentTarget == nil {
-			newTarget = t
-			break
-		}
 
-		if currentTarget == t.Entity {
-			// allow next loop iteration to select as new target
-			currentTarget = nil
-			continue
+	if cycleType != TARGET_NEAREST {
+		currentTarget := g.player.Target()
+		for _, t := range targetables {
+			if currentTarget == nil {
+				newTarget = t
+				break
+			}
+
+			if currentTarget == t.Entity {
+				// allow next loop iteration to select as new target
+				currentTarget = nil
+				continue
+			}
 		}
 	}
 

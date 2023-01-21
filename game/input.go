@@ -275,18 +275,19 @@ func (g *Game) handleInput() {
 	// 	 TODO: add support for target under crosshair
 	// }
 
-	// if inpututil.IsKeyJustPressed(ebiten.KeyE) {
-	// 	 TODO: add support for nearest target
-	// }
+	if inpututil.IsKeyJustPressed(ebiten.KeyE) {
+		// target nearest to player
+		g.targetCycle(TARGET_NEAREST)
+	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
 		// cycle player targets
-		g.targetCycle(false)
+		g.targetCycle(TARGET_NEXT)
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 		// cycle player targets in reverse order
-		g.targetCycle(true)
+		g.targetCycle(TARGET_PREVIOUS)
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
