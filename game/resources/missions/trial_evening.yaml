@@ -8,6 +8,11 @@ floorBox:
   image: "floors/floor_green_evening.png"
 skyBox:
   image: "skies/sky_blue_evening.png"
+navPoints:
+- name: "Alpha"
+  position: [25, 25]
+- name: "Zulu"
+  position: [100, 100]
 mechs:
 - unit: "warhawk_prime.yaml"
   position: [13, 14]

@@ -1,4 +1,11 @@
 map: "testing_grounds.yaml"
+navPoints: # https://en.wikipedia.org/wiki/NATO_phonetic_alphabet
+- name: "Alpha"
+  position: [10, 50]
+- name: "Bravo"
+  position: [60, 50]
+- name: "Charlie"
+  position: [60, 10]
 mechs:
 - unit: "warhawk_prime.yaml"
   position: [13, 14]

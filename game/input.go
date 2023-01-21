@@ -271,6 +271,11 @@ func (g *Game) handleInput() {
 		}
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyN) {
+		// cycle nav points
+		g.navPointCycle()
+	}
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		// target on crosshairs
 		g.targetCrosshairs()

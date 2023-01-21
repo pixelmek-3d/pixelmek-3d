@@ -23,10 +23,18 @@ type Radar struct {
 	fontRenderer *etxt.Renderer
 	mapLines     []*geom.Line
 	radarBlips   []*RadarBlip
+	navPoints    []*RadarNavPoint
 }
 
 type RadarBlip struct {
 	Unit     model.Unit
+	Angle    float64
+	Distance float64
+	IsTarget bool
+}
+
+type RadarNavPoint struct {
+	NavPoint *model.NavPoint
 	Angle    float64
 	Distance float64
 	IsTarget bool
@@ -62,6 +70,10 @@ func (r *Radar) updateFontSize(width, height int) {
 
 func (r *Radar) SetMapLines(lines []*geom.Line) {
 	r.mapLines = lines
+}
+
+func (r *Radar) SetNavPoints(radarNavPoints []*RadarNavPoint) {
+	r.navPoints = radarNavPoints
 }
 
 func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
@@ -161,28 +173,49 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, rColor)
 	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, rColor)
 
+	// Draw nav points
+	nColor := _colorRadarOutline
+	if hudOpts.UseCustomColor {
+		nColor = hudOpts.Color
+	}
+
+	for _, nav := range r.navPoints {
+		// convert heading angle into relative radar angle where "up" is forward
+		radarAngle := nav.Angle - geom.HalfPi
+
+		radarDistancePx := nav.Distance * radarHudSizeFactor
+		nLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
+
+		if nav.IsTarget {
+			// draw target nav circle around lighter colored nav
+			tAlpha := uint8(nColor.A / 3)
+			tColor := color.RGBA{R: nColor.R, G: nColor.G, B: nColor.B, A: tAlpha}
+			ebitenutil.DrawCircle(screen, nLine.X2, nLine.Y2, 8, tColor) // TODO: calculate thickness based on image size
+		}
+
+		ebitenutil.DrawCircle(screen, nLine.X2, nLine.Y2, 3, nColor) // TODO: calculate thickness based on image size
+	}
+
 	// Draw radar blips
 	bColor := _colorEnemy
 	if hudOpts.UseCustomColor {
 		bColor = hudOpts.Color
 	}
 
-	if len(r.radarBlips) > 0 {
-		for _, blip := range r.radarBlips {
-			// convert heading angle into relative radar angle where "up" is forward
-			radarAngle := blip.Angle - geom.HalfPi
+	for _, blip := range r.radarBlips {
+		// convert heading angle into relative radar angle where "up" is forward
+		radarAngle := blip.Angle - geom.HalfPi
 
-			radarDistancePx := blip.Distance * radarHudSizeFactor
-			bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
+		radarDistancePx := blip.Distance * radarHudSizeFactor
+		bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
 
-			if blip.IsTarget {
-				// draw target square around lighter colored blip
-				tAlpha := uint8(bColor.A / 3)
-				tColor := color.RGBA{R: bColor.R, G: bColor.G, B: bColor.B, A: tAlpha}
-				ebitenutil.DrawRect(screen, bLine.X2-6, bLine.Y2-6, 12, 12, tColor) // TODO: calculate thickness based on image size
-			}
-
-			ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, bColor) // TODO: calculate thickness based on image size
+		if blip.IsTarget {
+			// draw target square around lighter colored blip
+			tAlpha := uint8(bColor.A / 3)
+			tColor := color.RGBA{R: bColor.R, G: bColor.G, B: bColor.B, A: tAlpha}
+			ebitenutil.DrawRect(screen, bLine.X2-6, bLine.Y2-6, 12, 12, tColor) // TODO: calculate thickness based on image size
 		}
+
+		ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, bColor) // TODO: calculate thickness based on image size
 	}
 }

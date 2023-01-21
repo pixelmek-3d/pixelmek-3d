@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,6 +15,7 @@ type Mission struct {
 	Lighting   *MapLighting      `yaml:"lighting,omitempty"`
 	FloorBox   *MapTexture       `yaml:"floorBox,omitempty"`
 	SkyBox     *MapTexture       `yaml:"skyBox,omitempty"`
+	NavPoints  []*NavPoint       `yaml:"navPoints"`
 	Mechs      []MissionMech     `yaml:"mechs"`
 	Vehicles   []MissionVehicle  `yaml:"vehicles"`
 	VTOLs      []MissionVTOL     `yaml:"vtols"`
@@ -47,6 +49,16 @@ type MissionInfantry struct {
 	Unit       string       `yaml:"unit"`
 	Position   [2]float64   `yaml:"position"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
+}
+
+type NavPoint struct {
+	Name     string     `yaml:"name"`
+	Position [2]float64 `yaml:"position"`
+	Visited  bool       `yaml:"-"`
+}
+
+func (n *NavPoint) Pos() geom.Vector2 {
+	return geom.Vector2{X: n.Position[0], Y: n.Position[1]}
 }
 
 func LoadMission(missionFile string) (*Mission, error) {

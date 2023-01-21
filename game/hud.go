@@ -270,16 +270,46 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		rX, rY, rX+radarWidth, rY+radarHeight,
 	)
 
-	// find all units within range
-	radarBlips := make([]*render.RadarBlip, 0, 128)
+	// find all units and nav points within range to draw as blips
 	maxDistanceMeters := 1000.0 // TODO: set in Radar object and game config
 	maxDistanceUnits := maxDistanceMeters / model.METERS_PER_UNIT
+
+	radarBlips := make([]*render.RadarBlip, 0, 128)
+	rNavPoints := make([]*render.RadarNavPoint, 0, len(g.mission.NavPoints))
 
 	playerPos := g.player.Pos()
 	playerAngle := g.player.Heading()
 	playerTarget := g.player.Target()
+	playerNav := g.player.navPoint
 
-	count := 0
+	// discover nav points that are in range
+	// TODO: if current nav point out of radar range, draw on edge
+	navCount := 0
+	for _, nav := range g.mission.NavPoints {
+		navPos := nav.Pos()
+		navLine := geom.Line{
+			X1: playerPos.X, Y1: playerPos.Y,
+			X2: navPos.X, Y2: navPos.Y,
+		}
+
+		navDistance := navLine.Distance()
+		if navDistance > maxDistanceUnits {
+			continue
+		}
+
+		// determine angle of unit relative from player heading
+		relAngle := playerAngle - navLine.Angle()
+		rNav := &render.RadarNavPoint{
+			NavPoint: nav, Distance: navDistance, Angle: relAngle, IsTarget: playerNav == nav,
+		}
+
+		rNavPoints = append(rNavPoints, rNav)
+		navCount++
+	}
+
+	// discover blips that are in range
+	// TODO: if current target out of radar range, draw on edge
+	blipCount := 0
 	for _, spriteMap := range g.sprites.sprites {
 		spriteMap.Range(func(k, _ interface{}) bool {
 			spriteInterface := k.(raycaster.Sprite)
@@ -307,12 +337,14 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			}
 
 			radarBlips = append(radarBlips, blip)
-			count++
+			blipCount++
 			return true
 		})
 	}
 
-	g.radar.SetRadarBlips(radarBlips[:count])
+	g.radar.SetNavPoints(rNavPoints[:navCount])
+	g.radar.SetRadarBlips(radarBlips[:blipCount])
+
 	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
 	g.radar.Draw(radarBounds, hudOpts, g.player.Pos(), g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
 }

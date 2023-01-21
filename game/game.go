@@ -153,7 +153,7 @@ func NewGame() *Game {
 	}
 
 	// load mission
-	missionPath := "trial.yaml"
+	missionPath := "trial_night.yaml"
 	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
 		log.Println("Error loading mission: ", missionPath)
@@ -570,6 +570,35 @@ func (g *Game) updatePlayerPosition(newX, newY float64) {
 		collisionEntity.entity.ApplyDamage(collisionDamage)
 		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.ArmorPoints())
 	}
+}
+
+func (g *Game) navPointCycle() {
+	if len(g.mission.NavPoints) == 0 {
+		return
+	}
+
+	var newNav *model.NavPoint
+	navPoints := g.mission.NavPoints
+	currentNav := g.player.navPoint
+
+	for _, n := range navPoints {
+		if currentNav == nil {
+			newNav = n
+			break
+		}
+
+		if currentNav == n {
+			// allow next loop iteration to select as new nav point
+			currentNav = nil
+			continue
+		}
+	}
+
+	if newNav == nil {
+		newNav = navPoints[0]
+	}
+
+	g.player.navPoint = newNav
 }
 
 func (g *Game) targetCrosshairs() {
