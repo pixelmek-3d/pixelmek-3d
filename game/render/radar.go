@@ -130,14 +130,18 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 		// TODO: determine distance to wall line, convert to relative radar angle and draw
 		line1 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X1, Y2: borderLine.Y1}
 		angle1 := heading - line1.Angle() - geom.HalfPi
-		dist1 := line1.Distance() * radarHudSizeFactor
+		dist1 := line1.Distance()
 
 		line2 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X2, Y2: borderLine.Y2}
 		angle2 := heading - line2.Angle() - geom.HalfPi
-		dist2 := line2.Distance() * radarHudSizeFactor
+		dist2 := line2.Distance()
 
-		rLine1 := geom.LineFromAngle(midX, midY, angle1, dist1)
-		rLine2 := geom.LineFromAngle(midX, midY, angle2, dist2)
+		if dist1 > radarRange || dist2 > radarRange {
+			continue
+		}
+
+		rLine1 := geom.LineFromAngle(midX, midY, angle1, dist1*radarHudSizeFactor)
+		rLine2 := geom.LineFromAngle(midX, midY, angle2, dist2*radarHudSizeFactor)
 
 		ebitenutil.DrawLine(screen, rLine1.X2, rLine1.Y2, rLine2.X2, rLine2.Y2, wColor)
 	}
