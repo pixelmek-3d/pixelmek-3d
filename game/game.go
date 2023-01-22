@@ -207,6 +207,7 @@ func NewGame() *Game {
 	//--init camera and renderer--//
 	g.camera = raycaster.NewCamera(g.width, g.height, texWidth, g.mission.Map(), g.tex)
 	g.camera.SetRenderDistance(g.renderDistance)
+	g.camera.SetAlwaysSetSpriteScreenRect(true)
 
 	if len(g.mission.Map().FloorBox.Image) > 0 {
 		g.camera.SetFloorTexture(getTextureFromFile(g.mission.Map().FloorBox.Image))

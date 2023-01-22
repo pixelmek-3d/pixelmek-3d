@@ -122,7 +122,7 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 			sprite := getSpriteFromInterface(spriteInterface)
 			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
 			// only include map sprites within fast approximation of render distance
-			doSprite := g.renderDistance < 0 ||
+			doSprite := g.renderDistance < 0 || g.player.Target() == sprite.Entity ||
 				(math.Abs(sprite.Pos().X-playerPos.X) <= g.renderDistance &&
 					math.Abs(sprite.Pos().Y-playerPos.Y) <= g.renderDistance)
 			if doSprite {
