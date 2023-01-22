@@ -137,6 +137,12 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 		count++
 	}
 
+	// add the currently selected nav point as sprite
+	if g.player.navPoint != nil {
+		raycastSprites = append(raycastSprites, g.player.navPoint)
+		count++
+	}
+
 	return raycastSprites[:count]
 }
 

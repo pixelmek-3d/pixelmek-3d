@@ -27,7 +27,7 @@ func NewProjectile(
 	p.Focusable = false
 
 	// projectiles self illuminate so they do not get dimmed in night conditions
-	p.illumination = 1000
+	p.illumination = 5000
 
 	return p
 }

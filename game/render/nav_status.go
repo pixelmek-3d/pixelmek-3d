@@ -40,48 +40,6 @@ func NewNavStatus(font *Font) *NavStatus {
 	return n
 }
 
-func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, color *color.RGBA) *ebiten.Image {
-	if navPoint == nil {
-		return nil
-	}
-
-	navImage := ebiten.NewImage(imageSize, imageSize)
-	renderer := etxt.NewStdRenderer()
-
-	if color == nil {
-		color = &_colorNavPoint
-	}
-
-	renderer.SetTarget(navImage)
-	renderer.SetCacheHandler(font.FontCache.NewHandler())
-	renderer.SetFont(font.Font)
-	renderer.SetColor(color)
-
-	// set font size based on image size
-	fontPxSize := float64(imageSize) / 3
-	if fontPxSize < 1 {
-		fontPxSize = 1
-	}
-
-	fractSize, _ := efixed.FromFloat64(fontPxSize)
-	renderer.SetSizePxFract(fractSize)
-	renderer.SetAlign(etxt.YCenter, etxt.XCenter)
-
-	navChar := navPoint.Name[0:1]
-	renderer.Draw(navChar, imageSize/2, imageSize/2)
-
-	// draw nav diamond shape
-	minX, minY := float64(imageSize)/8, float64(imageSize)/8
-	maxX, maxY := 7*float64(imageSize)/8, 7*float64(imageSize)/8
-	midX, midY := float64(imageSize)/2, float64(imageSize/2)
-	ebitenutil.DrawLine(navImage, minX, midY, midX, minY, color)
-	ebitenutil.DrawLine(navImage, midX, minY, maxX, midY, color)
-	ebitenutil.DrawLine(navImage, minX, midY, midX, maxY, color)
-	ebitenutil.DrawLine(navImage, midX, maxY, maxX, midY, color)
-
-	return navImage
-}
-
 func (n *NavStatus) SetNavPoint(navPoint *model.NavPoint) {
 	n.navPoint = navPoint
 }
@@ -129,6 +87,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	nScale := (0.7 * float64(iH)) / float64(nH)
 
 	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
 	op.GeoM.Scale(nScale, nScale)
 	op.GeoM.Translate(sX+sW/2-nScale*float64(nH)/2, sY+sH/2-nScale*float64(nH)/2)
 	screen.DrawImage(nTexture, op)

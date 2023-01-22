@@ -179,7 +179,7 @@ func (g *Game) drawNavStatus(hudOpts *render.DrawHudOptions) {
 		sX, sY, sX+statusWidth, sY+statusHeight,
 	)
 
-	navPoint := g.player.navPoint
+	navPoint := g.player.navPoint.NavPoint
 	pPos, nPos := g.player.Pos(), navPoint.Pos()
 	navLine := geom.Line{
 		X1: pPos.X, Y1: pPos.Y,
@@ -321,7 +321,11 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	playerPos := g.player.Pos()
 	playerAngle := g.player.Heading()
 	playerTarget := g.player.Target()
-	playerNav := g.player.navPoint
+
+	var playerNav *model.NavPoint
+	if g.player.navPoint != nil {
+		playerNav = g.player.navPoint.NavPoint
+	}
 
 	// discover nav points that are in range
 	navCount := 0

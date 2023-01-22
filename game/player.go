@@ -20,7 +20,7 @@ type Player struct {
 	selectedWeapon      uint
 	selectedGroup       uint
 	fireMode            model.WeaponFireMode
-	navPoint            *model.NavPoint
+	navPoint            *render.NavSprite
 }
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {

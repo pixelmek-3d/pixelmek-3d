@@ -594,7 +594,7 @@ func (g *Game) navPointCycle() {
 			break
 		}
 
-		if currentNav == n {
+		if currentNav.NavPoint == n {
 			// allow next loop iteration to select as new nav point
 			currentNav = nil
 			continue
@@ -605,7 +605,7 @@ func (g *Game) navPointCycle() {
 		newNav = navPoints[0]
 	}
 
-	g.player.navPoint = newNav
+	g.player.navPoint = render.NewNavSprite(newNav, 1.0)
 }
 
 func (g *Game) targetCrosshairs() {
