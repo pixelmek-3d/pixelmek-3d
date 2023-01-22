@@ -60,6 +60,7 @@ type Game struct {
 	player       *Player
 	playerStatus *render.UnitStatus
 	targetStatus *render.UnitStatus
+	navStatus    *render.NavStatus
 	armament     *render.Armament
 	compass      *render.Compass
 	altimeter    *render.Altimeter
@@ -192,9 +193,6 @@ func NewGame() *Game {
 	g.player.SetCollisionRadius(pUnit.CollisionRadius())
 	g.player.SetCollisionHeight(pUnit.CollisionHeight())
 	g.armament.SetWeapons(g.player.Armament())
-
-	// set Sprite object for player unit to render its image in status display
-	g.playerStatus.SetUnit(pSprite.Sprite)
 
 	// init mouse movement mode
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -577,6 +575,15 @@ func (g *Game) navPointCycle() {
 		return
 	}
 
+	if g.player.Target() != nil {
+		// unset player target so status display can show nav selection
+		g.player.SetTarget(nil)
+		if g.player.navPoint != nil {
+			// on the first time after unset target have it not cycle to next nav
+			return
+		}
+	}
+
 	var newNav *model.NavPoint
 	navPoints := g.mission.NavPoints
 	currentNav := g.player.navPoint
@@ -605,7 +612,6 @@ func (g *Game) targetCrosshairs() {
 	newTarget := g.player.convergenceSprite
 	if newTarget != nil {
 		g.player.SetTarget(newTarget.Entity)
-		g.targetStatus.SetUnit(newTarget)
 	}
 }
 
@@ -628,7 +634,6 @@ func (g *Game) targetCycle(cycleType TargetCycleType) {
 
 	if len(targetables) == 0 {
 		g.player.SetTarget(nil)
-		g.targetStatus.SetUnit(nil)
 		return
 	}
 
@@ -674,8 +679,6 @@ func (g *Game) targetCycle(cycleType TargetCycleType) {
 	}
 
 	g.player.SetTarget(newTarget.Entity)
-	g.targetStatus.SetUnit(newTarget)
-
 }
 
 func (g *Game) updateSprites() {

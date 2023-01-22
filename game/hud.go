@@ -45,6 +45,7 @@ func (g *Game) loadHUD() {
 
 	g.playerStatus = render.NewUnitStatus(true, g.fonts.HUDFont)
 	g.targetStatus = render.NewUnitStatus(false, g.fonts.HUDFont)
+	g.navStatus = render.NewNavStatus(g.fonts.HUDFont)
 
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
 	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
@@ -100,6 +101,9 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 
 	// draw target status display
 	g.drawTargetStatus(hudOpts)
+
+	// draw nav status display
+	g.drawNavStatus(hudOpts)
 }
 
 func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {
@@ -121,7 +125,7 @@ func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {
 }
 
 func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
-	if g.targetStatus == nil {
+	if g.targetStatus == nil || g.player.Target() == nil {
 		return
 	}
 
@@ -136,7 +140,12 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		sX, sY, sX+statusWidth, sY+statusHeight,
 	)
 
+	targetEntity := g.player.Target()
 	targetUnit := g.targetStatus.Unit()
+	if targetUnit == nil || targetUnit.Entity != targetEntity {
+		targetUnit = g.getSpriteFromEntity(targetEntity)
+	}
+
 	if targetUnit != nil {
 		pPos, pZ := g.player.Pos(), g.player.PosZ()
 		tPos, tZ := targetUnit.Pos(), targetUnit.PosZ()
@@ -145,10 +154,42 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 			X2: tPos.X, Y2: tPos.Y, Z2: tZ,
 		}
 		targetDistance := (targetLine.Distance() - targetUnit.CollisionRadius() - g.player.CollisionRadius()) * model.METERS_PER_UNIT
+
 		g.targetStatus.SetUnitDistance(targetDistance)
 	}
+
 	g.targetStatus.SetTargetReticle(g.reticle)
+	g.targetStatus.SetUnit(targetUnit)
 	g.targetStatus.Draw(sBounds, hudOpts)
+}
+
+func (g *Game) drawNavStatus(hudOpts *render.DrawHudOptions) {
+	if g.navStatus == nil || g.player.navPoint == nil || g.player.Target() != nil {
+		return
+	}
+
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
+	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+
+	statusScale := g.navStatus.Scale() * g.renderScale * g.hudScale
+	statusWidth, statusHeight := int(statusScale*float64(hudW)/5), int(statusScale*float64(hudH)/5)
+
+	sX, sY := marginX, g.height-statusHeight-marginY
+	sBounds := image.Rect(
+		sX, sY, sX+statusWidth, sY+statusHeight,
+	)
+
+	navPoint := g.player.navPoint
+	pPos, nPos := g.player.Pos(), navPoint.Pos()
+	navLine := geom.Line{
+		X1: pPos.X, Y1: pPos.Y,
+		X2: nPos.X, Y2: nPos.Y,
+	}
+	navDistance := navLine.Distance() * model.METERS_PER_UNIT
+
+	g.navStatus.SetNavDistance(navDistance)
+	g.navStatus.SetNavPoint(navPoint)
+	g.navStatus.Draw(sBounds, hudOpts)
 }
 
 func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {

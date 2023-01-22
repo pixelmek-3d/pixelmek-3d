@@ -36,7 +36,6 @@ func NewUnitStatus(isPlayer bool, font *Font) *UnitStatus {
 	renderer := etxt.NewStdRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	u := &UnitStatus{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
