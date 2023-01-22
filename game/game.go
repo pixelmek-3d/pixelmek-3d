@@ -176,7 +176,7 @@ func NewGame() *Game {
 	g.loadContent()
 
 	// init player model
-	pX, pY, pZ, pDegrees := 80.5, 30.5, 0.0, 60.0       // TODO: get from mission
+	pX, pY, pZ, pDegrees := 8.5, 3.5, 0.0, 60.0         // TODO: get from mission
 	pUnit := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
 	//pUnit := g.createModelInfantry("heavy_foot.yaml")
 	//pUnit := g.createModelVehicle("srm_carrier.yaml")

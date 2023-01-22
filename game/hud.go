@@ -127,6 +127,7 @@ func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {
 	sBounds := image.Rect(
 		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
+	g.playerStatus.SetUnit(g.player.sprite)
 	g.playerStatus.Draw(sBounds, hudOpts)
 }
 
