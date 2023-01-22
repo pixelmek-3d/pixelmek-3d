@@ -57,19 +57,20 @@ type Game struct {
 	width  int
 	height int
 
-	player       *Player
-	playerStatus *render.UnitStatus
-	targetStatus *render.UnitStatus
-	navStatus    *render.NavStatus
-	armament     *render.Armament
-	compass      *render.Compass
-	altimeter    *render.Altimeter
-	heat         *render.HeatIndicator
-	radar        *render.Radar
-	throttle     *render.Throttle
-	crosshairs   *render.Crosshairs
-	reticle      *render.TargetReticle
-	fonts        *render.FontHandler
+	player        *Player
+	playerStatus  *render.UnitStatus
+	targetStatus  *render.UnitStatus
+	navStatus     *render.NavStatus
+	armament      *render.Armament
+	compass       *render.Compass
+	altimeter     *render.Altimeter
+	heat          *render.HeatIndicator
+	radar         *render.Radar
+	throttle      *render.Throttle
+	crosshairs    *render.Crosshairs
+	targetReticle *render.TargetReticle
+	navReticle    *render.NavReticle
+	fonts         *render.FontHandler
 
 	hudEnabled        bool
 	hudScale          float64
@@ -175,7 +176,7 @@ func NewGame() *Game {
 	g.loadContent()
 
 	// init player model
-	pX, pY, pZ, pDegrees := 8.5, 3.5, 0.0, 60.0         // TODO: get from mission
+	pX, pY, pZ, pDegrees := 80.5, 30.5, 0.0, 60.0       // TODO: get from mission
 	pUnit := g.createModelMech("timberwolf_prime.yaml") // TODO: get from mission, initially?
 	//pUnit := g.createModelInfantry("heavy_foot.yaml")
 	//pUnit := g.createModelVehicle("srm_carrier.yaml")

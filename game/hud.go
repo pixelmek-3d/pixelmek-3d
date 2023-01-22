@@ -50,8 +50,11 @@ func (g *Game) loadHUD() {
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
 	g.crosshairs = render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
 
-	reticleSheet := getSpriteFromFile("hud/target_reticle.png")
-	g.reticle = render.NewTargetReticle(1.0, reticleSheet)
+	tgtReticleSheet := getSpriteFromFile("hud/target_reticle.png")
+	g.targetReticle = render.NewTargetReticle(1.0, tgtReticleSheet)
+
+	navReticleSheet := getSpriteFromFile("hud/nav_reticle.png")
+	g.navReticle = render.NewNavReticle(1.0, navReticleSheet)
 }
 
 // drawHUD draws HUD elements on the screen
@@ -74,6 +77,9 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 
 	// draw target reticle
 	g.drawTargetReticle(hudOpts)
+
+	// draw nav reticle
+	g.drawNavReticle(hudOpts)
 
 	// draw crosshairs
 	g.drawCrosshairs(hudOpts)
@@ -158,7 +164,7 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		g.targetStatus.SetUnitDistance(targetDistance)
 	}
 
-	g.targetStatus.SetTargetReticle(g.reticle)
+	g.targetStatus.SetTargetReticle(g.targetReticle)
 	g.targetStatus.SetUnit(targetUnit)
 	g.targetStatus.Draw(sBounds, hudOpts)
 }
@@ -421,7 +427,7 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 }
 
 func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
-	if g.reticle == nil || g.player.Target() == nil {
+	if g.targetReticle == nil || g.player.Target() == nil {
 		return
 	}
 
@@ -435,5 +441,23 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
-	g.reticle.Draw(*targetBounds, hudOpts)
+	g.targetReticle.Draw(*targetBounds, hudOpts)
+}
+
+func (g *Game) drawNavReticle(hudOpts *render.DrawHudOptions) {
+	if g.navReticle == nil || g.player.Target() != nil || g.player.navPoint == nil {
+		return
+	}
+
+	s := g.player.navPoint
+	if s == nil {
+		return
+	}
+
+	navBounds := s.ScreenRect()
+	if navBounds == nil {
+		return
+	}
+
+	g.navReticle.Draw(*navBounds, hudOpts)
 }
