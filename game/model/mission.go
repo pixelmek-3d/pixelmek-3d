@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
 )
@@ -52,13 +53,30 @@ type MissionInfantry struct {
 }
 
 type NavPoint struct {
-	Name     string     `yaml:"name"`
+	Name     string     `yaml:"name" validate:"required"`
 	Position [2]float64 `yaml:"position"`
-	Visited  bool       `yaml:"-"`
+	image    *ebiten.Image
+	visited  bool
 }
 
 func (n *NavPoint) Pos() geom.Vector2 {
 	return geom.Vector2{X: n.Position[0], Y: n.Position[1]}
+}
+
+func (n *NavPoint) Image() *ebiten.Image {
+	return n.image
+}
+
+func (n *NavPoint) SetImage(image *ebiten.Image) {
+	n.image = image
+}
+
+func (n *NavPoint) Visited() bool {
+	return n.visited
+}
+
+func (n *NavPoint) SetVisited(visited bool) {
+	n.visited = visited
 }
 
 func LoadMission(missionFile string) (*Mission, error) {

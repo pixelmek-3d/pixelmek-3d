@@ -209,9 +209,11 @@ func (m *DemoMenu) update(g *Game) {
 		g.hudScale = float64(m.newHudScale)
 	}
 
-	imgui.Checkbox("Use Custom Color", &g.hudUseCustomColor)
-
 	hudColorChanged := false
+	if imgui.Checkbox("Use Custom Color", &g.hudUseCustomColor) {
+		hudColorChanged = true
+	}
+
 	if imgui.ColorEdit4V("Color", &m.newHudRGBA, imgui.ColorEditFlagsAlphaBar) {
 		hudColorChanged = true
 	}
@@ -222,6 +224,9 @@ func (m *DemoMenu) update(g *Game) {
 			B: byte(m.newHudRGBA[2] * 255),
 			A: byte(m.newHudRGBA[3] * 255),
 		}
+
+		// regenerate nav sprites to pick up color change
+		g.loadNavSprites()
 	}
 
 	// New section for control options

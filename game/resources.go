@@ -224,11 +224,28 @@ func (g *Game) loadContent() {
 		}
 	}
 
+	// generate nav point sprites
+	g.loadNavSprites()
+
 	// load non-static mission sprites
 	g.loadMissionSprites()
 
 	// load HUD display elements
 	g.loadHUD()
+}
+
+// loadNavSprites generates nav point sprites
+func (g *Game) loadNavSprites() {
+	navSize := texWidth / 2
+	var nColor *color.RGBA
+	if g.hudUseCustomColor {
+		nColor = &g.hudRGBA
+	}
+
+	for _, navPoint := range g.mission.NavPoints {
+		navImage := render.GenerateNavImage(navPoint, navSize, g.fonts.HUDFont, nColor)
+		navPoint.SetImage(navImage)
+	}
 }
 
 // loadMissionSprites loads all mission sprite reources
