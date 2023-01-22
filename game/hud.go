@@ -283,7 +283,6 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	playerNav := g.player.navPoint
 
 	// discover nav points that are in range
-	// TODO: if current nav point out of radar range, draw on edge
 	navCount := 0
 	for _, nav := range g.mission.NavPoints {
 		navPos := nav.Pos()
@@ -292,15 +291,21 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			X2: navPos.X, Y2: navPos.Y,
 		}
 
+		navIsTarget := playerNav == nav
 		navDistance := navLine.Distance()
 		if navDistance > maxDistanceUnits {
-			continue
+			if navIsTarget {
+				// if current nav point out of radar range, draw just outside edge
+				navDistance = maxDistanceUnits + 1
+			} else {
+				continue
+			}
 		}
 
 		// determine angle of unit relative from player heading
 		relAngle := playerAngle - navLine.Angle()
 		rNav := &render.RadarNavPoint{
-			NavPoint: nav, Distance: navDistance, Angle: relAngle, IsTarget: playerNav == nav,
+			NavPoint: nav, Distance: navDistance, Angle: relAngle, IsTarget: navIsTarget,
 		}
 
 		rNavPoints = append(rNavPoints, rNav)
@@ -308,7 +313,6 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	}
 
 	// discover blips that are in range
-	// TODO: if current target out of radar range, draw on edge
 	blipCount := 0
 	for _, spriteMap := range g.sprites.sprites {
 		spriteMap.Range(func(k, _ interface{}) bool {
@@ -325,15 +329,21 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 				X2: unitPos.X, Y2: unitPos.Y,
 			}
 
+			unitIsTarget := playerTarget == entity
 			unitDistance := unitLine.Distance()
 			if unitDistance > maxDistanceUnits {
-				return true
+				if unitIsTarget {
+					// if current target out of radar range, draw just outside edge
+					unitDistance = maxDistanceUnits + 1
+				} else {
+					return true
+				}
 			}
 
 			// determine angle of unit relative from player heading
 			relAngle := playerAngle - unitLine.Angle()
 			blip := &render.RadarBlip{
-				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: playerTarget == entity,
+				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: unitIsTarget,
 			}
 
 			radarBlips = append(radarBlips, blip)

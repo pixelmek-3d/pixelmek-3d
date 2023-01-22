@@ -153,7 +153,7 @@ func NewGame() *Game {
 	}
 
 	// load mission
-	missionPath := "trial_night.yaml"
+	missionPath := "trial.yaml"
 	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
 		log.Println("Error loading mission: ", missionPath)
