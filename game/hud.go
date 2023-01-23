@@ -237,6 +237,37 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 	cBounds := image.Rect(
 		int(cX), int(cY), int(cX)+compassWidth, int(cY)+compassHeight,
 	)
+
+	playerPos := g.player.Pos()
+
+	if g.player.Target() == nil {
+		g.compass.SetTargetEnabled(false)
+	} else {
+		targetPos := g.player.Target().Pos()
+		tLine := geom.Line{
+			X1: playerPos.X, Y1: playerPos.Y,
+			X2: targetPos.X, Y2: targetPos.Y,
+		}
+		tAngle := tLine.Angle()
+
+		g.compass.SetTargetEnabled(true)
+		g.compass.SetTargetHeading(tAngle)
+	}
+
+	if g.player.navPoint == nil {
+		g.compass.SetNavEnabled(false)
+	} else {
+		navPos := g.player.navPoint.Pos()
+		tLine := geom.Line{
+			X1: playerPos.X, Y1: playerPos.Y,
+			X2: navPos.X, Y2: navPos.Y,
+		}
+		nAngle := tLine.Angle()
+
+		g.compass.SetNavEnabled(true)
+		g.compass.SetNavHeading(nAngle)
+	}
+
 	g.compass.Draw(cBounds, hudOpts, g.player.Heading(), g.player.TurretAngle())
 }
 

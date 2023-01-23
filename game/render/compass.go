@@ -21,7 +21,14 @@ var (
 
 type Compass struct {
 	HUDSprite
-	fontRenderer *etxt.Renderer
+	fontRenderer    *etxt.Renderer
+	targetIndicator *compassIndicator
+	navIndicator    *compassIndicator
+}
+
+type compassIndicator struct {
+	heading float64
+	enabled bool
 }
 
 //NewCompass creates a compass image to be rendered on demand
@@ -34,8 +41,10 @@ func NewCompass(font *Font) *Compass {
 	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	c := &Compass{
-		HUDSprite:    NewHUDSprite(nil, 1.0),
-		fontRenderer: renderer,
+		HUDSprite:       NewHUDSprite(nil, 1.0),
+		fontRenderer:    renderer,
+		targetIndicator: &compassIndicator{heading: 2 * geom.Pi / 3, enabled: true},
+		navIndicator:    &compassIndicator{heading: geom.Pi / 3, enabled: true},
 	}
 
 	return c
@@ -50,6 +59,22 @@ func (c *Compass) updateFontSize(width, height int) {
 
 	fractSize, _ := efixed.FromFloat64(pxSize)
 	c.fontRenderer.SetSizePxFract(fractSize)
+}
+
+func (c *Compass) SetTargetEnabled(b bool) {
+	c.targetIndicator.enabled = b
+}
+
+func (c *Compass) SetTargetHeading(heading float64) {
+	c.targetIndicator.heading = heading
+}
+
+func (c *Compass) SetNavEnabled(b bool) {
+	c.navIndicator.enabled = b
+}
+
+func (c *Compass) SetNavHeading(heading float64) {
+	c.navIndicator.heading = heading
 }
 
 func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle float64) {
@@ -138,4 +163,58 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 
 	hW, hH := 5.0, float64(bH)/2 // TODO: calculate line thickness based on image height
 	ebitenutil.DrawRect(screen, midX-hW/2, topY, hW, hH, headingColor)
+
+	if c.targetIndicator.enabled {
+		// TODO: draw target indicator slightly better and indicate direction if outside of current compass view
+		iHeading := c.targetIndicator.heading
+		iDeg := int(geom.Degrees(iHeading))
+
+		iColor := _colorEnemy
+		if hudOpts.UseCustomColor {
+			iColor = hudOpts.Color
+		}
+
+		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
+			actualDeg := i + int(math.Round(headingDeg))
+			if actualDeg < 0 {
+				actualDeg += 360
+			} else if actualDeg >= 360 {
+				actualDeg -= 360
+			}
+			if iDeg == actualDeg {
+				iRadius := float64(bH) / 8
+				iRatio := float64(-i) / maxTurretDeg
+				iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+				ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+				break
+			}
+		}
+	}
+
+	if c.navIndicator.enabled {
+		// TODO: draw nav indicator slightly better and indicate direction if outside of current compass view
+		iHeading := c.navIndicator.heading
+		iDeg := int(geom.Degrees(iHeading))
+
+		iColor := _colorNavPoint
+		if hudOpts.UseCustomColor {
+			iColor = hudOpts.Color
+		}
+
+		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
+			actualDeg := i + int(math.Round(headingDeg))
+			if actualDeg < 0 {
+				actualDeg += 360
+			} else if actualDeg >= 360 {
+				actualDeg -= 360
+			}
+			if iDeg == actualDeg {
+				iRadius := float64(bH) / 8
+				iRatio := float64(-i) / maxTurretDeg
+				iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+				ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+				break
+			}
+		}
+	}
 }
