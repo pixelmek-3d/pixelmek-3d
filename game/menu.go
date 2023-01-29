@@ -7,12 +7,15 @@ import (
 
 	"github.com/gabstv/ebiten-imgui/renderer"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/inkyblackness/imgui-go/v4"
 )
 
-type DemoMenu struct {
+type GameMenu struct {
 	mgr    *renderer.Manager
 	active bool
+
+	_textBaseWidth float32
 
 	// held vars that should not get updated in real-time
 	newRenderWidth     int32
@@ -32,9 +35,9 @@ type DemoMenu struct {
 	newMaxLightRGB        [3]float32
 }
 
-func mainMenu() DemoMenu {
+func mainMenu() GameMenu {
 	mgr := renderer.New(nil)
-	return DemoMenu{
+	return GameMenu{
 		mgr:    mgr,
 		active: false,
 	}
@@ -79,11 +82,11 @@ func (g *Game) closeMenu() {
 	g.menu.active = false
 }
 
-func (m *DemoMenu) layout(w, h int) {
+func (m *GameMenu) layout(w, h int) {
 	m.mgr.SetDisplaySize(float32(w), float32(h))
 }
 
-func (m *DemoMenu) update(g *Game) {
+func (m *GameMenu) update(g *Game) {
 	if !m.active {
 		return
 	}
@@ -91,6 +94,10 @@ func (m *DemoMenu) update(g *Game) {
 	m.mgr.Update(1.0 / float32(ebiten.TPS()))
 
 	m.mgr.BeginFrame()
+
+	if m._textBaseWidth == 0 {
+		m._textBaseWidth = imgui.CalcTextSize("A", false, 0).X
+	}
 
 	windowFlags := imgui.WindowFlagsNone
 	windowFlags |= imgui.WindowFlagsAlwaysAutoResize
@@ -269,11 +276,143 @@ func (m *DemoMenu) update(g *Game) {
 		g.camera.SetLightRGB(g.minLightRGB, g.maxLightRGB)
 	}
 
+	if g.debug {
+		// Show developer/debug options window
+		devWindowFlags := windowFlags ^ imgui.WindowFlagsMenuBar ^ imgui.WindowFlagsAlwaysAutoResize
+		imgui.BeginV("Dev&Debug", nil, devWindowFlags)
+		imgui.Text("Here be DRG-1Ns!")
+		imgui.Separator()
+
+		if imgui.TreeNode("Player Unit") {
+			m.addPlayerUnitTree(g)
+		}
+
+		imgui.End()
+	}
+
 	imgui.End()
 	m.mgr.EndFrame()
 }
 
-func (m *DemoMenu) draw(screen *ebiten.Image) {
+func (m *GameMenu) addPlayerUnitTree(g *Game) {
+	tableFlags := imgui.TableFlagsBordersV | imgui.TableFlagsBordersOuterH | imgui.TableFlagsResizable | imgui.TableFlagsRowBg | imgui.TableFlagsNoBordersInBody
+	if imgui.BeginTableV("player_unit", 4, tableFlags, imgui.Vec2{}, 0) {
+		imgui.TableSetupColumnV("Chassis", imgui.TableColumnFlagsNoHide, 0, 0)
+		imgui.TableSetupColumnV("Variant", imgui.TableColumnFlagsWidthFixed, m._textBaseWidth*16, 0)
+		imgui.TableSetupColumnV("Tonnage", imgui.TableColumnFlagsWidthFixed, m._textBaseWidth*4, 0)
+		imgui.TableSetupColumnV("Tech", imgui.TableColumnFlagsWidthFixed, m._textBaseWidth*4, 0)
+		imgui.TableHeadersRow()
+
+		// mechs section
+		imgui.TableNextRow()
+		imgui.TableNextColumn()
+
+		if imgui.TreeNodeV("Mech", imgui.TreeNodeFlagsSpanFullWidth) {
+
+			setUnit := func(resourceFile string) {
+				g.SetPlayerUnit(model.MechResourceType, resourceFile)
+			}
+
+			for _, resource := range g.resources.GetMechResourceList() {
+				tonnage := fmt.Sprintf("%0.0f", resource.Tonnage)
+				tech := strings.ToUpper(model.TechBaseString(resource.Tech.TechBase))
+				m.addUnitTableTreeNode(resource.File, resource.Name, resource.Variant, tonnage, tech, setUnit)
+			}
+
+			imgui.TreePop()
+		}
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+
+		// vehicles section
+		imgui.TableNextRow()
+		imgui.TableNextColumn()
+
+		if imgui.TreeNodeV("Vehicle", imgui.TreeNodeFlagsSpanFullWidth) {
+
+			setUnit := func(resourceFile string) {
+				g.SetPlayerUnit(model.VehicleResourceType, resourceFile)
+			}
+
+			for _, resource := range g.resources.GetVehicleResourceList() {
+				tonnage := fmt.Sprintf("%0.0f", resource.Tonnage)
+				tech := strings.ToUpper(model.TechBaseString(resource.Tech.TechBase))
+				m.addUnitTableTreeNode(resource.File, resource.Name, resource.Variant, tonnage, tech, setUnit)
+			}
+
+			imgui.TreePop()
+		}
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+
+		// vtol section
+		imgui.TableNextRow()
+		imgui.TableNextColumn()
+
+		if imgui.TreeNodeV("VTOL", imgui.TreeNodeFlagsSpanFullWidth) {
+
+			setUnit := func(resourceFile string) {
+				g.SetPlayerUnit(model.VTOLResourceType, resourceFile)
+			}
+
+			for _, resource := range g.resources.GetVTOLResourceList() {
+				tonnage := fmt.Sprintf("%0.0f", resource.Tonnage)
+				tech := strings.ToUpper(model.TechBaseString(resource.Tech.TechBase))
+				m.addUnitTableTreeNode(resource.File, resource.Name, resource.Variant, tonnage, tech, setUnit)
+			}
+
+			imgui.TreePop()
+		}
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+
+		// infantry section
+		imgui.TableNextRow()
+		imgui.TableNextColumn()
+
+		if imgui.TreeNodeV("Infantry", imgui.TreeNodeFlagsSpanFullWidth) {
+
+			setUnit := func(resourceFile string) {
+				g.SetPlayerUnit(model.InfantryResourceType, resourceFile)
+			}
+
+			for _, resource := range g.resources.GetInfantryResourceList() {
+				tonnage := "-"
+				tech := strings.ToUpper(model.TechBaseString(resource.Tech.TechBase))
+				m.addUnitTableTreeNode(resource.File, resource.Name, resource.Variant, tonnage, tech, setUnit)
+			}
+
+			imgui.TreePop()
+		}
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+		imgui.TableNextColumn()
+	}
+
+	imgui.EndTable()
+	imgui.TreePop()
+}
+
+func (m *GameMenu) addUnitTableTreeNode(unitResource, chassis, variant, tonnage, tech string, clickFunc func(string)) {
+	imgui.TableNextRow()
+	imgui.TableNextColumn()
+
+	imgui.TreeNodeV(chassis, imgui.TreeNodeFlagsLeaf|imgui.TreeNodeFlagsNoTreePushOnOpen|imgui.TreeNodeFlagsSpanFullWidth)
+	if imgui.IsItemClicked() {
+		clickFunc(unitResource)
+	}
+	imgui.TableNextColumn()
+	imgui.Text(variant)
+	imgui.TableNextColumn()
+	imgui.Text(tonnage)
+	imgui.TableNextColumn()
+	imgui.Text(tech)
+}
+
+func (m *GameMenu) draw(screen *ebiten.Image) {
 	if !m.active {
 		return
 	}

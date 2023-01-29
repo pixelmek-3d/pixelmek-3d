@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -99,6 +100,7 @@ type ModelLocation struct {
 }
 
 type ModelMechResource struct {
+	File              string                   `yaml:"-"`
 	Name              string                   `yaml:"name" validate:"required"`
 	Variant           string                   `yaml:"variant" validate:"required"`
 	Image             string                   `yaml:"image" validate:"required"`
@@ -118,6 +120,7 @@ type ModelMechResource struct {
 }
 
 type ModelVehicleResource struct {
+	File              string                   `yaml:"-"`
 	Name              string                   `yaml:"name" validate:"required"`
 	Variant           string                   `yaml:"variant" validate:"required"`
 	Image             string                   `yaml:"image" validate:"required"`
@@ -137,6 +140,7 @@ type ModelVehicleResource struct {
 }
 
 type ModelVTOLResource struct {
+	File              string                   `yaml:"-"`
 	Name              string                   `yaml:"name" validate:"required"`
 	Variant           string                   `yaml:"variant" validate:"required"`
 	Image             string                   `yaml:"image" validate:"required"`
@@ -156,6 +160,7 @@ type ModelVTOLResource struct {
 }
 
 type ModelInfantryResource struct {
+	File              string                   `yaml:"-"`
 	Name              string                   `yaml:"name" validate:"required"`
 	Variant           string                   `yaml:"variant" validate:"required"`
 	Image             string                   `yaml:"image" validate:"required"`
@@ -439,6 +444,7 @@ func (r *ModelResources) loadUnitResources() error {
 					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
+				m.File = fileName
 				r.Mechs[fileName] = m
 
 			case VehicleResourceType:
@@ -453,6 +459,7 @@ func (r *ModelResources) loadUnitResources() error {
 					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
+				m.File = fileName
 				r.Vehicles[fileName] = m
 
 			case VTOLResourceType:
@@ -467,6 +474,7 @@ func (r *ModelResources) loadUnitResources() error {
 					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
+				m.File = fileName
 				r.VTOLs[fileName] = m
 
 			case InfantryResourceType:
@@ -481,6 +489,7 @@ func (r *ModelResources) loadUnitResources() error {
 					return fmt.Errorf("[%s] %s", filePath, err.Error())
 				}
 
+				m.File = fileName
 				r.Infantry[fileName] = m
 
 			}
@@ -592,11 +601,41 @@ func (r *ModelResources) GetMechResource(unit string) *ModelMechResource {
 	return nil
 }
 
+// GetMechResourceList gets mech resources as sorted list
+func (r *ModelResources) GetMechResourceList() []*ModelMechResource {
+	resourceList := make([]*ModelMechResource, 0, len(r.Mechs))
+	for _, v := range r.Mechs {
+		resourceList = append(resourceList, v)
+	}
+
+	sort.Slice(resourceList, func(i, j int) bool {
+		rI, rJ := resourceList[i], resourceList[j]
+		return rI.Name < rJ.Name || (rI.Name == rJ.Name && rI.Variant < rJ.Variant)
+	})
+
+	return resourceList
+}
+
 func (r *ModelResources) GetVehicleResource(unit string) *ModelVehicleResource {
 	if m, ok := r.Vehicles[unit]; ok {
 		return m
 	}
 	return nil
+}
+
+// GetVehicleResourceList gets mech resources as sorted list
+func (r *ModelResources) GetVehicleResourceList() []*ModelVehicleResource {
+	resourceList := make([]*ModelVehicleResource, 0, len(r.Mechs))
+	for _, v := range r.Vehicles {
+		resourceList = append(resourceList, v)
+	}
+
+	sort.Slice(resourceList, func(i, j int) bool {
+		rI, rJ := resourceList[i], resourceList[j]
+		return rI.Name < rJ.Name || (rI.Name == rJ.Name && rI.Variant < rJ.Variant)
+	})
+
+	return resourceList
 }
 
 func (r *ModelResources) GetVTOLResource(unit string) *ModelVTOLResource {
@@ -606,11 +645,41 @@ func (r *ModelResources) GetVTOLResource(unit string) *ModelVTOLResource {
 	return nil
 }
 
+// GetVTOLResourceList gets mech resources as sorted list
+func (r *ModelResources) GetVTOLResourceList() []*ModelVTOLResource {
+	resourceList := make([]*ModelVTOLResource, 0, len(r.Mechs))
+	for _, v := range r.VTOLs {
+		resourceList = append(resourceList, v)
+	}
+
+	sort.Slice(resourceList, func(i, j int) bool {
+		rI, rJ := resourceList[i], resourceList[j]
+		return rI.Name < rJ.Name || (rI.Name == rJ.Name && rI.Variant < rJ.Variant)
+	})
+
+	return resourceList
+}
+
 func (r *ModelResources) GetInfantryResource(unit string) *ModelInfantryResource {
 	if m, ok := r.Infantry[unit]; ok {
 		return m
 	}
 	return nil
+}
+
+// GetInfantryResourceList gets mech resources as sorted list
+func (r *ModelResources) GetInfantryResourceList() []*ModelInfantryResource {
+	resourceList := make([]*ModelInfantryResource, 0, len(r.Mechs))
+	for _, v := range r.Infantry {
+		resourceList = append(resourceList, v)
+	}
+
+	sort.Slice(resourceList, func(i, j int) bool {
+		rI, rJ := resourceList[i], resourceList[j]
+		return rI.Name < rJ.Name || (rI.Name == rJ.Name && rI.Variant < rJ.Variant)
+	})
+
+	return resourceList
 }
 
 func (r *ModelResources) GetEnergyWeaponResource(weapon string) *ModelEnergyWeaponResource {

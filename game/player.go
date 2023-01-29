@@ -1,6 +1,9 @@
 package game
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 
@@ -50,4 +53,84 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	// TODO: save/restore weapon groups for weapons per unit
 
 	return p
+}
+
+func (g *Game) SetPlayerUnit(unitType, unitResource string) model.Unit {
+	var unit model.Unit
+	var unitSprite *render.Sprite
+
+	switch unitType {
+	case model.MechResourceType:
+		mUnit := g.createModelMech(unitResource)
+		unit = mUnit
+
+		unitImgPath := fmt.Sprintf("%s/%s", unitType, mUnit.Resource.Image)
+		unitImg := getSpriteFromFile(unitImgPath)
+		scale := convertHeightToScale(mUnit.Resource.Height, mUnit.Resource.HeightPxRatio)
+		unitSprite = render.NewMechSprite(mUnit, scale, unitImg).Sprite
+
+	case model.VehicleResourceType:
+		vUnit := g.createModelVehicle(unitResource)
+		unit = vUnit
+
+		unitImgPath := fmt.Sprintf("%s/%s", unitType, vUnit.Resource.Image)
+		unitImg := getSpriteFromFile(unitImgPath)
+		scale := convertHeightToScale(vUnit.Resource.Height, vUnit.Resource.HeightPxRatio)
+		unitSprite = render.NewVehicleSprite(vUnit, scale, unitImg).Sprite
+
+	case model.VTOLResourceType:
+		vUnit := g.createModelVTOL(unitResource)
+		unit = vUnit
+
+		unitImgPath := fmt.Sprintf("%s/%s", unitType, vUnit.Resource.Image)
+		unitImg := getSpriteFromFile(unitImgPath)
+		scale := convertHeightToScale(vUnit.Resource.Height, vUnit.Resource.HeightPxRatio)
+		unitSprite = render.NewVTOLSprite(vUnit, scale, unitImg).Sprite
+
+	case model.InfantryResourceType:
+		iUnit := g.createModelInfantry(unitResource)
+		unit = iUnit
+
+		unitImgPath := fmt.Sprintf("%s/%s", unitType, iUnit.Resource.Image)
+		unitImg := getSpriteFromFile(unitImgPath)
+		scale := convertHeightToScale(iUnit.Resource.Height, iUnit.Resource.HeightPxRatio)
+		unitSprite = render.NewInfantrySprite(iUnit, scale, unitImg).Sprite
+
+	default:
+		log.Fatalf("unable to set player unit, resource type %s does not exist\n", unitType)
+		return nil
+	}
+
+	if unit == nil {
+		log.Fatalf("unable to set player unit, resource does not exist %s/%s\n", unitType, unitResource)
+		return nil
+	}
+
+	var pX, pY, pZ, pH float64
+	if g.player != nil {
+		pX, pY, pZ, pH = g.player.Pos().X, g.player.Pos().Y, g.player.PosZ(), g.player.Heading()
+	}
+
+	if unitType == model.VTOLResourceType {
+		if pZ < unit.CollisionHeight() {
+			// for VTOL, adjust Z position to not be stuck in the ground
+			pZ = unit.CollisionHeight()
+		}
+	} else {
+		// adjust Z position to be on the ground
+		pZ = 0
+	}
+
+	g.player = NewPlayer(unit, unitSprite, pX, pY, pZ, pH, 0)
+	g.player.SetCollisionRadius(unit.CollisionRadius())
+	g.player.SetCollisionHeight(unit.CollisionHeight())
+	g.armament.SetWeapons(g.player.Armament())
+
+	if unit.HasTurret() {
+		g.mouseMode = MouseModeTurret
+	} else {
+		g.mouseMode = MouseModeBody
+	}
+
+	return unit
 }
