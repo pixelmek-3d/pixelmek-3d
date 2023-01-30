@@ -32,6 +32,9 @@ func (g *Game) handleInput() {
 		return
 	}
 
+	_, isInfantry := g.player.Unit.(*model.Infantry)
+	_, isVTOL := g.player.Unit.(*model.VTOL)
+
 	var stop, forward, backward bool
 	var rotLeft, rotRight bool
 
@@ -41,12 +44,6 @@ func (g *Game) handleInput() {
 	}
 
 	switch {
-	case ebiten.IsKeyPressed(ebiten.KeyControl):
-		if g.mouseMode != MouseModeCursor {
-			ebiten.SetCursorMode(ebiten.CursorModeVisible)
-			g.mouseMode = MouseModeCursor
-		}
-
 	case ebiten.IsKeyPressed(ebiten.KeyAlt):
 		if g.mouseMode != MouseModeBody {
 			ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -321,7 +318,21 @@ func (g *Game) handleInput() {
 			vPercent := math.Abs(g.player.TargetVelocity()) / (g.player.MaxVelocity() / 2)
 			g.player.SetTargetVelocity(vPercent * g.player.MaxVelocity())
 		}
+	}
 
+	if ebiten.IsKeyPressed(ebiten.KeySpace) {
+		if isVTOL {
+			// TODO: use unit max velocity to determine ascend speed
+			g.VerticalMove(0.05)
+		}
+		// TODO: else jump, if jump jets
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyControl) {
+		if isVTOL {
+			// TODO: use unit max velocity to determine descend speed
+			g.VerticalMove(-0.05)
+		}
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
@@ -365,8 +376,6 @@ func (g *Game) handleInput() {
 	isStrafe := false
 	if !g.player.HasTurret() && (rotLeft || rotRight) {
 		// only infantry/battle armor and VTOL can strafe
-		_, isInfantry := g.player.Unit.(*model.Infantry)
-		_, isVTOL := g.player.Unit.(*model.VTOL)
 		if isInfantry || isVTOL {
 			// strafe instead of rotate
 			isStrafe = true

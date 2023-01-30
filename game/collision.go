@@ -35,17 +35,18 @@ func (g *Game) isCollisionType(spriteType SpriteType) bool {
 
 // checks for valid move from current position, returns valid (x, y) position, whether a collision
 // was encountered, and a list of entity collisions that may have been encountered
-func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, checkAlternate bool) (*geom.Vector2, bool, []*EntityCollision) {
+func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, checkAlternate bool) (*geom.Vector2, float64, bool, []*EntityCollision) {
 	position := entity.Pos()
 	posX, posY, posZ := position.X, position.Y, entity.PosZ()
-	if entity.CollisionRadius() <= 0 || entity.CollisionHeight() <= 0 {
-		return &geom.Vector2{X: posX, Y: posY}, false, []*EntityCollision{}
-	}
-	if posX == moveX && posY == moveY && posZ == moveZ {
-		return &geom.Vector2{X: posX, Y: posY}, false, []*EntityCollision{}
-	}
 
 	entityCollisionRadius := entity.CollisionRadius()
+	entityCollisionHeight := entity.CollisionHeight()
+	if entityCollisionRadius <= 0 || entityCollisionHeight <= 0 {
+		return &geom.Vector2{X: posX, Y: posY}, posZ, false, []*EntityCollision{}
+	}
+	if posX == moveX && posY == moveY && posZ == moveZ {
+		return &geom.Vector2{X: posX, Y: posY}, posZ, false, []*EntityCollision{}
+	}
 
 	newX, newY, newZ := moveX, moveY, moveZ
 	moveLine := geom.Line{X1: posX, Y1: posY, X2: newX, Y2: newY}
@@ -201,11 +202,11 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 				}
 			} else {
 				// looks like it cannot move
-				return &geom.Vector2{X: posX, Y: posY}, isCollision, collisionEntities
+				return &geom.Vector2{X: posX, Y: posY}, posZ, isCollision, collisionEntities
 			}
 		} else {
 			// looks like it cannot move
-			return &geom.Vector2{X: posX, Y: posY}, isCollision, collisionEntities
+			return &geom.Vector2{X: posX, Y: posY}, posZ, isCollision, collisionEntities
 		}
 	}
 
@@ -239,7 +240,17 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 		isCollision = true
 	}
 
-	return &geom.Vector2{X: posX, Y: posY}, isCollision, collisionEntities
+	// prevent going under the floor
+	// TODO: prevent going above flight ceiling (set in map yaml?)
+	posZ = newZ
+	zMin, _ := zEntityMinMax(0, entity)
+	zMin = math.Abs(zMin)
+	if posZ < zMin {
+		posZ = zMin
+		isCollision = true
+	}
+
+	return &geom.Vector2{X: posX, Y: posY}, posZ, isCollision, collisionEntities
 }
 
 // zEntityIntersection returns the best positionZ intersection point on the target from the source (-1 if no intersection)

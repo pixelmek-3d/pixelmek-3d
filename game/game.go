@@ -450,7 +450,7 @@ func (g *Game) setFovAngle(fovDegrees float64) {
 func (g *Game) Move(mSpeed float64) {
 	playerPosition := g.player.Pos()
 	moveLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading(), mSpeed)
-	g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
+	g.updatePlayerPosition(moveLine.X2, moveLine.Y2, g.player.PosZ())
 }
 
 // Move player by strafe speed in the left/right direction
@@ -461,7 +461,14 @@ func (g *Game) Strafe(sSpeed float64) {
 	}
 	playerPosition := g.player.Pos()
 	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading()-strafeAngle, math.Abs(sSpeed))
-	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2)
+	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2, g.player.PosZ())
+}
+
+// Move player by vertical speed in the up/down direction
+func (g *Game) VerticalMove(vSpeed float64) {
+	pos := g.player.Pos()
+	newPosZ := g.player.PosZ() + vSpeed
+	g.updatePlayerPosition(pos.X, pos.Y, newPosZ)
 }
 
 // Rotate player heading angle by rotation speed
@@ -513,7 +520,7 @@ func (g *Game) updatePlayer() {
 	if g.player.Update() {
 		position := g.player.Pos()
 		moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
-		g.updatePlayerPosition(moveLine.X2, moveLine.Y2)
+		g.updatePlayerPosition(moveLine.X2, moveLine.Y2, g.player.PosZ())
 		g.player.moved = true
 	}
 }
@@ -539,11 +546,12 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	}
 }
 
-func (g *Game) updatePlayerPosition(newX, newY float64) {
+func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 	// Update player position
-	newPos, isCollision, collisions := g.getValidMove(g.player.Unit, newX, newY, g.player.PosZ(), true)
-	if !newPos.Equals(g.player.Pos()) {
+	newPos, newZ, isCollision, collisions := g.getValidMove(g.player.Unit, setX, setY, setZ, true)
+	if !(newPos.Equals(g.player.Pos()) && newZ == g.player.PosZ()) {
 		g.player.SetPos(newPos)
+		g.player.SetPosZ(newZ)
 		g.player.moved = true
 	}
 
@@ -771,13 +779,14 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
+			s.SetPosZ(newPosZ)
 		}
 	}
 }
@@ -816,13 +825,14 @@ func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
+			s.SetPosZ(newPosZ)
 		}
 	}
 }
@@ -861,13 +871,14 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
+			s.SetPosZ(newPosZ)
 		}
 	}
 }
@@ -906,13 +917,14 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
+			s.SetPosZ(newPosZ)
 		}
 	}
 }
@@ -925,13 +937,14 @@ func (g *Game) updateSpritePosition(s *render.Sprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
 		if isCollision {
 			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
 			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
 			s.SetVelocity(randFloat(0.005, 0.009))
 		} else {
 			s.SetPos(newPos)
+			s.SetPosZ(newPosZ)
 		}
 	}
 }

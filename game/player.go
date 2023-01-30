@@ -28,10 +28,9 @@ type Player struct {
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
 	p := &Player{
-		Unit:    unit,
-		sprite:  sprite,
-		cameraZ: z + unit.CockpitOffset().Y, // TODO: support cockpit offset in sprite X direction
-		moved:   false,
+		Unit:   unit,
+		sprite: sprite,
+		moved:  false,
 	}
 
 	p.SetAsPlayer(true)
@@ -53,6 +52,11 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	// TODO: save/restore weapon groups for weapons per unit
 
 	return p
+}
+
+func (p *Player) SetPosZ(z float64) {
+	p.cameraZ = z + p.Unit.CockpitOffset().Y // TODO: support cockpit offset in sprite X direction
+	p.Unit.SetPosZ(z)
 }
 
 func (g *Game) SetPlayerUnit(unitType, unitResource string) model.Unit {
