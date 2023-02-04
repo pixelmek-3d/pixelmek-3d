@@ -9,40 +9,24 @@ import (
 )
 
 type Infantry struct {
-	Resource         *ModelInfantryResource
-	position         *geom.Vector2
-	positionZ        float64
-	anchor           raycaster.SpriteAnchor
-	angle            float64
-	targetRelHeading float64
-	maxTurnRate      float64
-	pitch            float64
-	velocity         float64
-	targetVelocity   float64
-	maxVelocity      float64
-	collisionRadius  float64
-	collisionHeight  float64
-	cockpitOffset    *geom.Vector2
-	armor            float64
-	structure        float64
-	armament         []Weapon
-	target           Entity
-	parent           Entity
-	isPlayer         bool
+	*UnitModel
+	Resource *ModelInfantryResource
 }
 
 func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Infantry {
 	m := &Infantry{
-		Resource:        r,
-		anchor:          raycaster.AnchorBottom,
-		collisionRadius: collisionRadius,
-		collisionHeight: collisionHeight,
-		cockpitOffset:   cockpitOffset,
-		armor:           r.Armor,
-		structure:       r.Structure,
-		armament:        make([]Weapon, 0),
-		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-		maxTurnRate:     0.05, // FIXME: testing
+		Resource: r,
+		UnitModel: &UnitModel{
+			anchor:          raycaster.AnchorBottom,
+			collisionRadius: collisionRadius,
+			collisionHeight: collisionHeight,
+			cockpitOffset:   cockpitOffset,
+			armor:           r.Armor,
+			structure:       r.Structure,
+			armament:        make([]Weapon, 0),
+			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
+			maxTurnRate:     0.05, // FIXME: testing
+		},
 	}
 	return m
 }
@@ -167,6 +151,14 @@ func (e *Infantry) SetVelocity(velocity float64) {
 	e.velocity = velocity
 }
 
+func (e *Infantry) VelocityZ() float64 {
+	return e.velocityZ
+}
+
+func (e *Infantry) SetVelocityZ(velocityZ float64) {
+	e.velocityZ = velocityZ
+}
+
 func (e *Infantry) MaxVelocity() float64 {
 	return e.maxVelocity
 }
@@ -183,6 +175,20 @@ func (e *Infantry) SetTargetVelocity(tVelocity float64) {
 		tVelocity = -maxV / 2
 	}
 	e.targetVelocity = tVelocity
+}
+
+func (e *Infantry) TargetVelocityZ() float64 {
+	return e.targetVelocityZ
+}
+
+func (e *Infantry) SetTargetVelocityZ(tVelocityZ float64) {
+	maxV := e.MaxVelocity()
+	if tVelocityZ > maxV {
+		tVelocityZ = maxV
+	} else if tVelocityZ < -maxV/2 {
+		tVelocityZ = -maxV / 2
+	}
+	e.targetVelocityZ = tVelocityZ
 }
 
 func (e *Infantry) TurnRate() float64 {

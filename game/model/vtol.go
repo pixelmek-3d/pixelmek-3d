@@ -9,46 +9,26 @@ import (
 )
 
 type VTOL struct {
-	Resource         *ModelVTOLResource
-	position         *geom.Vector2
-	positionZ        float64
-	anchor           raycaster.SpriteAnchor
-	angle            float64
-	targetRelHeading float64
-	maxTurnRate      float64
-	pitch            float64
-	velocity         float64
-	targetVelocity   float64
-	maxVelocity      float64
-	collisionRadius  float64
-	collisionHeight  float64
-	cockpitOffset    *geom.Vector2
-	armor            float64
-	structure        float64
-	heat             float64
-	heatDissipation  float64
-	heatSinks        int
-	heatSinkType     HeatSinkType
-	armament         []Weapon
-	target           Entity
-	parent           Entity
-	isPlayer         bool
+	*UnitModel
+	Resource *ModelVTOLResource
 }
 
 func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *VTOL {
 	m := &VTOL{
-		Resource:        r,
-		anchor:          raycaster.AnchorCenter,
-		collisionRadius: collisionRadius,
-		collisionHeight: collisionHeight,
-		cockpitOffset:   cockpitOffset,
-		armor:           r.Armor,
-		structure:       r.Structure,
-		heatSinks:       r.HeatSinks.Quantity,
-		heatSinkType:    r.HeatSinks.Type.HeatSinkType,
-		armament:        make([]Weapon, 0),
-		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-		maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
+		Resource: r,
+		UnitModel: &UnitModel{
+			anchor:          raycaster.AnchorCenter,
+			collisionRadius: collisionRadius,
+			collisionHeight: collisionHeight,
+			cockpitOffset:   cockpitOffset,
+			armor:           r.Armor,
+			structure:       r.Structure,
+			heatSinks:       r.HeatSinks.Quantity,
+			heatSinkType:    r.HeatSinks.Type.HeatSinkType,
+			armament:        make([]Weapon, 0),
+			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
+			maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
+		},
 	}
 
 	// calculate heat dissipation per tick
@@ -179,6 +159,14 @@ func (e *VTOL) SetVelocity(velocity float64) {
 	e.velocity = velocity
 }
 
+func (e *VTOL) VelocityZ() float64 {
+	return e.velocityZ
+}
+
+func (e *VTOL) SetVelocityZ(velocityZ float64) {
+	e.velocityZ = velocityZ
+}
+
 func (e *VTOL) MaxVelocity() float64 {
 	return e.maxVelocity
 }
@@ -195,6 +183,20 @@ func (e *VTOL) SetTargetVelocity(tVelocity float64) {
 		tVelocity = -maxV / 2
 	}
 	e.targetVelocity = tVelocity
+}
+
+func (e *VTOL) TargetVelocityZ() float64 {
+	return e.targetVelocityZ
+}
+
+func (e *VTOL) SetTargetVelocityZ(tVelocityZ float64) {
+	maxV := e.MaxVelocity()
+	if tVelocityZ > maxV {
+		tVelocityZ = maxV
+	} else if tVelocityZ < -maxV/2 {
+		tVelocityZ = -maxV / 2
+	}
+	e.targetVelocityZ = tVelocityZ
 }
 
 func (e *VTOL) TurnRate() float64 {

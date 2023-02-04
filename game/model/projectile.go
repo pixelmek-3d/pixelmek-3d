@@ -14,6 +14,7 @@ type Projectile struct {
 	angle           float64
 	pitch           float64
 	velocity        float64
+	velocityZ       float64
 	collisionRadius float64
 	collisionHeight float64
 	lifespan        float64
@@ -136,6 +137,14 @@ func (e *Projectile) Velocity() float64 {
 
 func (e *Projectile) SetVelocity(velocity float64) {
 	e.velocity = velocity
+}
+
+func (e *Projectile) VelocityZ() float64 {
+	return e.velocityZ
+}
+
+func (e *Projectile) SetVelocityZ(velocityZ float64) {
+	e.velocityZ = velocityZ
 }
 
 func (e *Projectile) CollisionRadius() float64 {

@@ -9,49 +9,27 @@ import (
 )
 
 type Vehicle struct {
-	Resource         *ModelVehicleResource
-	position         *geom.Vector2
-	positionZ        float64
-	anchor           raycaster.SpriteAnchor
-	angle            float64
-	targetRelHeading float64
-	maxTurnRate      float64
-	pitch            float64
-	hasTurret        bool
-	turretAngle      float64
-	velocity         float64
-	targetVelocity   float64
-	maxVelocity      float64
-	collisionRadius  float64
-	collisionHeight  float64
-	cockpitOffset    *geom.Vector2
-	armor            float64
-	structure        float64
-	heat             float64
-	heatDissipation  float64
-	heatSinks        int
-	heatSinkType     HeatSinkType
-	armament         []Weapon
-	target           Entity
-	parent           Entity
-	isPlayer         bool
+	*UnitModel
+	Resource *ModelVehicleResource
 }
 
 func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Vehicle {
 	m := &Vehicle{
-		Resource:        r,
-		anchor:          raycaster.AnchorBottom,
-		collisionRadius: collisionRadius,
-		collisionHeight: collisionHeight,
-		cockpitOffset:   cockpitOffset,
-		armor:           r.Armor,
-		structure:       r.Structure,
-		heatSinks:       r.HeatSinks.Quantity,
-		heatSinkType:    r.HeatSinks.Type.HeatSinkType,
-		armament:        make([]Weapon, 0),
-		hasTurret:       true,
-		maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-		maxTurnRate:     100 / r.Tonnage * 0.015, // FIXME: testing
+		Resource: r,
+		UnitModel: &UnitModel{
+			anchor:          raycaster.AnchorBottom,
+			collisionRadius: collisionRadius,
+			collisionHeight: collisionHeight,
+			cockpitOffset:   cockpitOffset,
+			armor:           r.Armor,
+			structure:       r.Structure,
+			heatSinks:       r.HeatSinks.Quantity,
+			heatSinkType:    r.HeatSinks.Type.HeatSinkType,
+			armament:        make([]Weapon, 0),
+			hasTurret:       true,
+			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
+			maxTurnRate:     100 / r.Tonnage * 0.015, // FIXME: testing
+		},
 	}
 
 	// calculate heat dissipation per tick
@@ -190,6 +168,14 @@ func (e *Vehicle) SetVelocity(velocity float64) {
 	e.velocity = velocity
 }
 
+func (e *Vehicle) VelocityZ() float64 {
+	return e.velocityZ
+}
+
+func (e *Vehicle) SetVelocityZ(velocityZ float64) {
+	e.velocityZ = velocityZ
+}
+
 func (e *Vehicle) MaxVelocity() float64 {
 	return e.maxVelocity
 }
@@ -206,6 +192,20 @@ func (e *Vehicle) SetTargetVelocity(tVelocity float64) {
 		tVelocity = -maxV / 2
 	}
 	e.targetVelocity = tVelocity
+}
+
+func (e *Vehicle) TargetVelocityZ() float64 {
+	return e.targetVelocityZ
+}
+
+func (e *Vehicle) SetTargetVelocityZ(tVelocityZ float64) {
+	maxV := e.MaxVelocity()
+	if tVelocityZ > maxV {
+		tVelocityZ = maxV
+	} else if tVelocityZ < -maxV/2 {
+		tVelocityZ = -maxV / 2
+	}
+	e.targetVelocityZ = tVelocityZ
 }
 
 func (e *Vehicle) TurnRate() float64 {

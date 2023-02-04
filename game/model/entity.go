@@ -23,6 +23,8 @@ type Entity interface {
 	SetPitch(float64)
 	Velocity() float64
 	SetVelocity(float64)
+	VelocityZ() float64
+	SetVelocityZ(float64)
 
 	CollisionRadius() float64
 	SetCollisionRadius(float64)
@@ -59,6 +61,8 @@ type Unit interface {
 	MaxVelocity() float64
 	TargetVelocity() float64
 	SetTargetVelocity(float64)
+	TargetVelocityZ() float64
+	SetTargetVelocityZ(float64)
 	Update() bool
 
 	HasTurret() bool
@@ -74,6 +78,36 @@ type Unit interface {
 	IsPlayer() bool
 
 	CloneUnit() Unit
+}
+
+type UnitModel struct {
+	position         *geom.Vector2
+	positionZ        float64
+	anchor           raycaster.SpriteAnchor
+	angle            float64
+	targetRelHeading float64
+	maxTurnRate      float64
+	pitch            float64
+	hasTurret        bool
+	turretAngle      float64
+	velocity         float64
+	velocityZ        float64
+	targetVelocity   float64
+	targetVelocityZ  float64
+	maxVelocity      float64
+	collisionRadius  float64
+	collisionHeight  float64
+	cockpitOffset    *geom.Vector2
+	armor            float64
+	structure        float64
+	heat             float64
+	heatDissipation  float64
+	heatSinks        int
+	heatSinkType     HeatSinkType
+	armament         []Weapon
+	target           Entity
+	parent           Entity
+	isPlayer         bool
 }
 
 func EntityUnit(entity Entity) Unit {
@@ -95,6 +129,7 @@ type BasicEntity struct {
 	angle                   float64
 	pitch                   float64
 	velocity                float64
+	velocityZ               float64
 	collisionRadius         float64
 	collisionHeight         float64
 	armor, maxArmor         float64
@@ -180,6 +215,14 @@ func (e *BasicEntity) Velocity() float64 {
 
 func (e *BasicEntity) SetVelocity(velocity float64) {
 	e.velocity = velocity
+}
+
+func (e *BasicEntity) VelocityZ() float64 {
+	return e.velocityZ
+}
+
+func (e *BasicEntity) SetVelocityZ(velocityZ float64) {
+	e.velocityZ = velocityZ
 }
 
 func (e *BasicEntity) CollisionRadius() float64 {
