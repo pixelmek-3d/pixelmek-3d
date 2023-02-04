@@ -323,16 +323,16 @@ func (g *Game) handleInput() {
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
 		if isVTOL {
 			// TODO: use unit max velocity to determine ascend speed
-			g.VerticalMove(0.05)
+			g.player.SetTargetVelocityZ(0.05)
 		}
 		// TODO: else jump, if jump jets
-	}
-
-	if ebiten.IsKeyPressed(ebiten.KeyControl) {
+	} else if ebiten.IsKeyPressed(ebiten.KeyControl) {
 		if isVTOL {
 			// TODO: use unit max velocity to determine descend speed
-			g.VerticalMove(-0.05)
+			g.player.SetTargetVelocityZ(-0.05)
 		}
+	} else if g.player.TargetVelocityZ() != 0 {
+		g.player.SetTargetVelocityZ(0)
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {

@@ -322,6 +322,7 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 
 	// convert velocity from units per tick to kilometers per hour
 	kphVelocity := g.player.Velocity() * model.VELOCITY_TO_KPH
+	kphVelocityZ := g.player.VelocityZ() * model.VELOCITY_TO_KPH
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
 
@@ -331,7 +332,7 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 		g.width-throttleWidth-marginX, g.height-throttleHeight-marginY,
 		g.width-marginX, g.height-marginY,
 	)
-	g.throttle.Draw(tBounds, hudOpts, kphVelocity, kphTgtVelocity, kphMax, kphMax/2)
+	g.throttle.Draw(tBounds, hudOpts, kphVelocity, kphTgtVelocity, kphVelocityZ, kphMax, kphMax/2)
 }
 
 func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {

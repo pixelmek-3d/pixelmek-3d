@@ -48,7 +48,7 @@ func (t *Throttle) updateFontSize(width, height int) {
 	t.fontRenderer.SetSizePxFract(fractSize)
 }
 
-func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocity, targetVelocity, maxVelocity, maxReverse float64) {
+func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocity, targetVelocity, velocityZ, maxVelocity, maxReverse float64) {
 	screen := hudOpts.Screen
 	t.fontRenderer.SetTarget(screen)
 
@@ -95,6 +95,9 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	t.fontRenderer.SetColor(tColor)
 
 	velocityStr := fmt.Sprintf("%0.1f kph", velocity)
+	if velocityZ != 0 {
+		velocityStr += fmt.Sprintf("\n%0.1fvert", velocityZ)
+	}
 	if velocity >= 0 {
 		t.fontRenderer.SetAlign(etxt.Top, etxt.Right)
 	} else {

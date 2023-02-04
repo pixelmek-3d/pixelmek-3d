@@ -200,8 +200,8 @@ func (e *Mech) TargetVelocityZ() float64 {
 
 func (e *Mech) SetTargetVelocityZ(tVelocityZ float64) {
 	maxV := e.MaxVelocity()
-	if tVelocityZ > maxV {
-		tVelocityZ = maxV
+	if tVelocityZ > maxV/2 {
+		tVelocityZ = maxV / 2
 	} else if tVelocityZ < -maxV/2 {
 		tVelocityZ = -maxV / 2
 	}
@@ -233,7 +233,9 @@ func (e *Mech) Update() bool {
 		}
 	}
 
-	if e.targetVelocity == 0 && e.velocity == 0 && e.targetRelHeading == 0 {
+	if e.targetRelHeading == 0 &&
+		e.targetVelocity == 0 && e.velocity == 0 &&
+		e.targetVelocityZ == 0 && e.velocityZ == 0 {
 		// no position update needed
 		return false
 	}

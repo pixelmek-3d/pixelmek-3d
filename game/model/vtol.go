@@ -191,8 +191,8 @@ func (e *VTOL) TargetVelocityZ() float64 {
 
 func (e *VTOL) SetTargetVelocityZ(tVelocityZ float64) {
 	maxV := e.MaxVelocity()
-	if tVelocityZ > maxV {
-		tVelocityZ = maxV
+	if tVelocityZ > maxV/2 {
+		tVelocityZ = maxV / 2
 	} else if tVelocityZ < -maxV/2 {
 		tVelocityZ = -maxV / 2
 	}
@@ -214,7 +214,9 @@ func (e *VTOL) SetTargetRelativeHeading(rHeading float64) {
 }
 
 func (e *VTOL) Update() bool {
-	if e.velocity == 0 && e.targetVelocity == 0 && e.targetRelHeading == 0 {
+	if e.targetRelHeading == 0 &&
+		e.targetVelocity == 0 && e.velocity == 0 &&
+		e.targetVelocityZ == 0 && e.velocityZ == 0 {
 		// no position update needed
 		return false
 	}
@@ -236,6 +238,25 @@ func (e *VTOL) Update() bool {
 		}
 
 		e.velocity = newV
+	}
+
+	if e.targetVelocityZ != e.velocityZ {
+		// TODO: move vertical velocity toward target by amount allowed by calculated vertical acceleration
+		var zDeltaV, zNewV float64
+		if e.targetVelocityZ > e.velocityZ {
+			zDeltaV = 0.0004 // FIXME: testing
+		} else {
+			zDeltaV = -0.0004 // FIXME: testing
+		}
+
+		zNewV = e.velocityZ + zDeltaV
+		if (zDeltaV > 0 && e.targetVelocityZ >= 0 && zNewV > e.targetVelocityZ) ||
+			(zDeltaV < 0 && e.targetVelocityZ <= 0 && zNewV < e.targetVelocityZ) {
+			// bound velocity changes to target velocity
+			zNewV = e.targetVelocityZ
+		}
+
+		e.velocityZ = zNewV
 	}
 
 	if e.targetRelHeading != 0 {

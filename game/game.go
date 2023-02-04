@@ -518,9 +518,19 @@ func (g *Game) Pitch(pSpeed float64) {
 
 func (g *Game) updatePlayer() {
 	if g.player.Update() {
+
+		// TODO: refactor to use same update position function as sprites (g.updateMechPosition, etc.)
+
 		position := g.player.Pos()
 		moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
-		g.updatePlayerPosition(moveLine.X2, moveLine.Y2, g.player.PosZ())
+
+		posZ := g.player.PosZ()
+		velocityZ := g.player.VelocityZ()
+		if velocityZ != 0 {
+			posZ += velocityZ
+		}
+
+		g.updatePlayerPosition(moveLine.X2, moveLine.Y2, posZ)
 		g.player.moved = true
 	}
 }
