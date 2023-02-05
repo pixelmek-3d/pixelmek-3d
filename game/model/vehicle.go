@@ -1,8 +1,6 @@
 package model
 
 import (
-	"math"
-
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
@@ -63,160 +61,25 @@ func (e *Vehicle) Variant() string {
 	return e.Resource.Variant
 }
 
-func (e *Vehicle) Heat() float64 {
-	return e.heat
+func (e *Vehicle) MaxArmorPoints() float64 {
+	return e.Resource.Armor
 }
 
-func (e *Vehicle) HeatDissipation() float64 {
-	return e.heatDissipation
-}
-
-func (e *Vehicle) TriggerWeapon(w Weapon) bool {
-	if w.Cooldown() > 0 {
-		return false
-	}
-
-	w.TriggerCooldown()
-	e.heat += w.Heat()
-	return true
-}
-
-func (e *Vehicle) Target() Entity {
-	return e.target
-}
-
-func (e *Vehicle) SetTarget(t Entity) {
-	e.target = t
-}
-
-func (e *Vehicle) HasTurret() bool {
-	return e.hasTurret
-}
-
-func (e *Vehicle) SetHasTurret(hasTurret bool) {
-	e.hasTurret = hasTurret
-}
-
-func (e *Vehicle) TurretAngle() float64 {
-	if e.hasTurret {
-		return e.turretAngle
-	}
-	return 0
-}
-
-func (e *Vehicle) SetTurretAngle(angle float64) {
-	if e.hasTurret {
-		e.turretAngle = angle
-	} else {
-		e.SetHeading(angle)
-	}
-}
-
-func (e *Vehicle) AddArmament(w Weapon) {
-	e.armament = append(e.armament, w)
-}
-
-func (e *Vehicle) Armament() []Weapon {
-	return e.armament
-}
-
-func (e *Vehicle) Pos() *geom.Vector2 {
-	return e.position
-}
-
-func (e *Vehicle) SetPos(pos *geom.Vector2) {
-	e.position = pos
-}
-
-func (e *Vehicle) PosZ() float64 {
-	return e.positionZ
-}
-
-func (e *Vehicle) SetPosZ(posZ float64) {
-	e.positionZ = posZ
-}
-
-func (e *Vehicle) Anchor() raycaster.SpriteAnchor {
-	return e.anchor
-}
-
-func (e *Vehicle) SetAnchor(anchor raycaster.SpriteAnchor) {
-	e.anchor = anchor
-}
-
-func (e *Vehicle) Heading() float64 {
-	return e.angle
-}
-
-func (e *Vehicle) SetHeading(angle float64) {
-	e.angle = angle
-}
-
-func (e *Vehicle) Pitch() float64 {
-	return e.pitch
-}
-
-func (e *Vehicle) SetPitch(pitch float64) {
-	e.pitch = pitch
-}
-
-func (e *Vehicle) Velocity() float64 {
-	return e.velocity
-}
-
-func (e *Vehicle) SetVelocity(velocity float64) {
-	e.velocity = velocity
-}
-
-func (e *Vehicle) VelocityZ() float64 {
-	return e.velocityZ
-}
-
-func (e *Vehicle) SetVelocityZ(velocityZ float64) {
-	e.velocityZ = velocityZ
-}
-
-func (e *Vehicle) MaxVelocity() float64 {
-	return e.maxVelocity
-}
-
-func (e *Vehicle) TargetVelocity() float64 {
-	return e.targetVelocity
-}
-
-func (e *Vehicle) SetTargetVelocity(tVelocity float64) {
-	maxV := e.MaxVelocity()
-	if tVelocity > maxV {
-		tVelocity = maxV
-	} else if tVelocity < -maxV/2 {
-		tVelocity = -maxV / 2
-	}
-	e.targetVelocity = tVelocity
-}
-
-func (e *Vehicle) TargetVelocityZ() float64 {
-	return e.targetVelocityZ
-}
-
-func (e *Vehicle) SetTargetVelocityZ(tVelocityZ float64) {
-	e.targetVelocityZ = tVelocityZ
-}
-
-func (e *Vehicle) TurnRate() float64 {
-	if e.velocity == 0 {
-		return e.maxTurnRate
-	}
-
-	// dynamic turn rate is half of the max turn rate when at max velocity
-	vTurnRatio := 0.5 + 0.5*(e.maxVelocity-math.Abs(e.velocity))/e.maxVelocity
-	return e.maxTurnRate * vTurnRatio
-}
-
-func (e *Vehicle) SetTargetRelativeHeading(rHeading float64) {
-	e.targetRelHeading = rHeading
+func (e *Vehicle) MaxStructurePoints() float64 {
+	return e.Resource.Structure
 }
 
 func (e *Vehicle) Update() bool {
+	if e.heat > 0 {
+		// TODO: apply heat from movement based on velocity
+
+		// apply heat dissipation
+		e.heat -= e.HeatDissipation()
+		if e.heat < 0 {
+			e.heat = 0
+		}
+	}
+
 	if e.targetRelHeading == 0 &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {
@@ -274,82 +137,9 @@ func (e *Vehicle) Update() bool {
 		}
 
 		e.targetRelHeading -= deltaH
-		e.angle = newH
+		e.heading = newH
 	}
 
 	// position update needed
 	return true
-}
-
-func (e *Vehicle) CollisionRadius() float64 {
-	return e.collisionRadius
-}
-
-func (e *Vehicle) SetCollisionRadius(collisionRadius float64) {
-	e.collisionRadius = collisionRadius
-}
-
-func (e *Vehicle) CollisionHeight() float64 {
-	return e.collisionHeight
-}
-
-func (e *Vehicle) SetCollisionHeight(collisionHeight float64) {
-	e.collisionHeight = collisionHeight
-}
-
-func (e *Vehicle) CockpitOffset() *geom.Vector2 {
-	return e.cockpitOffset
-}
-
-func (e *Vehicle) ApplyDamage(damage float64) {
-	if e.armor > 0 {
-		e.armor -= damage
-		if e.armor < 0 {
-			// apply remainder of armor damage on structure
-			e.structure -= math.Abs(e.armor)
-			e.armor = 0
-		}
-	} else {
-		e.structure -= damage
-	}
-}
-
-func (e *Vehicle) ArmorPoints() float64 {
-	return e.armor
-}
-
-func (e *Vehicle) SetArmorPoints(armor float64) {
-	e.armor = armor
-}
-
-func (e *Vehicle) MaxArmorPoints() float64 {
-	return e.Resource.Armor
-}
-
-func (e *Vehicle) StructurePoints() float64 {
-	return e.structure
-}
-
-func (e *Vehicle) SetStructurePoints(structure float64) {
-	e.structure = structure
-}
-
-func (e *Vehicle) MaxStructurePoints() float64 {
-	return e.Resource.Structure
-}
-
-func (e *Vehicle) Parent() Entity {
-	return e.parent
-}
-
-func (e *Vehicle) SetParent(parent Entity) {
-	e.parent = parent
-}
-
-func (e *Vehicle) SetAsPlayer(isPlayer bool) {
-	e.isPlayer = isPlayer
-}
-
-func (e *Vehicle) IsPlayer() bool {
-	return e.isPlayer
 }

@@ -1,8 +1,6 @@
 package model
 
 import (
-	"math"
-
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
@@ -62,158 +60,36 @@ func (e *VTOL) Variant() string {
 	return e.Resource.Variant
 }
 
-func (e *VTOL) Heat() float64 {
-	return e.heat
+func (e *VTOL) MaxArmorPoints() float64 {
+	return e.Resource.Armor
 }
 
-func (e *VTOL) HeatDissipation() float64 {
-	return e.heatDissipation
-}
-
-func (e *VTOL) TriggerWeapon(w Weapon) bool {
-	if w.Cooldown() > 0 {
-		return false
-	}
-
-	w.TriggerCooldown()
-	e.heat += w.Heat()
-	return true
-}
-
-func (e *VTOL) Target() Entity {
-	return e.target
-}
-
-func (e *VTOL) SetTarget(t Entity) {
-	e.target = t
-}
-
-func (e *VTOL) HasTurret() bool {
-	return false
-}
-
-func (e *VTOL) SetHasTurret(bool) {}
-
-func (e *VTOL) TurretAngle() float64 {
-	return 0
-}
-
-func (e *VTOL) SetTurretAngle(angle float64) {
-	// VTOL have no turret, just set heading
-	e.SetHeading(angle)
-}
-
-func (e *VTOL) AddArmament(w Weapon) {
-	e.armament = append(e.armament, w)
-}
-
-func (e *VTOL) Armament() []Weapon {
-	return e.armament
-}
-
-func (e *VTOL) Pos() *geom.Vector2 {
-	return e.position
-}
-
-func (e *VTOL) SetPos(pos *geom.Vector2) {
-	e.position = pos
-}
-
-func (e *VTOL) PosZ() float64 {
-	return e.positionZ
-}
-
-func (e *VTOL) SetPosZ(posZ float64) {
-	e.positionZ = posZ
-}
-
-func (e *VTOL) Anchor() raycaster.SpriteAnchor {
-	return e.anchor
-}
-
-func (e *VTOL) SetAnchor(anchor raycaster.SpriteAnchor) {
-	e.anchor = anchor
-}
-
-func (e *VTOL) Heading() float64 {
-	return e.angle
-}
-
-func (e *VTOL) SetHeading(angle float64) {
-	e.angle = angle
-}
-
-func (e *VTOL) Pitch() float64 {
-	return e.pitch
-}
-
-func (e *VTOL) SetPitch(pitch float64) {
-	e.pitch = pitch
-}
-
-func (e *VTOL) Velocity() float64 {
-	return e.velocity
-}
-
-func (e *VTOL) SetVelocity(velocity float64) {
-	e.velocity = velocity
-}
-
-func (e *VTOL) VelocityZ() float64 {
-	return e.velocityZ
-}
-
-func (e *VTOL) SetVelocityZ(velocityZ float64) {
-	e.velocityZ = velocityZ
-}
-
-func (e *VTOL) MaxVelocity() float64 {
-	return e.maxVelocity
-}
-
-func (e *VTOL) TargetVelocity() float64 {
-	return e.targetVelocity
-}
-
-func (e *VTOL) SetTargetVelocity(tVelocity float64) {
-	maxV := e.MaxVelocity()
-	if tVelocity > maxV {
-		tVelocity = maxV
-	} else if tVelocity < -maxV/2 {
-		tVelocity = -maxV / 2
-	}
-	e.targetVelocity = tVelocity
-}
-
-func (e *VTOL) TargetVelocityZ() float64 {
-	return e.targetVelocityZ
+func (e *VTOL) MaxStructurePoints() float64 {
+	return e.Resource.Structure
 }
 
 func (e *VTOL) SetTargetVelocityZ(tVelocityZ float64) {
+	// VTOL have throttle based vertical velocity
 	maxV := e.MaxVelocity()
 	if tVelocityZ > maxV/2 {
 		tVelocityZ = maxV / 2
 	} else if tVelocityZ < -maxV/2 {
 		tVelocityZ = -maxV / 2
 	}
-	e.targetVelocityZ = tVelocityZ
-}
-
-func (e *VTOL) TurnRate() float64 {
-	if e.velocity == 0 {
-		return e.maxTurnRate
-	}
-
-	// dynamic turn rate is half of the max turn rate when at max velocity
-	vTurnRatio := 0.5 + 0.5*(e.maxVelocity-math.Abs(e.velocity))/e.maxVelocity
-	return e.maxTurnRate * vTurnRatio
-}
-
-func (e *VTOL) SetTargetRelativeHeading(rHeading float64) {
-	e.targetRelHeading = rHeading
+	e.UnitModel.SetTargetVelocityZ(tVelocityZ)
 }
 
 func (e *VTOL) Update() bool {
+	if e.heat > 0 {
+		// TODO: apply heat from movement based on velocity
+
+		// apply heat dissipation
+		e.heat -= e.HeatDissipation()
+		if e.heat < 0 {
+			e.heat = 0
+		}
+	}
+
 	if e.targetRelHeading == 0 &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {
@@ -295,82 +171,9 @@ func (e *VTOL) Update() bool {
 		}
 
 		e.targetRelHeading -= deltaH
-		e.angle = newH
+		e.heading = newH
 	}
 
 	// position update needed
 	return true
-}
-
-func (e *VTOL) CollisionRadius() float64 {
-	return e.collisionRadius
-}
-
-func (e *VTOL) SetCollisionRadius(collisionRadius float64) {
-	e.collisionRadius = collisionRadius
-}
-
-func (e *VTOL) CollisionHeight() float64 {
-	return e.collisionHeight
-}
-
-func (e *VTOL) SetCollisionHeight(collisionHeight float64) {
-	e.collisionHeight = collisionHeight
-}
-
-func (e *VTOL) CockpitOffset() *geom.Vector2 {
-	return e.cockpitOffset
-}
-
-func (e *VTOL) ApplyDamage(damage float64) {
-	if e.armor > 0 {
-		e.armor -= damage
-		if e.armor < 0 {
-			// apply remainder of armor damage on structure
-			e.structure -= math.Abs(e.armor)
-			e.armor = 0
-		}
-	} else {
-		e.structure -= damage
-	}
-}
-
-func (e *VTOL) ArmorPoints() float64 {
-	return e.armor
-}
-
-func (e *VTOL) SetArmorPoints(armor float64) {
-	e.armor = armor
-}
-
-func (e *VTOL) MaxArmorPoints() float64 {
-	return e.Resource.Armor
-}
-
-func (e *VTOL) StructurePoints() float64 {
-	return e.structure
-}
-
-func (e *VTOL) SetStructurePoints(structure float64) {
-	e.structure = structure
-}
-
-func (e *VTOL) MaxStructurePoints() float64 {
-	return e.Resource.Structure
-}
-
-func (e *VTOL) Parent() Entity {
-	return e.parent
-}
-
-func (e *VTOL) SetParent(parent Entity) {
-	e.parent = parent
-}
-
-func (e *VTOL) SetAsPlayer(isPlayer bool) {
-	e.isPlayer = isPlayer
-}
-
-func (e *VTOL) IsPlayer() bool {
-	return e.isPlayer
 }
