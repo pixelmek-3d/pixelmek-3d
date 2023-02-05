@@ -199,12 +199,6 @@ func (e *Mech) TargetVelocityZ() float64 {
 }
 
 func (e *Mech) SetTargetVelocityZ(tVelocityZ float64) {
-	maxV := e.MaxVelocity()
-	if tVelocityZ > maxV/2 {
-		tVelocityZ = maxV / 2
-	} else if tVelocityZ < -maxV/2 {
-		tVelocityZ = -maxV / 2
-	}
 	e.targetVelocityZ = tVelocityZ
 }
 
@@ -233,7 +227,7 @@ func (e *Mech) Update() bool {
 		}
 	}
 
-	if e.targetRelHeading == 0 &&
+	if e.targetRelHeading == 0 && e.positionZ == 0 &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {
 		// no position update needed
@@ -257,6 +251,33 @@ func (e *Mech) Update() bool {
 		}
 
 		e.velocity = newV
+	}
+
+	if e.targetVelocityZ != e.velocityZ || e.positionZ > 0 {
+		// TODO: move vertical velocity toward target by amount allowed by calculated vertical acceleration
+		var zDeltaV, zNewV float64
+		if e.targetVelocityZ > 0 {
+			zDeltaV = 0.0005 // FIXME: testing
+		} else if e.positionZ > 0 {
+			zDeltaV = -GRAVITY_UNITS_PTT // TODO: model gravity multiplier into map yaml
+		}
+
+		zNewV = e.velocityZ + zDeltaV
+
+		if zDeltaV > 0 && e.targetVelocityZ > 0 && zNewV > e.targetVelocityZ {
+			// bound velocity changes to target velocity (for jump jets, ascent only)
+			zNewV = e.targetVelocityZ
+		} else if e.positionZ <= 0 && zNewV < 0 {
+			// negative velocity returns to zero when back on the ground
+			zNewV = 0
+		}
+
+		if zNewV > 0 && e.positionZ >= CEILING_JUMP {
+			// restrict jump height
+			zNewV = 0
+		}
+
+		e.velocityZ = zNewV
 	}
 
 	if e.targetRelHeading != 0 {

@@ -33,6 +33,7 @@ func (g *Game) handleInput() {
 	}
 
 	_, isInfantry := g.player.Unit.(*model.Infantry)
+	_, isMech := g.player.Unit.(*model.Mech)
 	_, isVTOL := g.player.Unit.(*model.VTOL)
 
 	var stop, forward, backward bool
@@ -321,16 +322,21 @@ func (g *Game) handleInput() {
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		if isVTOL {
-			// TODO: use unit max velocity to determine ascend speed
+		switch {
+		case isVTOL:
+			// TODO: use unit tonnage and gravity to determine ascent speed
+			g.player.SetTargetVelocityZ(g.player.MaxVelocity() / 2)
+		case isMech:
 			g.player.SetTargetVelocityZ(0.05)
 		}
-		// TODO: else jump, if jump jets
+		// TODO: infantry jump (or jump jet infantry)
 	} else if ebiten.IsKeyPressed(ebiten.KeyControl) {
-		if isVTOL {
-			// TODO: use unit max velocity to determine descend speed
-			g.player.SetTargetVelocityZ(-0.05)
+		switch {
+		case isVTOL:
+			// TODO: use unit tonnage and gravity to determine ascent speed
+			g.player.SetTargetVelocityZ(-g.player.MaxVelocity() / 2)
 		}
+
 	} else if g.player.TargetVelocityZ() != 0 {
 		g.player.SetTargetVelocityZ(0)
 	}

@@ -240,7 +240,7 @@ func (e *VTOL) Update() bool {
 		e.velocity = newV
 	}
 
-	if e.targetVelocityZ != e.velocityZ {
+	if e.targetVelocityZ != e.velocityZ || e.positionZ >= CEILING_VTOL {
 		// TODO: move vertical velocity toward target by amount allowed by calculated vertical acceleration
 		var zDeltaV, zNewV float64
 		if e.targetVelocityZ > e.velocityZ {
@@ -254,6 +254,11 @@ func (e *VTOL) Update() bool {
 			(zDeltaV < 0 && e.targetVelocityZ <= 0 && zNewV < e.targetVelocityZ) {
 			// bound velocity changes to target velocity
 			zNewV = e.targetVelocityZ
+		}
+
+		if zNewV > 0 && e.positionZ >= CEILING_VTOL {
+			// restrict vertical flight height
+			zNewV = 0
 		}
 
 		e.velocityZ = zNewV

@@ -182,12 +182,6 @@ func (e *Infantry) TargetVelocityZ() float64 {
 }
 
 func (e *Infantry) SetTargetVelocityZ(tVelocityZ float64) {
-	maxV := e.MaxVelocity()
-	if tVelocityZ > maxV/2 {
-		tVelocityZ = maxV / 2
-	} else if tVelocityZ < -maxV/2 {
-		tVelocityZ = -maxV / 2
-	}
 	e.targetVelocityZ = tVelocityZ
 }
 
