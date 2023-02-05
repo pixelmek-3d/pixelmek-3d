@@ -15,15 +15,17 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 	m := &Infantry{
 		Resource: r,
 		UnitModel: &UnitModel{
-			anchor:          raycaster.AnchorBottom,
-			collisionRadius: collisionRadius,
-			collisionHeight: collisionHeight,
-			cockpitOffset:   cockpitOffset,
-			armor:           r.Armor,
-			structure:       r.Structure,
-			armament:        make([]Weapon, 0),
-			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:     0.05, // FIXME: testing
+			anchor:             raycaster.AnchorBottom,
+			collisionRadius:    collisionRadius,
+			collisionHeight:    collisionHeight,
+			cockpitOffset:      cockpitOffset,
+			armor:              r.Armor,
+			structure:          r.Structure,
+			armament:           make([]Weapon, 0),
+			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
+			maxTurnRate:        0.05, // FIXME: testing
+			jumpJets:           r.JumpJets,
+			maxJumpJetDuration: float64(r.JumpJets) * 2.0,
 		},
 	}
 	return m

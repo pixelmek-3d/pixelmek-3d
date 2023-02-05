@@ -26,6 +26,7 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 			armament:        make([]Weapon, 0),
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
+			jumpJets:        0,
 		},
 	}
 

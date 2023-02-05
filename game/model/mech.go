@@ -15,18 +15,20 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 	m := &Mech{
 		Resource: r,
 		UnitModel: &UnitModel{
-			anchor:          raycaster.AnchorBottom,
-			collisionRadius: collisionRadius,
-			collisionHeight: collisionHeight,
-			cockpitOffset:   cockpitOffset,
-			armor:           r.Armor,
-			structure:       r.Structure,
-			heatSinks:       r.HeatSinks.Quantity,
-			heatSinkType:    r.HeatSinks.Type.HeatSinkType,
-			armament:        make([]Weapon, 0),
-			hasTurret:       true,
-			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:     100 / r.Tonnage * 0.02, // FIXME: testing
+			anchor:             raycaster.AnchorBottom,
+			collisionRadius:    collisionRadius,
+			collisionHeight:    collisionHeight,
+			cockpitOffset:      cockpitOffset,
+			armor:              r.Armor,
+			structure:          r.Structure,
+			heatSinks:          r.HeatSinks.Quantity,
+			heatSinkType:       r.HeatSinks.Type.HeatSinkType,
+			armament:           make([]Weapon, 0),
+			hasTurret:          true,
+			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
+			maxTurnRate:        100 / r.Tonnage * 0.02, // FIXME: testing
+			jumpJets:           r.JumpJets,
+			maxJumpJetDuration: float64(r.JumpJets) * 2.0,
 		},
 	}
 
@@ -70,8 +72,23 @@ func (e *Mech) MaxStructurePoints() float64 {
 }
 
 func (e *Mech) Update() bool {
+	if e.jumpJetsActive {
+		// consume jump jet charge
+		e.jumpJetDuration += SECONDS_PER_TICK
+		if e.jumpJetDuration >= e.maxJumpJetDuration {
+			e.jumpJetDuration = e.maxJumpJetDuration
+		}
+
+	} else if e.jumpJetDuration > 0 {
+		// recharge jump jets
+		e.jumpJetDuration -= SECONDS_PER_TICK / 10
+		if e.jumpJetDuration < 0 {
+			e.jumpJetDuration = 0
+		}
+	}
+
 	if e.heat > 0 {
-		// TODO: apply heat from movement based on velocity
+		// TODO: apply heat from movement based on velocity and/or active jump jets
 
 		// apply heat dissipation
 		e.heat -= e.HeatDissipation()

@@ -37,6 +37,13 @@ type Unit interface {
 	Armament() []Weapon
 	AddArmament(Weapon)
 
+	JumpJets() int
+	JumpJetsActive() bool
+	SetJumpJetsActive(bool)
+	JumpJetHeading() float64
+	JumpJetDuration() float64
+	MaxJumpJetDuration() float64
+
 	SetAsPlayer(bool)
 	IsPlayer() bool
 
@@ -44,33 +51,38 @@ type Unit interface {
 }
 
 type UnitModel struct {
-	position         *geom.Vector2
-	positionZ        float64
-	anchor           raycaster.SpriteAnchor
-	heading          float64
-	targetRelHeading float64
-	maxTurnRate      float64
-	pitch            float64
-	hasTurret        bool
-	turretAngle      float64
-	velocity         float64
-	velocityZ        float64
-	targetVelocity   float64
-	targetVelocityZ  float64
-	maxVelocity      float64
-	collisionRadius  float64
-	collisionHeight  float64
-	cockpitOffset    *geom.Vector2
-	armor            float64
-	structure        float64
-	heat             float64
-	heatDissipation  float64
-	heatSinks        int
-	heatSinkType     HeatSinkType
-	armament         []Weapon
-	target           Entity
-	parent           Entity
-	isPlayer         bool
+	position           *geom.Vector2
+	positionZ          float64
+	anchor             raycaster.SpriteAnchor
+	heading            float64
+	targetRelHeading   float64
+	maxTurnRate        float64
+	pitch              float64
+	hasTurret          bool
+	turretAngle        float64
+	velocity           float64
+	velocityZ          float64
+	targetVelocity     float64
+	targetVelocityZ    float64
+	maxVelocity        float64
+	collisionRadius    float64
+	collisionHeight    float64
+	cockpitOffset      *geom.Vector2
+	armor              float64
+	structure          float64
+	heat               float64
+	heatDissipation    float64
+	heatSinks          int
+	heatSinkType       HeatSinkType
+	armament           []Weapon
+	jumpJets           int
+	jumpJetsActive     bool
+	jumpJetHeading     float64
+	jumpJetDuration    float64
+	maxJumpJetDuration float64
+	target             Entity
+	parent             Entity
+	isPlayer           bool
 }
 
 func EntityUnit(entity Entity) Unit {
@@ -285,6 +297,30 @@ func (e *UnitModel) StructurePoints() float64 {
 
 func (e *UnitModel) SetStructurePoints(structure float64) {
 	e.structure = structure
+}
+
+func (e *UnitModel) JumpJets() int {
+	return e.jumpJets
+}
+
+func (e *UnitModel) JumpJetsActive() bool {
+	return e.jumpJetsActive
+}
+
+func (e *UnitModel) SetJumpJetsActive(active bool) {
+	e.jumpJetsActive = active
+}
+
+func (e *UnitModel) JumpJetHeading() float64 {
+	return e.jumpJetHeading
+}
+
+func (e *UnitModel) JumpJetDuration() float64 {
+	return e.jumpJetDuration
+}
+
+func (e *UnitModel) MaxJumpJetDuration() float64 {
+	return e.maxJumpJetDuration
 }
 
 func (e *UnitModel) Parent() Entity {

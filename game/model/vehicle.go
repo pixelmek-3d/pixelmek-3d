@@ -27,6 +27,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 			hasTurret:       true,
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:     100 / r.Tonnage * 0.015, // FIXME: testing
+			jumpJets:        0,
 		},
 	}
 

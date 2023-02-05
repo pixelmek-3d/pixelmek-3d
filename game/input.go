@@ -327,9 +327,22 @@ func (g *Game) handleInput() {
 			// TODO: use unit tonnage and gravity to determine ascent speed
 			g.player.SetTargetVelocityZ(g.player.MaxVelocity() / 2)
 		case isMech:
-			g.player.SetTargetVelocityZ(0.05)
+			if g.player.Unit.JumpJets() > 0 {
+				if g.player.Unit.JumpJetsActive() {
+					// continue jumping until jets run out of charge
+					if g.player.JumpJetDuration() >= g.player.Unit.MaxJumpJetDuration() {
+						g.player.Unit.SetJumpJetsActive(false)
+						g.player.SetTargetVelocityZ(0)
+					}
+				} else if g.player.JumpJetDuration() < 0.9*g.player.Unit.MaxJumpJetDuration() {
+					// only allow jump jets to reengage if not close to the max jet charge usage
+					g.player.Unit.SetJumpJetsActive(true)
+					g.player.SetTargetVelocityZ(0.05)
+				}
+			}
 		}
 		// TODO: infantry jump (or jump jet infantry)
+
 	} else if ebiten.IsKeyPressed(ebiten.KeyControl) {
 		switch {
 		case isVTOL:
@@ -339,6 +352,10 @@ func (g *Game) handleInput() {
 
 	} else if g.player.TargetVelocityZ() != 0 {
 		g.player.SetTargetVelocityZ(0)
+		switch {
+		case isMech:
+			g.player.Unit.SetJumpJetsActive(false)
+		}
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
