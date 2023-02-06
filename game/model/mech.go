@@ -79,9 +79,9 @@ func (e *Mech) Update() bool {
 			e.jumpJetDuration = e.maxJumpJetDuration
 		}
 
-	} else if e.jumpJetDuration > 0 {
-		// recharge jump jets
-		e.jumpJetDuration -= SECONDS_PER_TICK / 10
+	} else if e.jumpJetDuration > 0 && e.positionZ == 0 {
+		// recharge jump jets when back on solid ground
+		e.jumpJetDuration -= float64(e.jumpJets) * SECONDS_PER_TICK / 10
 		if e.jumpJetDuration < 0 {
 			e.jumpJetDuration = 0
 		}

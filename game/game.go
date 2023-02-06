@@ -67,6 +67,7 @@ type Game struct {
 	heat          *render.HeatIndicator
 	radar         *render.Radar
 	throttle      *render.Throttle
+	jets          *render.JumpJetIndicator
 	crosshairs    *render.Crosshairs
 	targetReticle *render.TargetReticle
 	navReticle    *render.NavReticle

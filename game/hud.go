@@ -35,6 +35,7 @@ func (g *Game) loadHUD() {
 	g.altimeter = render.NewAltimeter(g.fonts.HUDFont)
 
 	g.heat = render.NewHeatIndicator(g.fonts.HUDFont)
+	g.jets = render.NewJumpJetIndicator(g.fonts.HUDFont)
 
 	g.radar = render.NewRadar(g.fonts.HUDFont)
 	g.radar.SetMapLines(g.collisionMap)
@@ -92,6 +93,9 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 
 	// draw heat indicator
 	g.drawHeatIndicator(hudOpts)
+
+	// draw jump jet indicator
+	g.drawJumpJetIndicator(hudOpts)
 
 	// draw radar with turret orientation
 	g.drawRadar(hudOpts)
@@ -333,6 +337,30 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 		g.width-marginX, g.height-marginY,
 	)
 	g.throttle.Draw(tBounds, hudOpts, kphVelocity, kphTgtVelocity, kphVelocityZ, kphMax, kphMax/2)
+}
+
+func (g *Game) drawJumpJetIndicator(hudOpts *render.DrawHudOptions) {
+	if g.jets == nil {
+		return
+	}
+
+	if g.player == nil || g.player.Unit.JumpJets() == 0 {
+		return
+	}
+
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
+	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+
+	jDuration := g.player.Unit.JumpJetDuration()
+	jMaxDuration := g.player.Unit.MaxJumpJetDuration()
+
+	jetsScale := g.jets.Scale() * g.renderScale * g.hudScale
+	jetsWidth, jetsHeight := int(jetsScale*float64(hudW)/12), int(jetsScale*float64(3*hudH)/18)
+	hX, hY := float64(g.width)/5+2*float64(marginX), float64(g.height-jetsHeight-marginY)
+	jBounds := image.Rect(
+		int(hX), int(hY), int(hX)+jetsWidth, int(hY)+jetsHeight,
+	)
+	g.jets.Draw(jBounds, hudOpts, jDuration, jMaxDuration)
 }
 
 func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
