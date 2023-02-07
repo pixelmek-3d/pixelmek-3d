@@ -183,22 +183,26 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 			// if either X or Y direction was already intersecting, attempt move only in the adjacent direction
 			xDiff := math.Abs(newX - posX)
 			yDiff := math.Abs(newY - posY)
+			zDiff := math.Abs(moveZ - posZ)
 			if xDiff > 0.001 || yDiff > 0.001 {
 				switch {
+				case zDiff > 0 || posZ > 0:
+					// if some Z movement, try to move only in Z
+					return g.getValidMove(entity, posX, posY, moveZ, false)
 				case xDiff <= 0.001:
 					// no more room to move in X, try to move only Y
 					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
 					// 	c.pos.X, c.pos.Y, moveX, moveY, posX, moveY)
-					return g.getValidMove(entity, posX, moveY, posZ, false)
+					return g.getValidMove(entity, posX, moveY, moveZ, false)
 				case yDiff <= 0.001:
 					// no more room to move in Y, try to move only X
 					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
 					// 	c.pos.X, c.pos.Y, moveX, moveY, moveX, posY)
-					return g.getValidMove(entity, moveX, posY, posZ, false)
+					return g.getValidMove(entity, moveX, posY, moveZ, false)
 				default:
 					// try the new position
 					// TODO: need some way to try a potentially valid shorter move without checkAlternate while also avoiding infinite loop
-					return g.getValidMove(entity, newX, newY, posZ, false)
+					return g.getValidMove(entity, newX, newY, moveZ, false)
 				}
 			} else {
 				// looks like it cannot move
