@@ -9,6 +9,8 @@ floorBox:
 skyBox:
   image: "skies/sky_blue_night.png"
 mechs:
+- unit: "jenner_iic.yaml"
+  position: [10, 10]
 - unit: "warhawk_prime.yaml"
   position: [13, 14]
 - unit: "executioner_prime.yaml"

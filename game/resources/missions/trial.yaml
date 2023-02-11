@@ -7,6 +7,8 @@ navPoints: # https://en.wikipedia.org/wiki/NATO_phonetic_alphabet
 - name: "Charlie"
   position: [60, 10]
 mechs:
+- unit: "jenner_iic.yaml"
+  position: [10, 10]
 - unit: "warhawk_prime.yaml"
   position: [13, 14]
 - unit: "executioner_prime.yaml"
