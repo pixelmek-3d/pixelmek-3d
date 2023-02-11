@@ -124,23 +124,42 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 
 			// quick check if intersects in Z-plane
 			zIntersect := zEntityIntersection(newZ, entity, sEntity)
+			if zIntersect < 0 {
+				return true
+			}
 
 			// check if movement line intersects with combined collision radii
 			combinedCircle := geom.Circle{X: sEntityPosition.X, Y: sEntityPosition.Y, Radius: sEntityCr + entityCollisionRadius}
 			combinedIntersects := geom.LineCircleIntersection(moveLine, combinedCircle, true)
 
-			if zIntersect >= 0 && len(combinedIntersects) > 0 {
+			circleHit := false
+			if len(combinedIntersects) > 0 {
 				spriteCircle := geom.Circle{X: sEntityPosition.X, Y: sEntityPosition.Y, Radius: sEntityCr}
 				for _, chkPoint := range combinedIntersects {
 					// intersections from combined circle radius indicate center point to check intersection toward sprite collision circle
 					chkLine := geom.Line{X1: chkPoint.X, Y1: chkPoint.Y, X2: sEntityPosition.X, Y2: sEntityPosition.Y}
-					intersectPoints = append(intersectPoints, geom.LineCircleIntersection(chkLine, spriteCircle, true)...)
+					chkLineIntersects := geom.LineCircleIntersection(chkLine, spriteCircle, true)
+					intersectPoints = append(intersectPoints, chkLineIntersects...)
 
-					for _, intersect := range intersectPoints {
+					for _, intersect := range chkLineIntersects {
+						circleHit = true
 						collisionEntities = append(
 							collisionEntities, &EntityCollision{entity: sEntity, collision: &intersect, collisionZ: zIntersect},
 						)
 					}
+				}
+			}
+
+			if !circleHit {
+				// check if move point could be inside the circle without touching it
+				chkLine := geom.Line{X1: newX, Y1: newY, X2: sEntityPosition.X, Y2: sEntityPosition.Y}
+				chkLineDist := chkLine.Distance()
+				if chkLineDist <= combinedCircle.Radius {
+					chkPoint := geom.Vector2{X: newX, Y: newY}
+					intersectPoints = append(intersectPoints, chkPoint)
+					collisionEntities = append(
+						collisionEntities, &EntityCollision{entity: sEntity, collision: &chkPoint, collisionZ: zIntersect},
+					)
 				}
 			}
 
@@ -184,11 +203,17 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 			xDiff := math.Abs(newX - posX)
 			yDiff := math.Abs(newY - posY)
 			zDiff := math.Abs(moveZ - posZ)
-			if xDiff > 0.001 || yDiff > 0.001 {
+			if xDiff > 0.001 || yDiff > 0.001 || zDiff > 0 {
 				switch {
-				case zDiff > 0 || posZ > 0:
-					// if some Z movement, try to move only in Z
-					return g.getValidMove(entity, posX, posY, moveZ, false)
+				case zDiff > 0:
+					// if some Z movement, try to move only in Z (useful vs. walls)
+					zP, zZ, zCollide, zE := g.getValidMove(entity, posX, posY, moveZ, false)
+					if !zCollide {
+						return zP, zZ, zCollide, zE
+					} else {
+						// Z-only resulted in collision, try without any Z (useful when on top of something)
+						return g.getValidMove(entity, moveX, moveY, posZ, true)
+					}
 				case xDiff <= 0.001:
 					// no more room to move in X, try to move only Y
 					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
