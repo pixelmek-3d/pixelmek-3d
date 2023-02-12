@@ -171,7 +171,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	ebitenutil.DrawRect(screen, midX-hW/2, topY, hW, hH, headingColor)
 
 	if c.targetIndicator.enabled {
-		// TODO: draw target indicator slightly better and indicate direction if outside of current compass view
+		// TODO: draw target indicator slightly better
 		iHeading := c.targetIndicator.heading
 		iDeg := int(geom.Degrees(iHeading))
 
@@ -180,6 +180,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			iColor = hudOpts.Color
 		}
 
+		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
 			actualDeg := i + int(math.Round(headingDeg))
 			if actualDeg < 0 {
@@ -191,14 +192,33 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 				iRadius := float64(bH) / 8
 				iRatio := float64(-i) / maxTurretDeg
 				iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+
 				ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+				iRendered = true
 				break
 			}
+		}
+
+		if !iRendered {
+			// draw indicator that target is outside of current compass range
+			actualMinDeg := headingDeg - maxTurretDeg
+			iMinFound := _isBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
+
+			var iRatio float64
+			if iMinFound {
+				iRatio = -1
+			} else {
+				iRatio = 1
+			}
+
+			iRadius := float64(bH) / 12
+			iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+			ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
 		}
 	}
 
 	if c.navIndicator.enabled {
-		// TODO: draw nav indicator slightly better and indicate direction if outside of current compass view
+		// TODO: draw nav indicator slightly better
 		iHeading := c.navIndicator.heading
 		iDeg := int(geom.Degrees(iHeading))
 
@@ -207,6 +227,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			iColor = hudOpts.Color
 		}
 
+		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
 			actualDeg := i + int(math.Round(headingDeg))
 			if actualDeg < 0 {
@@ -218,9 +239,44 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 				iRadius := float64(bH) / 8
 				iRatio := float64(-i) / maxTurretDeg
 				iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+
 				ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+				iRendered = true
 				break
 			}
 		}
+
+		if !iRendered {
+			// draw indicator that target is outside of current compass range
+			actualMinDeg := headingDeg - maxTurretDeg
+			iMinFound := _isBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
+
+			var iRatio float64
+			if iMinFound {
+				iRatio = -1
+			} else {
+				iRatio = 1
+			}
+
+			iRadius := float64(bH) / 12
+			iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+			ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+		}
 	}
+}
+
+func _isBetweenDegrees(start, end, mid float64) bool {
+	if end-start < 0.0 {
+		end = end - start + 360.0
+	} else {
+		end = end - start
+	}
+
+	if (mid - start) < 0.0 {
+		mid = mid - start + 360.0
+	} else {
+		mid = mid - start
+	}
+
+	return mid < end
 }
