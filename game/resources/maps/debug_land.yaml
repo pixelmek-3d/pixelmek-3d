@@ -1,0 +1,36 @@
+# For proper mech scale:
+#   1 unit cell   = 20 meters (in each direction)
+#   50 unit cells = 1 kilometer across
+seed: 42
+lighting:
+  falloff: -100
+  illumination: 500
+  minLightRGB: [128, 128, 128]
+  maxLightRGB: [255, 255, 255]
+floorBox:
+  image: "floors/floor_teal.png"
+skyBox:
+  image: "skies/sky_desert_pink.png"
+textures:
+  0:
+    image: ""
+numRaycastLevels: 3
+levels: [] # Using generated map levels
+generateLevels:
+  mapSize: [100, 100]
+  boundaryWall:
+    image: "walls/boundary_teal.png"
+  prefabs: []
+flooring:
+  default: "floors/desert_rough.png"
+  pathing: []
+clutter: []
+spriteFill: []
+spriteStamps: []
+sprites:
+- image: "shrubbery/tree_0.png"
+  collisionRadius: 30
+  collisionHeight: 160
+  hitPoints: 100
+  positions:
+  - [10, 10]

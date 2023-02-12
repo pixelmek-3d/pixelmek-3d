@@ -149,9 +149,8 @@ func (g *Game) loadContent() {
 	}
 
 	// load clutter sprites mapped by path
+	g.clutter = NewClutterHandler()
 	if len(g.mission.Map().Clutter) > 0 {
-		g.clutter = NewClutterHandler()
-
 		for _, clutter := range g.mission.Map().Clutter {
 			var clutterImg *ebiten.Image
 			if _, ok := g.tex.texMap[clutter.Image]; !ok {
