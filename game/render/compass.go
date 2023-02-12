@@ -66,6 +66,9 @@ func (c *Compass) SetTargetEnabled(b bool) {
 }
 
 func (c *Compass) SetTargetHeading(heading float64) {
+	if heading < 0 {
+		heading += geom.Pi2
+	}
 	c.targetIndicator.heading = heading
 }
 
@@ -74,6 +77,9 @@ func (c *Compass) SetNavEnabled(b bool) {
 }
 
 func (c *Compass) SetNavHeading(heading float64) {
+	if heading < 0 {
+		heading += geom.Pi2
+	}
 	c.navIndicator.heading = heading
 }
 
