@@ -80,8 +80,8 @@ clutter:
   frequency: 0.5
 spriteFill:
 - image: "shrubbery/tree_1.png"
-  collisionRadius: 60
-  collisionHeight: 190
+  collisionRadius: 80
+  collisionHeight: 220
   hitPoints: 10
   scaleRange: [0.6, 1.0]
   quantity: 100
@@ -97,8 +97,8 @@ spriteStamps:
 - id: "tree line L2"
   sprites:
   - image: "shrubbery/tree_1.png"
-    collisionRadius: 50
-    collisionHeight: 200
+    collisionRadius: 80
+    collisionHeight: 220
     hitPoints: 10
     positions:
     - [0, 0]
@@ -106,8 +106,8 @@ spriteStamps:
     - [1.5, 0]
     - [2.0, 0]
   - image: "shrubbery/tree_0.png"
-    collisionRadius: 30
-    collisionHeight: 160
+    collisionRadius: 60
+    collisionHeight: 190
     hitPoints: 5
     scale: 0.5
     positions:
@@ -115,8 +115,8 @@ spriteStamps:
 - id: "forest circle R6"
   sprites:
   - image: "shrubbery/tree_1.png"
-    collisionRadius: 50
-    collisionHeight: 200
+    collisionRadius: 80
+    collisionHeight: 220
     hitPoints: 10
     positions:
     - [0.1, 3.0]
@@ -143,8 +143,8 @@ spriteStamps:
     - [5.5, 4.6]
 sprites:
 - image: "shrubbery/tree_0.png"
-  collisionRadius: 30
-  collisionHeight: 160
+  collisionRadius: 60
+  collisionHeight: 190
   hitPoints: 10
   positions:
   - [8.5, 24.5]
