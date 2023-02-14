@@ -1,6 +1,8 @@
 package model
 
 import (
+	"math"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
@@ -63,6 +65,10 @@ func (e *Mech) Variant() string {
 	return e.Resource.Variant
 }
 
+func (e *Mech) Tonnage() float64 {
+	return e.Resource.Tonnage
+}
+
 func (e *Mech) MaxArmorPoints() float64 {
 	return e.Resource.Armor
 }
@@ -79,11 +85,33 @@ func (e *Mech) Update() bool {
 			e.jumpJetDuration = e.maxJumpJetDuration
 		}
 
-	} else if e.jumpJetDuration > 0 && e.positionZ == 0 {
-		// recharge jump jets when back on solid ground
-		e.jumpJetDuration -= float64(e.jumpJets) * SECONDS_PER_TICK / 10
-		if e.jumpJetDuration < 0 {
-			e.jumpJetDuration = 0
+		// set jump jet heading and velocity only while active
+		e.jumpJetHeading = e.heading
+		e.jumpJetVelocity = e.velocity
+
+	} else {
+		if e.positionZ > 0 {
+			if e.jumpJetVelocity != 0 {
+				// reduce jump jet velocity in air while jets inactive
+				// for simplicity, using gravity and unit tonnage as factor of resistance
+				deltaV := 0.5 * GRAVITY_UNITS_PTT * (e.Tonnage() / 100)
+				if e.jumpJetVelocity > 0 {
+					deltaV = -deltaV
+				}
+
+				zeroV := math.Abs(deltaV) > math.Abs(e.jumpJetVelocity)
+				if zeroV {
+					e.jumpJetVelocity = 0
+				} else {
+					e.jumpJetVelocity += deltaV
+				}
+			}
+		} else if e.jumpJetDuration > 0 {
+			// recharge jump jets when back on solid ground
+			e.jumpJetDuration -= float64(e.jumpJets) * SECONDS_PER_TICK / 10
+			if e.jumpJetDuration < 0 {
+				e.jumpJetDuration = 0
+			}
 		}
 	}
 
@@ -121,6 +149,11 @@ func (e *Mech) Update() bool {
 		}
 
 		e.velocity = newV
+
+		if e.jumpJetsActive {
+			// set jump jet velocity only while jumping
+			e.jumpJetVelocity = e.velocity
+		}
 	}
 
 	if e.targetVelocityZ != e.velocityZ || e.positionZ > 0 {
@@ -182,6 +215,11 @@ func (e *Mech) Update() bool {
 
 		e.targetRelHeading -= deltaH
 		e.heading = newH
+
+		if e.jumpJetsActive {
+			// set jump jet heading only while jumping
+			e.jumpJetHeading = e.heading
+		}
 	}
 
 	// position update needed

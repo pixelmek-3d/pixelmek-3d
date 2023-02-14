@@ -61,6 +61,10 @@ func (e *VTOL) Variant() string {
 	return e.Resource.Variant
 }
 
+func (e *VTOL) Tonnage() float64 {
+	return e.Resource.Tonnage
+}
+
 func (e *VTOL) MaxArmorPoints() float64 {
 	return e.Resource.Armor
 }

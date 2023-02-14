@@ -155,8 +155,9 @@ func NewGame() *Game {
 		exit(1)
 	}
 
-	// load mission
+	// load mission // TODO: mission select UI
 	missionPath := "trial.yaml"
+	//missionPath := "debug.yaml"
 	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
 		log.Println("Error loading mission: ", missionPath)
@@ -179,6 +180,7 @@ func NewGame() *Game {
 	// init player model
 	pX, pY, pDegrees := 8.5, 3.5, 60.0 // TODO: get from mission
 	pUnit := g.SetPlayerUnit(model.MechResourceType, "timberwolf_prime.yaml")
+	//pUnit := g.SetPlayerUnit(model.MechResourceType, "jenner_iic.yaml")
 	//pUnit := g.createModelInfantry("heavy_foot.yaml")
 	//pUnit := g.createModelVehicle("srm_carrier.yaml")
 	//pUnit:= g.createModelVTOL("donar.yaml")
@@ -522,14 +524,19 @@ func (g *Game) updatePlayer() {
 
 		// TODO: refactor to use same update position function as sprites (g.updateMechPosition, etc.)
 
-		position := g.player.Pos()
-		moveLine := geom.LineFromAngle(position.X, position.Y, g.player.Heading(), g.player.Velocity())
-
-		posZ := g.player.PosZ()
-		velocityZ := g.player.VelocityZ()
+		position, posZ := g.player.Pos(), g.player.PosZ()
+		velocity, velocityZ := g.player.Velocity(), g.player.VelocityZ()
 		if velocityZ != 0 {
 			posZ += velocityZ
 		}
+
+		moveHeading := g.player.Heading()
+		if g.player.JumpJetsActive() || (posZ > 0 && g.player.JumpJets() > 0) {
+			// while jumping, or still in air after jumping, continue from last jump jet active heading and velocity
+			moveHeading = g.player.JumpJetHeading()
+			velocity = g.player.JumpJetVelocity()
+		}
+		moveLine := geom.LineFromAngle(position.X, position.Y, moveHeading, velocity)
 
 		g.updatePlayerPosition(moveLine.X2, moveLine.Y2, posZ)
 		g.player.moved = true
@@ -570,7 +577,8 @@ func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 		// apply damage to the first sprite entity that was hit
 		collisionEntity := collisions[0]
 
-		collisionDamage := 1.0 // TODO: determine collision damage based on player mech and speed
+		//fmt.Printf("collided with entity at %v (z: %v)\n", collisionEntity.entity.Pos(), collisionEntity.entity.PosZ())
+		collisionDamage := 0.1 // TODO: determine collision damage based on player mech and speed
 		collisionEntity.entity.ApplyDamage(collisionDamage)
 		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.ArmorPoints())
 	}

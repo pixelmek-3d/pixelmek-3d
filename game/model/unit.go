@@ -11,6 +11,7 @@ type Unit interface {
 	Entity
 	Name() string
 	Variant() string
+	Tonnage() float64
 
 	Heat() float64
 	HeatDissipation() float64
@@ -41,6 +42,7 @@ type Unit interface {
 	JumpJetsActive() bool
 	SetJumpJetsActive(bool)
 	JumpJetHeading() float64
+	JumpJetVelocity() float64
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
 
@@ -78,6 +80,7 @@ type UnitModel struct {
 	jumpJets           int
 	jumpJetsActive     bool
 	jumpJetHeading     float64
+	jumpJetVelocity    float64
 	jumpJetDuration    float64
 	maxJumpJetDuration float64
 	target             Entity
@@ -313,6 +316,10 @@ func (e *UnitModel) SetJumpJetsActive(active bool) {
 
 func (e *UnitModel) JumpJetHeading() float64 {
 	return e.jumpJetHeading
+}
+
+func (e *UnitModel) JumpJetVelocity() float64 {
+	return e.jumpJetVelocity
 }
 
 func (e *UnitModel) JumpJetDuration() float64 {

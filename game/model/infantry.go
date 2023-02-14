@@ -56,6 +56,10 @@ func (e *Infantry) Variant() string {
 	return e.Resource.Variant
 }
 
+func (e *Infantry) Tonnage() float64 {
+	return 0.1
+}
+
 func (e *Infantry) MaxArmorPoints() float64 {
 	return e.Resource.Armor
 }
