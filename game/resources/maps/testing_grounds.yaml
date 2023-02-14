@@ -80,15 +80,15 @@ clutter:
   frequency: 0.5
 spriteFill:
 - image: "shrubbery/tree_1.png"
-  collisionRadius: 50
-  collisionHeight: 200
+  collisionRadius: 60
+  collisionHeight: 190
   hitPoints: 10
   scaleRange: [0.6, 1.0]
   quantity: 100
   rect: [[42, 15], [64, 30]]
 - image: "shrubbery/tree_1.png"
-  collisionRadius: 50
-  collisionHeight: 200
+  collisionRadius: 80
+  collisionHeight: 220
   hitPoints: 5
   scaleRange: [0.4, 0.7]
   quantity: 200

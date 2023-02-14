@@ -29,8 +29,8 @@ spriteFill: []
 spriteStamps: []
 sprites:
 - image: "shrubbery/tree_0.png"
-  collisionRadius: 30
-  collisionHeight: 160
+  collisionRadius: 60
+  collisionHeight: 190
   hitPoints: 100
   positions:
   - [10, 10]
