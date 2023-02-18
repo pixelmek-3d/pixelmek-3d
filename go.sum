@@ -242,8 +242,8 @@ github.com/hajimehoshi/oto v0.6.1/go.mod h1:0QXGEkbuJRohbJaxr7ZQSxnju7hEhseiPx2h
 github.com/hajimehoshi/oto/v2 v2.1.0/go.mod h1:9i0oYbpJ8BhVGkXDKdXKfFthX1JUNfXjeTp944W8TGM=
 github.com/hajimehoshi/oto/v2 v2.3.0/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
-github.com/harbdog/raycaster-go v1.8.1 h1:VfcIsSpyxA0fbEcuQ4J36hmnzqlaXWG/xzh2xVxditk=
-github.com/harbdog/raycaster-go v1.8.1/go.mod h1:CoETh4pPX87LqPyzwPdbsCzOVnIoylg7EdI2Ye4qRfs=
+github.com/harbdog/raycaster-go v1.8.2 h1:naEfKUI3kAueUR/I8S64LR0ftSFBvullF1ZttaflMLQ=
+github.com/harbdog/raycaster-go v1.8.2/go.mod h1:CoETh4pPX87LqPyzwPdbsCzOVnIoylg7EdI2Ye4qRfs=
 github.com/hashicorp/consul/api v1.12.0/go.mod h1:6pVBMo0ebnYdt2S3H87XhekM/HHrUoTD2XXb/VrZVy0=
 github.com/hashicorp/consul/sdk v0.8.0/go.mod h1:GBvyrGALthsZObzUGsfgHZQDXjg4lOjagTIwIR1vPms=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
