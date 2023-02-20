@@ -21,6 +21,7 @@ type Projectile struct {
 	extremeLifespan float64
 	inExtremeRange  bool
 	damage          float64
+	weapon          Weapon
 	parent          Entity
 }
 
@@ -28,7 +29,7 @@ const projectileHitPointsIgnored float64 = 0.12345
 
 func NewProjectile(
 	r *ModelProjectileResource, damage, velocity, optimalLifespan, extremeLifespan,
-	collisionRadius, collisionHeight float64, parent Entity,
+	collisionRadius, collisionHeight float64,
 ) *Projectile {
 	p := &Projectile{
 		Resource:        r,
@@ -40,7 +41,6 @@ func NewProjectile(
 		inExtremeRange:  false,
 		collisionRadius: collisionRadius,
 		collisionHeight: collisionHeight,
-		parent:          parent,
 	}
 	return p
 }
@@ -193,6 +193,14 @@ func (e *Projectile) SetStructurePoints(structure float64) {
 
 func (e *Projectile) MaxStructurePoints() float64 {
 	return projectileHitPointsIgnored
+}
+
+func (e *Projectile) Weapon() Weapon {
+	return e.weapon
+}
+
+func (e *Projectile) SetWeapon(weapon Weapon) {
+	e.weapon = weapon
 }
 
 func (e *Projectile) Parent() Entity {

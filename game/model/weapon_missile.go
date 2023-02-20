@@ -67,7 +67,7 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 	// based on the number of tubes, create offsets for each missile so they spawn from slightly different positions
 	w.loadMissileTubes(onePxOffset)
 
-	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight, parent)
+	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight)
 	w.projectile = p
 	return w, p
 }
@@ -162,6 +162,7 @@ func (w *MissileWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) *P
 
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
+	pSpawn.SetWeapon(w)
 
 	w.missileTube++
 

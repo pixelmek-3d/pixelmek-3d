@@ -57,7 +57,7 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 		pDamage /= float64(w.ProjectileCount())
 	}
 
-	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight, parent)
+	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight)
 	w.projectile = p
 	return w, p
 }
@@ -99,6 +99,7 @@ func (w *EnergyWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) *Pr
 
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
+	pSpawn.SetWeapon(w)
 
 	return pSpawn
 }

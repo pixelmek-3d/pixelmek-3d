@@ -13,6 +13,7 @@ import (
 type ProjectileSprite struct {
 	*Sprite
 	ImpactEffect EffectSprite
+	Projectile   *model.Projectile
 }
 
 func NewProjectile(
@@ -21,6 +22,7 @@ func NewProjectile(
 	p := &ProjectileSprite{
 		Sprite:       NewSprite(projectile, scale, img),
 		ImpactEffect: EffectSprite{},
+		Projectile:   projectile,
 	}
 
 	// projectiles cannot be focused upon by player reticle
@@ -63,6 +65,7 @@ func NewAnimatedProjectile(
 	s := &ProjectileSprite{
 		Sprite:       p,
 		ImpactEffect: impactEffect,
+		Projectile:   projectile,
 	}
 
 	return s

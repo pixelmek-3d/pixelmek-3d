@@ -53,6 +53,7 @@ func (g *Game) fireWeapon() {
 			if projectile != nil {
 				pTemplate := projectileSpriteForWeapon(weapon)
 				pSprite := pTemplate.Clone()
+				pSprite.Projectile = projectile
 				pSprite.Entity = projectile
 				g.sprites.addProjectile(pSprite)
 
@@ -128,6 +129,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 						pTemplate := projectileSpriteForWeapon(weapon)
 						pSprite := pTemplate.Clone()
+						pSprite.Projectile = projectile
 						pSprite.Entity = projectile
 						g.sprites.addProjectile(pSprite)
 
@@ -186,6 +188,26 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 	if p.Velocity() != 0 {
 		pPosition := p.Pos()
+
+		// adjust pitch and heading if is a locked missile projectile
+		_, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
+		if isMissile {
+			// TODO: only if lock-on && lock acquired && target that was originally fired against
+			t := p.Projectile.Parent().(model.Unit).Target()
+			if t != nil {
+				tPosition := t.Pos()
+				tLine := &geom3d.Line3d{
+					X1: pPosition.X, Y1: pPosition.Y, Z1: p.PosZ(),
+					X2: tPosition.X, Y2: tPosition.Y, Z2: t.PosZ(),
+				}
+				tHeading, tPitch := tLine.Heading(), tLine.Pitch()
+
+				// TODO: only adjust heading/pitch angle by small amount towards target
+				p.SetHeading(tHeading)
+				p.SetPitch(tPitch)
+			}
+		}
+
 		trajectory := geom3d.Line3dFromAngle(pPosition.X, pPosition.Y, p.PosZ(), p.Heading(), p.Pitch(), p.Velocity())
 		xCheck := trajectory.X2
 		yCheck := trajectory.Y2
@@ -280,6 +302,7 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 	if projectile != nil {
 		pTemplate := projectileSpriteForWeapon(w)
 		pSprite := pTemplate.Clone()
+		pSprite.Projectile = projectile
 		pSprite.Entity = projectile
 		g.sprites.addProjectile(pSprite)
 	}
