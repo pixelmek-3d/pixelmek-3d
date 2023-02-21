@@ -7,6 +7,7 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
@@ -202,7 +203,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		if !iRendered {
 			// draw indicator that target is outside of current compass range
 			actualMinDeg := headingDeg - maxTurretDeg
-			iMinFound := _isBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
+			iMinFound := model.IsBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
 
 			var iRatio float64
 			if iMinFound {
@@ -249,7 +250,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		if !iRendered {
 			// draw indicator that target is outside of current compass range
 			actualMinDeg := headingDeg - maxTurretDeg
-			iMinFound := _isBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
+			iMinFound := model.IsBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
 
 			var iRatio float64
 			if iMinFound {
@@ -263,20 +264,4 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
 		}
 	}
-}
-
-func _isBetweenDegrees(start, end, mid float64) bool {
-	if end-start < 0.0 {
-		end = end - start + 360.0
-	} else {
-		end = end - start
-	}
-
-	if (mid - start) < 0.0 {
-		mid = mid - start + 360.0
-	} else {
-		mid = mid - start
-	}
-
-	return mid < end
 }

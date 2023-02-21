@@ -6,6 +6,7 @@ import (
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 )
 
@@ -192,17 +193,43 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 		// adjust pitch and heading if is a locked missile projectile
 		_, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
 		if isMissile {
-			// TODO: only if lock-on && lock acquired && target that was originally fired against
+			// TODO: only if lock-on weapon && lock acquired
 			t := p.Projectile.Parent().(model.Unit).Target()
 			if t != nil {
 				tPosition := t.Pos()
+				// TODO: add a small amount of randomness to X/Y/Z of target line
 				tLine := &geom3d.Line3d{
 					X1: pPosition.X, Y1: pPosition.Y, Z1: p.PosZ(),
-					X2: tPosition.X, Y2: tPosition.Y, Z2: t.PosZ(),
+					X2: tPosition.X, Y2: tPosition.Y, Z2: t.PosZ() + t.CollisionHeight()/2,
 				}
 				tHeading, tPitch := tLine.Heading(), tLine.Pitch()
 
 				// TODO: only adjust heading/pitch angle by small amount towards target
+				pHeading, pPitch := p.Heading(), p.Pitch()
+				pDelta := 0.005
+
+				if tHeading != pHeading {
+					isCCW := model.IsBetweenRadians(pHeading, pHeading-geom.Pi, tHeading)
+					if isCCW {
+						tHeading = geom.Clamp(tHeading, pHeading, pHeading+pDelta)
+					} else {
+						tHeading = geom.Clamp(tHeading, pHeading-pDelta, pHeading)
+					}
+				}
+				if tHeading < 0 {
+					tHeading += geom.Pi2
+				} else if tHeading > geom.Pi2 {
+					tHeading -= geom.Pi2
+				}
+
+				if tPitch != pPitch {
+					if tPitch > pPitch {
+						tPitch = geom.Clamp(tPitch, pPitch, pPitch+pDelta)
+					} else {
+						tPitch = geom.Clamp(tPitch, pPitch-pDelta, pPitch)
+					}
+				}
+
 				p.SetHeading(tHeading)
 				p.SetPitch(tPitch)
 			}
