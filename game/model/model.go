@@ -201,19 +201,20 @@ type ModelEnergyWeaponResource struct {
 }
 
 type ModelMissileWeaponResource struct {
-	Name            string                   `yaml:"name" validate:"required"`
-	ShortName       string                   `yaml:"short" validate:"required"`
-	Tech            ModelTech                `yaml:"tech" validate:"required"`
-	Tonnage         float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
-	Damage          float64                  `yaml:"damage" validate:"gt=0"`
-	Heat            float64                  `yaml:"heat" validate:"gte=0"`
-	Distance        float64                  `yaml:"distance" validate:"gt=0"`
-	ExtremeDistance float64                  `yaml:"extremeDistance" validate:"gte=0"`
-	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
-	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
-	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
-	ProjectileDelay float64                  `yaml:"projectileDelay" validate:"gte=0"`
-	Projectile      *ModelProjectileResource `yaml:"projectile"`
+	Name            string                    `yaml:"name" validate:"required"`
+	ShortName       string                    `yaml:"short" validate:"required"`
+	Tech            ModelTech                 `yaml:"tech" validate:"required"`
+	Tonnage         float64                   `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Damage          float64                   `yaml:"damage" validate:"gt=0"`
+	Heat            float64                   `yaml:"heat" validate:"gte=0"`
+	Distance        float64                   `yaml:"distance" validate:"gt=0"`
+	ExtremeDistance float64                   `yaml:"extremeDistance" validate:"gte=0"`
+	Velocity        float64                   `yaml:"velocity" validate:"gt=0"`
+	Cooldown        float64                   `yaml:"cooldown" validate:"gt=0"`
+	ProjectileCount int                       `yaml:"projectileCount" validate:"gt=0"`
+	ProjectileDelay float64                   `yaml:"projectileDelay" validate:"gte=0"`
+	Projectile      *ModelProjectileResource  `yaml:"projectile"`
+	LockOn          *ModelMissileWeaponLockOn `yaml:"lockOn,omitempty"`
 }
 
 type ModelBallisticWeaponResource struct {
@@ -239,6 +240,11 @@ type ModelProjectileResource struct {
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
 	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 	ImpactEffect      *ModelEffectResource     `yaml:"impactEffect"`
+}
+
+type ModelMissileWeaponLockOn struct {
+	TurnRate    float64 `yaml:"turnRate" validate:"gt=0"`
+	GroupRadius float64 `yaml:"groupRadius" validate:"gt=0"`
 }
 
 type ModelEffectResource struct {

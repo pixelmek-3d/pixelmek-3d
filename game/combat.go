@@ -192,9 +192,10 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 		pPos := p.Pos()
 
 		// adjust pitch and heading if is a locked missile projectile
-		_, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
-		if isMissile {
-			// TODO: only if lock-on weapon && lock acquired
+		missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
+		if isMissile && missileWeapon.IsLockOn() {
+			// TODO: only if lock acquired (or allow partial lock to partial guide)?
+			// TODO: require lock to fire Streak SRM
 			t := p.Projectile.Parent().(model.Unit).Target()
 			if t != nil {
 				tPos := t.Pos()
@@ -206,9 +207,9 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				collisionOffset := 0.0
 				switch t.Anchor() {
 				case raycaster.AnchorBottom:
-					collisionOffset = t.CollisionHeight() / 2
+					collisionOffset = 2 * t.CollisionHeight() / 3
 				case raycaster.AnchorTop:
-					collisionOffset = -t.CollisionHeight() / 2
+					collisionOffset = -1 * t.CollisionHeight() / 3
 				}
 
 				tLine := &geom3d.Line3d{
@@ -226,7 +227,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				}
 
 				// only adjust heading/pitch angle by small amount towards target
-				pDelta := geom.Radians(7.5) / model.TICKS_PER_SECOND // TODO: model degrees per second turn into weapon yaml
+				pDelta := missileWeapon.LockOnTurnRate() // TODO: adjust turn rate based on lock-on %
 
 				if tHeading != pHeading {
 					isCCW := model.IsBetweenRadians(pHeading, pHeading-geom.Pi, tHeading)

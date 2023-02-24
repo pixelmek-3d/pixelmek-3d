@@ -26,6 +26,8 @@ type MissileWeapon struct {
 
 	missileTube       int
 	missileTubeOffset []*geom.Vector2
+	lockOnTurnRate    float64
+	lockOnGroupRadius float64
 }
 
 func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, onePxOffset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
@@ -45,6 +47,11 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 		missileTube:       0,
 		missileTubeOffset: make([]*geom.Vector2, r.ProjectileCount),
 		parent:            parent,
+	}
+
+	if r.LockOn != nil {
+		w.lockOnTurnRate = geom.Radians(r.LockOn.TurnRate) / TICKS_PER_SECOND
+		w.lockOnGroupRadius = r.LockOn.GroupRadius
 	}
 
 	// convert velocity from meters/second to unit distance per tick
@@ -122,6 +129,18 @@ func (w *MissileWeapon) getMissileTubeOffset() *geom.Vector2 {
 		w.missileTube = 0
 	}
 	return w.missileTubeOffset[w.missileTube]
+}
+
+func (w *MissileWeapon) IsLockOn() bool {
+	return w.Resource.LockOn != nil
+}
+
+func (w *MissileWeapon) LockOnTurnRate() float64 {
+	return w.lockOnTurnRate
+}
+
+func (w *MissileWeapon) LockOnGroupRadius() float64 {
+	return w.lockOnGroupRadius
 }
 
 func (w *MissileWeapon) Clone() Weapon {

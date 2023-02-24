@@ -52,19 +52,17 @@ func NewProjectile(
 
 func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
 	if e.lockOnOffset == nil {
-		_, isMissile := e.weapon.(*MissileWeapon)
-		if isMissile {
-			// TODO: only if lock-on weapon
-
-			// TODO: generate random projectile offset based on launcher missile capacity
-			// missileCount := missileWeapon.ProjectileCount()
-
+		missileWeapon, isMissile := e.weapon.(*MissileWeapon)
+		if isMissile && missileWeapon.IsLockOn() {
 			rand.Seed(time.Now().UnixNano())
-			rX := RandFloat64In(-0.2, 0.2)
-			rY := RandFloat64In(-0.2, 0.2)
-			rZ := RandFloat64In(-0.1, 0.3)
-			e.lockOnOffset = &geom3d.Vector3{X: rX, Y: rY, Z: rZ}
 
+			groupRadius := missileWeapon.LockOnGroupRadius()
+			randRadius := RandFloat64In(-groupRadius, groupRadius)
+			randHeading := RandFloat64In(-geom.Pi, geom.Pi)
+			randPitch := RandFloat64In(-geom.Pi, geom.Pi)
+
+			randLine := geom3d.Line3dFromAngle(0, 0, 0, randHeading, randPitch, randRadius)
+			e.lockOnOffset = &geom3d.Vector3{X: randLine.X2, Y: randLine.Y2, Z: randLine.Z2}
 		} else {
 			e.lockOnOffset = &geom3d.Vector3{}
 		}

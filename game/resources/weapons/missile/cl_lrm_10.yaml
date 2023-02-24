@@ -12,6 +12,9 @@ distance: 630
 velocity: 150
 # cooldown in seconds
 cooldown: 4
+lockOn:
+  turnRate: 7.5
+  groupRadius: 0.15
 projectileCount: 10
 projectileDelay: 0.05
 projectile:
