@@ -1,8 +1,12 @@
 package model
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/jinzhu/copier"
 )
 
@@ -22,6 +26,7 @@ type Projectile struct {
 	inExtremeRange  bool
 	damage          float64
 	weapon          Weapon
+	lockOnOffset    *geom3d.Vector3
 	parent          Entity
 }
 
@@ -43,6 +48,28 @@ func NewProjectile(
 		collisionHeight: collisionHeight,
 	}
 	return p
+}
+
+func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
+	if e.lockOnOffset == nil {
+		_, isMissile := e.weapon.(*MissileWeapon)
+		if isMissile {
+			// TODO: only if lock-on weapon
+
+			// TODO: generate random projectile offset based on launcher missile capacity
+			// missileCount := missileWeapon.ProjectileCount()
+
+			rand.Seed(time.Now().UnixNano())
+			rX := RandFloat64In(-0.2, 0.2)
+			rY := RandFloat64In(-0.2, 0.2)
+			rZ := RandFloat64In(-0.1, 0.3)
+			e.lockOnOffset = &geom3d.Vector3{X: rX, Y: rY, Z: rZ}
+
+		} else {
+			e.lockOnOffset = &geom3d.Vector3{}
+		}
+	}
+	return e.lockOnOffset
 }
 
 func (e *Projectile) Clone() Entity {

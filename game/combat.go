@@ -6,6 +6,7 @@ import (
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 )
@@ -188,7 +189,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 	defer wg.Done()
 
 	if p.Velocity() != 0 {
-		pPosition := p.Pos()
+		pPos := p.Pos()
 
 		// adjust pitch and heading if is a locked missile projectile
 		_, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
@@ -196,17 +197,36 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			// TODO: only if lock-on weapon && lock acquired
 			t := p.Projectile.Parent().(model.Unit).Target()
 			if t != nil {
-				tPosition := t.Pos()
-				// TODO: add a small amount of randomness to X/Y/Z of target line
+				tPos := t.Pos()
+
+				// add a small amount of random offset to X/Y/Z of target line
+				pOffset := p.Projectile.LockOnOffset()
+
+				// use target collision box to determine center of target offset
+				collisionOffset := 0.0
+				switch t.Anchor() {
+				case raycaster.AnchorBottom:
+					collisionOffset = t.CollisionHeight() / 2
+				case raycaster.AnchorTop:
+					collisionOffset = -t.CollisionHeight() / 2
+				}
+
 				tLine := &geom3d.Line3d{
-					X1: pPosition.X, Y1: pPosition.Y, Z1: p.PosZ(),
-					X2: tPosition.X, Y2: tPosition.Y, Z2: t.PosZ() + t.CollisionHeight()/2,
+					X1: pPos.X, Y1: pPos.Y, Z1: p.PosZ(),
+					X2: tPos.X + pOffset.X, Y2: tPos.Y + pOffset.Y, Z2: t.PosZ() + pOffset.Z + collisionOffset,
 				}
 				tHeading, tPitch := tLine.Heading(), tLine.Pitch()
+				if tHeading < 0 {
+					tHeading += geom.Pi2
+				}
 
-				// TODO: only adjust heading/pitch angle by small amount towards target
 				pHeading, pPitch := p.Heading(), p.Pitch()
-				pDelta := 0.005
+				if pHeading < 0 {
+					pHeading += geom.Pi2
+				}
+
+				// only adjust heading/pitch angle by small amount towards target
+				pDelta := geom.Radians(7.5) / model.TICKS_PER_SECOND // TODO: model degrees per second turn into weapon yaml
 
 				if tHeading != pHeading {
 					isCCW := model.IsBetweenRadians(pHeading, pHeading-geom.Pi, tHeading)
@@ -215,11 +235,6 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 					} else {
 						tHeading = geom.Clamp(tHeading, pHeading-pDelta, pHeading)
 					}
-				}
-				if tHeading < 0 {
-					tHeading += geom.Pi2
-				} else if tHeading > geom.Pi2 {
-					tHeading -= geom.Pi2
 				}
 
 				if tPitch != pPitch {
@@ -235,7 +250,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			}
 		}
 
-		trajectory := geom3d.Line3dFromAngle(pPosition.X, pPosition.Y, p.PosZ(), p.Heading(), p.Pitch(), p.Velocity())
+		trajectory := geom3d.Line3dFromAngle(pPos.X, pPos.Y, p.PosZ(), p.Heading(), p.Pitch(), p.Velocity())
 		xCheck := trajectory.X2
 		yCheck := trajectory.Y2
 		zCheck := trajectory.Z2
