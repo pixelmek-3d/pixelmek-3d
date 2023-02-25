@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"math"
 	"math/rand"
@@ -542,24 +543,44 @@ func (g *Game) updatePlayer() {
 		g.player.moved = true
 	}
 
-	t := g.player.Target()
-	if t != nil {
-		// TODO: only increment lock percent on target if reticle near target area and in weapon range
+	target := g.player.Target()
+	if target != nil {
+		// only increment lock percent on target if reticle near target area and in weapon range
+		s := g.getSpriteFromEntity(target)
+		if s == nil {
+			return
+		}
 
-		targetDistance := model.EntityDistance(g.player, t) - g.player.CollisionRadius() - t.CollisionRadius()
+		acquireLock := false
+		crosshairLockSize := int(math.Ceil(float64(g.width) * 0.05))
+		midW, midH := g.width/2, g.height/2
+		crosshairBounds := image.Rect(
+			midW-crosshairLockSize/2, midH-crosshairLockSize/2,
+			midW+crosshairLockSize/2, midH+crosshairLockSize/2,
+		)
+		targetBounds := s.ScreenRect()
+		if targetBounds != nil {
+			acquireLock = targetBounds.Overlaps(crosshairBounds)
+		}
+
+		targetDistance := model.EntityDistance(g.player, target) - g.player.CollisionRadius() - target.CollisionRadius()
 		lockOnRange := 1000.0 / model.METERS_PER_UNIT
 
 		if int(targetDistance) <= int(lockOnRange) {
-			// TODO: increase lock percent delta if closer to target
+			// TODO: decrease lock percent delta if further from target
 			lockDelta := 0.25 / model.TICKS_PER_SECOND
+			if !acquireLock {
+				lockDelta = -0.15 / model.TICKS_PER_SECOND
+			}
+
 			targetLock := g.player.TargetLock() + lockDelta
 			if targetLock > 1.0 {
 				targetLock = 1.0
+			} else if targetLock < 0 {
+				targetLock = 0
 			}
 			g.player.SetTargetLock(targetLock)
 		}
-
-		// TODO: decrease lock percent by some delta if reticle not near target or not in range
 	}
 }
 
