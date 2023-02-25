@@ -23,11 +23,13 @@ var (
 
 type UnitStatus struct {
 	HUDSprite
-	fontRenderer  *etxt.Renderer
-	unit          *Sprite
-	unitDistance  float64
-	isPlayer      bool
-	targetReticle *TargetReticle
+	fontRenderer   *etxt.Renderer
+	unit           *Sprite
+	unitDistance   float64
+	showTargetLock bool
+	targetLock     float64
+	isPlayer       bool
+	targetReticle  *TargetReticle
 }
 
 //NewUnitStatus creates a unit status element image to be rendered on demand
@@ -57,6 +59,14 @@ func (u *UnitStatus) SetUnit(unit *Sprite) {
 
 func (u *UnitStatus) SetUnitDistance(distance float64) {
 	u.unitDistance = distance
+}
+
+func (u *UnitStatus) ShowTargetLock(show bool) {
+	u.showTargetLock = show
+}
+
+func (u *UnitStatus) SetTargetLock(lockPercent float64) {
+	u.targetLock = lockPercent
 }
 
 func (u *UnitStatus) SetTargetReticle(reticle *TargetReticle) {
@@ -164,9 +174,9 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			u.fontRenderer.Draw(distanceStr, bX+bW/2, bY+bH)
 		}
 
-		// enemy target chassis name
 		tUnit := model.EntityUnit(u.unit.Entity)
 		if tUnit != nil {
+			// target chassis name
 			eColor := _colorEnemy
 			if hudOpts.UseCustomColor {
 				eColor = hudOpts.Color
@@ -176,7 +186,24 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 			chassisVariant := strings.ToUpper(tUnit.Variant())
 			u.fontRenderer.Draw(chassisVariant, bX+bW/2, bY)
+
+			// if lock-ons equipped, display lock percent on target
+			if u.showTargetLock {
+				lColor := eColor
+				if u.targetLock < 1.0 {
+					lColor = _colorStatusWarn
+					if hudOpts.UseCustomColor {
+						lColor = hudOpts.Color
+					}
+				}
+				u.fontRenderer.SetColor(lColor)
+				u.fontRenderer.SetAlign(etxt.Bottom, etxt.Left)
+
+				lockStr := fmt.Sprintf("LOCK: %0.0f%%", u.targetLock*100)
+				u.fontRenderer.Draw(lockStr, bX, bY-u.targetReticle.Height())
+			}
 		}
+
 	}
 
 	if u.targetReticle != nil {

@@ -20,6 +20,8 @@ type Unit interface {
 
 	Target() Entity
 	SetTarget(Entity)
+	TargetLock() float64
+	SetTargetLock(float64)
 
 	TurnRate() float64
 	SetTargetRelativeHeading(float64)
@@ -85,6 +87,7 @@ type UnitModel struct {
 	jumpJetDuration    float64
 	maxJumpJetDuration float64
 	target             Entity
+	targetLock         float64
 	parent             Entity
 	isPlayer           bool
 }
@@ -131,16 +134,15 @@ func (e *UnitModel) TriggerWeapon(w Weapon) bool {
 
 	missileWeapon, isMissile := w.(*MissileWeapon)
 	if isMissile && missileWeapon.IsLockOnLockRequired() {
-		// for Streak SRMs or other that require target lock to fire
-		// TODO: check for 100% lock acquired
-		if e.target == nil {
+		// for Streak SRMs that require target lock to fire
+		if e.target == nil || e.targetLock < 1.0 {
 			return false
 		}
 
 		// target must be in weapon range
 		targetDistance := e.DistanceToEntity(e.target) - e.CollisionRadius() - e.target.CollisionRadius()
 		weaponRange := w.Distance() / METERS_PER_UNIT
-		if targetDistance > weaponRange {
+		if int(targetDistance) > int(weaponRange) {
 			return false
 		}
 	}
@@ -155,7 +157,18 @@ func (e *UnitModel) Target() Entity {
 }
 
 func (e *UnitModel) SetTarget(t Entity) {
+	if e.target != t && e.targetLock != 0 {
+		e.SetTargetLock(0)
+	}
 	e.target = t
+}
+
+func (e *UnitModel) TargetLock() float64 {
+	return e.targetLock
+}
+
+func (e *UnitModel) SetTargetLock(lockPercent float64) {
+	e.targetLock = lockPercent
 }
 
 func (e *UnitModel) HasTurret() bool {

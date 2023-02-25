@@ -161,6 +161,21 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		distanceMeters := targetDistance * model.METERS_PER_UNIT
 
 		g.targetStatus.SetUnitDistance(distanceMeters)
+
+		// determine if lock percent should show
+		hasLockOns := false
+		for _, w := range g.player.Armament() {
+			missileWeapon, isMissile := w.(*model.MissileWeapon)
+			if isMissile && missileWeapon.IsLockOn() {
+				hasLockOns = true
+				break
+			}
+		}
+		g.targetStatus.ShowTargetLock(hasLockOns)
+		g.targetStatus.SetTargetLock(g.player.TargetLock())
+	} else {
+		g.targetStatus.ShowTargetLock(false)
+		g.targetStatus.SetTargetLock(0)
 	}
 
 	g.targetStatus.SetTargetReticle(g.targetReticle)

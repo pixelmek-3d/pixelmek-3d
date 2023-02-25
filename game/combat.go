@@ -194,26 +194,26 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 		// adjust pitch and heading if is a locked missile projectile
 		missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
 		if isMissile && missileWeapon.IsLockOn() {
-			// TODO: only if lock acquired (or allow partial lock to partial guide)?
-			t := p.Projectile.Parent().(model.Unit).Target()
-			if t != nil {
-				tPos := t.Pos()
+			pUnit := p.Projectile.Parent().(model.Unit)
+			target := pUnit.Target()
+			if target != nil {
+				tPos := target.Pos()
 
 				// add a small amount of random offset to X/Y/Z of target line
 				pOffset := p.Projectile.LockOnOffset()
 
 				// use target collision box to determine center of target offset
 				collisionOffset := 0.0
-				switch t.Anchor() {
+				switch target.Anchor() {
 				case raycaster.AnchorBottom:
-					collisionOffset = 2 * t.CollisionHeight() / 3
+					collisionOffset = 2 * target.CollisionHeight() / 3
 				case raycaster.AnchorTop:
-					collisionOffset = -1 * t.CollisionHeight() / 3
+					collisionOffset = -1 * target.CollisionHeight() / 3
 				}
 
 				tLine := &geom3d.Line3d{
 					X1: pPos.X, Y1: pPos.Y, Z1: p.PosZ(),
-					X2: tPos.X + pOffset.X, Y2: tPos.Y + pOffset.Y, Z2: t.PosZ() + pOffset.Z + collisionOffset,
+					X2: tPos.X + pOffset.X, Y2: tPos.Y + pOffset.Y, Z2: target.PosZ() + pOffset.Z + collisionOffset,
 				}
 				tHeading, tPitch := tLine.Heading(), tLine.Pitch()
 				if tHeading < 0 {
@@ -226,7 +226,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				}
 
 				// only adjust heading/pitch angle by small amount towards target
-				pDelta := missileWeapon.LockOnTurnRate() // TODO: adjust turn rate based on lock-on %
+				pDelta := missileWeapon.LockOnTurnRate() * pUnit.TargetLock()
 
 				if tHeading != pHeading {
 					isCCW := model.IsBetweenRadians(pHeading, pHeading-geom.Pi, tHeading)

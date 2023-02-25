@@ -541,6 +541,26 @@ func (g *Game) updatePlayer() {
 		g.updatePlayerPosition(moveLine.X2, moveLine.Y2, posZ)
 		g.player.moved = true
 	}
+
+	t := g.player.Target()
+	if t != nil {
+		// TODO: only increment lock percent on target if reticle near target area and in weapon range
+
+		targetDistance := model.EntityDistance(g.player, t) - g.player.CollisionRadius() - t.CollisionRadius()
+		lockOnRange := 1000.0 / model.METERS_PER_UNIT
+
+		if int(targetDistance) <= int(lockOnRange) {
+			// TODO: increase lock percent delta if closer to target
+			lockDelta := 0.25 / model.TICKS_PER_SECOND
+			targetLock := g.player.TargetLock() + lockDelta
+			if targetLock > 1.0 {
+				targetLock = 1.0
+			}
+			g.player.SetTargetLock(targetLock)
+		}
+
+		// TODO: decrease lock percent by some delta if reticle not near target or not in range
+	}
 }
 
 // Update camera to match player position and orientation
