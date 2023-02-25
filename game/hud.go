@@ -8,7 +8,6 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/render"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
-	"github.com/harbdog/raycaster-go/geom3d"
 )
 
 func (g *Game) initInteractiveTypes() {
@@ -158,15 +157,10 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 	}
 
 	if targetUnit != nil {
-		pPos, pZ := g.player.Pos(), g.player.PosZ()
-		tPos, tZ := targetUnit.Pos(), targetUnit.PosZ()
-		targetLine := geom3d.Line3d{
-			X1: pPos.X, Y1: pPos.Y, Z1: pZ,
-			X2: tPos.X, Y2: tPos.Y, Z2: tZ,
-		}
-		targetDistance := (targetLine.Distance() - targetUnit.CollisionRadius() - g.player.CollisionRadius()) * model.METERS_PER_UNIT
+		targetDistance := model.EntityDistance(g.player, targetUnit.Entity) - targetUnit.CollisionRadius() - g.player.CollisionRadius()
+		distanceMeters := targetDistance * model.METERS_PER_UNIT
 
-		g.targetStatus.SetUnitDistance(targetDistance)
+		g.targetStatus.SetUnitDistance(distanceMeters)
 	}
 
 	g.targetStatus.SetTargetReticle(g.targetReticle)
