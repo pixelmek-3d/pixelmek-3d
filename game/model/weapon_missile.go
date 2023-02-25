@@ -24,10 +24,11 @@ type MissileWeapon struct {
 	projectile      Projectile
 	parent          Entity
 
-	missileTube       int
-	missileTubeOffset []*geom.Vector2
-	lockOnTurnRate    float64
-	lockOnGroupRadius float64
+	missileTube        int
+	missileTubeOffset  []*geom.Vector2
+	lockOnLockRequired bool
+	lockOnTurnRate     float64
+	lockOnGroupRadius  float64
 }
 
 func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, onePxOffset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
@@ -50,6 +51,7 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 	}
 
 	if r.LockOn != nil {
+		w.lockOnLockRequired = r.LockOn.LockRequired
 		w.lockOnTurnRate = geom.Radians(r.LockOn.TurnRate) / TICKS_PER_SECOND
 		w.lockOnGroupRadius = r.LockOn.GroupRadius
 	}
@@ -133,6 +135,10 @@ func (w *MissileWeapon) getMissileTubeOffset() *geom.Vector2 {
 
 func (w *MissileWeapon) IsLockOn() bool {
 	return w.Resource.LockOn != nil
+}
+
+func (w *MissileWeapon) IsLockOnLockRequired() bool {
+	return w.lockOnLockRequired
 }
 
 func (w *MissileWeapon) LockOnTurnRate() float64 {

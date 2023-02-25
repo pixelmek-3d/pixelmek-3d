@@ -195,7 +195,6 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 		missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
 		if isMissile && missileWeapon.IsLockOn() {
 			// TODO: only if lock acquired (or allow partial lock to partial guide)?
-			// TODO: require lock to fire Streak SRM
 			t := p.Projectile.Parent().(model.Unit).Target()
 			if t != nil {
 				tPos := t.Pos()

@@ -243,8 +243,9 @@ type ModelProjectileResource struct {
 }
 
 type ModelMissileWeaponLockOn struct {
-	TurnRate    float64 `yaml:"turnRate" validate:"gt=0"`
-	GroupRadius float64 `yaml:"groupRadius" validate:"gt=0"`
+	LockRequired bool    `yaml:"lockRequired"`
+	TurnRate     float64 `yaml:"turnRate" validate:"gt=0"`
+	GroupRadius  float64 `yaml:"groupRadius" validate:"gt=0"`
 }
 
 type ModelEffectResource struct {

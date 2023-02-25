@@ -13,6 +13,7 @@ velocity: 200
 # cooldown in seconds
 cooldown: 4
 lockOn:
+  lockRequired: true
   turnRate: 120
   groupRadius: 0.15
 projectileCount: 4

@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 )
 
 type Unit interface {
@@ -100,6 +101,17 @@ func IsEntityUnit(entity Entity) bool {
 	return ok
 }
 
+func (e1 *UnitModel) DistanceToEntity(e2 Entity) float64 {
+	pos1, pos2 := e1.Pos(), e2.Pos()
+	x1, y1, z1 := pos1.X, pos1.Y, e1.PosZ()
+	x2, y2, z2 := pos2.X, pos2.Y, e2.PosZ()
+	line := geom3d.Line3d{
+		X1: x1, Y1: y1, Z1: z1,
+		X2: x2, Y2: y2, Z2: z2,
+	}
+	return line.Distance()
+}
+
 func (e *UnitModel) Pitch() float64 {
 	return e.pitch
 }
@@ -115,6 +127,22 @@ func (e *UnitModel) HeatDissipation() float64 {
 func (e *UnitModel) TriggerWeapon(w Weapon) bool {
 	if w.Cooldown() > 0 {
 		return false
+	}
+
+	missileWeapon, isMissile := w.(*MissileWeapon)
+	if isMissile && missileWeapon.IsLockOnLockRequired() {
+		// for Streak SRMs or other that require target lock to fire
+		// TODO: check for 100% lock acquired
+		if e.target == nil {
+			return false
+		}
+
+		// target must be in weapon range
+		targetDistance := e.DistanceToEntity(e.target) - e.CollisionRadius() - e.target.CollisionRadius()
+		weaponRange := w.Distance() / METERS_PER_UNIT
+		if targetDistance > weaponRange {
+			return false
+		}
 	}
 
 	w.TriggerCooldown()
