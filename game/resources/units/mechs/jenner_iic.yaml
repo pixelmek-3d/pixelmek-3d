@@ -26,7 +26,7 @@ armament:
   type: missile
   location: ra
   offset: [-12, 35]
-- weapon: "cl_srm_4.yaml" # TODO: Streak SRM4
+- weapon: "cl_streak_srm_4.yaml"
   type: missile
   location: ct
   offset: [0, 37]

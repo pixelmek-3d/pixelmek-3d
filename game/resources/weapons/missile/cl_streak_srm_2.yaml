@@ -1,0 +1,40 @@
+---
+# https://www.sarna.net/wiki/Streak_SRM-2
+name: Streak Short Range Missile 2
+short: SSRM2
+tech: clan
+tonnage: 1
+damage: 4
+heat: 2
+# max distance in meters: 12 (hexes) * 30 (meters/hex) = 360 (meters)
+distance: 360
+# velocity in meters/second
+velocity: 200
+# cooldown in seconds
+cooldown: 3
+lockOn:
+  turnRate: 120
+  groupRadius: 0.1
+projectileCount: 2
+projectileDelay: 0.15
+projectile:
+  collisionRadius: 2
+  collisionHeight: 4
+  scale: 0.35
+  image: missile.png
+  imageSheet:
+    columns: 1
+    rows: 4
+    animationRate: 1
+    angleFacingRow:
+      0:   0
+      90:  1
+      180: 2
+      270: 3
+  impactEffect:
+    scale: 0.15
+    image: missile_impact.png
+    imageSheet:
+      columns: 6
+      rows: 1
+      animationRate: 5
