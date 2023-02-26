@@ -544,42 +544,43 @@ func (g *Game) updatePlayer() {
 	}
 
 	target := g.player.Target()
-	if target != nil {
+	if target != nil && target.IsDestroyed() {
+		g.player.SetTarget(nil)
+
+	} else if target != nil {
 		// only increment lock percent on target if reticle near target area and in weapon range
 		s := g.getSpriteFromEntity(target)
-		if s == nil {
-			return
-		}
-
-		acquireLock := false
-		crosshairLockSize := int(math.Ceil(float64(g.width) * 0.05))
-		midW, midH := g.width/2, g.height/2
-		crosshairBounds := image.Rect(
-			midW-crosshairLockSize/2, midH-crosshairLockSize/2,
-			midW+crosshairLockSize/2, midH+crosshairLockSize/2,
-		)
-		targetBounds := s.ScreenRect()
-		if targetBounds != nil {
-			acquireLock = targetBounds.Overlaps(crosshairBounds)
-		}
-
-		targetDistance := model.EntityDistance(g.player, target) - g.player.CollisionRadius() - target.CollisionRadius()
-		lockOnRange := 1000.0 / model.METERS_PER_UNIT
-
-		if int(targetDistance) <= int(lockOnRange) {
-			// TODO: decrease lock percent delta if further from target
-			lockDelta := 0.25 / model.TICKS_PER_SECOND
-			if !acquireLock {
-				lockDelta = -0.15 / model.TICKS_PER_SECOND
+		if s != nil {
+			acquireLock := false
+			crosshairLockSize := int(math.Ceil(float64(g.width) * 0.05))
+			midW, midH := g.width/2, g.height/2
+			crosshairBounds := image.Rect(
+				midW-crosshairLockSize/2, midH-crosshairLockSize/2,
+				midW+crosshairLockSize/2, midH+crosshairLockSize/2,
+			)
+			targetBounds := s.ScreenRect()
+			if targetBounds != nil {
+				acquireLock = targetBounds.Overlaps(crosshairBounds)
 			}
 
-			targetLock := g.player.TargetLock() + lockDelta
-			if targetLock > 1.0 {
-				targetLock = 1.0
-			} else if targetLock < 0 {
-				targetLock = 0
+			targetDistance := model.EntityDistance(g.player, target) - g.player.CollisionRadius() - target.CollisionRadius()
+			lockOnRange := 1000.0 / model.METERS_PER_UNIT
+
+			if int(targetDistance) <= int(lockOnRange) {
+				// TODO: decrease lock percent delta if further from target
+				lockDelta := 0.25 / model.TICKS_PER_SECOND
+				if !acquireLock {
+					lockDelta = -0.15 / model.TICKS_PER_SECOND
+				}
+
+				targetLock := g.player.TargetLock() + lockDelta
+				if targetLock > 1.0 {
+					targetLock = 1.0
+				} else if targetLock < 0 {
+					targetLock = 0
+				}
+				g.player.SetTargetLock(targetLock)
 			}
-			g.player.SetTargetLock(targetLock)
 		}
 	}
 }
@@ -744,7 +745,7 @@ func (g *Game) updateSprites() {
 			switch spriteType {
 			case MapSpriteType:
 				s := k.(*render.Sprite)
-				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
+				if s.IsDestroyed() {
 					// TODO: implement sprite destruction animation
 					g.sprites.deleteMapSprite(s)
 				}
@@ -754,8 +755,7 @@ func (g *Game) updateSprites() {
 
 			case MechSpriteType:
 				s := k.(*render.MechSprite)
-				// TODO: implement mech armor and structure instead of direct HP
-				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
+				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteMechSprite(s)
 				}
@@ -766,8 +766,7 @@ func (g *Game) updateSprites() {
 
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
-				// TODO: implement vehicle armor and structure instead of direct HP
-				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
+				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteVehicleSprite(s)
 				}
@@ -778,8 +777,7 @@ func (g *Game) updateSprites() {
 
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
-				// TODO: implement vtol armor and structure instead of direct HP
-				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
+				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteVTOLSprite(s)
 				}
@@ -790,7 +788,7 @@ func (g *Game) updateSprites() {
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
-				if s.ArmorPoints() <= 0 && s.StructurePoints() <= 0 {
+				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteInfantrySprite(s)
 				}

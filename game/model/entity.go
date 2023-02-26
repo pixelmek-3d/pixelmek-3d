@@ -39,6 +39,7 @@ type Entity interface {
 	StructurePoints() float64
 	SetStructurePoints(float64)
 	MaxStructurePoints() float64
+	IsDestroyed() bool
 
 	Clone() Entity
 	Parent() Entity
@@ -210,6 +211,10 @@ func (e *BasicEntity) SetStructurePoints(structure float64) {
 
 func (e *BasicEntity) MaxStructurePoints() float64 {
 	return e.maxStructure
+}
+
+func (e *BasicEntity) IsDestroyed() bool {
+	return e.structure <= 0
 }
 
 func (e *BasicEntity) Parent() Entity {

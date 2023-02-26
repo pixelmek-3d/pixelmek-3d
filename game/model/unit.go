@@ -343,6 +343,10 @@ func (e *UnitModel) SetStructurePoints(structure float64) {
 	e.structure = structure
 }
 
+func (e *UnitModel) IsDestroyed() bool {
+	return e.structure <= 0
+}
+
 func (e *UnitModel) JumpJets() int {
 	return e.jumpJets
 }

@@ -220,6 +220,11 @@ func (e *Projectile) MaxStructurePoints() float64 {
 	return projectileHitPointsIgnored
 }
 
+func (e *Projectile) IsDestroyed() bool {
+	// projectileHitPointsIgnored
+	return false
+}
+
 func (e *Projectile) Weapon() Weapon {
 	return e.weapon
 }
