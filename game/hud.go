@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -55,6 +56,8 @@ func (g *Game) loadHUD() {
 
 	navReticleSheet := getSpriteFromFile("hud/nav_reticle.png")
 	g.navReticle = render.NewNavReticle(1.0, navReticleSheet)
+
+	g.fps = render.NewFPSIndicator(g.fonts.HUDFont)
 }
 
 // drawHUD draws HUD elements on the screen
@@ -113,6 +116,30 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 
 	// draw nav status display
 	g.drawNavStatus(hudOpts)
+
+	// draw FPS display
+	g.drawFPS(hudOpts)
+}
+
+func (g *Game) drawFPS(hudOpts *render.DrawHudOptions) {
+	if g.fps == nil || !g.fpsEnabled {
+		return
+	}
+
+	fps := fmt.Sprintf("FPS: %0.1f | TPS: %0.1f/%d", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
+	g.fps.SetFPSText(fps)
+
+	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
+	hudW := g.width - marginX*2
+
+	fScale := g.fps.Scale() * g.renderScale * g.hudScale
+	fWidth, fHeight := int(fScale*float64(hudW)/5), int(fScale*float64(marginY))
+
+	fX, fY := 0, 0
+	fBounds := image.Rect(
+		int(fX), int(fY), int(fX)+fWidth, int(fY)+fHeight,
+	)
+	g.fps.Draw(fBounds, hudOpts)
 }
 
 func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {

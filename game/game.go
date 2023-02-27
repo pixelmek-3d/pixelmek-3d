@@ -72,6 +72,7 @@ type Game struct {
 	crosshairs    *render.Crosshairs
 	targetReticle *render.TargetReticle
 	navReticle    *render.NavReticle
+	fps           *render.FPSIndicator
 	fonts         *render.FontHandler
 
 	hudEnabled        bool
@@ -112,8 +113,8 @@ type Game struct {
 	// control options
 	throttleDecay bool
 
-	debug           bool
-	debugFpsCounter int
+	debug      bool
+	fpsEnabled bool
 }
 
 type TargetCycleType int
@@ -248,6 +249,7 @@ func (g *Game) initConfig() {
 
 	// set default config values
 	viper.SetDefault("debug", false)
+	viper.SetDefault("showFPS", false)
 
 	viper.SetDefault("screen.width", 1024)
 	viper.SetDefault("screen.height", 768)
@@ -302,6 +304,7 @@ func (g *Game) initConfig() {
 	g.throttleDecay = viper.GetBool("controls.throttleDecay")
 
 	g.debug = viper.GetBool("debug")
+	g.fpsEnabled = viper.GetBool("showFPS")
 }
 
 func (g *Game) SaveConfig() error {
@@ -377,17 +380,6 @@ func (g *Game) Update() error {
 
 	// update the menu (if active)
 	g.menu.update(g)
-
-	if g.debug {
-		if g.debugFpsCounter == 0 {
-			g.debugFpsCounter = ebiten.TPS()
-			// draw FPS/TPS counter debug display
-			fps := fmt.Sprintf("FPS: %f\nTPS: %f/%v", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
-			ebiten.SetWindowTitle(title + " | " + fps)
-		} else {
-			g.debugFpsCounter--
-		}
-	}
 
 	return nil
 }

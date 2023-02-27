@@ -59,7 +59,7 @@ func NewRadar(font *Font) *Radar {
 
 func (r *Radar) updateFontSize(width, height int) {
 	// set font size based on element size
-	pxSize := float64(height) / 12
+	pxSize := float64(height) / 15
 	if pxSize < 1 {
 		pxSize = 1
 	}
@@ -109,7 +109,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	r.fontRenderer.SetColor(rColor)
 
 	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
-	r.fontRenderer.Draw(radarStr, 3, 3) // TODO: calculate better margin spacing
+	r.fontRenderer.Draw(radarStr, bX, bY)
 
 	// Draw radar circle outline
 	oColor := _colorRadarOutline
