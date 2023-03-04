@@ -62,10 +62,6 @@ func (g *Game) loadHUD() {
 
 // drawHUD draws HUD elements on the screen
 func (g *Game) drawHUD(screen *ebiten.Image) {
-	if !g.hudEnabled {
-		return
-	}
-
 	screenW, screenH := screen.Size()
 	marginX, marginY := screenW/50, screenH/50
 
@@ -76,6 +72,13 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 		MarginY:        marginY,
 		UseCustomColor: g.hudUseCustomColor,
 		Color:          g.hudRGBA,
+	}
+
+	// draw FPS display
+	g.drawFPS(hudOpts)
+
+	if !g.hudEnabled {
+		return
 	}
 
 	// draw target reticle
@@ -116,9 +119,6 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 
 	// draw nav status display
 	g.drawNavStatus(hudOpts)
-
-	// draw FPS display
-	g.drawFPS(hudOpts)
 }
 
 func (g *Game) drawFPS(hudOpts *render.DrawHudOptions) {
