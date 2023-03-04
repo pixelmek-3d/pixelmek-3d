@@ -1,4 +1,7 @@
 map: "debug_land.yaml"
+dropZone:
+  position: [50, 50]
+  heading: 90
 navPoints: []
 mechs: []
 vehicles: []

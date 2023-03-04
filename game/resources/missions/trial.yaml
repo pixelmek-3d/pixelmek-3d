@@ -1,4 +1,7 @@
 map: "testing_grounds.yaml"
+dropZone:
+  position: [100, 100]
+  heading: 180
 navPoints: # https://en.wikipedia.org/wiki/NATO_phonetic_alphabet
 - name: "Alpha"
   position: [10, 50]

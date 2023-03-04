@@ -1,4 +1,7 @@
 map: "testing_grounds.yaml"
+dropZone:
+  position: [100, 100]
+  heading: 180
 lighting:
   falloff: -500
   illumination: 350
