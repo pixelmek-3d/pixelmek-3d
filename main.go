@@ -15,10 +15,17 @@
 package main
 
 import (
+	"os"
+
 	"github.com/harbdog/pixelmek-3d/game"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	// setup logging
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
+
 	// run the game
 	g := game.NewGame()
 	g.Run()

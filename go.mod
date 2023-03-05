@@ -9,6 +9,7 @@ require (
 	github.com/harbdog/raycaster-go v1.8.2
 	github.com/inkyblackness/imgui-go/v4 v4.4.0
 	github.com/jinzhu/copier v0.3.5
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.12.0
 	github.com/tinne26/etxt v0.0.7
 	golang.org/x/image v0.1.0

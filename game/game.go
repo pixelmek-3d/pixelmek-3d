@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"image"
-	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -21,6 +20,8 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/spf13/viper"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -152,8 +153,8 @@ func NewGame() *Game {
 	var err error
 	g.resources, err = model.LoadModelResources()
 	if err != nil {
-		log.Println("Error loading models:")
-		log.Println(err)
+		log.Error("Error loading models:")
+		log.Error(err)
 		exit(1)
 	}
 
@@ -162,8 +163,8 @@ func NewGame() *Game {
 	//missionPath := "debug.yaml"
 	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
-		log.Println("Error loading mission: ", missionPath)
-		log.Println(err)
+		log.Error("Error loading mission: ", missionPath)
+		log.Error(err)
 		exit(1)
 	}
 
@@ -272,8 +273,8 @@ func (g *Game) initConfig() {
 	viper.SetDefault("controls.throttleDecay", false)
 
 	err := viper.ReadInConfig()
-	if err != nil && g.debug {
-		log.Print(err)
+	if err != nil {
+		log.Error(err)
 	}
 
 	// get config values
@@ -319,18 +320,18 @@ func (g *Game) SaveConfig() error {
 	userConfigPath += "/.pixelmek-3d"
 
 	userConfig := userConfigPath + "/config.json"
-	log.Print("Saving config file ", userConfig)
+	log.Info("Saving config file ", userConfig)
 
 	if _, err := os.Stat(userConfigPath); os.IsNotExist(err) {
 		err = os.MkdirAll(userConfigPath, os.ModePerm)
 		if err != nil {
-			log.Print(err)
+			log.Error(err)
 			return err
 		}
 	}
 	err := viper.WriteConfigAs(userConfig)
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 	}
 
 	return err

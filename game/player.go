@@ -2,13 +2,14 @@ package game
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Player struct {

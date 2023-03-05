@@ -2,12 +2,13 @@ package model
 
 import (
 	"io/ioutil"
-	"log"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Mission struct {
@@ -104,7 +105,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 	// load mission map
 	m.missionMap, err = LoadMap(m.MapPath)
 	if err != nil {
-		log.Println("Error loading map", m.MapPath)
+		log.Error("Error loading map", m.MapPath)
 		return nil, err
 	}
 
