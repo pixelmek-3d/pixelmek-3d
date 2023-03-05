@@ -54,8 +54,8 @@ func (g *Game) openMenu() {
 	g.menu.newRenderHeight = int32(g.screenHeight)
 	g.menu.newRenderScale = float32(g.renderScale)
 	g.menu.newFovDegrees = float32(g.fovDegrees)
-	g.menu.newRenderDistance = float32(g.renderDistance)
-	g.menu.newClutterDistance = float32(g.clutterDistance)
+	g.menu.newRenderDistance = float32(g.renderDistance * model.METERS_PER_UNIT)
+	g.menu.newClutterDistance = float32(g.clutterDistance * model.METERS_PER_UNIT)
 
 	g.menu.newHudScale = float32(g.hudScale)
 	g.menu.newHudRGBA = [4]float32{
@@ -186,13 +186,13 @@ func (m *GameMenu) update(g *Game) {
 		g.setFovAngle(float64(m.newFovDegrees))
 	}
 
-	if imgui.SliderFloatV("Render Distance", &m.newRenderDistance, -1, 1000, "%.0f", imgui.SliderFlagsNone) {
-		g.renderDistance = float64(m.newRenderDistance)
+	if imgui.SliderFloatV("Render Distance (meters)", &m.newRenderDistance, -1, 5000, "%.1f", imgui.SliderFlagsNone) {
+		g.renderDistance = float64(m.newRenderDistance) / model.METERS_PER_UNIT
 		g.camera.SetRenderDistance(g.renderDistance)
 	}
 
-	if imgui.SliderFloatV("Clutter Distance", &m.newClutterDistance, 0, 20, "%.0f", imgui.SliderFlagsNone) {
-		g.clutterDistance = float64(m.newClutterDistance)
+	if imgui.SliderFloatV("Clutter Distance (meters)", &m.newClutterDistance, 0, 1000, "%.1f", imgui.SliderFlagsNone) {
+		g.clutterDistance = float64(m.newClutterDistance) / model.METERS_PER_UNIT
 		g.clutter.Update(g, true)
 	}
 
@@ -211,6 +211,10 @@ func (m *GameMenu) update(g *Game) {
 	imgui.Text("HUD:")
 
 	imgui.Checkbox("Show HUD", &g.hudEnabled)
+	imgui.SameLine()
+	imgui.Text(strings.Repeat(" ", 4))
+	imgui.SameLine()
+	imgui.Checkbox("Show FPS", &g.fpsEnabled)
 
 	if imgui.SliderFloatV("Scaling", &m.newHudScale, 0.2, 5.0, "%.1f", imgui.SliderFlagsNone) {
 		g.hudScale = float64(m.newHudScale)

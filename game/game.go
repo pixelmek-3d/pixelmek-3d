@@ -257,8 +257,8 @@ func (g *Game) initConfig() {
 	viper.SetDefault("screen.fullscreen", false)
 	viper.SetDefault("screen.vsync", true)
 	viper.SetDefault("screen.renderFloor", true)
-	viper.SetDefault("screen.renderDistance", -1)
-	viper.SetDefault("screen.clutterDistance", 10.0)
+	viper.SetDefault("screen.renderDistance", 2000)
+	viper.SetDefault("screen.clutterDistance", 500)
 
 	viper.SetDefault("hud.enabled", true)
 	viper.SetDefault("hud.scale", 1.0)
@@ -283,8 +283,12 @@ func (g *Game) initConfig() {
 	g.fullscreen = viper.GetBool("screen.fullscreen")
 	g.vsync = viper.GetBool("screen.vsync")
 	g.initRenderFloorTex = viper.GetBool("screen.renderFloor")
-	g.renderDistance = viper.GetFloat64("screen.renderDistance")
-	g.clutterDistance = viper.GetFloat64("screen.clutterDistance")
+
+	renderDistanceMeters := viper.GetFloat64("screen.renderDistance")
+	g.renderDistance = renderDistanceMeters / model.METERS_PER_UNIT
+
+	clutterDistanceMeters := viper.GetFloat64("screen.clutterDistance")
+	g.clutterDistance = clutterDistanceMeters / model.METERS_PER_UNIT
 
 	g.fonts.HUDFont, err = g.fonts.LoadFont(viper.GetString("hud.font"))
 	if err != nil {
