@@ -3,9 +3,9 @@ package model
 import (
 	"fmt"
 	"image/color"
-	"io/ioutil"
 	"math"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -174,7 +174,7 @@ func (m *Map) Level(levelNum int) [][]int {
 func LoadMap(mapFile string) (*Map, error) {
 	mapPath := filepath.Join("game", "resources", "maps", mapFile)
 
-	mapYaml, err := ioutil.ReadFile(mapPath)
+	mapYaml, err := os.ReadFile(mapPath)
 	if err != nil {
 		return nil, err
 	}

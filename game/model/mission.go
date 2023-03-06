@@ -1,7 +1,7 @@
 package model
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -89,7 +89,7 @@ func (n *NavPoint) SetVisited(visited bool) {
 func LoadMission(missionFile string) (*Mission, error) {
 	missionPath := filepath.Join("game", "resources", "missions", missionFile)
 
-	missionYaml, err := ioutil.ReadFile(missionPath)
+	missionYaml, err := os.ReadFile(missionPath)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err

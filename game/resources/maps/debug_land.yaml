@@ -14,7 +14,7 @@ skyBox:
 textures:
   0:
     image: ""
-numRaycastLevels: 3
+numRaycastLevels: 1
 levels: [] # Using generated map levels
 generateLevels:
   mapSize: [100, 100]

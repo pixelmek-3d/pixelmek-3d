@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -440,7 +439,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 			fileName := u.Name()
 			filePath := filepath.Join(unitTypePath, fileName)
-			unitYaml, err := ioutil.ReadFile(filePath)
+			unitYaml, err := os.ReadFile(filePath)
 			if err != nil {
 				return err
 			}
@@ -553,7 +552,7 @@ func (r *ModelResources) loadWeaponResources() error {
 
 			fileName := u.Name()
 			weaponFilePath := filepath.Join(weaponTypePath, fileName)
-			weaponYaml, err := ioutil.ReadFile(weaponFilePath)
+			weaponYaml, err := os.ReadFile(weaponFilePath)
 			if err != nil {
 				return err
 			}
