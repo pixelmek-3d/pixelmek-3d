@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"image"
 	"math"
 	"math/rand"
@@ -278,6 +277,13 @@ func (g *Game) initConfig() {
 	}
 
 	// get config values
+	g.debug = viper.GetBool("debug")
+	g.fpsEnabled = viper.GetBool("showFPS")
+
+	if g.debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	g.screenWidth = viper.GetInt("screen.width")
 	g.screenHeight = viper.GetInt("screen.height")
 	g.renderScale = viper.GetFloat64("screen.renderScale")
@@ -307,9 +313,6 @@ func (g *Game) initConfig() {
 	}
 
 	g.throttleDecay = viper.GetBool("controls.throttleDecay")
-
-	g.debug = viper.GetBool("debug")
-	g.fpsEnabled = viper.GetBool("showFPS")
 }
 
 func (g *Game) SaveConfig() error {
@@ -435,11 +438,7 @@ func (g *Game) setRenderScale(renderScale float64) {
 
 func (g *Game) setVsyncEnabled(enableVsync bool) {
 	g.vsync = enableVsync
-	if enableVsync {
-		ebiten.SetFPSMode(ebiten.FPSModeVsyncOn)
-	} else {
-		ebiten.SetFPSMode(ebiten.FPSModeVsyncOffMaximum)
-	}
+	ebiten.SetVsyncEnabled(enableVsync)
 }
 
 func (g *Game) setFovAngle(fovDegrees float64) {
@@ -619,7 +618,10 @@ func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 		//fmt.Printf("collided with entity at %v (z: %v)\n", collisionEntity.entity.Pos(), collisionEntity.entity.PosZ())
 		collisionDamage := 0.1 // TODO: determine collision damage based on player mech and speed
 		collisionEntity.entity.ApplyDamage(collisionDamage)
-		fmt.Printf("collided for %0.1f (HP: %0.1f)\n", collisionDamage, collisionEntity.entity.ArmorPoints())
+		if g.debug {
+			hp, maxHP := collisionEntity.entity.ArmorPoints()+collisionEntity.entity.StructurePoints(), collisionEntity.entity.MaxArmorPoints()+collisionEntity.entity.MaxStructurePoints()
+			log.Debugf("collided for %0.1f (HP: %0.1f/%0.0f)\n", collisionDamage, hp, maxHP)
+		}
 	}
 }
 

@@ -203,7 +203,7 @@ func (g *Game) loadContent() {
 
 		for _, position := range s.Positions {
 			// convert collisionRadius/height pixel values to grid format
-			sWidth, sHeight := spriteImg.Size()
+			sWidth, sHeight := spriteImg.Bounds().Dx(), spriteImg.Bounds().Dy()
 			x, y, z := position[0], position[1], s.ZPosition
 
 			collisionRadius, collisionHeight := convertOffsetFromPx(
@@ -369,7 +369,7 @@ func (g *Game) createModelMech(unit string) *model.Mech {
 	mechImg := getSpriteFromFile(mechRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
-	width, height := mechImg.Size()
+	width, height := mechImg.Bounds().Dx(), mechImg.Bounds().Dy()
 	width = width / 6 // all mech images are required to be six columns of images in a sheet
 	scale := convertHeightToScale(mechResource.Height, mechResource.HeightPxRatio)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
@@ -391,7 +391,7 @@ func (g *Game) createModelVehicle(unit string) *model.Vehicle {
 	vehicleImg := getSpriteFromFile(vehicleRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
-	width, height := vehicleImg.Size()
+	width, height := vehicleImg.Bounds().Dx(), vehicleImg.Bounds().Dy()
 	// handle if image has multiple rows/cols
 	if vehicleResource.ImageSheet != nil {
 		width = int(float64(width) / float64(vehicleResource.ImageSheet.Columns))
@@ -418,7 +418,7 @@ func (g *Game) createModelVTOL(unit string) *model.VTOL {
 	vtolImg := getSpriteFromFile(vtolRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
-	width, height := vtolImg.Size()
+	width, height := vtolImg.Bounds().Dx(), vtolImg.Bounds().Dy()
 	// handle if image has multiple rows/cols
 	if vtolResource.ImageSheet != nil {
 		width = int(float64(width) / float64(vtolResource.ImageSheet.Columns))
@@ -445,7 +445,7 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 	infantryImg := getSpriteFromFile(infantryRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
-	width, height := infantryImg.Size()
+	width, height := infantryImg.Bounds().Dx(), infantryImg.Bounds().Dy()
 	// handle if image has multiple rows/cols
 	if infantryResource.ImageSheet != nil {
 		width = int(float64(width) / float64(infantryResource.ImageSheet.Columns))
@@ -477,7 +477,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 		case model.ENERGY:
 			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.EnergyResourceType, armament.Weapon)
+				log.Errorf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.EnergyResourceType, armament.Weapon)
 				continue
 			}
 
@@ -496,7 +496,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				pRows = pResource.ImageSheet.Rows
 			}
 
-			pWidth, pHeight := projectileImg.Size()
+			pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
 			pWidth = pWidth / pColumns
 			pHeight = pHeight / pRows
 			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
@@ -535,7 +535,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 		case model.MISSILE:
 			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.MissileResourceType, armament.Weapon)
+				log.Errorf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.MissileResourceType, armament.Weapon)
 				continue
 			}
 
@@ -554,7 +554,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				pRows = pResource.ImageSheet.Rows
 			}
 
-			pWidth, pHeight := projectileImg.Size()
+			pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
 			pWidth = pWidth / pColumns
 			pHeight = pHeight / pRows
 			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
@@ -601,7 +601,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 		case model.BALLISTIC:
 			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				fmt.Printf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.BallisticResourceType, armament.Weapon)
+				log.Errorf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.BallisticResourceType, armament.Weapon)
 				continue
 			}
 
@@ -620,7 +620,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				pRows = pResource.ImageSheet.Rows
 			}
 
-			pWidth, pHeight := projectileImg.Size()
+			pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
 			pWidth = pWidth / pColumns
 			pHeight = pHeight / pRows
 			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(

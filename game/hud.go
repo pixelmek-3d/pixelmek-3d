@@ -62,7 +62,7 @@ func (g *Game) loadHUD() {
 
 // drawHUD draws HUD elements on the screen
 func (g *Game) drawHUD(screen *ebiten.Image) {
-	screenW, screenH := screen.Size()
+	screenW, screenH := screen.Bounds().Dx(), screen.Bounds().Dy()
 	marginX, marginY := screenW/50, screenH/50
 
 	hudOpts := &render.DrawHudOptions{

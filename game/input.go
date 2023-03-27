@@ -1,13 +1,13 @@
 package game
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
+	log "github.com/sirupsen/logrus"
 )
 
 type MouseMode int
@@ -62,11 +62,11 @@ func (g *Game) handleInput() {
 	case MouseModeCursor:
 		g.mouseX, g.mouseY = ebiten.CursorPosition()
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-			fmt.Printf("mouse left clicked: (%v, %v)\n", g.mouseX, g.mouseY)
+			log.Debugf("mouse left clicked: (%v, %v)\n", g.mouseX, g.mouseY)
 		}
 
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
-			fmt.Printf("mouse right clicked: (%v, %v)\n", g.mouseX, g.mouseY)
+			log.Debugf("mouse right clicked: (%v, %v)\n", g.mouseX, g.mouseY)
 		}
 
 	case MouseModeBody:

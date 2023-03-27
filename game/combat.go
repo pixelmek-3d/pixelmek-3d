@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -9,6 +8,7 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+	log "github.com/sirupsen/logrus"
 )
 
 type DelayedProjectileSpawn struct {
@@ -272,10 +272,10 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				if g.debug {
 					if entity == g.player.Unit {
 						// TODO: visual response to player being hit
-						fmt.Printf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
+						log.Debugf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
 					} else {
 						// TODO: visual method for showing damage was done
-						fmt.Printf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
+						log.Debugf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)\n", percentHP, "%", damage, hp, maxHP)
 					}
 				}
 			}
