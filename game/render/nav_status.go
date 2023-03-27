@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
@@ -24,7 +24,7 @@ type NavStatus struct {
 	navDistance  float64
 }
 
-//NewNavStatus creates a nav status element image to be rendered on demand
+// NewNavStatus creates a nav status element image to be rendered on demand
 func NewNavStatus(font *Font) *NavStatus {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -67,8 +67,8 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	n.updateFontSize(bW, bH)
 
-	sW, sH := float64(bW), float64(bH)
-	sX, sY := float64(bX), float64(bY)
+	sW, sH := float32(bW), float32(bH)
+	sX, sY := float32(bX), float32(bY)
 
 	// background box
 	bColor := _colorStatusBackground
@@ -77,7 +77,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	}
 
 	sAlpha := uint8(int(bColor.A) / 3)
-	ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{bColor.R, bColor.G, bColor.B, sAlpha})
+	vector.DrawFilledRect(screen, sX, sY, sW, sH, color.RGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
 
 	// draw nav image
 	nTexture := n.navPoint.Image()
@@ -89,7 +89,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
 	op.GeoM.Scale(nScale, nScale)
-	op.GeoM.Translate(sX+sW/2-nScale*float64(nH)/2, sY+sH/2-nScale*float64(nH)/2)
+	op.GeoM.Translate(float64(sX+sW/2)-nScale*float64(nH)/2, float64(sY+sH/2)-nScale*float64(nH)/2)
 	screen.DrawImage(nTexture, op)
 
 	// setup text color

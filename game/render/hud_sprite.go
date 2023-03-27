@@ -46,7 +46,7 @@ func NewHUDSprite(img *ebiten.Image, scale float64) *BasicHUD {
 	}
 
 	if img != nil {
-		b.w, b.h = img.Size()
+		b.w, b.h = img.Bounds().Dx(), img.Bounds().Dy()
 		b.textures, _ = GetSpriteSheetSlices(img, 1, 1)
 	}
 
@@ -59,7 +59,7 @@ func NewHUDSpriteFromSheet(img *ebiten.Image, scale float64, columns, rows, fram
 		texNum: frameIndex,
 	}
 
-	w, h := img.Size()
+	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
 	b.w, b.h = int(wFloat), int(hFloat)
 

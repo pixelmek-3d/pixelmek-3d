@@ -4,7 +4,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
 )
@@ -20,7 +20,7 @@ type JumpJetIndicator struct {
 	fontRenderer *etxt.Renderer
 }
 
-//NewJumpJetIndicator creates a jump jet indicator image to be rendered on demand
+// NewJumpJetIndicator creates a jump jet indicator image to be rendered on demand
 func NewJumpJetIndicator(font *Font) *JumpJetIndicator {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -53,23 +53,23 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions,
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	j.updateFontSize(bW, bH)
 
-	midX := float64(bX) + float64(bW)/2
-	jW, jH := float64(bW)/4, 7*float64(bH)/8
+	midX := float32(bX) + float32(bW)/2
+	jW, jH := float32(bW)/4, 7*float32(bH)/8
 
 	// current jet level box
 	jetRatio := jumpJetDuration / maxJumpJetDuration
 	if jetRatio > 1 {
 		jetRatio = 1
 	}
-	rW, rH := jW, jetRatio*jH
-	rX, rY := midX-jW/2, float64(bY)+jH-rH
+	rW, rH := jW, float32(jetRatio)*jH
+	rX, rY := midX-jW/2, float32(bY)+jH-rH
 
 	rColor := _colorJetsLevel
 	if hudOpts.UseCustomColor {
 		rColor = hudOpts.Color
 	}
 
-	ebitenutil.DrawRect(screen, rX, rY, rW, rH, rColor)
+	vector.DrawFilledRect(screen, rX, rY, rW, rH, rColor, false)
 
 	// jet indicator outline
 	oColor := _colorJetsOutline
@@ -79,15 +79,9 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions,
 	oAlpha := uint8(4 * (int(oColor.A) / 5))
 	oColor = color.RGBA{oColor.R, oColor.G, oColor.B, oAlpha}
 
-	// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
-	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
-	//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, hudOpts.Color color.Color)
-	var oT float64 = 2 // TODO: calculate line thickness based on image height
-	oX, oY, oW, oH := midX-jW/2, float64(bY), jW, jH
-	ebitenutil.DrawRect(screen, oX, oY, oW, oT, oColor)
-	ebitenutil.DrawRect(screen, oX+oW-oT, oY, oT, oH, oColor)
-	ebitenutil.DrawRect(screen, oX, oY+oH-oT, oW, oT, oColor)
-	ebitenutil.DrawRect(screen, oX, oY, oT, oH, oColor)
+	var oT float32 = 2 // TODO: calculate line thickness based on image height
+	oX, oY, oW, oH := float32(midX-jW/2), float32(bY), float32(jW), float32(jH)
+	vector.StrokeRect(screen, oX, oY, oW, oH, oT, oColor, false)
 
 	// jet indicator text
 	tColor := _colorJetsText

@@ -6,8 +6,8 @@ import (
 	"image/color"
 	"strings"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/colorm"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
@@ -32,7 +32,7 @@ type UnitStatus struct {
 	targetReticle  *TargetReticle
 }
 
-//NewUnitStatus creates a unit status element image to be rendered on demand
+// NewUnitStatus creates a unit status element image to be rendered on demand
 func NewUnitStatus(isPlayer bool, font *Font) *UnitStatus {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -111,15 +111,16 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		}
 
 		sAlpha := uint8(int(bColor.A) / 3)
-		ebitenutil.DrawRect(screen, sX, sY, sW, sH, color.RGBA{bColor.R, bColor.G, bColor.B, sAlpha})
+		vector.DrawFilledRect(screen, float32(sX), float32(sY), float32(sW), float32(sH), color.RGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
 	}
 
 	// create static outline image of unit
 	uTexture := u.unit.StaticTexture()
 
-	op := &ebiten.DrawImageOptions{}
+	op := &colorm.DrawImageOptions{}
 	// Reset RGB (not Alpha) 0 forcibly
-	op.ColorM.Scale(0, 0, 0, 1)
+	var cm colorm.ColorM
+	cm.Scale(0, 0, 0, 1)
 
 	// Set unit image color based on health status
 	var uColor color.RGBA
@@ -135,7 +136,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		}
 	}
 	r, g, b := float64(uColor.R)/255, float64(uColor.G)/255, float64(uColor.B)/255
-	op.ColorM.Translate(r, g, b, 0)
+	cm.Translate(r, g, b, 0)
 
 	iH := bounds.Dy()
 	uH := uTexture.Bounds().Dy()
@@ -149,7 +150,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	op.GeoM.Scale(uScale, uScale)
 	op.GeoM.Translate(sX, sY+sH/2-uScale*float64(uH)/2)
-	screen.DrawImage(uTexture, op)
+	colorm.DrawImage(screen, uTexture, cm, op)
 
 	// setup text color
 	tColor := _colorStatusText

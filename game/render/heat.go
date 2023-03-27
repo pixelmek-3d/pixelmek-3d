@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
 )
@@ -22,7 +22,7 @@ type HeatIndicator struct {
 	fontRenderer *etxt.Renderer
 }
 
-//NewHeatIndicator creates a heat indicator image to be rendered on demand
+// NewHeatIndicator creates a heat indicator image to be rendered on demand
 func NewHeatIndicator(font *Font) *HeatIndicator {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -57,15 +57,15 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	h.updateFontSize(bW, bH)
 
-	midX := float64(bX) + float64(bW)/2
+	midX := float32(bX) + float32(bW)/2
 
 	// current heat level box
-	heatRatio := heat / maxHeat
+	heatRatio := float32(heat / maxHeat)
 	if heatRatio > 1 {
 		heatRatio = 1
 	}
-	hW, hH := heatRatio*float64(bW), float64(bH)/2
-	hX, hY := midX-hW/2, float64(bY)
+	hW, hH := heatRatio*float32(bW), float32(bH)/2
+	hX, hY := midX-hW/2, float32(bY)
 
 	var hColor color.RGBA
 	if hudOpts.UseCustomColor {
@@ -79,7 +79,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 		}
 	}
 
-	ebitenutil.DrawRect(screen, hX, hY, hW, hH, hColor)
+	vector.DrawFilledRect(screen, hX, hY, hW, hH, hColor, false)
 
 	// TODO: make current heat level box appear to flash when near/over maxHeat?
 
@@ -87,15 +87,9 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	oAlpha := uint8(4 * (int(hColor.A) / 5))
 	oColor := color.RGBA{hColor.R, hColor.G, hColor.B, oAlpha}
 
-	// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
-	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
-	//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, hudOpts.Color color.Color)
-	var oT float64 = 2 // TODO: calculate line thickness based on image height
-	oX, oY, oW, oH := float64(bX), float64(bY), float64(bW), float64(bH)/2
-	ebitenutil.DrawRect(screen, oX, oY, oW, oT, oColor)
-	ebitenutil.DrawRect(screen, oX+oW-oT, oY, oT, oH, oColor)
-	ebitenutil.DrawRect(screen, oX, oY+oH-oT, oW, oT, oColor)
-	ebitenutil.DrawRect(screen, oX, oY, oT, oH, oColor)
+	var oT float32 = 2 // TODO: calculate line thickness based on image height
+	oX, oY, oW, oH := float32(bX), float32(bY), float32(bW), float32(bH)/2
+	vector.StrokeRect(screen, oX, oY, oW, oH, oT, oColor, false)
 
 	// current heat level text
 	tColor := _colorHeatText

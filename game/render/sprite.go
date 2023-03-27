@@ -2,7 +2,6 @@ package render
 
 import (
 	"image"
-	"image/color"
 	_ "image/png"
 	"math"
 	"sort"
@@ -10,7 +9,6 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
@@ -89,7 +87,7 @@ func NewSprite(
 		scale:     scale,
 	}
 
-	s.w, s.h = img.Size()
+	s.w, s.h = img.Bounds().Dx(), img.Bounds().Dy()
 	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
 	s.lenTex = 1
 
@@ -110,7 +108,7 @@ func NewSpriteFromSheet(
 	s.columns, s.rows = columns, rows
 
 	// crop sheet by given number of columns and rows into a single dimension array
-	w, h := img.Size()
+	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
 	s.w, s.h = int(wFloat), int(hFloat)
 
@@ -138,7 +136,7 @@ func NewAnimatedSprite(
 	s.columns, s.rows = columns, rows
 
 	// crop sheet by given number of columns and rows into a single dimension array
-	w, h := img.Size()
+	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
 	s.w, s.h = int(wFloat), int(hFloat)
 
@@ -153,7 +151,7 @@ func GetSpriteSheetSlices(img *ebiten.Image, columns, rows int) ([]*ebiten.Image
 	textures := make([]*ebiten.Image, lenTex)
 	texRects := make([]image.Rectangle, lenTex)
 
-	w, h := img.Size()
+	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 
 	// crop sheet by given number of columns and rows into a single dimension array
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
@@ -294,33 +292,5 @@ func (s *Sprite) Update(camPos *geom.Vector2) {
 		}
 	} else {
 		s.animCounter++
-	}
-}
-
-func (s *Sprite) AddDebugLines(lineWidth int, clr color.Color) {
-	lW := float64(lineWidth)
-	sW, sH := float64(s.w), float64(s.h)
-	cR := s.CollisionRadius()
-	sCr := cR * sW
-
-	for i, img := range s.textures {
-		imgRect := s.texRects[i]
-		x, y := float64(imgRect.Min.X), float64(imgRect.Min.Y)
-
-		// bounding box
-		ebitenutil.DrawRect(img, x, y, lW, sH, clr)
-		ebitenutil.DrawRect(img, x, y, sW, lW, clr)
-		ebitenutil.DrawRect(img, x+sW-lW-1, y+sH-lW-1, lW, -sH, clr)
-		ebitenutil.DrawRect(img, x+sW-lW-1, y+sH-lW-1, -sW, lW, clr)
-
-		// center lines
-		ebitenutil.DrawRect(img, x+sW/2-lW/2-1, y, lW, sH, clr)
-		ebitenutil.DrawRect(img, x, y+sH/2-lW/2-1, sW, lW, clr)
-
-		// collision markers
-		if cR > 0 {
-			ebitenutil.DrawRect(img, x+sW/2-sCr-lW/2-1, y, lW, sH, color.White)
-			ebitenutil.DrawRect(img, x+sW/2+sCr-lW/2-1, y, lW, sH, color.White)
-		}
 	}
 }

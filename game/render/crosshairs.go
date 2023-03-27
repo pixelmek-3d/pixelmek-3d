@@ -38,7 +38,7 @@ func (c *Crosshairs) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
-	op.ColorM.ScaleWithColor(cColor)
+	op.ColorScale.ScaleWithColor(cColor)
 
 	op.GeoM.Scale(cScale, cScale)
 	op.GeoM.Translate(float64(bX), float64(bY))

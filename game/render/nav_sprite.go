@@ -4,7 +4,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go"
 	"github.com/tinne26/etxt"
@@ -67,13 +67,14 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, color
 	renderer.Draw(navChar, imageSize/2, imageSize/2)
 
 	// draw nav diamond shape
-	minX, minY := float64(imageSize)/8, float64(imageSize)/8
-	maxX, maxY := 7*float64(imageSize)/8, 7*float64(imageSize)/8
-	midX, midY := float64(imageSize)/2, float64(imageSize/2)
-	ebitenutil.DrawLine(navImage, minX, midY, midX, minY, color)
-	ebitenutil.DrawLine(navImage, midX, minY, maxX, midY, color)
-	ebitenutil.DrawLine(navImage, minX, midY, midX, maxY, color)
-	ebitenutil.DrawLine(navImage, midX, maxY, maxX, midY, color)
+	oT := float32(2)
+	minX, minY := float32(imageSize)/8, float32(imageSize)/8
+	maxX, maxY := 7*float32(imageSize)/8, 7*float32(imageSize)/8
+	midX, midY := float32(imageSize)/2, float32(imageSize/2)
+	vector.StrokeLine(navImage, minX, midY, midX, minY, oT, color, false)
+	vector.StrokeLine(navImage, midX, minY, maxX, midY, oT, color, false)
+	vector.StrokeLine(navImage, minX, midY, midX, maxY, oT, color, false)
+	vector.StrokeLine(navImage, midX, maxY, maxX, midY, oT, color, false)
 
 	return navImage
 }

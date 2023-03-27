@@ -6,7 +6,7 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
@@ -15,7 +15,6 @@ import (
 
 var (
 	// define default colors
-	_colorCompass       = color.RGBA{R: 0, G: 255, B: 67, A: 255}
 	_colorCompassPips   = _colorDefaultGreen
 	_colorCompassTurret = color.RGBA{R: 0, G: 127, B: 0, A: 255}
 )
@@ -32,7 +31,7 @@ type compassIndicator struct {
 	enabled bool
 }
 
-//NewCompass creates a compass image to be rendered on demand
+// NewCompass creates a compass image to be rendered on demand
 func NewCompass(font *Font) *Compass {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -97,7 +96,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	headingDeg := geom.Degrees(heading)
 	relTurretDeg := geom.Degrees(compassTurretAngle)
 
-	midX, topY := float64(bX)+float64(bW)/2, float64(bY)
+	midX, topY := float32(bX)+float32(bW)/2, float32(bY)
 
 	// turret indicator box
 	turretColor := _colorCompassTurret
@@ -107,9 +106,9 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 
 	var maxTurretDeg float64 = 90
 	relTurretRatio := relTurretDeg / maxTurretDeg
-	tW, tH := relTurretRatio*float64(bW)/2, float64(bH/4)
+	tW, tH := float32(relTurretRatio)*float32(bW)/2, float32(bH/4)
 	tAlpha := uint8(4 * int(turretColor.A) / 5)
-	ebitenutil.DrawRect(screen, midX, topY, tW, tH, color.RGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha})
+	vector.DrawFilledRect(screen, midX, topY, tW, tH, color.RGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha}, false)
 
 	// compass pips
 	pipColor := _colorCompassPips
@@ -126,21 +125,21 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			actualDeg -= 360
 		}
 
-		var pipWidth, pipHeight float64
+		var pipWidth, pipHeight float32
 		if actualDeg%10 == 0 {
 			pipWidth = 2
-			pipHeight = float64(bH) / 4
+			pipHeight = float32(bH) / 4
 		}
 		if actualDeg%30 == 0 {
 			pipWidth = 3
-			pipHeight = float64(bH) / 3
+			pipHeight = float32(bH) / 3
 		}
 
 		if pipWidth > 0 {
 			// pip shows relative based on index (i) where negative is right of center, positive is left
-			iRatio := float64(-i) / maxTurretDeg
-			iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
-			ebitenutil.DrawRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, pipColor)
+			iRatio := float32(-i) / float32(maxTurretDeg)
+			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
+			vector.DrawFilledRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, pipColor, false)
 
 			// TODO: switch statement
 			var pipDegStr string
@@ -157,7 +156,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			}
 
 			if pipDegStr != "" {
-				c.fontRenderer.Draw(pipDegStr, int(iX), int(topY+float64(bH)/2)+2)
+				c.fontRenderer.Draw(pipDegStr, int(iX), int(topY+float32(bH)/2)+2)
 			}
 		}
 	}
@@ -168,8 +167,8 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		headingColor = hudOpts.Color
 	}
 
-	hW, hH := 5.0, float64(bH)/2 // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(screen, midX-hW/2, topY, hW, hH, headingColor)
+	hW, hH := float32(5.0), float32(bH)/2 // TODO: calculate line thickness based on image height
+	vector.DrawFilledRect(screen, midX-hW/2, topY, hW, hH, headingColor, false)
 
 	if c.targetIndicator.enabled {
 		// TODO: draw target indicator slightly better
@@ -190,11 +189,11 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 				actualDeg -= 360
 			}
 			if iDeg == actualDeg {
-				iRadius := float64(bH) / 8
-				iRatio := float64(-i) / maxTurretDeg
-				iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+				iRadius := float32(bH) / 8
+				iRatio := float32(-i) / float32(maxTurretDeg)
+				iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 
-				ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+				vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
 				iRendered = true
 				break
 			}
@@ -205,16 +204,16 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			actualMinDeg := headingDeg - maxTurretDeg
 			iMinFound := model.IsBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
 
-			var iRatio float64
+			var iRatio float32
 			if iMinFound {
 				iRatio = -1
 			} else {
 				iRatio = 1
 			}
 
-			iRadius := float64(bH) / 12
-			iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
-			ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+			iRadius := float32(bH) / 12
+			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
+			vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
 		}
 	}
 
@@ -237,11 +236,11 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 				actualDeg -= 360
 			}
 			if iDeg == actualDeg {
-				iRadius := float64(bH) / 8
-				iRatio := float64(-i) / maxTurretDeg
-				iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
+				iRadius := float32(bH) / 8
+				iRatio := float32(-i) / float32(maxTurretDeg)
+				iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 
-				ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+				vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
 				iRendered = true
 				break
 			}
@@ -252,16 +251,16 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 			actualMinDeg := headingDeg - maxTurretDeg
 			iMinFound := model.IsBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
 
-			var iRatio float64
+			var iRatio float32
 			if iMinFound {
 				iRatio = -1
 			} else {
 				iRatio = 1
 			}
 
-			iRadius := float64(bH) / 12
-			iX := float64(bX) + float64(bW)/2 + iRatio*float64(bW)/2
-			ebitenutil.DrawCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor)
+			iRadius := float32(bH) / 12
+			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
+			vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
 		}
 	}
 }

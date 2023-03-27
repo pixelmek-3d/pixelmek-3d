@@ -6,7 +6,7 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
@@ -25,7 +25,7 @@ type Altimeter struct {
 	fontRenderer *etxt.Renderer
 }
 
-//NewAltimeter creates a compass image to be rendered on demand
+// NewAltimeter creates a compass image to be rendered on demand
 func NewAltimeter(font *Font) *Altimeter {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -65,7 +65,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	relPitchAngle := -pitch
 	relPitchDeg := geom.Degrees(relPitchAngle)
 
-	midX, midY := float64(bX)+float64(bW)/2, float64(bY)+float64(bH)/2
+	midX, midY := float32(bX)+float32(bW)/2, float32(bY)+float32(bH)/2
 
 	// pitch indicator box
 	pitchColor := _colorAltimeterPitch
@@ -75,9 +75,9 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 
 	var maxPitchDeg float64 = 45
 	pitchRatio := relPitchDeg / maxPitchDeg
-	tW, tH := float64(bW)/4, pitchRatio*float64(bH/2)
+	tW, tH := float32(bW)/4, float32(pitchRatio)*float32(bH/2)
 	pAlpha := uint8(4 * int(pitchColor.A) / 5)
-	ebitenutil.DrawRect(screen, midX, midY, tW, tH, color.RGBA{pitchColor.R, pitchColor.G, pitchColor.B, pAlpha})
+	vector.DrawFilledRect(screen, midX, midY, tW, tH, color.RGBA{pitchColor.R, pitchColor.G, pitchColor.B, pAlpha}, false)
 
 	// altimeter pips
 	pipColor := _colorAltimeterPips
@@ -86,25 +86,25 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	}
 	a.fontRenderer.SetColor(pipColor)
 
-	var maxAltitude float64 = model.METERS_PER_UNIT
+	var maxAltitude float32 = float32(model.METERS_PER_UNIT)
 	for i := int(-maxAltitude); i <= int(maxAltitude); i++ {
 		actualAlt := i + int(math.Round(altitude))
 
-		var pipWidth, pipHeight float64
+		var pipWidth, pipHeight float32
 		if actualAlt%5 == 0 {
-			pipWidth = float64(bW) / 4
+			pipWidth = float32(bW) / 4
 			pipHeight = 2
 		}
 		if actualAlt%10 == 0 {
-			pipWidth = float64(bW) / 2
+			pipWidth = float32(bW) / 2
 			pipHeight = 3
 		}
 
 		if pipWidth > 0 {
 			// pip shows relative based on index (i) where negative is above center, positive is below
-			iRatio := float64(-i) / maxAltitude
-			iY := float64(bY) + float64(bH)/2 + iRatio*float64(bH)/2
-			ebitenutil.DrawRect(screen, midX, iY-pipHeight/2, pipWidth, pipHeight, pipColor)
+			iRatio := float32(-i) / maxAltitude
+			iY := float32(bY) + float32(bH)/2 + iRatio*float32(bH)/2
+			vector.DrawFilledRect(screen, midX, iY-pipHeight/2, pipWidth, pipHeight, pipColor, false)
 
 			var pipAltStr string = fmt.Sprintf("%d", actualAlt)
 
@@ -120,6 +120,6 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 		altColor = hudOpts.Color
 	}
 
-	hW, hH := 2*float64(bW)/3, 5.0 // TODO: calculate line thickness based on image height
-	ebitenutil.DrawRect(screen, midX, midY-hH/2, hW, hH, altColor)
+	hW, hH := 2*float32(bW)/3, float32(5.0) // TODO: calculate line thickness based on image height
+	vector.DrawFilledRect(screen, midX, midY-hH/2, hW, hH, altColor, false)
 }

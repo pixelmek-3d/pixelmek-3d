@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
@@ -37,7 +37,7 @@ type Weapon struct {
 	weaponColor color.RGBA
 }
 
-//NewArmament creates a weapon list image to be rendered on demand
+// NewArmament creates a weapon list image to be rendered on demand
 func NewArmament(font *Font) *Armament {
 	// create and configure renderer
 	renderer := etxt.NewStdRenderer()
@@ -154,15 +154,9 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			}
 
 			// TODO: move to Weapon update and add margins
-			// FIXME: when ebitengine v2.5 releases can draw rect outline using StrokeRect
-			//        - import "github.com/hajimehoshi/ebiten/v2/vector"
-			//        - StrokeRect(dst *ebiten.Image, x, y, width, height float32, strokeWidth float32, hudOpts.Color color.Color)
-			var wT float64 = 2 // TODO: calculate line thickness based on image height
-			wW, wH := float64(wWidth), float64(wHeight)
-			ebitenutil.DrawRect(screen, wX, wY, wW, wT, weaponColor)
-			ebitenutil.DrawRect(screen, wX+wW-wT, wY, wT, wH, weaponColor)
-			ebitenutil.DrawRect(screen, wX, wY+wH-wT, wW, wT, weaponColor)
-			ebitenutil.DrawRect(screen, wX, wY, wT, wH, weaponColor)
+			var wT float32 = 2 // TODO: calculate line thickness based on image height
+			wW, wH := float32(wWidth), float32(wHeight)
+			vector.StrokeRect(screen, float32(wX), float32(wY), wW, wH, wT, weaponColor, false)
 		}
 	}
 }

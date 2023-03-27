@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
@@ -40,7 +40,7 @@ type RadarNavPoint struct {
 	IsTarget bool
 }
 
-//NewRadar creates a radar image to be rendered on demand
+// NewRadar creates a radar image to be rendered on demand
 func NewRadar(font *Font) *Radar {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -117,11 +117,9 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 		oColor = hudOpts.Color
 	}
 
-	// FIXME: when ebitengine v2.5 releases can draw circle outline using StrokeCircle
-	//        - import "github.com/hajimehoshi/ebiten/v2/vector"
-	//        - vector.StrokeCircle(r.image, float32(midX), float32(midY), float32(radius), float32(3), hudOpts.Color)
+	var oT float32 = 2 // TODO: calculate line thickness based on image height
 	oAlpha := uint8(oColor.A / 5)
-	ebitenutil.DrawCircle(screen, midX, midY, radius, color.RGBA{oColor.R, oColor.G, oColor.B, oAlpha})
+	vector.StrokeCircle(screen, float32(midX), float32(midY), float32(radius), oT, color.RGBA{oColor.R, oColor.G, oColor.B, oAlpha}, false)
 
 	// Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
 	posX, posY := position.X, position.Y
@@ -155,23 +153,21 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 		rLine1 := geom.LineFromAngle(midX, midY, angle1, dist1*radarHudSizeFactor)
 		rLine2 := geom.LineFromAngle(midX, midY, angle2, dist2*radarHudSizeFactor)
 
-		ebitenutil.DrawLine(screen, rLine1.X2, rLine1.Y2, rLine2.X2, rLine2.Y2, wColor)
+		vector.StrokeLine(screen, float32(rLine1.X2), float32(rLine1.Y2), float32(rLine2.X2), float32(rLine2.Y2), oT, wColor, false)
 	}
 
 	// Draw turret angle reference lines
-	// FIXME: when ebitengine v2.5 releases can draw lines with thickness using StrokeLine
-	//        - vector.StrokeLine(r.image, float32(x1), float32(y1), float32(x2), float32(y2), float32(3), hudOpts.Color)
 	fovAngle := geom.Radians(fovDegrees)
 	turretL := geom.LineFromAngle(midX, midY, radarTurretAngle-fovAngle/2, radius)
 	turretR := geom.LineFromAngle(midX, midY, radarTurretAngle+fovAngle/2, radius)
-	ebitenutil.DrawLine(screen, turretL.X1, turretL.Y1, turretL.X2, turretL.Y2, oColor)
-	ebitenutil.DrawLine(screen, turretR.X1, turretR.Y1, turretR.X2, turretR.Y2, oColor)
+	vector.StrokeLine(screen, float32(turretL.X1), float32(turretL.Y1), float32(turretL.X2), float32(turretL.Y2), oT, oColor, false)
+	vector.StrokeLine(screen, float32(turretR.X1), float32(turretR.Y1), float32(turretR.X2), float32(turretR.Y2), oT, oColor, false)
 
 	// Draw unit reference shape
-	var refW, refH, refT float64 = 14, 5, 3 // TODO: calculate line thickness based on image size
-	ebitenutil.DrawRect(screen, midX-refW/2, midY-refT/2, refW, refT, rColor)
-	ebitenutil.DrawRect(screen, midX-refW/2, midY-refH, refT, refH, rColor)
-	ebitenutil.DrawRect(screen, midX+refW/2-refT, midY-refH, refT, refH, rColor)
+	var refW, refH, refT float32 = 14, 5, 3 // TODO: calculate line thickness based on image size
+	vector.DrawFilledRect(screen, float32(midX)-refW/2, float32(midY)-refT/2, refW, refT, rColor, false)
+	vector.DrawFilledRect(screen, float32(midX)-refW/2, float32(midY)-refH, refT, refH, rColor, false)
+	vector.DrawFilledRect(screen, float32(midX)+refW/2-refT, float32(midY)-refH, refT, refH, rColor, false)
 
 	// Draw nav points
 	nColor := _colorRadarOutline
@@ -190,10 +186,10 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 			// draw target nav circle around lighter colored nav
 			tAlpha := uint8(nColor.A / 3)
 			tColor := color.RGBA{R: nColor.R, G: nColor.G, B: nColor.B, A: tAlpha}
-			ebitenutil.DrawCircle(screen, nLine.X2, nLine.Y2, 8, tColor) // TODO: calculate thickness based on image size
+			vector.DrawFilledCircle(screen, float32(nLine.X2), float32(nLine.Y2), 8, tColor, false) // TODO: calculate thickness based on image size
 		}
 
-		ebitenutil.DrawCircle(screen, nLine.X2, nLine.Y2, 3, nColor) // TODO: calculate thickness based on image size
+		vector.DrawFilledCircle(screen, float32(nLine.X2), float32(nLine.Y2), 3, nColor, false) // TODO: calculate thickness based on image size
 	}
 
 	// Draw radar blips
@@ -213,9 +209,9 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 			// draw target square around lighter colored blip
 			tAlpha := uint8(bColor.A / 3)
 			tColor := color.RGBA{R: bColor.R, G: bColor.G, B: bColor.B, A: tAlpha}
-			ebitenutil.DrawRect(screen, bLine.X2-6, bLine.Y2-6, 12, 12, tColor) // TODO: calculate thickness based on image size
+			vector.DrawFilledRect(screen, float32(bLine.X2-6), float32(bLine.Y2-6), 12, 12, tColor, false) // TODO: calculate thickness based on image size
 		}
 
-		ebitenutil.DrawRect(screen, bLine.X2-2, bLine.Y2-2, 4, 4, bColor) // TODO: calculate thickness based on image size
+		vector.DrawFilledRect(screen, float32(bLine.X2)-2, float32(bLine.Y2-2), 4, 4, bColor, false) // TODO: calculate thickness based on image size
 	}
 }
