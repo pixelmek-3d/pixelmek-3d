@@ -477,7 +477,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 		case model.ENERGY:
 			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.EnergyResourceType, armament.Weapon)
+				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.EnergyResourceType, armament.Weapon)
 				continue
 			}
 
@@ -535,7 +535,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 		case model.MISSILE:
 			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.MissileResourceType, armament.Weapon)
+				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.MissileResourceType, armament.Weapon)
 				continue
 			}
 
@@ -601,7 +601,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 		case model.BALLISTIC:
 			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
 			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s\n", unit.Name(), unit.Variant(), model.BallisticResourceType, armament.Weapon)
+				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.BallisticResourceType, armament.Weapon)
 				continue
 			}
 

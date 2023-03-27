@@ -62,11 +62,11 @@ func (g *Game) handleInput() {
 	case MouseModeCursor:
 		g.mouseX, g.mouseY = ebiten.CursorPosition()
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-			log.Debugf("mouse left clicked: (%v, %v)\n", g.mouseX, g.mouseY)
+			log.Debugf("mouse left clicked: (%v, %v)", g.mouseX, g.mouseY)
 		}
 
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
-			log.Debugf("mouse right clicked: (%v, %v)\n", g.mouseX, g.mouseY)
+			log.Debugf("mouse right clicked: (%v, %v)", g.mouseX, g.mouseY)
 		}
 
 	case MouseModeBody:

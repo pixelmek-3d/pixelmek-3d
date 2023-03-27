@@ -26,6 +26,10 @@ func main() {
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
 
+	formatter := game.LogFormat{}
+	formatter.TimestampFormat = "2006-01-02 15:04:05"
+	log.SetFormatter(&formatter)
+
 	// run the game
 	g := game.NewGame()
 	g.Run()

@@ -102,12 +102,12 @@ func (g *Game) SetPlayerUnit(unitType, unitResource string) model.Unit {
 		unitSprite = render.NewInfantrySprite(iUnit, scale, unitImg).Sprite
 
 	default:
-		log.Fatalf("unable to set player unit, resource type %s does not exist\n", unitType)
+		log.Fatalf("unable to set player unit, resource type %s does not exist", unitType)
 		return nil
 	}
 
 	if unit == nil {
-		log.Fatalf("unable to set player unit, resource does not exist %s/%s\n", unitType, unitResource)
+		log.Fatalf("unable to set player unit, resource does not exist %s/%s", unitType, unitResource)
 		return nil
 	}
 

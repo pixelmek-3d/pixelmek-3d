@@ -620,7 +620,7 @@ func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 		collisionEntity.entity.ApplyDamage(collisionDamage)
 		if g.debug {
 			hp, maxHP := collisionEntity.entity.ArmorPoints()+collisionEntity.entity.StructurePoints(), collisionEntity.entity.MaxArmorPoints()+collisionEntity.entity.MaxStructurePoints()
-			log.Debugf("collided for %0.1f (HP: %0.1f/%0.0f)\n", collisionDamage, hp, maxHP)
+			log.Debugf("collided for %0.1f (HP: %0.1f/%0.0f)", collisionDamage, hp, maxHP)
 		}
 	}
 }
