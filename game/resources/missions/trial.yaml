@@ -43,3 +43,6 @@ infantry:
 - unit: "heavy_foot.yaml"
   position: [12, 14]
   patrolPath: [[12, 14], [9, 14], [12, 14]]
+emplacements:
+- unit: "srm_turret.yaml"
+  position: [12, 10]

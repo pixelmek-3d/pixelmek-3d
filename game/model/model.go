@@ -34,6 +34,7 @@ type ModelResources struct {
 	Vehicles         map[string]*ModelVehicleResource
 	VTOLs            map[string]*ModelVTOLResource
 	Infantry         map[string]*ModelInfantryResource
+	Emplacements     map[string]*ModelEmplacementResource
 	EnergyWeapons    map[string]*ModelEnergyWeaponResource
 	MissileWeapons   map[string]*ModelMissileWeaponResource
 	BallisticWeapons map[string]*ModelBallisticWeaponResource
@@ -44,6 +45,7 @@ const (
 	VehicleResourceType     string = "vehicles"
 	VTOLResourceType        string = "vtols"
 	InfantryResourceType    string = "infantry"
+	EmplacementResourceType string = "emplacements"
 	ProjectilesResourceType string = "projectiles"
 	EffectsResourceType     string = "effects"
 	EnergyResourceType      string = "energy"
@@ -176,6 +178,23 @@ type ModelInfantryResource struct {
 	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
+	Armor             float64                  `yaml:"armor" validate:"gte=0"`
+	Structure         float64                  `yaml:"structure" validate:"gt=0"`
+	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	Armament          []*ModelResourceArmament `yaml:"armament"`
+}
+
+type ModelEmplacementResource struct {
+	File              string                   `yaml:"-"`
+	Name              string                   `yaml:"name" validate:"required"`
+	Variant           string                   `yaml:"variant" validate:"required"`
+	Image             string                   `yaml:"image" validate:"required"`
+	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
+	Tech              ModelTech                `yaml:"tech" validate:"required"`
+	Height            float64                  `yaml:"height" validate:"gt=0"`
+	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
@@ -429,6 +448,8 @@ func (r *ModelResources) loadUnitResources() error {
 		case InfantryResourceType:
 			r.Infantry = make(map[string]*ModelInfantryResource, len(unitFiles))
 
+		case EmplacementResourceType:
+			r.Emplacements = make(map[string]*ModelEmplacementResource, len(unitFiles))
 		}
 
 		for _, u := range unitFiles {
@@ -505,6 +526,20 @@ func (r *ModelResources) loadUnitResources() error {
 				m.File = fileName
 				r.Infantry[fileName] = m
 
+			case EmplacementResourceType:
+				m := &ModelEmplacementResource{}
+				err = yaml.Unmarshal(unitYaml, m)
+				if err != nil {
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
+				}
+
+				err = v.Struct(m)
+				if err != nil {
+					return fmt.Errorf("[%s] %s", filePath, err.Error())
+				}
+
+				m.File = fileName
+				r.Emplacements[fileName] = m
 			}
 		}
 	}
@@ -636,7 +671,7 @@ func (r *ModelResources) GetVehicleResource(unit string) *ModelVehicleResource {
 	return nil
 }
 
-// GetVehicleResourceList gets mech resources as sorted list
+// GetVehicleResourceList gets vehicle resources as sorted list
 func (r *ModelResources) GetVehicleResourceList() []*ModelVehicleResource {
 	resourceList := make([]*ModelVehicleResource, 0, len(r.Mechs))
 	for _, v := range r.Vehicles {
@@ -658,9 +693,9 @@ func (r *ModelResources) GetVTOLResource(unit string) *ModelVTOLResource {
 	return nil
 }
 
-// GetVTOLResourceList gets mech resources as sorted list
+// GetVTOLResourceList gets vtol resources as sorted list
 func (r *ModelResources) GetVTOLResourceList() []*ModelVTOLResource {
-	resourceList := make([]*ModelVTOLResource, 0, len(r.Mechs))
+	resourceList := make([]*ModelVTOLResource, 0, len(r.VTOLs))
 	for _, v := range r.VTOLs {
 		resourceList = append(resourceList, v)
 	}
@@ -680,10 +715,32 @@ func (r *ModelResources) GetInfantryResource(unit string) *ModelInfantryResource
 	return nil
 }
 
-// GetInfantryResourceList gets mech resources as sorted list
+// GetInfantryResourceList gets infantry resources as sorted list
 func (r *ModelResources) GetInfantryResourceList() []*ModelInfantryResource {
-	resourceList := make([]*ModelInfantryResource, 0, len(r.Mechs))
+	resourceList := make([]*ModelInfantryResource, 0, len(r.Infantry))
 	for _, v := range r.Infantry {
+		resourceList = append(resourceList, v)
+	}
+
+	sort.Slice(resourceList, func(i, j int) bool {
+		rI, rJ := resourceList[i], resourceList[j]
+		return rI.Name < rJ.Name || (rI.Name == rJ.Name && rI.Variant < rJ.Variant)
+	})
+
+	return resourceList
+}
+
+func (r *ModelResources) GetEmplacementResource(unit string) *ModelEmplacementResource {
+	if m, ok := r.Emplacements[unit]; ok {
+		return m
+	}
+	return nil
+}
+
+// GetEmplacementResourceList gets emplacement resources as sorted list
+func (r *ModelResources) GetEmplacementResourceList() []*ModelEmplacementResource {
+	resourceList := make([]*ModelEmplacementResource, 0, len(r.Emplacements))
+	for _, v := range r.Emplacements {
 		resourceList = append(resourceList, v)
 	}
 

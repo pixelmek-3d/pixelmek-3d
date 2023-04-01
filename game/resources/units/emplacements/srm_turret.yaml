@@ -1,0 +1,34 @@
+---
+name: SRM Turret
+variant: Turret-SRM
+image: rocket_turret.png
+imageSheet:
+  columns: 1
+  rows: 4
+  animationRate: 4
+  angleFacingRow:
+    0: 0
+    90: 1
+    180: 2
+    270: 3
+tech: clan
+tonnage: 30
+height: 5
+heightRatio: 1.29 # 63 image pixel height / 41 unit pixel height = 1.54
+armor: 30
+structure: 15
+collisionRadius: 16
+collisionHeight: 40
+cockpitOffset: [0, 11]
+heatSinks:
+  quantity: 10
+  type: single
+armament:
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: turret
+  offset: [-6, 32]
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: turret
+  offset: [6, 32]

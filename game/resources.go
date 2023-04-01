@@ -254,6 +254,7 @@ func (g *Game) loadMissionSprites() {
 	vehicleSpriteTemplates := g.sprites.vehicleSpriteTemplates
 	vtolSpriteTemplates := g.sprites.vtolSpriteTemplates
 	infantrySpriteTemplates := g.sprites.infantrySpriteTemplates
+	emplacementSpriteTemplates := g.sprites.emplacementSpriteTemplates
 
 	for _, missionMech := range g.mission.Mechs {
 		if _, ok := mechSpriteTemplates[missionMech.Unit]; !ok {
@@ -361,6 +362,27 @@ func (g *Game) loadMissionSprites() {
 
 		g.sprites.addInfantrySprite(infantry)
 	}
+
+	for _, missionEmplacement := range g.mission.Emplacements {
+		if _, ok := emplacementSpriteTemplates[missionEmplacement.Unit]; !ok {
+			modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit)
+
+			emplacementResource := g.resources.GetEmplacementResource(missionEmplacement.Unit)
+			emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
+			emplacementImg := getSpriteFromFile(emplacementRelPath)
+
+			scale := convertHeightToScale(emplacementResource.Height, emplacementResource.HeightPxRatio)
+			emplacementSpriteTemplates[missionEmplacement.Unit] = render.NewEmplacementSprite(modelEmplacement, scale, emplacementImg)
+		}
+
+		emplacementTemplate := emplacementSpriteTemplates[missionEmplacement.Unit]
+		emplacement := emplacementTemplate.Clone()
+
+		posX, posY := missionEmplacement.Position[0], missionEmplacement.Position[1]
+		emplacement.SetPos(&geom.Vector2{X: posX, Y: posY})
+
+		g.sprites.addEmplacementSprite(emplacement)
+	}
 }
 
 func (g *Game) createModelMech(unit string) *model.Mech {
@@ -464,6 +486,33 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, scale)
 
 	return modelInfantry
+}
+
+func (g *Game) createModelEmplacement(unit string) *model.Emplacement {
+	emplacementResource := g.resources.GetEmplacementResource(unit)
+	emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
+	emplacementImg := getSpriteFromFile(emplacementRelPath)
+
+	// need to use the image size to find the unit collision conversion from pixels
+	width, height := emplacementImg.Bounds().Dx(), emplacementImg.Bounds().Dy()
+	// handle if image has multiple rows/cols
+	if emplacementResource.ImageSheet != nil {
+		width = int(float64(width) / float64(emplacementResource.ImageSheet.Columns))
+		height = int(float64(height) / float64(emplacementResource.ImageSheet.Rows))
+	}
+
+	scale := convertHeightToScale(emplacementResource.Height, emplacementResource.HeightPxRatio)
+	collisionRadius, collisionHeight := convertOffsetFromPx(
+		emplacementResource.CollisionPxRadius, emplacementResource.CollisionPxHeight, width, height, scale,
+	)
+
+	cockpitPxX, cockpitPxY := emplacementResource.CockpitPxOffset[0], emplacementResource.CockpitPxOffset[1]
+	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	modelEmplacement := model.NewEmplacement(emplacementResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
+	g.loadUnitWeapons(modelEmplacement, emplacementResource.Armament, width, height, scale)
+
+	return modelEmplacement
 }
 
 func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {

@@ -805,6 +805,17 @@ func (g *Game) updateSprites() {
 				g.updateInfantryPosition(s)
 				s.Update(g.player.Pos())
 				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
+
+			case EmplacementSpriteType:
+				s := k.(*render.EmplacementSprite)
+				if s.IsDestroyed() {
+					// TODO: implement unit destruction animation
+					g.sprites.deleteEmplacementSprite(s)
+				}
+
+				g.updateEmplacementPosition(s)
+				s.Update(g.player.Pos())
+				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 			}
 
 			return true
@@ -951,7 +962,7 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 }
 
 func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
-	// TODO: give mechs a bit more of a brain than this
+	// TODO: give units a bit more of a brain than this
 	sPosition := s.Pos()
 	if len(s.PatrolPath) > 0 {
 		// make sure there's movement towards the next patrol point
@@ -994,6 +1005,10 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 			s.SetPosZ(newPosZ)
 		}
 	}
+}
+
+func (g *Game) updateEmplacementPosition(s *render.EmplacementSprite) {
+	// TODO: give turrets a bit more of a brain than this
 }
 
 func (g *Game) updateSpritePosition(s *render.Sprite) {

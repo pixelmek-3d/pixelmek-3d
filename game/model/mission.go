@@ -12,17 +12,18 @@ import (
 )
 
 type Mission struct {
-	missionMap *Map
-	DropZone   *MissionDropZone  `yaml:"dropZone" validate:"required"`
-	MapPath    string            `yaml:"map"`
-	Lighting   *MapLighting      `yaml:"lighting,omitempty"`
-	FloorBox   *MapTexture       `yaml:"floorBox,omitempty"`
-	SkyBox     *MapTexture       `yaml:"skyBox,omitempty"`
-	NavPoints  []*NavPoint       `yaml:"navPoints"`
-	Mechs      []MissionMech     `yaml:"mechs"`
-	Vehicles   []MissionVehicle  `yaml:"vehicles"`
-	VTOLs      []MissionVTOL     `yaml:"vtols"`
-	Infantry   []MissionInfantry `yaml:"infantry"`
+	missionMap   *Map
+	DropZone     *MissionDropZone     `yaml:"dropZone" validate:"required"`
+	MapPath      string               `yaml:"map"`
+	Lighting     *MapLighting         `yaml:"lighting,omitempty"`
+	FloorBox     *MapTexture          `yaml:"floorBox,omitempty"`
+	SkyBox       *MapTexture          `yaml:"skyBox,omitempty"`
+	NavPoints    []*NavPoint          `yaml:"navPoints"`
+	Mechs        []MissionMech        `yaml:"mechs"`
+	Vehicles     []MissionVehicle     `yaml:"vehicles"`
+	VTOLs        []MissionVTOL        `yaml:"vtols"`
+	Infantry     []MissionInfantry    `yaml:"infantry"`
+	Emplacements []MissionEmplacement `yaml:"emplacements"`
 }
 
 func (m *Mission) Map() *Map {
@@ -57,6 +58,11 @@ type MissionInfantry struct {
 	Unit       string       `yaml:"unit" validate:"required"`
 	Position   [2]float64   `yaml:"position" validate:"required"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
+}
+
+type MissionEmplacement struct {
+	Unit     string     `yaml:"unit" validate:"required"`
+	Position [2]float64 `yaml:"position" validate:"required"`
 }
 
 type NavPoint struct {

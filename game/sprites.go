@@ -14,11 +14,12 @@ import (
 type SpriteHandler struct {
 	sprites map[SpriteType]*sync.Map
 
-	mechSpriteTemplates       map[string]*render.MechSprite
-	vehicleSpriteTemplates    map[string]*render.VehicleSprite
-	vtolSpriteTemplates       map[string]*render.VTOLSprite
-	infantrySpriteTemplates   map[string]*render.InfantrySprite
-	projectileSpriteTemplates map[string]*render.ProjectileSprite
+	mechSpriteTemplates        map[string]*render.MechSprite
+	vehicleSpriteTemplates     map[string]*render.VehicleSprite
+	vtolSpriteTemplates        map[string]*render.VTOLSprite
+	infantrySpriteTemplates    map[string]*render.InfantrySprite
+	emplacementSpriteTemplates map[string]*render.EmplacementSprite
+	projectileSpriteTemplates  map[string]*render.ProjectileSprite
 }
 
 type SpriteType int
@@ -29,6 +30,7 @@ const (
 	VehicleSpriteType
 	VTOLSpriteType
 	InfantrySpriteType
+	EmplacementSpriteType
 	ProjectileSpriteType
 	EffectSpriteType
 	TotalSpriteTypes
@@ -36,17 +38,19 @@ const (
 
 func NewSpriteHandler() *SpriteHandler {
 	s := &SpriteHandler{
-		sprites:                   make(map[SpriteType]*sync.Map, TotalSpriteTypes),
-		mechSpriteTemplates:       make(map[string]*render.MechSprite),
-		vehicleSpriteTemplates:    make(map[string]*render.VehicleSprite),
-		vtolSpriteTemplates:       make(map[string]*render.VTOLSprite),
-		infantrySpriteTemplates:   make(map[string]*render.InfantrySprite),
-		projectileSpriteTemplates: make(map[string]*render.ProjectileSprite),
+		sprites:                    make(map[SpriteType]*sync.Map, TotalSpriteTypes),
+		mechSpriteTemplates:        make(map[string]*render.MechSprite),
+		vehicleSpriteTemplates:     make(map[string]*render.VehicleSprite),
+		vtolSpriteTemplates:        make(map[string]*render.VTOLSprite),
+		infantrySpriteTemplates:    make(map[string]*render.InfantrySprite),
+		emplacementSpriteTemplates: make(map[string]*render.EmplacementSprite),
+		projectileSpriteTemplates:  make(map[string]*render.ProjectileSprite),
 	}
 	s.sprites[MechSpriteType] = &sync.Map{}
 	s.sprites[VehicleSpriteType] = &sync.Map{}
 	s.sprites[VTOLSpriteType] = &sync.Map{}
 	s.sprites[InfantrySpriteType] = &sync.Map{}
+	s.sprites[EmplacementSpriteType] = &sync.Map{}
 	s.sprites[MapSpriteType] = &sync.Map{}
 	s.sprites[ProjectileSpriteType] = &sync.Map{}
 	s.sprites[EffectSpriteType] = &sync.Map{}
@@ -92,6 +96,14 @@ func (s *SpriteHandler) addInfantrySprite(infantry *render.InfantrySprite) {
 
 func (s *SpriteHandler) deleteInfantrySprite(infantry *render.InfantrySprite) {
 	s.sprites[InfantrySpriteType].Delete(infantry)
+}
+
+func (s *SpriteHandler) addEmplacementSprite(emplacement *render.EmplacementSprite) {
+	s.sprites[EmplacementSpriteType].Store(emplacement, struct{}{})
+}
+
+func (s *SpriteHandler) deleteEmplacementSprite(emplacement *render.EmplacementSprite) {
+	s.sprites[EmplacementSpriteType].Delete(emplacement)
 }
 
 func (s *SpriteHandler) addProjectile(projectile *render.ProjectileSprite) {
@@ -162,6 +174,8 @@ func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
 		return sInterface.(*render.VTOLSprite).Sprite
 	case *render.InfantrySprite:
 		return sInterface.(*render.InfantrySprite).Sprite
+	case *render.EmplacementSprite:
+		return sInterface.(*render.EmplacementSprite).Sprite
 	case *render.ProjectileSprite:
 		return sInterface.(*render.ProjectileSprite).Sprite
 	case *render.EffectSprite:
@@ -183,6 +197,8 @@ func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
 		return sInterface.(*render.VTOLSprite).Entity
 	case *render.InfantrySprite:
 		return sInterface.(*render.InfantrySprite).Entity
+	case *render.EmplacementSprite:
+		return sInterface.(*render.EmplacementSprite).Entity
 	case *render.ProjectileSprite:
 		return sInterface.(*render.ProjectileSprite).Entity
 	case *render.EffectSprite:

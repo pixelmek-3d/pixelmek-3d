@@ -103,6 +103,12 @@ func (g *Game) fireTestWeaponAtPlayer() {
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
 				unit = model.EntityUnit(s.Entity)
+
+			case EmplacementSpriteType:
+				s := k.(*render.EmplacementSprite)
+				sPosition := s.Pos()
+				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
+				unit = model.EntityUnit(s.Entity)
 			}
 
 			if unit == nil {
