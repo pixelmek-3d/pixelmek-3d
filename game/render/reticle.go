@@ -37,9 +37,9 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// set minimum scale size based on screen size
 	screenW, screenH := screen.Bounds().Dx(), screen.Bounds().Dy()
-	screenDim := int(float64(screenW) * hudOpts.RenderScale)
+	screenDim := int(float64(screenW))
 	if screenH > screenW {
-		screenDim = int(float64(screenH) * hudOpts.RenderScale)
+		screenDim = int(float64(screenH))
 	}
 	screenMinScale := float64(screenDim) / (50 * float64(t.Width()))
 
@@ -102,9 +102,9 @@ func (t *NavReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// set minimum scale size based on screen size
 	screenW, screenH := screen.Bounds().Dx(), screen.Bounds().Dy()
-	screenDim := int(float64(screenW) * hudOpts.RenderScale)
+	screenDim := int(float64(screenW))
 	if screenH > screenW {
-		screenDim = int(float64(screenH) * hudOpts.RenderScale)
+		screenDim = int(float64(screenH))
 	}
 	screenMinScale := float64(screenDim) / (50 * float64(t.Width()))
 

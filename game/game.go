@@ -80,8 +80,9 @@ type Game struct {
 	hudRGBA           color.RGBA
 	hudUseCustomColor bool
 
-	//--define camera and renderer--//
+	//--define camera and render scene--//
 	camera *raycaster.Camera
+	scene  *ebiten.Image
 
 	mouseMode      MouseMode
 	mouseX, mouseY int
@@ -358,7 +359,7 @@ func (g *Game) Run() {
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	w, h := int(float64(g.screenWidth)*g.renderScale), int(float64(g.screenHeight)*g.renderScale)
+	w, h := int(float64(g.screenWidth)), int(float64(g.screenHeight))
 	g.menu.layout(w, h)
 	return int(w), int(h)
 }
@@ -401,8 +402,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Update camera (calculate raycast)
 	g.camera.Update(raycastSprites)
 
-	// Render raycast to screen
-	g.camera.Draw(screen)
+	// Render raycast scene
+	g.camera.Draw(g.scene)
+
+	// draw raycasted scene
+	op := &ebiten.DrawImageOptions{}
+	if g.renderScale < 1 {
+		op.Filter = ebiten.FilterNearest
+		op.GeoM.Scale(1/g.renderScale, 1/g.renderScale)
+	}
+	screen.DrawImage(g.scene, op)
 
 	// store raycasted convergence point for next Update
 	g.player.convergenceDistance = g.camera.GetConvergenceDistance()
@@ -434,6 +443,7 @@ func (g *Game) setRenderScale(renderScale float64) {
 	if g.camera != nil {
 		g.camera.SetViewSize(g.width, g.height)
 	}
+	g.scene = ebiten.NewImage(g.width, g.height)
 }
 
 func (g *Game) setVsyncEnabled(enableVsync bool) {
@@ -548,13 +558,13 @@ func (g *Game) updatePlayer() {
 		s := g.getSpriteFromEntity(target)
 		if s != nil {
 			acquireLock := false
-			crosshairLockSize := int(math.Ceil(float64(g.width) * 0.05))
-			midW, midH := g.width/2, g.height/2
+			crosshairLockSize := int(math.Ceil(float64(g.screenWidth) * 0.05))
+			midW, midH := g.screenWidth/2, g.screenHeight/2
 			crosshairBounds := image.Rect(
 				midW-crosshairLockSize/2, midH-crosshairLockSize/2,
 				midW+crosshairLockSize/2, midH+crosshairLockSize/2,
 			)
-			targetBounds := s.ScreenRect()
+			targetBounds := s.ScreenRect(g.renderScale)
 			if targetBounds != nil {
 				acquireLock = targetBounds.Overlaps(crosshairBounds)
 			}

@@ -67,7 +67,6 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 
 	hudOpts := &render.DrawHudOptions{
 		Screen:         screen,
-		RenderScale:    g.renderScale,
 		MarginX:        marginX,
 		MarginY:        marginY,
 		UseCustomColor: g.hudUseCustomColor,
@@ -130,9 +129,9 @@ func (g *Game) drawFPS(hudOpts *render.DrawHudOptions) {
 	g.fps.SetFPSText(fps)
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW := g.width - marginX*2
+	hudW := g.screenWidth - marginX*2
 
-	fScale := g.fps.Scale() * g.renderScale * g.hudScale
+	fScale := g.fps.Scale() * g.hudScale
 	fWidth, fHeight := int(fScale*float64(hudW)/5), int(fScale*float64(marginY))
 
 	fX, fY := 0, 0
@@ -148,12 +147,12 @@ func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
-	statusScale := g.playerStatus.Scale() * g.renderScale * g.hudScale
+	statusScale := g.playerStatus.Scale() * g.hudScale
 	statusWidth, statusHeight := int(statusScale*float64(hudW)/5), int(statusScale*float64(hudH)/5)
 
-	sX, sY := 4*float64(g.width)/5-2*float64(statusWidth)/3-float64(marginX), float64(g.height-statusHeight-marginY)
+	sX, sY := 4*float64(g.screenWidth)/5-2*float64(statusWidth)/3-float64(marginX), float64(g.screenHeight-statusHeight-marginY)
 	sBounds := image.Rect(
 		int(sX), int(sY), int(sX)+statusWidth, int(sY)+statusHeight,
 	)
@@ -167,12 +166,12 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
-	statusScale := g.targetStatus.Scale() * g.renderScale * g.hudScale
+	statusScale := g.targetStatus.Scale() * g.hudScale
 	statusWidth, statusHeight := int(statusScale*float64(hudW)/5), int(statusScale*float64(hudH)/5)
 
-	sX, sY := marginX, g.height-statusHeight-marginY
+	sX, sY := marginX, g.screenHeight-statusHeight-marginY
 	sBounds := image.Rect(
 		sX, sY, sX+statusWidth, sY+statusHeight,
 	)
@@ -216,12 +215,12 @@ func (g *Game) drawNavStatus(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
-	statusScale := g.navStatus.Scale() * g.renderScale * g.hudScale
+	statusScale := g.navStatus.Scale() * g.hudScale
 	statusWidth, statusHeight := int(statusScale*float64(hudW)/5), int(statusScale*float64(hudH)/5)
 
-	sX, sY := marginX, g.height-statusHeight-marginY
+	sX, sY := marginX, g.screenHeight-statusHeight-marginY
 	sBounds := image.Rect(
 		sX, sY, sX+statusWidth, sY+statusHeight,
 	)
@@ -245,11 +244,11 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
-	armamentScale := g.armament.Scale() * g.renderScale * g.hudScale
+	armamentScale := g.armament.Scale() * g.hudScale
 	armamentWidth, armamentHeight := int(armamentScale*float64(hudW)/3), int(armamentScale*float64(3*hudH)/8)
-	aX, aY := g.width-armamentWidth-marginX, marginY
+	aX, aY := g.screenWidth-armamentWidth-marginX, marginY
 	aBounds := image.Rect(
 		aX, aY, aX+armamentWidth, aY+armamentHeight,
 	)
@@ -269,11 +268,11 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
-	compassScale := g.compass.Scale() * g.renderScale * g.hudScale
+	compassScale := g.compass.Scale() * g.hudScale
 	compassWidth, compassHeight := int(compassScale*float64(3*hudW)/10), int(compassScale*float64(hudH)/21)
-	cX, cY := float64(g.width)/2-float64(compassWidth)/2, float64(marginY)
+	cX, cY := float64(g.screenWidth)/2-float64(compassWidth)/2, float64(marginY)
 	cBounds := image.Rect(
 		int(cX), int(cY), int(cX)+compassWidth, int(cY)+compassHeight,
 	)
@@ -317,14 +316,14 @@ func (g *Game) drawAltimeter(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
 	// convert Z position to meters of altitude
 	altitude := g.player.PosZ() * model.METERS_PER_UNIT
 
-	altScale := g.altimeter.Scale() * g.renderScale * g.hudScale
+	altScale := g.altimeter.Scale() * g.hudScale
 	altWidth, altHeight := int(altScale*float64(hudW)/24), int(altScale*float64(3*hudH)/12)
-	aX, aY := float64(marginX), float64(g.height)/2-float64(altHeight)/2-float64(marginY)
+	aX, aY := float64(marginX), float64(g.screenHeight)/2-float64(altHeight)/2-float64(marginY)
 	aBounds := image.Rect(
 		int(aX), int(aY), int(aX)+altWidth, int(aY)+altHeight,
 	)
@@ -337,15 +336,15 @@ func (g *Game) drawHeatIndicator(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
 	// convert heat dissipation to seconds
 	heat, maxHeat := g.player.Heat(), 100.0 // FIXME: add MaxHeat to model, determined based on # of heat sinks
 	dissipationPerSec := g.player.HeatDissipation() * model.TICKS_PER_SECOND
 
-	heatScale := g.heat.Scale() * g.renderScale * g.hudScale
+	heatScale := g.heat.Scale() * g.hudScale
 	heatWidth, heatHeight := int(heatScale*float64(3*hudW)/10), int(heatScale*float64(hudH)/18)
-	hX, hY := float64(g.width)/2-float64(heatWidth)/2, float64(g.height-heatHeight-marginY)
+	hX, hY := float64(g.screenWidth)/2-float64(heatWidth)/2, float64(g.screenHeight-heatHeight-marginY)
 	hBounds := image.Rect(
 		int(hX), int(hY), int(hX)+heatWidth, int(hY)+heatHeight,
 	)
@@ -358,7 +357,7 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
 	// convert velocity from units per tick to kilometers per hour
 	kphVelocity := g.player.Velocity() * model.VELOCITY_TO_KPH
@@ -366,11 +365,11 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
 
-	throttleScale := g.throttle.Scale() * g.renderScale * g.hudScale
+	throttleScale := g.throttle.Scale() * g.hudScale
 	throttleWidth, throttleHeight := int(throttleScale*float64(hudW)/8), int(throttleScale*float64(3*hudH)/8)
 	tBounds := image.Rect(
-		g.width-throttleWidth-marginX, g.height-throttleHeight-marginY,
-		g.width-marginX, g.height-marginY,
+		g.screenWidth-throttleWidth-marginX, g.screenHeight-throttleHeight-marginY,
+		g.screenWidth-marginX, g.screenHeight-marginY,
 	)
 	g.throttle.Draw(tBounds, hudOpts, kphVelocity, kphTgtVelocity, kphVelocityZ, kphMax, kphMax/2)
 }
@@ -385,14 +384,14 @@ func (g *Game) drawJumpJetIndicator(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
 	jDuration := g.player.Unit.JumpJetDuration()
 	jMaxDuration := g.player.Unit.MaxJumpJetDuration()
 
-	jetsScale := g.jets.Scale() * g.renderScale * g.hudScale
+	jetsScale := g.jets.Scale() * g.hudScale
 	jetsWidth, jetsHeight := int(jetsScale*float64(hudW)/12), int(jetsScale*float64(3*hudH)/18)
-	hX, hY := float64(g.width)/5+2*float64(marginX), float64(g.height-jetsHeight-marginY)
+	hX, hY := float64(g.screenWidth)/5+2*float64(marginX), float64(g.screenHeight-jetsHeight-marginY)
 	jBounds := image.Rect(
 		int(hX), int(hY), int(hX)+jetsWidth, int(hY)+jetsHeight,
 	)
@@ -405,9 +404,9 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	}
 
 	marginX, marginY := hudOpts.MarginX, hudOpts.MarginY
-	hudW, hudH := g.width-marginX*2, g.height-marginY*2
+	hudW, hudH := g.screenWidth-marginX*2, g.screenHeight-marginY*2
 
-	radarScale := g.radar.Scale() * g.renderScale * g.hudScale
+	radarScale := g.radar.Scale() * g.hudScale
 	radarWidth, radarHeight := int(radarScale*float64(hudW)/3), int(radarScale*float64(hudH)/3)
 	rX, rY := marginX, marginY
 	radarBounds := image.Rect(
@@ -512,9 +511,9 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
-	cScale := g.crosshairs.Scale() * g.renderScale * g.hudScale
+	cScale := g.crosshairs.Scale() * g.hudScale
 	cWidth, cHeight := cScale*float64(g.crosshairs.Width()), cScale*float64(g.crosshairs.Height())
-	cX, cY := float64(g.width)/2-cWidth/2, float64(g.height)/2-cHeight/2
+	cX, cY := float64(g.screenWidth)/2-cWidth/2, float64(g.screenHeight)/2-cHeight/2
 
 	crosshairBounds := image.Rect(
 		int(cX), int(cY), int(cX+cWidth), int(cY+cHeight),
@@ -533,7 +532,7 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
-	targetBounds := s.ScreenRect()
+	targetBounds := s.ScreenRect(g.renderScale)
 	if targetBounds == nil {
 		return
 	}
@@ -551,7 +550,7 @@ func (g *Game) drawNavReticle(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
-	navBounds := s.ScreenRect()
+	navBounds := s.ScreenRect(g.renderScale)
 	if navBounds == nil {
 		return
 	}

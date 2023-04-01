@@ -235,8 +235,19 @@ func (s *Sprite) LoopCounter() int {
 	return s.loopCounter
 }
 
-func (s *Sprite) ScreenRect() *image.Rectangle {
-	return s.screenRect
+func (s *Sprite) ScreenRect(renderScale float64) *image.Rectangle {
+	if s.screenRect == nil {
+		return nil
+	}
+	if renderScale == 1 {
+		return s.screenRect
+	}
+
+	// convert scene position to screen position
+	x0, y0 := float64(s.screenRect.Min.X)*1/renderScale, float64(s.screenRect.Min.Y)*1/renderScale
+	x1, y1 := float64(s.screenRect.Max.X)*1/renderScale, float64(s.screenRect.Max.Y)*1/renderScale
+	sRect := image.Rect(int(x0), int(y0), int(x1), int(y1))
+	return &sRect
 }
 
 func (s *Sprite) Update(camPos *geom.Vector2) {
