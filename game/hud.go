@@ -13,10 +13,11 @@ import (
 
 func (g *Game) initInteractiveTypes() {
 	g.interactiveSpriteTypes = map[SpriteType]struct{}{
-		MechSpriteType:     {},
-		VehicleSpriteType:  {},
-		VTOLSpriteType:     {},
-		InfantrySpriteType: {},
+		MechSpriteType:        {},
+		VehicleSpriteType:     {},
+		VTOLSpriteType:        {},
+		InfantrySpriteType:    {},
+		EmplacementSpriteType: {},
 	}
 }
 
