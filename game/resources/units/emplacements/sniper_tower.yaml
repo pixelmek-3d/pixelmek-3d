@@ -1,0 +1,34 @@
+---
+name: Sniper Tower Turret
+variant: Turret-Sniper
+image: sniper_tower.png
+imageSheet:
+  columns: 1
+  rows: 4
+  animationRate: 4
+  angleFacingRow:
+    0: 0
+    90: 1
+    180: 2
+    270: 3
+tech: clan
+tonnage: 40
+height: 15
+heightRatio: 1.09 # 94 image pixel height / 86 unit pixel height = 1.09
+armor: 40
+structure: 15
+collisionRadius: 17
+collisionHeight: 86
+cockpitOffset: [0, 82]
+heatSinks:
+  quantity: 10
+  type: single
+armament:
+- weapon: "cl_ultra_ac_2.yaml"
+  type: ballistic
+  location: turret
+  offset: [-6, 80]
+- weapon: "cl_ultra_ac_2.yaml"
+  type: ballistic
+  location: turret
+  offset: [6, 80]

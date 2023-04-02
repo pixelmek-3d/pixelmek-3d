@@ -46,3 +46,5 @@ infantry:
 emplacements:
 - unit: "srm_turret.yaml"
   position: [12, 10]
+- unit: "sniper_tower.yaml"
+  position: [14, 10]
