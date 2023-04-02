@@ -48,3 +48,5 @@ emplacements:
   position: [12, 10]
 - unit: "sniper_tower.yaml"
   position: [14, 10]
+- unit: "lrm_tower.yaml"
+  position: [16, 10]

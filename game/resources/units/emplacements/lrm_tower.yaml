@@ -1,0 +1,35 @@
+---
+name: LRM Tower Turret
+variant: Turret-LRM
+image: missile_tower.png
+imageSheet:
+  columns: 1
+  rows: 4
+  staticIndex: 3
+  animationRate: 4
+  angleFacingRow:
+    0: 0
+    90: 1
+    180: 2
+    270: 3
+tech: clan
+tonnage: 40
+height: 15
+heightRatio: 1.01 # 94 image pixel height / 93 unit pixel height = 1.01
+armor: 40
+structure: 15
+collisionRadius: 17
+collisionHeight: 92
+cockpitOffset: [0, 80]
+heatSinks:
+  quantity: 10
+  type: single
+armament:
+- weapon: "cl_lrm_10.yaml"
+  type: missile
+  location: turret
+  offset: [-6, 84]
+- weapon: "cl_lrm_10.yaml"
+  type: missile
+  location: turret
+  offset: [6, 84]
