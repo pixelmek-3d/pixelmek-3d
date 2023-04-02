@@ -34,6 +34,7 @@ func NewEmplacementSprite(
 			}
 			p.SetTextureFacingMap(facingMap)
 		}
+		p.staticTexNum = emplacement.Resource.ImageSheet.StaticIndex
 	}
 
 	s := &EmplacementSprite{

@@ -278,6 +278,7 @@ type ModelResourceImageSheet struct {
 	Rows           int             `yaml:"rows" validate:"gt=0"`
 	AnimationRate  int             `yaml:"animationRate" validate:"gte=0"`
 	AngleFacingRow map[float64]int `yaml:"angleFacingRow"`
+	StaticIndex    int             `yaml:"staticIndex" validate:"gte=0"`
 }
 
 type ModelResourceHeatSinks struct {

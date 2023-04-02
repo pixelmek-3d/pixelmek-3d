@@ -38,6 +38,7 @@ func NewVehicleSprite(
 			}
 			p.SetTextureFacingMap(facingMap)
 		}
+		p.staticTexNum = vehicle.Resource.ImageSheet.StaticIndex
 	}
 
 	s := &VehicleSprite{

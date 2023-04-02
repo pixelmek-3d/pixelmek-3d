@@ -7,6 +7,7 @@ image: attack_chopper.png
 imageSheet:
   columns: 1
   rows: 4
+  staticIndex: 2
   animationRate: 4
   angleFacingRow:
     0: 0

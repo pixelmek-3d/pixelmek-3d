@@ -37,6 +37,7 @@ func NewVTOLSprite(
 			}
 			p.SetTextureFacingMap(facingMap)
 		}
+		p.staticTexNum = vtol.Resource.ImageSheet.StaticIndex
 	}
 
 	s := &VTOLSprite{

@@ -38,6 +38,7 @@ func NewInfantrySprite(
 			}
 			p.SetTextureFacingMap(facingMap)
 		}
+		p.staticTexNum = infantry.Resource.ImageSheet.StaticIndex
 	}
 
 	s := &InfantrySprite{

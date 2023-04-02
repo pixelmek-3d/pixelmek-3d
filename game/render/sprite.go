@@ -26,6 +26,7 @@ type Sprite struct {
 	loopCounter       int
 	columns, rows     int
 	texNum, lenTex    int
+	staticTexNum      int
 	camFacingOverride *facingAngleOverride
 	texFacingMap      map[float64]int
 	texFacingKeys     []float64
@@ -55,7 +56,7 @@ func (s *Sprite) VerticalAnchor() raycaster.SpriteAnchor {
 }
 
 func (s *Sprite) StaticTexture() *ebiten.Image {
-	return s.textures[0]
+	return s.textures[s.staticTexNum]
 }
 
 func (s *Sprite) Texture() *ebiten.Image {

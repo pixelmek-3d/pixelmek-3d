@@ -5,6 +5,7 @@ image: sniper_tower.png
 imageSheet:
   columns: 1
   rows: 4
+  staticIndex: 3
   animationRate: 4
   angleFacingRow:
     0: 0
