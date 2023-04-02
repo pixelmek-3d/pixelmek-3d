@@ -67,3 +67,7 @@
 ## ./vtol
 
 - `attack_chopper`: "Prinz Eugn" - http://prinzeugn.deviantart.com/
+
+## ./emplacements
+
+- `missile_tower`, `rocket_turret`, `sniper_tower`: "generalgames" - https://generalgames.itch.io/vehicle-sprite-sheets

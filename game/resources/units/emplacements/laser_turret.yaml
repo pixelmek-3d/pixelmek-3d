@@ -1,0 +1,35 @@
+---
+name: Laser Turret
+variant: Turret-Laser
+image: gun_turret.png
+imageSheet:
+  columns: 1
+  rows: 4
+  staticIndex: 3
+  animationRate: 4
+  angleFacingRow:
+    0: 0
+    90: 1
+    180: 2
+    270: 3
+tech: clan
+tonnage: 30
+height: 9
+heightRatio: 2.33 # 63 image pixel height / 27 unit pixel height = 2.33
+armor: 30
+structure: 15
+collisionRadius: 16
+collisionHeight: 27
+cockpitOffset: [0, 11]
+heatSinks:
+  quantity: 10
+  type: single
+armament:
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: turret
+  offset: [-6, 20]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: turret
+  offset: [6, 20]
