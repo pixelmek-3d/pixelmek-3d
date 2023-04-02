@@ -1,7 +1,7 @@
 ---
 name: SRM Turret
 variant: Turret-SRM
-image: rocket_turret.png
+image: missile_turret.png
 imageSheet:
   columns: 1
   rows: 4
