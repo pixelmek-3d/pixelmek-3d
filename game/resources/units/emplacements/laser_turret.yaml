@@ -14,8 +14,8 @@ imageSheet:
     270: 3
 tech: clan
 tonnage: 30
-height: 9
-heightRatio: 2.33 # 63 image pixel height / 27 unit pixel height = 2.33
+height: 7
+heightRatio: 1.11 # 30 image pixel height / 27 unit pixel height = 1.11
 armor: 30
 structure: 15
 collisionRadius: 16

@@ -139,13 +139,18 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	cm.Translate(r, g, b, 0)
 
 	iH := bounds.Dy()
-	uH := uTexture.Bounds().Dy()
+	uW, uH := uTexture.Bounds().Dx(), uTexture.Bounds().Dy()
+
+	uSize := uH
+	if uW > uH {
+		uSize = uW
+	}
 
 	var uScale float64
 	if u.isPlayer {
-		uScale = (0.9 * float64(iH)) / float64(uH)
+		uScale = (0.9 * float64(iH)) / float64(uSize)
 	} else {
-		uScale = (0.6 * float64(iH)) / float64(uH)
+		uScale = (0.6 * float64(iH)) / float64(uSize)
 	}
 
 	op.GeoM.Scale(uScale, uScale)
