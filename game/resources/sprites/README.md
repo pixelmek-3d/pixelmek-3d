@@ -70,4 +70,4 @@
 
 ## ./emplacements
 
-- `missile_tower`, `rocket_turret`, `sniper_tower`: "generalgames" - https://generalgames.itch.io/vehicle-sprite-sheets
+- `gun_tower`, `gun_turret`, `missile_tower`, `missile_turret`: "generalgames" - https://generalgames.itch.io/vehicle-sprite-sheets
