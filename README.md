@@ -9,7 +9,7 @@ To see it in action, visit the [YouTube Playlist](https://www.youtube.com/playli
 
 ## Copyright and License Information
 
-PixelMek - Copyright (C) 2016 Eric Harbeston (harbdog)[https://github.com/harbdog]
+PixelMek - Copyright (C) 2016 Eric Harbeston ([harbdog](https://github.com/harbdog))
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
