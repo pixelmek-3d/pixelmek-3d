@@ -1,7 +1,6 @@
 package model
 
 import (
-	"embed"
 	"fmt"
 	"image/color"
 	"math"
@@ -9,6 +8,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/harbdog/pixelmek-3d/game/resources"
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
@@ -171,10 +172,10 @@ func (m *Map) Level(levelNum int) [][]int {
 	}
 }
 
-func LoadMap(embedded embed.FS, mapFile string) (*Map, error) {
-	mapPath := filepath.Join("resources", "maps", mapFile)
+func LoadMap(mapFile string) (*Map, error) {
+	mapPath := filepath.Join("maps", mapFile)
 
-	mapYaml, err := readFile(embedded, mapPath)
+	mapYaml, err := resources.ReadFile(mapPath)
 	if err != nil {
 		return nil, err
 	}

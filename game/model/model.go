@@ -1,12 +1,12 @@
 package model
 
 import (
-	"embed"
 	"fmt"
-	"io/fs"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/harbdog/pixelmek-3d/game/resources"
 
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v3"
@@ -394,16 +394,16 @@ func (t *ModelLocation) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func LoadModelResources(embedded embed.FS) (*ModelResources, error) {
+func LoadModelResources() (*ModelResources, error) {
 	resources := &ModelResources{}
 
-	err := resources.loadWeaponResources(embedded)
+	err := resources.loadWeaponResources()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
 
-	err = resources.loadUnitResources(embedded)
+	err = resources.loadUnitResources()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -412,12 +412,12 @@ func LoadModelResources(embedded embed.FS) (*ModelResources, error) {
 	return resources, nil
 }
 
-func (r *ModelResources) loadUnitResources(embedded embed.FS) error {
+func (r *ModelResources) loadUnitResources() error {
 	// load and validate all units
 	v := validator.New()
 
-	unitsPath := filepath.Join("resources", "units")
-	unitsTypes, err := filesInPath(embedded, unitsPath)
+	unitsPath := filepath.Join("units")
+	unitsTypes, err := resources.FilesInPath(unitsPath)
 	if err != nil {
 		return err
 	}
@@ -430,7 +430,7 @@ func (r *ModelResources) loadUnitResources(embedded embed.FS) error {
 
 		unitType := t.Name()
 		unitTypePath := filepath.Join(unitsPath, unitType)
-		unitFiles, err := filesInPath(embedded, unitTypePath)
+		unitFiles, err := resources.FilesInPath(unitTypePath)
 		if err != nil {
 			return err
 		}
@@ -461,7 +461,7 @@ func (r *ModelResources) loadUnitResources(embedded embed.FS) error {
 
 			fileName := u.Name()
 			filePath := filepath.Join(unitTypePath, fileName)
-			unitYaml, err := readFile(embedded, filePath)
+			unitYaml, err := resources.ReadFile(filePath)
 			if err != nil {
 				return err
 			}
@@ -548,12 +548,12 @@ func (r *ModelResources) loadUnitResources(embedded embed.FS) error {
 	return nil
 }
 
-func (r *ModelResources) loadWeaponResources(embedded embed.FS) error {
+func (r *ModelResources) loadWeaponResources() error {
 	// load and validate all weapons, projectiles and impact efffects
 	v := validator.New()
 
-	weaponsPath := filepath.Join("resources", "weapons")
-	weaponsTypes, err := filesInPath(embedded, weaponsPath)
+	weaponsPath := filepath.Join("weapons")
+	weaponsTypes, err := resources.FilesInPath(weaponsPath)
 	if err != nil {
 		return err
 	}
@@ -566,7 +566,7 @@ func (r *ModelResources) loadWeaponResources(embedded embed.FS) error {
 
 		weaponType := t.Name()
 		weaponTypePath := filepath.Join(weaponsPath, weaponType)
-		weaponFiles, err := filesInPath(embedded, weaponTypePath)
+		weaponFiles, err := resources.FilesInPath(weaponTypePath)
 		if err != nil {
 			return err
 		}
@@ -588,7 +588,7 @@ func (r *ModelResources) loadWeaponResources(embedded embed.FS) error {
 
 			fileName := u.Name()
 			weaponFilePath := filepath.Join(weaponTypePath, fileName)
-			weaponYaml, err := readFile(embedded, weaponFilePath)
+			weaponYaml, err := resources.ReadFile(weaponFilePath)
 			if err != nil {
 				return err
 			}
@@ -772,12 +772,4 @@ func (r *ModelResources) GetBallisticWeaponResource(weapon string) *ModelBallist
 		return m
 	}
 	return nil
-}
-
-func filesInPath(embedded embed.FS, path string) ([]fs.DirEntry, error) {
-	return embedded.ReadDir(filepath.ToSlash(path))
-}
-
-func readFile(embedded embed.FS, name string) ([]byte, error) {
-	return embedded.ReadFile(filepath.ToSlash(name))
 }

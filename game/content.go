@@ -1,7 +1,6 @@
 package game
 
 import (
-	"embed"
 	"fmt"
 	"image"
 	"image/color"
@@ -10,9 +9,9 @@ import (
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
 
 	log "github.com/sirupsen/logrus"
@@ -25,28 +24,15 @@ var (
 	projectileSpriteByWeapon = make(map[string]*render.ProjectileSprite)
 )
 
-//go:embed resources
-var embedded embed.FS
-
-func newImageFromFile(path string) (*ebiten.Image, image.Image, error) {
-	f, err := embedded.Open(filepath.ToSlash(path))
-	if err != nil {
-		return nil, nil, err
-	}
-	defer f.Close()
-	eb, im, err := ebitenutil.NewImageFromReader(f)
-	return eb, im, err
-}
-
 func getRGBAFromFile(texFile string) *image.RGBA {
 	var rgba *image.RGBA
-	resourcePath := filepath.Join("resources", "textures")
+	resourcePath := filepath.Join("textures")
 	texFilePath := filepath.Join(resourcePath, texFile)
 	if rgba, ok := rgbaByPath[texFilePath]; ok {
 		return rgba
 	}
 
-	_, tex, err := newImageFromFile(texFilePath)
+	_, tex, err := resources.NewImageFromFile(texFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,12 +55,12 @@ func getRGBAFromFile(texFile string) *image.RGBA {
 }
 
 func getTextureFromFile(texFile string) *ebiten.Image {
-	resourcePath := filepath.Join("resources", "textures", texFile)
+	resourcePath := filepath.Join("textures", texFile)
 	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
 
-	eImg, _, err := newImageFromFile(resourcePath)
+	eImg, _, err := resources.NewImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,12 +71,12 @@ func getTextureFromFile(texFile string) *ebiten.Image {
 }
 
 func getSpriteFromFile(sFile string) *ebiten.Image {
-	resourcePath := filepath.Join("resources", "sprites", sFile)
+	resourcePath := filepath.Join("sprites", sFile)
 	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
 
-	eImg, _, err := newImageFromFile(resourcePath)
+	eImg, _, err := resources.NewImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
 	}

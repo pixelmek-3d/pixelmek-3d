@@ -1,8 +1,9 @@
 package model
 
 import (
-	"embed"
 	"path/filepath"
+
+	"github.com/harbdog/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
@@ -92,10 +93,10 @@ func (n *NavPoint) SetVisited(visited bool) {
 	n.visited = visited
 }
 
-func LoadMission(embedded embed.FS, missionFile string) (*Mission, error) {
-	missionPath := filepath.Join("resources", "missions", missionFile)
+func LoadMission(missionFile string) (*Mission, error) {
+	missionPath := filepath.Join("missions", missionFile)
 
-	missionYaml, err := readFile(embedded, missionPath)
+	missionYaml, err := resources.ReadFile(missionPath)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -109,7 +110,7 @@ func LoadMission(embedded embed.FS, missionFile string) (*Mission, error) {
 	}
 
 	// load mission map
-	m.missionMap, err = LoadMap(embedded, m.MapPath)
+	m.missionMap, err = LoadMap(m.MapPath)
 	if err != nil {
 		log.Error("Error loading map", m.MapPath)
 		return nil, err

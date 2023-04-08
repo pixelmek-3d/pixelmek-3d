@@ -1,16 +1,15 @@
 package render
 
 import (
-	"embed"
 	"path/filepath"
 
+	"github.com/harbdog/pixelmek-3d/game/resources"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/ecache"
 )
 
 type FontHandler struct {
-	HUDFont  *Font
-	embedded embed.FS
+	HUDFont *Font
 }
 
 type Font struct {
@@ -20,14 +19,14 @@ type Font struct {
 	FontPath  string
 }
 
-func NewFontHandler(embedded embed.FS) *FontHandler {
-	f := &FontHandler{embedded: embedded}
+func NewFontHandler() *FontHandler {
+	f := &FontHandler{}
 	return f
 }
 
 func (f *FontHandler) LoadFont(fontFile string) (*Font, error) {
-	fontPath := filepath.Join("resources", "fonts", fontFile)
-	font, fontName, err := etxt.ParseEmbedFontFrom(filepath.ToSlash(fontPath), f.embedded)
+	fontPath := filepath.Join("fonts", fontFile)
+	font, fontName, err := resources.NewFontFromFile(filepath.ToSlash(fontPath))
 	if err != nil {
 		return nil, err
 	}

@@ -133,7 +133,7 @@ const (
 func NewGame() *Game {
 	// initialize Game object
 	g := new(Game)
-	g.fonts = render.NewFontHandler(embedded)
+	g.fonts = render.NewFontHandler()
 
 	g.initConfig()
 
@@ -151,7 +151,7 @@ func NewGame() *Game {
 	g.setVsyncEnabled(g.vsync)
 
 	var err error
-	g.resources, err = model.LoadModelResources(embedded)
+	g.resources, err = model.LoadModelResources()
 	if err != nil {
 		log.Error("Error loading models:")
 		log.Error(err)
@@ -161,7 +161,7 @@ func NewGame() *Game {
 	// load mission // TODO: mission select UI
 	missionPath := "trial.yaml"
 	//missionPath := "debug.yaml"
-	g.mission, err = model.LoadMission(embedded, missionPath)
+	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
 		log.Error("Error loading mission: ", missionPath)
 		log.Error(err)
