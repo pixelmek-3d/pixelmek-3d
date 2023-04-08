@@ -1,11 +1,11 @@
 package model
 
 import (
+	"embed"
 	"fmt"
 	"image/color"
 	"math"
 	"math/rand"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -171,10 +171,10 @@ func (m *Map) Level(levelNum int) [][]int {
 	}
 }
 
-func LoadMap(mapFile string) (*Map, error) {
-	mapPath := filepath.Join("game", "resources", "maps", mapFile)
+func LoadMap(embedded embed.FS, mapFile string) (*Map, error) {
+	mapPath := filepath.Join("resources", "maps", mapFile)
 
-	mapYaml, err := os.ReadFile(mapPath)
+	mapYaml, err := readFile(embedded, mapPath)
 	if err != nil {
 		return nil, err
 	}

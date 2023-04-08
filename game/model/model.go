@@ -1,9 +1,9 @@
 package model
 
 import (
+	"embed"
 	"fmt"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -394,16 +394,16 @@ func (t *ModelLocation) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func LoadModelResources() (*ModelResources, error) {
+func LoadModelResources(embedded embed.FS) (*ModelResources, error) {
 	resources := &ModelResources{}
 
-	err := resources.loadWeaponResources()
+	err := resources.loadWeaponResources(embedded)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
 
-	err = resources.loadUnitResources()
+	err = resources.loadUnitResources(embedded)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -412,12 +412,12 @@ func LoadModelResources() (*ModelResources, error) {
 	return resources, nil
 }
 
-func (r *ModelResources) loadUnitResources() error {
+func (r *ModelResources) loadUnitResources(embedded embed.FS) error {
 	// load and validate all units
 	v := validator.New()
 
-	unitsPath := filepath.Join("game", "resources", "units")
-	unitsTypes, err := filesInPath(unitsPath)
+	unitsPath := filepath.Join("resources", "units")
+	unitsTypes, err := filesInPath(embedded, unitsPath)
 	if err != nil {
 		return err
 	}
@@ -430,7 +430,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 		unitType := t.Name()
 		unitTypePath := filepath.Join(unitsPath, unitType)
-		unitFiles, err := filesInPath(unitTypePath)
+		unitFiles, err := filesInPath(embedded, unitTypePath)
 		if err != nil {
 			return err
 		}
@@ -461,7 +461,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 			fileName := u.Name()
 			filePath := filepath.Join(unitTypePath, fileName)
-			unitYaml, err := os.ReadFile(filePath)
+			unitYaml, err := readFile(embedded, filePath)
 			if err != nil {
 				return err
 			}
@@ -548,12 +548,12 @@ func (r *ModelResources) loadUnitResources() error {
 	return nil
 }
 
-func (r *ModelResources) loadWeaponResources() error {
+func (r *ModelResources) loadWeaponResources(embedded embed.FS) error {
 	// load and validate all weapons, projectiles and impact efffects
 	v := validator.New()
 
-	weaponsPath := filepath.Join("game", "resources", "weapons")
-	weaponsTypes, err := filesInPath(weaponsPath)
+	weaponsPath := filepath.Join("resources", "weapons")
+	weaponsTypes, err := filesInPath(embedded, weaponsPath)
 	if err != nil {
 		return err
 	}
@@ -566,7 +566,7 @@ func (r *ModelResources) loadWeaponResources() error {
 
 		weaponType := t.Name()
 		weaponTypePath := filepath.Join(weaponsPath, weaponType)
-		weaponFiles, err := filesInPath(weaponTypePath)
+		weaponFiles, err := filesInPath(embedded, weaponTypePath)
 		if err != nil {
 			return err
 		}
@@ -588,7 +588,7 @@ func (r *ModelResources) loadWeaponResources() error {
 
 			fileName := u.Name()
 			weaponFilePath := filepath.Join(weaponTypePath, fileName)
-			weaponYaml, err := os.ReadFile(weaponFilePath)
+			weaponYaml, err := readFile(embedded, weaponFilePath)
 			if err != nil {
 				return err
 			}
@@ -774,16 +774,10 @@ func (r *ModelResources) GetBallisticWeaponResource(weapon string) *ModelBallist
 	return nil
 }
 
-func filesInPath(path string) ([]fs.DirEntry, error) {
-	top, err := os.Open(path)
-	if err != nil {
-		return []fs.DirEntry{}, err
-	}
+func filesInPath(embedded embed.FS, path string) ([]fs.DirEntry, error) {
+	return embedded.ReadDir(filepath.ToSlash(path))
+}
 
-	files, err := top.ReadDir(0)
-	if err != nil {
-		return []fs.DirEntry{}, err
-	}
-
-	return files, nil
+func readFile(embedded embed.FS, name string) ([]byte, error) {
+	return embedded.ReadFile(filepath.ToSlash(name))
 }

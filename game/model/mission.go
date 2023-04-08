@@ -1,7 +1,7 @@
 package model
 
 import (
-	"os"
+	"embed"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -92,10 +92,10 @@ func (n *NavPoint) SetVisited(visited bool) {
 	n.visited = visited
 }
 
-func LoadMission(missionFile string) (*Mission, error) {
-	missionPath := filepath.Join("game", "resources", "missions", missionFile)
+func LoadMission(embedded embed.FS, missionFile string) (*Mission, error) {
+	missionPath := filepath.Join("resources", "missions", missionFile)
 
-	missionYaml, err := os.ReadFile(missionPath)
+	missionYaml, err := readFile(embedded, missionPath)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -109,7 +109,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 	}
 
 	// load mission map
-	m.missionMap, err = LoadMap(m.MapPath)
+	m.missionMap, err = LoadMap(embedded, m.MapPath)
 	if err != nil {
 		log.Error("Error loading map", m.MapPath)
 		return nil, err

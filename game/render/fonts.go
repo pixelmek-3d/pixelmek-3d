@@ -1,6 +1,7 @@
 package render
 
 import (
+	"embed"
 	"path/filepath"
 
 	"github.com/tinne26/etxt"
@@ -8,7 +9,8 @@ import (
 )
 
 type FontHandler struct {
-	HUDFont *Font
+	HUDFont  *Font
+	embedded embed.FS
 }
 
 type Font struct {
@@ -18,14 +20,14 @@ type Font struct {
 	FontPath  string
 }
 
-func NewFontHandler() *FontHandler {
-	f := &FontHandler{}
+func NewFontHandler(embedded embed.FS) *FontHandler {
+	f := &FontHandler{embedded: embedded}
 	return f
 }
 
 func (f *FontHandler) LoadFont(fontFile string) (*Font, error) {
-	fontPath := filepath.Join("game", "resources", "fonts", fontFile)
-	font, fontName, err := etxt.ParseFontFrom(fontPath)
+	fontPath := filepath.Join("resources", "fonts", fontFile)
+	font, fontName, err := etxt.ParseEmbedFontFrom(filepath.ToSlash(fontPath), f.embedded)
 	if err != nil {
 		return nil, err
 	}

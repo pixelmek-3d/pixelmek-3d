@@ -1,6 +1,7 @@
 package game
 
 import (
+	"embed"
 	"fmt"
 	"image"
 	"image/color"
@@ -24,15 +25,28 @@ var (
 	projectileSpriteByWeapon = make(map[string]*render.ProjectileSprite)
 )
 
+//go:embed resources
+var embedded embed.FS
+
+func newImageFromFile(path string) (*ebiten.Image, image.Image, error) {
+	f, err := embedded.Open(filepath.ToSlash(path))
+	if err != nil {
+		return nil, nil, err
+	}
+	defer f.Close()
+	eb, im, err := ebitenutil.NewImageFromReader(f)
+	return eb, im, err
+}
+
 func getRGBAFromFile(texFile string) *image.RGBA {
 	var rgba *image.RGBA
-	resourcePath := filepath.Join("game", "resources", "textures")
+	resourcePath := filepath.Join("resources", "textures")
 	texFilePath := filepath.Join(resourcePath, texFile)
 	if rgba, ok := rgbaByPath[texFilePath]; ok {
 		return rgba
 	}
 
-	_, tex, err := ebitenutil.NewImageFromFile(texFilePath)
+	_, tex, err := newImageFromFile(texFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,12 +69,12 @@ func getRGBAFromFile(texFile string) *image.RGBA {
 }
 
 func getTextureFromFile(texFile string) *ebiten.Image {
-	resourcePath := filepath.Join("game", "resources", "textures", texFile)
+	resourcePath := filepath.Join("resources", "textures", texFile)
 	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
 
-	eImg, _, err := ebitenutil.NewImageFromFile(resourcePath)
+	eImg, _, err := newImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,12 +85,12 @@ func getTextureFromFile(texFile string) *ebiten.Image {
 }
 
 func getSpriteFromFile(sFile string) *ebiten.Image {
-	resourcePath := filepath.Join("game", "resources", "sprites", sFile)
+	resourcePath := filepath.Join("resources", "sprites", sFile)
 	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
 
-	eImg, _, err := ebitenutil.NewImageFromFile(resourcePath)
+	eImg, _, err := newImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
 	}
