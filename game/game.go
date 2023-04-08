@@ -704,21 +704,21 @@ func (g *Game) targetCycle(cycleType TargetCycleType) {
 		return
 	}
 
-	// sort by rough estimate of distance to player
+	// sort by distance to player
 	playerPos := g.player.Pos()
 
 	if cycleType == TARGET_PREVIOUS {
 		sort.Slice(targetables, func(a, b int) bool {
 			sA, sB := targetables[a], targetables[b]
-			dA := math.Abs(sA.Pos().X-playerPos.X) + math.Abs(sA.Pos().Y-playerPos.Y)
-			dB := math.Abs(sB.Pos().X-playerPos.X) + math.Abs(sB.Pos().Y-playerPos.Y)
+			dA := geom.Distance2(sA.Pos().X, sA.Pos().Y, playerPos.X, playerPos.Y)
+			dB := geom.Distance2(sB.Pos().X, sB.Pos().Y, playerPos.X, playerPos.Y)
 			return dA > dB
 		})
 	} else {
 		sort.Slice(targetables, func(a, b int) bool {
 			sA, sB := targetables[a], targetables[b]
-			dA := math.Abs(sA.Pos().X-playerPos.X) + math.Abs(sA.Pos().Y-playerPos.Y)
-			dB := math.Abs(sB.Pos().X-playerPos.X) + math.Abs(sB.Pos().Y-playerPos.Y)
+			dA := geom.Distance2(sA.Pos().X, sA.Pos().Y, playerPos.X, playerPos.Y)
+			dB := geom.Distance2(sB.Pos().X, sB.Pos().Y, playerPos.X, playerPos.Y)
 			return dA < dB
 		})
 	}
