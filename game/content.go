@@ -26,7 +26,7 @@ var (
 
 func getRGBAFromFile(texFile string) *image.RGBA {
 	var rgba *image.RGBA
-	resourcePath := filepath.Join("textures")
+	resourcePath := "textures"
 	texFilePath := filepath.Join(resourcePath, texFile)
 	if rgba, ok := rgbaByPath[texFilePath]; ok {
 		return rgba

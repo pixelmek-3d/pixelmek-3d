@@ -416,7 +416,7 @@ func (r *ModelResources) loadUnitResources() error {
 	// load and validate all units
 	v := validator.New()
 
-	unitsPath := filepath.Join("units")
+	unitsPath := "units"
 	unitsTypes, err := resources.FilesInPath(unitsPath)
 	if err != nil {
 		return err
@@ -552,7 +552,7 @@ func (r *ModelResources) loadWeaponResources() error {
 	// load and validate all weapons, projectiles and impact efffects
 	v := validator.New()
 
-	weaponsPath := filepath.Join("weapons")
+	weaponsPath := "weapons"
 	weaponsTypes, err := resources.FilesInPath(weaponsPath)
 	if err != nil {
 		return err
@@ -647,6 +647,7 @@ func (r *ModelResources) GetMechResource(unit string) *ModelMechResource {
 	if m, ok := r.Mechs[unit]; ok {
 		return m
 	}
+	log.Errorf("mech unit resource does not exist %s", unit)
 	return nil
 }
 
@@ -669,6 +670,7 @@ func (r *ModelResources) GetVehicleResource(unit string) *ModelVehicleResource {
 	if m, ok := r.Vehicles[unit]; ok {
 		return m
 	}
+	log.Errorf("vehicle unit resource does not exist %s", unit)
 	return nil
 }
 
@@ -691,6 +693,7 @@ func (r *ModelResources) GetVTOLResource(unit string) *ModelVTOLResource {
 	if m, ok := r.VTOLs[unit]; ok {
 		return m
 	}
+	log.Errorf("vtol unit resource does not exist %s", unit)
 	return nil
 }
 
@@ -713,6 +716,7 @@ func (r *ModelResources) GetInfantryResource(unit string) *ModelInfantryResource
 	if m, ok := r.Infantry[unit]; ok {
 		return m
 	}
+	log.Errorf("infantry unit resource does not exist %s", unit)
 	return nil
 }
 
@@ -735,6 +739,7 @@ func (r *ModelResources) GetEmplacementResource(unit string) *ModelEmplacementRe
 	if m, ok := r.Emplacements[unit]; ok {
 		return m
 	}
+	log.Errorf("emplacement unit resource does not exist %s", unit)
 	return nil
 }
 
@@ -757,6 +762,7 @@ func (r *ModelResources) GetEnergyWeaponResource(weapon string) *ModelEnergyWeap
 	if m, ok := r.EnergyWeapons[weapon]; ok {
 		return m
 	}
+	log.Errorf("energy weapon resource does not exist %s", weapon)
 	return nil
 }
 
@@ -764,6 +770,7 @@ func (r *ModelResources) GetMissileWeaponResource(weapon string) *ModelMissileWe
 	if m, ok := r.MissileWeapons[weapon]; ok {
 		return m
 	}
+	log.Errorf("missile weapon resource does not exist %s", weapon)
 	return nil
 }
 
@@ -771,5 +778,6 @@ func (r *ModelResources) GetBallisticWeaponResource(weapon string) *ModelBallist
 	if m, ok := r.BallisticWeapons[weapon]; ok {
 		return m
 	}
+	log.Errorf("ballistic weapon resource does not exist %s", weapon)
 	return nil
 }
