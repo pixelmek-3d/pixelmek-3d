@@ -1,6 +1,7 @@
 package render
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -34,6 +35,7 @@ type BasicHUD struct {
 
 type DrawHudOptions struct {
 	Screen           *ebiten.Image
+	HudRect          image.Rectangle
 	MarginX, MarginY int
 	UseCustomColor   bool
 	Color            color.RGBA

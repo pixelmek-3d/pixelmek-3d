@@ -182,7 +182,7 @@ func (m *GameMenu) update(g *Game) {
 		}
 	}
 
-	if imgui.SliderFloatV("FOV", &m.newFovDegrees, 40, 140, "%.0f", imgui.SliderFlagsNone) {
+	if imgui.SliderFloatV("FOV", &m.newFovDegrees, 20, 120, "%.0f", imgui.SliderFlagsNone) {
 		g.setFovAngle(float64(m.newFovDegrees))
 	}
 
