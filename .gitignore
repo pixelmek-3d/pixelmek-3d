@@ -14,6 +14,3 @@
 
 # IDE files
 .vscode
-
-# Runtime generated files
-imgui.ini
