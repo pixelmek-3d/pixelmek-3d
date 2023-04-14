@@ -1,12 +1,15 @@
 package game
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/pixelmek-3d/game/model"
+
+	"github.com/ebitenui/ebitenui"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type GameMenu struct {
 	active bool
+	ui     *ebitenui.UI
 
 	// held vars that should not get updated in real-time
 	newRenderWidth     int32

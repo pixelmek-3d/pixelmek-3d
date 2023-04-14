@@ -3,8 +3,9 @@ module github.com/harbdog/pixelmek-3d
 go 1.19
 
 require (
+	github.com/ebitenui/ebitenui v0.4.4
 	github.com/go-playground/validator/v10 v10.11.1
-	github.com/hajimehoshi/ebiten/v2 v2.5.0
+	github.com/hajimehoshi/ebiten/v2 v2.5.2
 	github.com/harbdog/raycaster-go v1.9.0
 	github.com/jinzhu/copier v0.3.5
 	github.com/sirupsen/logrus v1.9.0
