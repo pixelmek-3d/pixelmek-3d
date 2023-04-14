@@ -16,10 +16,10 @@ projectileCount: 1
 projectile:
   collisionRadius: 55
   collisionHeight: 55
-  scale: 0.3
+  scale: 0.25
   image: ppc_bolt.png
   imageSheet:
-    columns: 8
+    columns: 6
     rows: 1
     animationRate: 1
   impactEffect:
