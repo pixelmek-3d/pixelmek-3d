@@ -51,6 +51,7 @@ type Game struct {
 	renderScale  float64
 	fullscreen   bool
 	vsync        bool
+	opengl       bool
 	fovDegrees   float64
 	fovDepth     float64
 
@@ -114,9 +115,17 @@ type Game struct {
 	// control options
 	throttleDecay bool
 
+	osType     osType
 	debug      bool
 	fpsEnabled bool
 }
+
+type osType int
+
+const (
+	osTypeDesktop osType = iota
+	osTypeBrowser
+)
 
 type TargetCycleType int
 
@@ -136,6 +145,10 @@ func NewGame() *Game {
 	g.fonts = render.NewFontHandler()
 
 	g.initConfig()
+
+	if g.opengl {
+		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
+	}
 
 	g.initInteractiveTypes()
 	g.initCollisionTypes()
@@ -241,6 +254,14 @@ func (g *Game) initConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
+	// special behavior needed for wasm play
+	switch runtime.GOOS {
+	case "js":
+		g.osType = osTypeBrowser
+	default:
+		g.osType = osTypeDesktop
+	}
+
 	userHomePath, _ := os.UserHomeDir()
 	if userHomePath != "" {
 		userHomePath = userHomePath + "/.pixelmek-3d"
@@ -252,15 +273,27 @@ func (g *Game) initConfig() {
 	viper.SetDefault("debug", false)
 	viper.SetDefault("showFPS", false)
 
-	viper.SetDefault("screen.width", 1024)
-	viper.SetDefault("screen.height", 768)
 	viper.SetDefault("screen.fovDegrees", 70)
-	viper.SetDefault("screen.renderScale", 1.0)
 	viper.SetDefault("screen.fullscreen", false)
 	viper.SetDefault("screen.vsync", true)
 	viper.SetDefault("screen.renderFloor", true)
 	viper.SetDefault("screen.renderDistance", 2000)
 	viper.SetDefault("screen.clutterDistance", 500)
+
+	if g.osType == osTypeBrowser {
+		viper.SetDefault("screen.width", 800)
+		viper.SetDefault("screen.height", 600)
+		viper.SetDefault("screen.renderScale", 0.5)
+	} else {
+		viper.SetDefault("screen.width", 1024)
+		viper.SetDefault("screen.height", 768)
+		viper.SetDefault("screen.renderScale", 1.0)
+	}
+
+	if runtime.GOOS == "windows" {
+		// default windows to opengl for better performance
+		viper.SetDefault("screen.opengl", true)
+	}
 
 	viper.SetDefault("hud.enabled", true)
 	viper.SetDefault("hud.scale", 1.0)
@@ -292,6 +325,7 @@ func (g *Game) initConfig() {
 	g.renderScale = viper.GetFloat64("screen.renderScale")
 	g.fullscreen = viper.GetBool("screen.fullscreen")
 	g.vsync = viper.GetBool("screen.vsync")
+	g.opengl = viper.GetBool("screen.opengl")
 	g.initRenderFloorTex = viper.GetBool("screen.renderFloor")
 
 	renderDistanceMeters := viper.GetFloat64("screen.renderDistance")
