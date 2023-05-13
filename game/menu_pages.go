@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -260,8 +261,8 @@ func renderPage(m *GameMenu) *page {
 	)
 	distanceRow.AddChild(distanceValueText)
 
-	// floor texturing checkbox
-	floorCheckbox := newCheckbox("Floor Texturing", m.game.tex.renderFloorTex, func(args *widget.CheckboxChangedEventArgs) {
+	// floor/ground texturing checkbox
+	floorCheckbox := newCheckbox("Ground Texturing", m.game.tex.renderFloorTex, func(args *widget.CheckboxChangedEventArgs) {
 		m.game.tex.renderFloorTex = args.State == widget.WidgetChecked
 	}, res)
 	c.AddChild(floorCheckbox)
@@ -272,12 +273,87 @@ func renderPage(m *GameMenu) *page {
 	}
 }
 
+func hudPage(m *GameMenu) *page {
+	c := newPageContentContainer()
+	res := m.res
+
+	// HUD alpha slider
+	opacityRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+	c.AddChild(opacityRow)
+
+	opacityLabel := widget.NewLabel(widget.LabelOpts.Text("Opacity", res.label.face, res.label.text))
+	opacityRow.AddChild(opacityLabel)
+
+	var opacityValueText *widget.Label
+
+	opacitySlider := widget.NewSlider(
+		widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}), widget.WidgetOpts.MinSize(100, 6)),
+		widget.SliderOpts.MinMax(0, 255),
+		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+		widget.SliderOpts.TrackOffset(5),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			opacityValueText.Label = fmt.Sprintf("%d", args.Current)
+			m.game.hudRGBA.A = uint8(args.Current)
+		}),
+	)
+	opacitySlider.Current = int(m.game.hudRGBA.A)
+	opacityRow.AddChild(opacitySlider)
+
+	opacityValueText = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf("%d", opacitySlider.Current), res.label.face, res.label.text),
+	)
+	opacityRow.AddChild(opacityValueText)
+
+	// custom HUD color checkbox
+	var pickerMinRGB *widget.Container
+	customCheckbox := newCheckbox("Use Custom Color", m.game.hudUseCustomColor, func(args *widget.CheckboxChangedEventArgs) {
+		m.game.hudUseCustomColor = args.State == widget.WidgetChecked
+		for _, cb := range pickerMinRGB.Children() {
+			cb.GetWidget().Disabled = !m.game.hudUseCustomColor
+		}
+	}, res)
+	c.AddChild(customCheckbox)
+
+	// custom HUD RGB picker
+	hudRGB := &color.NRGBA{
+		R: m.game.hudRGBA.R, G: m.game.hudRGBA.G, B: m.game.hudRGBA.B,
+	}
+	pickerMinRGB = m.newColorPickerRGB("Color", hudRGB, func(args *widget.SliderChangedEventArgs) {
+		m.game.hudRGBA.R = hudRGB.R
+		m.game.hudRGBA.G = hudRGB.G
+		m.game.hudRGBA.B = hudRGB.B
+	})
+	c.AddChild(pickerMinRGB)
+
+	if !m.game.hudUseCustomColor {
+		// start with HUD color picker enabled only if using custom HUD color setting
+		for _, cb := range pickerMinRGB.Children() {
+			cb.GetWidget().Disabled = true
+		}
+	}
+
+	return &page{
+		title:   "HUD",
+		content: c,
+	}
+}
+
 func lightingPage(m *GameMenu) *page {
 	c := newPageContentContainer()
 	res := m.res
 
 	// raycaster lighting options for debug mode only
-	debugLabel := widget.NewLabel(widget.LabelOpts.Text("Debug Lighting Options", res.label.face, res.label.text))
+	debugLabel := widget.NewLabel(widget.LabelOpts.Text("Debug Only Options", res.label.face, res.label.text))
 	c.AddChild(debugLabel)
 	c.AddChild(m.newSeparator(res, widget.RowLayoutData{
 		Stretch: true,

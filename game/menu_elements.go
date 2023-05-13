@@ -71,6 +71,7 @@ func settingsContainer(m *GameMenu) widget.PreferredSizeLocateableWidget {
 	pages = append(pages, gamePage(m))
 	pages = append(pages, displayPage(m))
 	pages = append(pages, renderPage(m))
+	pages = append(pages, hudPage(m))
 
 	if m.game.debug {
 		pages = append(pages, lightingPage(m))
