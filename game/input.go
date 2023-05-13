@@ -7,7 +7,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
-	log "github.com/sirupsen/logrus"
 )
 
 type MouseMode int
@@ -19,16 +18,20 @@ const (
 )
 
 func (g *Game) handleInput() {
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+	menuKeyPressed := inpututil.IsKeyJustPressed(ebiten.KeyEscape) || inpututil.IsKeyJustPressed(ebiten.KeyF1)
+	if menuKeyPressed {
 		if g.menu.active {
-			g.closeMenu()
+			if g.osType == osTypeBrowser && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+				// do not allow Esc key close menu in browser, since Esc key releases browser mouse capture
+			} else {
+				g.closeMenu()
+			}
 		} else {
 			g.openMenu()
 		}
 	}
 
 	if g.paused {
-		// currently only paused when menu is active, one could consider other pauses not the subject of this demo
 		return
 	}
 
@@ -44,41 +47,26 @@ func (g *Game) handleInput() {
 		g.fireTestWeaponAtPlayer()
 	}
 
-	switch {
-	case ebiten.IsKeyPressed(ebiten.KeyAlt):
+	if ebiten.IsKeyPressed(ebiten.KeyAlt) {
 		if g.mouseMode != MouseModeBody {
-			ebiten.SetCursorMode(ebiten.CursorModeCaptured)
 			g.mouseMode = MouseModeBody
-			g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 		}
+	} else if inpututil.IsKeyJustReleased(ebiten.KeyAlt) {
+		if g.mouseMode == MouseModeBody {
+			g.mouseMode = MouseModeTurret
+		}
+	}
 
-	case !g.menu.active && g.mouseMode != MouseModeTurret:
+	if (g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody) && ebiten.CursorMode() != ebiten.CursorModeCaptured {
 		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
-		g.mouseMode = MouseModeTurret
+
+		// reset initial mouse capture position
 		g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 	}
 
 	switch g.mouseMode {
-	case MouseModeCursor:
-		g.mouseX, g.mouseY = ebiten.CursorPosition()
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-			log.Debugf("mouse left clicked: (%v, %v)", g.mouseX, g.mouseY)
-		}
-
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
-			log.Debugf("mouse right clicked: (%v, %v)", g.mouseX, g.mouseY)
-		}
-
 	case MouseModeBody:
 		x, y := ebiten.CursorPosition()
-
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-			g.fireWeapon()
-		}
-
-		// if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-		//     TODO: refactor the new stuff for chain/group fire using shared functions
-		// }
 
 		switch {
 		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
@@ -104,6 +92,34 @@ func (g *Game) handleInput() {
 	case MouseModeTurret:
 		x, y := ebiten.CursorPosition()
 
+		switch {
+		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
+			// initialize first position to establish delta
+			if x != 0 && y != 0 {
+				g.mouseX, g.mouseY = x, y
+			}
+
+		default:
+			dx, dy := g.mouseX-x, g.mouseY-y
+			g.mouseX, g.mouseY = x, y
+
+			if dx != 0 {
+				if g.player.HasTurret() {
+					g.RotateTurret(0.005 * float64(dx) / g.zoomFovDepth)
+				} else {
+					turnRate := g.player.TurnRate()
+					turnAmount := geom.Clamp(0.005*float64(dx), -turnRate, turnRate)
+					g.player.SetTargetRelativeHeading(turnAmount)
+				}
+			}
+
+			if dy != 0 {
+				g.Pitch(0.005 * float64(dy))
+			}
+		}
+	}
+
+	if g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody {
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 			g.fireWeapon()
 		}
@@ -167,32 +183,6 @@ func (g *Game) handleInput() {
 				} else {
 					g.player.selectedGroup = groups[0]
 				}
-			}
-		}
-
-		switch {
-		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
-			// initialize first position to establish delta
-			if x != 0 && y != 0 {
-				g.mouseX, g.mouseY = x, y
-			}
-
-		default:
-			dx, dy := g.mouseX-x, g.mouseY-y
-			g.mouseX, g.mouseY = x, y
-
-			if dx != 0 {
-				if g.player.HasTurret() {
-					g.RotateTurret(0.005 * float64(dx) / g.zoomFovDepth)
-				} else {
-					turnRate := g.player.TurnRate()
-					turnAmount := geom.Clamp(0.005*float64(dx), -turnRate, turnRate)
-					g.player.SetTargetRelativeHeading(turnAmount)
-				}
-			}
-
-			if dy != 0 {
-				g.Pitch(0.005 * float64(dy))
 			}
 		}
 	}

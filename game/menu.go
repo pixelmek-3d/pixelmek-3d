@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 	"os"
 
 	"github.com/ebitenui/ebitenui"
@@ -12,11 +13,12 @@ import (
 )
 
 type GameMenu struct {
-	active bool
-	ui     *ebitenui.UI
-	root   *widget.Container
-	res    *uiResources
-	game   *Game
+	active  bool
+	closing bool
+	ui      *ebitenui.UI
+	root    *widget.Container
+	res     *uiResources
+	game    *Game
 
 	fontScale float64
 	marginX   int
@@ -183,14 +185,20 @@ func (g *Game) generateMenuResolutions() []MenuResolution {
 
 func (g *Game) openMenu() {
 	g.paused = true
-	g.menu.active = true
 	g.mouseMode = MouseModeCursor
 	ebiten.SetCursorMode(ebiten.CursorModeVisible)
+
+	g.menu.initMenu()
+	g.menu.active = true
 }
 
 func (g *Game) closeMenu() {
-	g.paused = false
+	g.mouseMode = MouseModeTurret
+	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 	g.menu.active = false
+	g.menu.closing = true
+	g.paused = false
+	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
 }
 
 func (m *GameMenu) update(g *Game) {
