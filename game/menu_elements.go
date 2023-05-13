@@ -66,11 +66,14 @@ func settingsContainer(m *GameMenu) widget.PreferredSizeLocateableWidget {
 			widget.GridLayoutOpts.Spacing(m.spacing, 0),
 		)))
 
-	pages := []interface{}{
-		gamePage(m),
-		displayPage(m),
-		renderPage(m),
-		lightingPage(m),
+	pages := make([]interface{}, 0, 8)
+
+	pages = append(pages, gamePage(m))
+	pages = append(pages, displayPage(m))
+	pages = append(pages, renderPage(m))
+
+	if m.game.debug {
+		pages = append(pages, lightingPage(m))
 	}
 
 	pageContainer := newPageContainer(res)

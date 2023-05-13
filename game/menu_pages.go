@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
 type pageContainer struct {
@@ -222,7 +223,7 @@ func renderPage(m *GameMenu) *page {
 	c := newPageContentContainer()
 	res := m.res
 
-	// render distance slider
+	// render distance (meters) slider
 	distanceRow := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Spacing(20),
@@ -239,16 +240,16 @@ func renderPage(m *GameMenu) *page {
 		widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		}), widget.WidgetOpts.MinSize(100, 6)),
-		widget.SliderOpts.MinMax(-1, 100),
+		widget.SliderOpts.MinMax(-1, 4000),
 		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
 		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
 		widget.SliderOpts.TrackOffset(5),
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
-			distanceValueText.Label = fmt.Sprintf("%d", args.Current)
-			m.game.setRenderDistance(float64(args.Current))
+			distanceValueText.Label = fmt.Sprintf("%dm", args.Current)
+			m.game.setRenderDistance(float64(args.Current) / model.METERS_PER_UNIT)
 		}),
 	)
-	distanceSlider.Current = int(m.game.renderDistance)
+	distanceSlider.Current = int(m.game.renderDistance * model.METERS_PER_UNIT)
 	distanceRow.AddChild(distanceSlider)
 
 	distanceValueText = widget.NewLabel(
@@ -274,6 +275,13 @@ func renderPage(m *GameMenu) *page {
 func lightingPage(m *GameMenu) *page {
 	c := newPageContentContainer()
 	res := m.res
+
+	// raycaster lighting options for debug mode only
+	debugLabel := widget.NewLabel(widget.LabelOpts.Text("Debug Lighting Options", res.label.face, res.label.text))
+	c.AddChild(debugLabel)
+	c.AddChild(m.newSeparator(res, widget.RowLayoutData{
+		Stretch: true,
+	}))
 
 	// light falloff slider
 	falloffRow := widget.NewContainer(
