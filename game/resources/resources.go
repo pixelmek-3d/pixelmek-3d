@@ -21,14 +21,14 @@ import (
 )
 
 var (
-	//go:embed fonts maps missions sprites textures units weapons
+	//go:embed fonts maps menu missions sprites textures units weapons
 	embedded          embed.FS
 	hasLocalResources bool = false
 )
 
 func init() {
 	info, err := os.Stat(filepath.Join("game", "resources"))
-	hasLocalResources = !errors.Is(err, fs.ErrNotExist) && info.IsDir()
+	hasLocalResources = !errors.Is(err, fs.ErrNotExist) && info != nil && info.IsDir()
 }
 
 func NewImageFromFile(path string) (*ebiten.Image, image.Image, error) {
