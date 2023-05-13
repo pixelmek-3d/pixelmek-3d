@@ -21,7 +21,7 @@ func titleBarContainer(m *GameMenu) *widget.Container {
 		}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Raycaster Go Demo Settings", res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Text("PixelMek 3D Settings", res.text.titleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
@@ -48,7 +48,7 @@ func footerContainer(m *GameMenu) *widget.Container {
 		}),
 	)))
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("github.com/harbdog/raycaster-go-demo", res.text.smallFace, res.text.disabledColor)))
+		widget.TextOpts.Text("github.com/harbdog/pixelmek-3d", res.text.smallFace, res.text.disabledColor)))
 	return c
 }
 
