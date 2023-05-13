@@ -239,7 +239,7 @@ func (g *Game) loadNavSprites() {
 	navSize := texWidth / 2
 	var nColor *color.RGBA
 	if g.hudUseCustomColor {
-		nColor = &g.hudRGBA
+		nColor = g.hudRGBA
 	}
 
 	for _, navPoint := range g.mission.NavPoints {

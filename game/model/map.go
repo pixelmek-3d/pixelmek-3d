@@ -141,9 +141,13 @@ type MapLighting struct {
 	MaxLightRGB  [3]uint8 `yaml:"maxLightRGB"`
 }
 
-func (m MapLighting) LightRGB() (min, max color.NRGBA) {
-	min.R, min.G, min.B = m.MinLightRGB[0], m.MinLightRGB[1], m.MinLightRGB[2]
-	max.R, max.G, max.B = m.MaxLightRGB[0], m.MaxLightRGB[1], m.MaxLightRGB[2]
+func (m MapLighting) LightRGB() (*color.NRGBA, *color.NRGBA) {
+	min := &color.NRGBA{
+		R: m.MinLightRGB[0], G: m.MinLightRGB[1], B: m.MinLightRGB[2],
+	}
+	max := &color.NRGBA{
+		R: m.MaxLightRGB[0], G: m.MaxLightRGB[1], B: m.MaxLightRGB[2],
+	}
 	return min, max
 }
 

@@ -36,7 +36,7 @@ const (
 
 // Game - This is the main type for your game.
 type Game struct {
-	menu   GameMenu
+	menu   *GameMenu
 	paused bool
 
 	resources *model.ModelResources
@@ -78,7 +78,7 @@ type Game struct {
 
 	hudEnabled        bool
 	hudScale          float64
-	hudRGBA           color.RGBA
+	hudRGBA           *color.RGBA
 	hudUseCustomColor bool
 
 	//--define camera and render scene--//
@@ -97,8 +97,8 @@ type Game struct {
 	// lighting settings
 	lightFalloff       float64
 	globalIllumination float64
-	minLightRGB        color.NRGBA
-	maxLightRGB        color.NRGBA
+	minLightRGB        *color.NRGBA
+	maxLightRGB        *color.NRGBA
 
 	// Mission and map
 	mission      *model.Mission
@@ -227,7 +227,7 @@ func NewGame() *Game {
 
 	g.camera.SetLightFalloff(g.lightFalloff)
 	g.camera.SetGlobalIllumination(g.globalIllumination)
-	g.camera.SetLightRGB(g.minLightRGB, g.maxLightRGB)
+	g.camera.SetLightRGB(*g.minLightRGB, *g.maxLightRGB)
 
 	// initialize camera to player position
 	g.updatePlayerCamera(true)
@@ -242,7 +242,7 @@ func NewGame() *Game {
 	}
 
 	// init menu system
-	g.menu = mainMenu()
+	g.menu = createMenu(g)
 
 	return g
 }
@@ -342,7 +342,7 @@ func (g *Game) initConfig() {
 	g.hudEnabled = viper.GetBool("hud.enabled")
 	g.hudScale = viper.GetFloat64("hud.scale")
 	g.hudUseCustomColor = viper.GetBool("hud.color.useCustom")
-	g.hudRGBA = color.RGBA{
+	g.hudRGBA = &color.RGBA{
 		R: uint8(viper.GetUint("hud.color.red")),
 		G: uint8(viper.GetUint("hud.color.green")),
 		B: uint8(viper.GetUint("hud.color.blue")),
@@ -395,9 +395,8 @@ func (g *Game) Run() {
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	w, h := int(float64(g.screenWidth)), int(float64(g.screenHeight))
-	g.menu.layout(w, h)
-	return int(w), int(h)
+	w, h := g.screenWidth, g.screenHeight
+	return w, h
 }
 
 // Update - Allows the game to run logic such as updating the world, gathering input, and playing audio.
@@ -480,6 +479,27 @@ func (g *Game) setRenderScale(renderScale float64) {
 		g.camera.SetViewSize(g.width, g.height)
 	}
 	g.scene = ebiten.NewImage(g.width, g.height)
+}
+
+func (g *Game) setRenderDistance(renderDistance float64) {
+	g.renderDistance = renderDistance
+	g.camera.SetRenderDistance(g.renderDistance)
+}
+
+func (g *Game) setLightFalloff(lightFalloff float64) {
+	g.lightFalloff = lightFalloff
+	g.camera.SetLightFalloff(g.lightFalloff)
+}
+
+func (g *Game) setGlobalIllumination(globalIllumination float64) {
+	g.globalIllumination = globalIllumination
+	g.camera.SetGlobalIllumination(g.globalIllumination)
+}
+
+func (g *Game) setLightRGB(minLightRGB, maxLightRGB *color.NRGBA) {
+	g.minLightRGB = minLightRGB
+	g.maxLightRGB = maxLightRGB
+	g.camera.SetLightRGB(*g.minLightRGB, *g.maxLightRGB)
 }
 
 func (g *Game) setVsyncEnabled(enableVsync bool) {

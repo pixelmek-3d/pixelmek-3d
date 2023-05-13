@@ -7,10 +7,14 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tinne26/etxt"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"
 
 	log "github.com/sirupsen/logrus"
@@ -46,8 +50,63 @@ func NewImageFromFile(path string) (*ebiten.Image, image.Image, error) {
 	return eb, im, err
 }
 
+func NewScaledImageFromFile(path string, scale float64) (*ebiten.Image, image.Image, error) {
+	eb, im, err := NewImageFromFile(path)
+	if err != nil {
+		return eb, im, err
+	}
+
+	if scale == 1.0 {
+		return eb, im, err
+	}
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.GeoM.Scale(scale, scale)
+
+	scaledWidth, scaledHeight := float64(eb.Bounds().Dx())*scale, float64(eb.Bounds().Dy())*scale
+	scaledImage := ebiten.NewImage(int(scaledWidth), int(scaledHeight))
+	scaledImage.DrawImage(eb, op)
+
+	return scaledImage, scaledImage, err
+}
+
 func NewFontFromFile(path string) (*sfnt.Font, string, error) {
 	return etxt.ParseEmbedFontFrom(filepath.ToSlash(path), embedded)
+}
+
+func LoadFont(path string, size float64) (font.Face, error) {
+	fontData, err := embedded.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.HasSuffix(path, ".otf") {
+		otfFont, err := opentype.Parse(fontData)
+		if err != nil {
+			return nil, err
+		}
+
+		return opentype.NewFace(otfFont, &opentype.FaceOptions{
+			Size:    size,
+			DPI:     72,
+			Hinting: font.HintingFull,
+		})
+
+	} else if strings.HasSuffix(path, ".ttf") {
+		ttfFont, err := truetype.Parse(fontData)
+		if err != nil {
+			return nil, err
+		}
+
+		return truetype.NewFace(ttfFont, &truetype.Options{
+			Size:    size,
+			DPI:     72,
+			Hinting: font.HintingFull,
+		}), nil
+	}
+
+	return nil, errors.New("unhandled font extension for " + path)
 }
 
 func FilesInPath(path string) ([]fs.DirEntry, error) {

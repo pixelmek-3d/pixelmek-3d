@@ -101,7 +101,7 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 		MarginX:        marginX,
 		MarginY:        marginY,
 		UseCustomColor: g.hudUseCustomColor,
-		Color:          g.hudRGBA,
+		Color:          *g.hudRGBA,
 	}
 
 	// draw FPS display
