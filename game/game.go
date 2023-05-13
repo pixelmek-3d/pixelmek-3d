@@ -150,6 +150,12 @@ func NewGame() *Game {
 		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
 	}
 
+	if g.osType == osTypeBrowser {
+		// web browser cannot start with cursor captured
+	} else {
+		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
+	}
+
 	g.initInteractiveTypes()
 	g.initCollisionTypes()
 	g.initCombatVariables()
@@ -204,8 +210,7 @@ func NewGame() *Game {
 	pUnit.SetPos(&geom.Vector2{X: pX, Y: pY})
 	pUnit.SetHeading(geom.Radians(pDegrees))
 
-	// init mouse movement mode
-	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
+	// initial mouse position to establish delta
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
@@ -379,12 +384,6 @@ func (g *Game) SaveConfig() error {
 
 // Run is the Ebiten Run loop caller
 func (g *Game) Run() {
-	// On browsers, let's use fullscreen so that this is playable on any browsers.
-	// It is planned to ignore the given 'scale' apply fullscreen automatically on browsers (#571).
-	if runtime.GOARCH == "js" || runtime.GOOS == "js" {
-		ebiten.SetFullscreen(true)
-	}
-
 	g.paused = false
 
 	if err := ebiten.RunGame(g); err != nil {
