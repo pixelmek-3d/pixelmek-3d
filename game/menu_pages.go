@@ -318,6 +318,11 @@ func hudPage(m *GameMenu) *page {
 	var pickerMinRGB *widget.Container
 	customCheckbox := newCheckbox("Use Custom Color", m.game.hudUseCustomColor, func(args *widget.CheckboxChangedEventArgs) {
 		m.game.hudUseCustomColor = args.State == widget.WidgetChecked
+
+		// regenerate nav sprites to pick up color change
+		m.game.loadNavSprites()
+
+		// disable RGB picker if not using custom color
 		for _, cb := range pickerMinRGB.Children() {
 			cb.GetWidget().Disabled = !m.game.hudUseCustomColor
 		}
@@ -332,6 +337,9 @@ func hudPage(m *GameMenu) *page {
 		m.game.hudRGBA.R = hudRGB.R
 		m.game.hudRGBA.G = hudRGB.G
 		m.game.hudRGBA.B = hudRGB.B
+
+		// regenerate nav sprites to pick up color change
+		m.game.loadNavSprites()
 	})
 	c.AddChild(pickerMinRGB)
 

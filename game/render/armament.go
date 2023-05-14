@@ -15,8 +15,8 @@ import (
 var (
 	// define default colors
 	_colorWeaponGroup1 = _colorDefaultGreen
-	_colorWeaponGroup2 = color.RGBA{R: 240, G: 240, B: 240, A: 255}
-	_colorWeaponGroup3 = color.RGBA{R: 255, G: 206, B: 0, A: 255}
+	_colorWeaponGroup2 = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
+	_colorWeaponGroup3 = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
 )
 
 type Armament struct {
@@ -34,7 +34,7 @@ type Armament struct {
 type Weapon struct {
 	HUDSprite
 	weapon      model.Weapon
-	weaponColor color.RGBA
+	weaponColor color.NRGBA
 }
 
 // NewArmament creates a weapon list image to be rendered on demand
@@ -150,7 +150,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 			if w.weapon.Cooldown() > 0 {
 				wAlpha := uint8(2 * (int(weaponColor.A) / 5))
-				weaponColor = color.RGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha}
+				weaponColor = color.NRGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha}
 			}
 
 			// TODO: move to Weapon update and add margins
@@ -180,7 +180,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 		a.fontRenderer.SetColor(weaponColor)
 	} else {
 		wAlpha := uint8(2 * (int(weaponColor.A) / 5))
-		a.fontRenderer.SetColor(color.RGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha})
+		a.fontRenderer.SetColor(color.NRGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha})
 	}
 
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing

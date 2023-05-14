@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
@@ -77,20 +78,33 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	}
 
 	sAlpha := uint8(int(bColor.A) / 3)
-	vector.DrawFilledRect(screen, sX, sY, sW, sH, color.RGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
+	vector.DrawFilledRect(screen, sX, sY, sW, sH, color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
+
+	op := &colorm.DrawImageOptions{}
+	var nColor color.NRGBA
+	if hudOpts.UseCustomColor {
+		nColor = hudOpts.Color
+	} else {
+		nColor = _colorNavPoint
+	}
 
 	// draw nav image
 	nTexture := n.navPoint.Image()
+
+	// Reset RGB (not Alpha) 0 forcibly
+	var cm colorm.ColorM
+	cm.Scale(0, 0, 0, 1)
+	cm.Translate(1, 1, 1, 0)
+	cm.ScaleWithColor(nColor)
 
 	iH := bounds.Dy()
 	nH := nTexture.Bounds().Dy()
 	nScale := (0.7 * float64(iH)) / float64(nH)
 
-	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
 	op.GeoM.Scale(nScale, nScale)
 	op.GeoM.Translate(float64(sX+sW/2)-nScale*float64(nH)/2, float64(sY+sH/2)-nScale*float64(nH)/2)
-	screen.DrawImage(nTexture, op)
+	colorm.DrawImage(screen, nTexture, cm, op)
 
 	// setup text color
 	tColor := _colorStatusText
@@ -107,10 +121,6 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	}
 
 	// nav point name
-	nColor := _colorNavPoint
-	if hudOpts.UseCustomColor {
-		nColor = hudOpts.Color
-	}
 	n.fontRenderer.SetColor(nColor)
 	n.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 

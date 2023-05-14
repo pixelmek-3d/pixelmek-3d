@@ -78,7 +78,7 @@ type Game struct {
 
 	hudEnabled        bool
 	hudScale          float64
-	hudRGBA           *color.RGBA
+	hudRGBA           *color.NRGBA
 	hudUseCustomColor bool
 
 	//--define camera and render scene--//
@@ -347,7 +347,7 @@ func (g *Game) initConfig() {
 	g.hudEnabled = viper.GetBool("hud.enabled")
 	g.hudScale = viper.GetFloat64("hud.scale")
 	g.hudUseCustomColor = viper.GetBool("hud.color.useCustom")
-	g.hudRGBA = &color.RGBA{
+	g.hudRGBA = &color.NRGBA{
 		R: uint8(viper.GetUint("hud.color.red")),
 		G: uint8(viper.GetUint("hud.color.green")),
 		B: uint8(viper.GetUint("hud.color.blue")),

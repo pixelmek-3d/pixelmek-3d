@@ -77,7 +77,7 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions,
 		oColor = hudOpts.Color
 	}
 	oAlpha := uint8(4 * (int(oColor.A) / 5))
-	oColor = color.RGBA{oColor.R, oColor.G, oColor.B, oAlpha}
+	oColor = color.NRGBA{oColor.R, oColor.G, oColor.B, oAlpha}
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
 	oX, oY, oW, oH := float32(midX-jW/2), float32(bY), float32(jW), float32(jH)

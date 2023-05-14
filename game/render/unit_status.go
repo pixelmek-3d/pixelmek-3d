@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	_colorStatusOk         = color.RGBA{R: 0, G: 155, B: 255, A: 255}
+	_colorStatusOk         = color.NRGBA{R: 0, G: 155, B: 255, A: 255}
 	_colorStatusWarn       = _colorDefaultYellow
-	_colorStatusCritical   = color.RGBA{R: 255, G: 30, B: 30, A: 255}
-	_colorStatusBackground = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	_colorStatusCritical   = color.NRGBA{R: 255, G: 30, B: 30, A: 255}
+	_colorStatusBackground = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 	_colorStatusText       = _colorDefaultGreen
 )
 
@@ -111,22 +111,15 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		}
 
 		sAlpha := uint8(int(bColor.A) / 3)
-		vector.DrawFilledRect(screen, float32(sX), float32(sY), float32(sW), float32(sH), color.RGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
+		vector.DrawFilledRect(screen, float32(sX), float32(sY), float32(sW), float32(sH), color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
 	}
 
-	// create static outline image of unit
-	uTexture := u.unit.StaticTexture()
-
 	op := &colorm.DrawImageOptions{}
-	// Reset RGB (not Alpha) 0 forcibly
-	var cm colorm.ColorM
-	cm.Scale(0, 0, 0, 1)
-
-	// Set unit image color based on health status
-	var uColor color.RGBA
+	var uColor color.NRGBA
 	if hudOpts.UseCustomColor {
 		uColor = hudOpts.Color
 	} else {
+		// Set unit image color based on health status
 		if armorPercent >= 25 {
 			uColor = _colorStatusOk
 		} else if internalPercent >= 50 {
@@ -135,8 +128,15 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			uColor = _colorStatusCritical
 		}
 	}
-	r, g, b := float64(uColor.R)/255, float64(uColor.G)/255, float64(uColor.B)/255
-	cm.Translate(r, g, b, 0)
+
+	// create static outline image of unit
+	uTexture := u.unit.StaticTexture()
+
+	// Reset RGB (not Alpha) 0 forcibly
+	var cm colorm.ColorM
+	cm.Scale(0, 0, 0, 1)
+	cm.Translate(1, 1, 1, 0)
+	cm.ScaleWithColor(uColor)
 
 	iH := bounds.Dy()
 	uW, uH := uTexture.Bounds().Dx(), uTexture.Bounds().Dy()

@@ -16,7 +16,7 @@ import (
 var (
 	// define default colors
 	_colorCompassPips   = _colorDefaultGreen
-	_colorCompassTurret = color.RGBA{R: 0, G: 127, B: 0, A: 255}
+	_colorCompassTurret = color.NRGBA{R: 0, G: 127, B: 0, A: 255}
 )
 
 type Compass struct {
@@ -38,7 +38,7 @@ func NewCompass(font *Font) *Compass {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.XCenter)
-	renderer.SetColor(color.RGBA{255, 255, 255, 255})
+	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	c := &Compass{
 		HUDSprite:       NewHUDSprite(nil, 1.0),
@@ -108,7 +108,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	relTurretRatio := relTurretDeg / maxTurretDeg
 	tW, tH := float32(relTurretRatio)*float32(bW)/2, float32(bH/4)
 	tAlpha := uint8(4 * int(turretColor.A) / 5)
-	vector.DrawFilledRect(screen, midX, topY, tW, tH, color.RGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha}, false)
+	vector.DrawFilledRect(screen, midX, topY, tW, tH, color.NRGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha}, false)
 
 	// compass pips
 	pipColor := _colorCompassPips

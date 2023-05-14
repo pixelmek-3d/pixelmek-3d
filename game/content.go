@@ -237,7 +237,7 @@ func (g *Game) loadContent() {
 // loadNavSprites generates nav point sprites
 func (g *Game) loadNavSprites() {
 	navSize := texWidth / 2
-	var nColor *color.RGBA
+	var nColor *color.NRGBA
 	if g.hudUseCustomColor {
 		nColor = g.hudRGBA
 	}

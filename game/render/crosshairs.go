@@ -2,13 +2,12 @@ package render
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 var (
-	_colorCrosshair color.RGBA = _colorDefaultGreen
+	_colorCrosshair = _colorDefaultGreen
 )
 
 type Crosshairs struct {

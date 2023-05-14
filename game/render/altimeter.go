@@ -15,9 +15,9 @@ import (
 
 var (
 	// define default colors
-	_colorAltimeter      = color.RGBA{R: 0, G: 255, B: 67, A: 255}
+	_colorAltimeter      = color.NRGBA{R: 0, G: 255, B: 67, A: 255}
 	_colorAltimeterPips  = _colorDefaultGreen
-	_colorAltimeterPitch = color.RGBA{R: 0, G: 127, B: 0, A: 255}
+	_colorAltimeterPitch = color.NRGBA{R: 0, G: 127, B: 0, A: 255}
 )
 
 type Altimeter struct {
@@ -32,7 +32,7 @@ func NewAltimeter(font *Font) *Altimeter {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.YCenter, etxt.Right)
-	renderer.SetColor(color.RGBA{255, 255, 255, 255})
+	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	a := &Altimeter{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -77,7 +77,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	pitchRatio := relPitchDeg / maxPitchDeg
 	tW, tH := float32(bW)/4, float32(pitchRatio)*float32(bH/2)
 	pAlpha := uint8(4 * int(pitchColor.A) / 5)
-	vector.DrawFilledRect(screen, midX, midY, tW, tH, color.RGBA{pitchColor.R, pitchColor.G, pitchColor.B, pAlpha}, false)
+	vector.DrawFilledRect(screen, midX, midY, tW, tH, color.NRGBA{pitchColor.R, pitchColor.G, pitchColor.B, pAlpha}, false)
 
 	// altimeter pips
 	pipColor := _colorAltimeterPips

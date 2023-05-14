@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	_colorHeatHot  = color.RGBA{R: 225, G: 0, B: 0, A: 255}
-	_colorHeatWarm = color.RGBA{R: 255, G: 205, B: 0, A: 255}
-	_colorHeatCool = color.RGBA{R: 0, G: 155, B: 255, A: 255}
+	_colorHeatHot  = color.NRGBA{R: 225, G: 0, B: 0, A: 255}
+	_colorHeatWarm = color.NRGBA{R: 255, G: 205, B: 0, A: 255}
+	_colorHeatCool = color.NRGBA{R: 0, G: 155, B: 255, A: 255}
 	_colorHeatText = _colorDefaultGreen
 )
 
@@ -29,7 +29,7 @@ func NewHeatIndicator(font *Font) *HeatIndicator {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.Left)
-	renderer.SetColor(color.RGBA{255, 255, 255, 255})
+	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	h := &HeatIndicator{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -67,7 +67,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	hW, hH := heatRatio*float32(bW), float32(bH)/2
 	hX, hY := midX-hW/2, float32(bY)
 
-	var hColor color.RGBA
+	var hColor color.NRGBA
 	if hudOpts.UseCustomColor {
 		hColor = hudOpts.Color
 	} else {
@@ -85,7 +85,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 
 	// heat indicator outline
 	oAlpha := uint8(4 * (int(hColor.A) / 5))
-	oColor := color.RGBA{hColor.R, hColor.G, hColor.B, oAlpha}
+	oColor := color.NRGBA{hColor.R, hColor.G, hColor.B, oAlpha}
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
 	oX, oY, oW, oH := float32(bX), float32(bY), float32(bW), float32(bH)/2

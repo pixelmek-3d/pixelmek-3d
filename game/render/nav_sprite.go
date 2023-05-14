@@ -36,7 +36,7 @@ func NewNavSprite(
 	return n
 }
 
-func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, color *color.RGBA) *ebiten.Image {
+func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *color.NRGBA) *ebiten.Image {
 	if navPoint == nil {
 		return nil
 	}
@@ -44,14 +44,16 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, color
 	navImage := ebiten.NewImage(imageSize, imageSize)
 	renderer := etxt.NewStdRenderer()
 
-	if color == nil {
-		color = &_colorNavPoint
+	if clr == nil {
+		clr = &_colorNavPoint
 	}
+
+	nColor := color.NRGBA{R: clr.R, G: clr.G, B: clr.B, A: 255}
 
 	renderer.SetTarget(navImage)
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetColor(color)
+	renderer.SetColor(nColor)
 
 	// set font size based on image size
 	fontPxSize := float64(imageSize) / 3
@@ -71,10 +73,10 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, color
 	minX, minY := float32(imageSize)/8, float32(imageSize)/8
 	maxX, maxY := 7*float32(imageSize)/8, 7*float32(imageSize)/8
 	midX, midY := float32(imageSize)/2, float32(imageSize/2)
-	vector.StrokeLine(navImage, minX, midY, midX, minY, oT, color, false)
-	vector.StrokeLine(navImage, midX, minY, maxX, midY, oT, color, false)
-	vector.StrokeLine(navImage, minX, midY, midX, maxY, oT, color, false)
-	vector.StrokeLine(navImage, midX, maxY, maxX, midY, oT, color, false)
+	vector.StrokeLine(navImage, minX, midY, midX, minY, oT, nColor, false)
+	vector.StrokeLine(navImage, midX, minY, maxX, midY, oT, nColor, false)
+	vector.StrokeLine(navImage, minX, midY, midX, maxY, oT, nColor, false)
+	vector.StrokeLine(navImage, midX, maxY, maxX, midY, oT, nColor, false)
 
 	return navImage
 }

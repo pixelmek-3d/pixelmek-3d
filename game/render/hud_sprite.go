@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	_colorDefaultRed    = color.RGBA{R: 225, G: 0, B: 0, A: 255}
-	_colorDefaultGreen  = color.RGBA{R: 0, G: 214, B: 0, A: 255}
-	_colorDefaultBlue   = color.RGBA{R: 0, G: 0, B: 203, A: 255}
-	_colorDefaultYellow = color.RGBA{R: 255, G: 206, B: 0, A: 255}
-	_colorEnemy         = color.RGBA{R: 255, G: 0, B: 12, A: 255}
+	_colorDefaultRed    = color.NRGBA{R: 225, G: 0, B: 0, A: 255}
+	_colorDefaultGreen  = color.NRGBA{R: 0, G: 214, B: 0, A: 255}
+	_colorDefaultBlue   = color.NRGBA{R: 0, G: 0, B: 203, A: 255}
+	_colorDefaultYellow = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
+	_colorEnemy         = color.NRGBA{R: 255, G: 0, B: 12, A: 255}
 )
 
 type HUDSprite interface {
@@ -38,7 +38,7 @@ type DrawHudOptions struct {
 	HudRect          image.Rectangle
 	MarginX, MarginY int
 	UseCustomColor   bool
-	Color            color.RGBA
+	Color            color.NRGBA
 }
 
 func NewHUDSprite(img *ebiten.Image, scale float64) *BasicHUD {
