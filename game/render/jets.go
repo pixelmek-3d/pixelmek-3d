@@ -67,6 +67,8 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions,
 	rColor := _colorJetsLevel
 	if hudOpts.UseCustomColor {
 		rColor = hudOpts.Color
+	} else {
+		rColor.A = hudOpts.Color.A
 	}
 
 	vector.DrawFilledRect(screen, rX, rY, rW, rH, rColor, false)
@@ -75,6 +77,8 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions,
 	oColor := _colorJetsOutline
 	if hudOpts.UseCustomColor {
 		oColor = hudOpts.Color
+	} else {
+		oColor.A = hudOpts.Color.A
 	}
 	oAlpha := uint8(4 * (int(oColor.A) / 5))
 	oColor = color.NRGBA{oColor.R, oColor.G, oColor.B, oAlpha}
@@ -87,6 +91,8 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions,
 	tColor := _colorJetsText
 	if hudOpts.UseCustomColor {
 		tColor = hudOpts.Color
+	} else {
+		tColor.A = hudOpts.Color.A
 	}
 	j.fontRenderer.SetColor(tColor)
 	j.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)

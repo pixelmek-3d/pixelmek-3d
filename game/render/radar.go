@@ -105,6 +105,8 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	rColor := _colorRadar
 	if hudOpts.UseCustomColor {
 		rColor = hudOpts.Color
+	} else {
+		rColor.A = hudOpts.Color.A
 	}
 	r.fontRenderer.SetColor(rColor)
 
@@ -115,6 +117,8 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	oColor := _colorRadarOutline
 	if hudOpts.UseCustomColor {
 		oColor = hudOpts.Color
+	} else {
+		oColor.A = hudOpts.Color.A
 	}
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
@@ -135,6 +139,8 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 		wColor := _colorRadarOutline
 		if hudOpts.UseCustomColor {
 			wColor = hudOpts.Color
+		} else {
+			wColor.A = hudOpts.Color.A
 		}
 
 		// determine distance to wall line, convert to relative radar angle and draw
@@ -173,6 +179,8 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	nColor := _colorRadarOutline
 	if hudOpts.UseCustomColor {
 		nColor = hudOpts.Color
+	} else {
+		nColor.A = hudOpts.Color.A
 	}
 
 	for _, nav := range r.navPoints {
@@ -196,6 +204,8 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	bColor := _colorEnemy
 	if hudOpts.UseCustomColor {
 		bColor = hudOpts.Color
+	} else {
+		bColor.A = hudOpts.Color.A
 	}
 
 	for _, blip := range r.radarBlips {

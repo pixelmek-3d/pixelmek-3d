@@ -143,20 +143,22 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups))
 
 		if isWeaponSelected {
-			weaponColor := w.weaponColor
+			wColor := w.weaponColor
 			if hudOpts.UseCustomColor {
-				weaponColor = hudOpts.Color
+				wColor = hudOpts.Color
+			} else {
+				wColor.A = hudOpts.Color.A
 			}
 
 			if w.weapon.Cooldown() > 0 {
-				wAlpha := uint8(2 * (int(weaponColor.A) / 5))
-				weaponColor = color.NRGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha}
+				wAlpha := uint8(2 * (int(wColor.A) / 5))
+				wColor = color.NRGBA{wColor.R, wColor.G, wColor.B, wAlpha}
 			}
 
 			// TODO: move to Weapon update and add margins
 			var wT float32 = 2 // TODO: calculate line thickness based on image height
 			wW, wH := float32(wWidth), float32(wHeight)
-			vector.StrokeRect(screen, float32(wX), float32(wY), wW, wH, wT, weaponColor, false)
+			vector.StrokeRect(screen, float32(wX), float32(wY), wW, wH, wT, wColor, false)
 		}
 	}
 }
@@ -169,18 +171,20 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
-	weaponColor := w.weaponColor
+	wColor := w.weaponColor
 	if hudOpts.UseCustomColor {
-		weaponColor = hudOpts.Color
+		wColor = hudOpts.Color
+	} else {
+		wColor.A = hudOpts.Color.A
 	}
 
 	// render weapon name and status indicator
 	weapon := w.weapon
 	if weapon.Cooldown() == 0 {
-		a.fontRenderer.SetColor(weaponColor)
+		a.fontRenderer.SetColor(wColor)
 	} else {
-		wAlpha := uint8(2 * (int(weaponColor.A) / 5))
-		a.fontRenderer.SetColor(color.NRGBA{weaponColor.R, weaponColor.G, weaponColor.B, wAlpha})
+		wAlpha := uint8(2 * (int(wColor.A) / 5))
+		a.fontRenderer.SetColor(color.RGBA{wColor.R, wColor.G, wColor.B, wAlpha})
 	}
 
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing

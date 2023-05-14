@@ -77,6 +77,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 		} else if heatRatio > 0.35 {
 			hColor = _colorHeatWarm
 		}
+		hColor.A = hudOpts.Color.A
 	}
 
 	vector.DrawFilledRect(screen, hX, hY, hW, hH, hColor, false)
@@ -95,6 +96,8 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	tColor := _colorHeatText
 	if hudOpts.UseCustomColor {
 		tColor = hudOpts.Color
+	} else {
+		tColor.A = hudOpts.Color.A
 	}
 	h.fontRenderer.SetColor(tColor)
 

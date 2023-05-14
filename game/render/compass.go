@@ -102,6 +102,8 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	turretColor := _colorCompassTurret
 	if hudOpts.UseCustomColor {
 		turretColor = hudOpts.Color
+	} else {
+		turretColor.A = hudOpts.Color.A
 	}
 
 	var maxTurretDeg float64 = 90
@@ -114,6 +116,8 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	pipColor := _colorCompassPips
 	if hudOpts.UseCustomColor {
 		pipColor = hudOpts.Color
+	} else {
+		pipColor.A = hudOpts.Color.A
 	}
 	c.fontRenderer.SetColor(pipColor)
 
@@ -165,6 +169,8 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	headingColor := _colorAltimeter
 	if hudOpts.UseCustomColor {
 		headingColor = hudOpts.Color
+	} else {
+		headingColor.A = hudOpts.Color.A
 	}
 
 	hW, hH := float32(5.0), float32(bH)/2 // TODO: calculate line thickness based on image height
@@ -178,6 +184,8 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		iColor := _colorEnemy
 		if hudOpts.UseCustomColor {
 			iColor = hudOpts.Color
+		} else {
+			iColor.A = hudOpts.Color.A
 		}
 
 		iRendered := false
@@ -225,6 +233,8 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		iColor := _colorNavPoint
 		if hudOpts.UseCustomColor {
 			iColor = hudOpts.Color
+		} else {
+			iColor.A = hudOpts.Color.A
 		}
 
 		iRendered := false

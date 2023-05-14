@@ -108,6 +108,8 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		bColor := _colorStatusBackground
 		if hudOpts.UseCustomColor {
 			bColor = hudOpts.Color
+		} else {
+			bColor.A = hudOpts.Color.A
 		}
 
 		sAlpha := uint8(int(bColor.A) / 3)
@@ -127,6 +129,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		} else {
 			uColor = _colorStatusCritical
 		}
+		uColor.A = hudOpts.Color.A
 	}
 
 	// create static outline image of unit
@@ -161,6 +164,8 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	tColor := _colorStatusText
 	if hudOpts.UseCustomColor {
 		tColor = hudOpts.Color
+	} else {
+		tColor.A = hudOpts.Color.A
 	}
 	u.fontRenderer.SetColor(tColor)
 
@@ -186,6 +191,8 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			eColor := _colorEnemy
 			if hudOpts.UseCustomColor {
 				eColor = hudOpts.Color
+			} else {
+				eColor.A = hudOpts.Color.A
 			}
 			u.fontRenderer.SetColor(eColor)
 
@@ -202,6 +209,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 						lColor = hudOpts.Color
 					}
 				}
+				lColor.A = hudOpts.Color.A
 				u.fontRenderer.SetColor(lColor)
 				u.fontRenderer.SetAlign(etxt.Bottom, etxt.Left)
 

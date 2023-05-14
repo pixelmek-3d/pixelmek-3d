@@ -59,6 +59,8 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	rColor := _colorEnemy
 	if hudOpts.UseCustomColor {
 		rColor = hudOpts.Color
+	} else {
+		rColor.A = hudOpts.Color.A
 	}
 
 	// setup some common draw modifications
@@ -123,6 +125,8 @@ func (t *NavReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	rColor := _colorNavPoint
 	if hudOpts.UseCustomColor {
 		rColor = hudOpts.Color
+	} else {
+		rColor.A = hudOpts.Color.A
 	}
 
 	// setup some common draw modifications

@@ -33,6 +33,8 @@ func (c *Crosshairs) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	cColor := _colorCrosshair
 	if hudOpts.UseCustomColor {
 		cColor = hudOpts.Color
+	} else {
+		cColor.A = hudOpts.Color.A
 	}
 
 	op := &ebiten.DrawImageOptions{}

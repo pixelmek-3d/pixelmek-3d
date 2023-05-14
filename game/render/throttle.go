@@ -64,6 +64,7 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	} else if velocity < 0 {
 		vColor = _colorThrottleReverse
 	}
+	vColor.A = hudOpts.Color.A
 
 	var velocityRatio float32 = float32(velocity / (maxVelocity + maxReverse))
 	vW, vH := float32(bW)/6, -velocityRatio*float32(bH)
@@ -74,6 +75,8 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	oColor := _colorThrottleOutline
 	if hudOpts.UseCustomColor {
 		oColor = hudOpts.Color
+	} else {
+		oColor.A = hudOpts.Color.A
 	}
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
@@ -84,6 +87,8 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	tColor := _colorThrottleText
 	if hudOpts.UseCustomColor {
 		tColor = hudOpts.Color
+	} else {
+		tColor.A = hudOpts.Color.A
 	}
 	t.fontRenderer.SetColor(tColor)
 
@@ -105,6 +110,7 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	} else if targetVelocity < 0 {
 		vColor = _colorThrottleReverse
 	}
+	vColor.A = hudOpts.Color.A
 
 	var tgtVelocityRatio float32 = float32(targetVelocity / (maxVelocity + maxReverse))
 	tH := -tgtVelocityRatio * float32(bH)

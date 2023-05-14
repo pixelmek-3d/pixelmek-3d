@@ -71,6 +71,8 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	pitchColor := _colorAltimeterPitch
 	if hudOpts.UseCustomColor {
 		pitchColor = hudOpts.Color
+	} else {
+		pitchColor.A = hudOpts.Color.A
 	}
 
 	var maxPitchDeg float64 = 45
@@ -83,6 +85,8 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	pipColor := _colorAltimeterPips
 	if hudOpts.UseCustomColor {
 		pipColor = hudOpts.Color
+	} else {
+		pipColor.A = hudOpts.Color.A
 	}
 	a.fontRenderer.SetColor(pipColor)
 
@@ -118,6 +122,8 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	altColor := _colorAltimeter
 	if hudOpts.UseCustomColor {
 		altColor = hudOpts.Color
+	} else {
+		altColor.A = hudOpts.Color.A
 	}
 
 	hW, hH := 2*float32(bW)/3, float32(5.0) // TODO: calculate line thickness based on image height
