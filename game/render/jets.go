@@ -64,36 +64,19 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions,
 	rW, rH := jW, float32(jetRatio)*jH
 	rX, rY := midX-jW/2, float32(bY)+jH-rH
 
-	rColor := _colorJetsLevel
-	if hudOpts.UseCustomColor {
-		rColor = hudOpts.Color
-	} else {
-		rColor.A = hudOpts.Color.A
-	}
-
+	rColor := hudOpts.HudColor(_colorJetsLevel)
 	vector.DrawFilledRect(screen, rX, rY, rW, rH, rColor, false)
 
 	// jet indicator outline
-	oColor := _colorJetsOutline
-	if hudOpts.UseCustomColor {
-		oColor = hudOpts.Color
-	} else {
-		oColor.A = hudOpts.Color.A
-	}
-	oAlpha := uint8(4 * (int(oColor.A) / 5))
-	oColor = color.NRGBA{oColor.R, oColor.G, oColor.B, oAlpha}
+	oColor := hudOpts.HudColor(_colorJetsOutline)
+	oColor.A = uint8(4 * (int(oColor.A) / 5))
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
 	oX, oY, oW, oH := float32(midX-jW/2), float32(bY), float32(jW), float32(jH)
 	vector.StrokeRect(screen, oX, oY, oW, oH, oT, oColor, false)
 
 	// jet indicator text
-	tColor := _colorJetsText
-	if hudOpts.UseCustomColor {
-		tColor = hudOpts.Color
-	} else {
-		tColor.A = hudOpts.Color.A
-	}
+	tColor := hudOpts.HudColor(_colorJetsText)
 	j.fontRenderer.SetColor(color.RGBA(tColor))
 	j.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 	j.fontRenderer.Draw("Jets", int(midX), int(oY+oH+2*oT)) // TODO: calculate better margin spacing

@@ -56,12 +56,7 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	minX, minY, maxX, maxY := float64(bounds.Min.X), float64(bounds.Min.Y), float64(bounds.Max.X), float64(bounds.Max.Y)
 
-	rColor := _colorEnemy
-	if hudOpts.UseCustomColor {
-		rColor = hudOpts.Color
-	} else {
-		rColor.A = hudOpts.Color.A
-	}
+	rColor := hudOpts.HudColor(_colorEnemy)
 
 	// setup some common draw modifications
 	var op *ebiten.DrawImageOptions
@@ -122,12 +117,7 @@ func (t *NavReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	minX, minY, dX, dY := float64(bounds.Min.X), float64(bounds.Min.Y), float64(bounds.Dx()), float64(bounds.Dy())
 
-	rColor := _colorNavPoint
-	if hudOpts.UseCustomColor {
-		rColor = hudOpts.Color
-	} else {
-		rColor.A = hudOpts.Color.A
-	}
+	rColor := hudOpts.HudColor(_colorNavPoint)
 
 	// setup some common draw modifications
 	var op *ebiten.DrawImageOptions

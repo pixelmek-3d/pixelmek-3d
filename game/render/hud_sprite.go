@@ -41,6 +41,18 @@ type DrawHudOptions struct {
 	Color            color.NRGBA
 }
 
+// HudColor gets the color that should be used by a HUD element based on its default or custom user color setting
+func (o *DrawHudOptions) HudColor(defaultColor color.NRGBA) color.NRGBA {
+	if o.UseCustomColor {
+		return o.Color
+	} else {
+		// apply custom alpha to default color
+		hudColor := defaultColor
+		hudColor.A = o.Color.A
+		return hudColor
+	}
+}
+
 func NewHUDSprite(img *ebiten.Image, scale float64) *BasicHUD {
 	b := &BasicHUD{
 		scale: scale,

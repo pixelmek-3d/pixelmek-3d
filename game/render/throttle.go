@@ -59,11 +59,9 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	maxX, zeroY := float32(bW), float32(bH)*float32(maxVelocity/(maxVelocity+maxReverse))
 
 	// current throttle velocity box
-	vColor := _colorThrottleForward
-	if hudOpts.UseCustomColor {
-		vColor = hudOpts.Color
-	} else if velocity < 0 {
-		vColor = _colorThrottleReverse
+	vColor := hudOpts.HudColor(_colorThrottleForward)
+	if velocity < 0 {
+		vColor = hudOpts.HudColor(_colorThrottleReverse)
 	}
 	vColor.A = hudOpts.Color.A
 
@@ -73,24 +71,14 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	vector.DrawFilledRect(screen, float32(bX)+maxX-vW, float32(bY)+zeroY, vW, vH, vColor, false)
 
 	// throttle indicator outline
-	oColor := _colorThrottleOutline
-	if hudOpts.UseCustomColor {
-		oColor = hudOpts.Color
-	} else {
-		oColor.A = hudOpts.Color.A
-	}
+	oColor := hudOpts.HudColor(_colorThrottleOutline)
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
 	oX, oY, oW, oH := float32(bX)+float32(maxX-vW), float32(bY), float32(vW), float32(bH)
 	vector.StrokeRect(screen, oX, oY, oW, oH, oT, oColor, false)
 
 	// current throttle velocity text
-	tColor := _colorThrottleText
-	if hudOpts.UseCustomColor {
-		tColor = hudOpts.Color
-	} else {
-		tColor.A = hudOpts.Color.A
-	}
+	tColor := hudOpts.HudColor(_colorThrottleText)
 	t.fontRenderer.SetColor(color.RGBA(tColor))
 
 	velocityStr := fmt.Sprintf("%0.1f kph", velocity)
@@ -105,13 +93,10 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	t.fontRenderer.Draw(velocityStr, int(oX)-3, bY+int(zeroY+vH)) // TODO: calculate better margin spacing
 
 	// target velocity throttle indicator line
-	vColor = _colorThrottleForward
-	if hudOpts.UseCustomColor {
-		vColor = hudOpts.Color
-	} else if targetVelocity < 0 {
-		vColor = _colorThrottleReverse
+	vColor = hudOpts.HudColor(_colorThrottleForward)
+	if targetVelocity < 0 {
+		vColor = hudOpts.HudColor(_colorThrottleReverse)
 	}
-	vColor.A = hudOpts.Color.A
 
 	var tgtVelocityRatio float32 = float32(targetVelocity / (maxVelocity + maxReverse))
 	tH := -tgtVelocityRatio * float32(bH)

@@ -67,12 +67,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	midX, midY := float32(bX)+float32(bW)/2, float32(bY)+float32(bH)/2
 
 	// pitch indicator box
-	pitchColor := _colorAltimeterPitch
-	if hudOpts.UseCustomColor {
-		pitchColor = hudOpts.Color
-	} else {
-		pitchColor.A = hudOpts.Color.A
-	}
+	pitchColor := hudOpts.HudColor(_colorAltimeterPitch)
 
 	var maxPitchDeg float64 = 45
 	pitchRatio := relPitchDeg / maxPitchDeg
@@ -81,12 +76,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	vector.DrawFilledRect(screen, midX, midY, tW, tH, color.NRGBA{pitchColor.R, pitchColor.G, pitchColor.B, pAlpha}, false)
 
 	// altimeter pips
-	pipColor := _colorAltimeterPips
-	if hudOpts.UseCustomColor {
-		pipColor = hudOpts.Color
-	} else {
-		pipColor.A = hudOpts.Color.A
-	}
+	pipColor := hudOpts.HudColor(_colorAltimeterPips)
 	a.fontRenderer.SetColor(color.RGBA(pipColor))
 
 	var maxAltitude float32 = float32(model.METERS_PER_UNIT)
@@ -118,12 +108,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	}
 
 	// altitude indicator line
-	altColor := _colorAltimeter
-	if hudOpts.UseCustomColor {
-		altColor = hudOpts.Color
-	} else {
-		altColor.A = hudOpts.Color.A
-	}
+	altColor := hudOpts.HudColor(_colorAltimeter)
 
 	hW, hH := 2*float32(bW)/3, float32(5.0) // TODO: calculate line thickness based on image height
 	vector.DrawFilledRect(screen, midX, midY-hH/2, hW, hH, altColor, false)

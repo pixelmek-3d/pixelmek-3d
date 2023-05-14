@@ -105,12 +105,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	if !u.isPlayer {
 		// background box
-		bColor := _colorStatusBackground
-		if hudOpts.UseCustomColor {
-			bColor = hudOpts.Color
-		} else {
-			bColor.A = hudOpts.Color.A
-		}
+		bColor := hudOpts.HudColor(_colorStatusBackground)
 
 		sAlpha := uint8(int(bColor.A) / 3)
 		vector.DrawFilledRect(screen, float32(sX), float32(sY), float32(sW), float32(sH), color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
@@ -118,18 +113,13 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	op := &colorm.DrawImageOptions{}
 	var uColor color.NRGBA
-	if hudOpts.UseCustomColor {
-		uColor = hudOpts.Color
+	// Set unit image color based on health status
+	if armorPercent >= 25 {
+		uColor = hudOpts.HudColor(_colorStatusOk)
+	} else if internalPercent >= 50 {
+		uColor = hudOpts.HudColor(_colorStatusWarn)
 	} else {
-		// Set unit image color based on health status
-		if armorPercent >= 25 {
-			uColor = _colorStatusOk
-		} else if internalPercent >= 50 {
-			uColor = _colorStatusWarn
-		} else {
-			uColor = _colorStatusCritical
-		}
-		uColor.A = hudOpts.Color.A
+		uColor = hudOpts.HudColor(_colorStatusCritical)
 	}
 
 	// create static outline image of unit
@@ -161,12 +151,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	colorm.DrawImage(screen, uTexture, cm, op)
 
 	// setup text color
-	tColor := _colorStatusText
-	if hudOpts.UseCustomColor {
-		tColor = hudOpts.Color
-	} else {
-		tColor.A = hudOpts.Color.A
-	}
+	tColor := hudOpts.HudColor(_colorStatusText)
 	u.fontRenderer.SetColor(color.RGBA(tColor))
 
 	// armor readout
@@ -188,12 +173,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		tUnit := model.EntityUnit(u.unit.Entity)
 		if tUnit != nil {
 			// target chassis name
-			eColor := _colorEnemy
-			if hudOpts.UseCustomColor {
-				eColor = hudOpts.Color
-			} else {
-				eColor.A = hudOpts.Color.A
-			}
+			eColor := hudOpts.HudColor(_colorEnemy)
 			u.fontRenderer.SetColor(color.RGBA(eColor))
 
 			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
@@ -202,14 +182,10 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 			// if lock-ons equipped, display lock percent on target
 			if u.showTargetLock {
-				lColor := eColor
+				lColor := hudOpts.HudColor(eColor)
 				if u.targetLock < 1.0 {
-					lColor = _colorStatusWarn
-					if hudOpts.UseCustomColor {
-						lColor = hudOpts.Color
-					}
+					lColor = hudOpts.HudColor(_colorStatusWarn)
 				}
-				lColor.A = hudOpts.Color.A
 				u.fontRenderer.SetColor(color.RGBA(lColor))
 				u.fontRenderer.SetAlign(etxt.Bottom, etxt.Left)
 

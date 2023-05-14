@@ -98,12 +98,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	midX, topY := float32(bX)+float32(bW)/2, float32(bY)
 
 	// turret indicator box
-	turretColor := _colorCompassTurret
-	if hudOpts.UseCustomColor {
-		turretColor = hudOpts.Color
-	} else {
-		turretColor.A = hudOpts.Color.A
-	}
+	turretColor := hudOpts.HudColor(_colorCompassTurret)
 
 	var maxTurretDeg float64 = 90
 	relTurretRatio := relTurretDeg / maxTurretDeg
@@ -112,12 +107,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	vector.DrawFilledRect(screen, midX, topY, tW, tH, color.NRGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha}, false)
 
 	// compass pips
-	pipColor := _colorCompassPips
-	if hudOpts.UseCustomColor {
-		pipColor = hudOpts.Color
-	} else {
-		pipColor.A = hudOpts.Color.A
-	}
+	pipColor := hudOpts.HudColor(_colorCompassPips)
 	c.fontRenderer.SetColor(color.RGBA(pipColor))
 
 	for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
@@ -165,12 +155,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	}
 
 	// heading indicator line
-	headingColor := _colorAltimeter
-	if hudOpts.UseCustomColor {
-		headingColor = hudOpts.Color
-	} else {
-		headingColor.A = hudOpts.Color.A
-	}
+	headingColor := hudOpts.HudColor(_colorAltimeter)
 
 	hW, hH := float32(5.0), float32(bH)/2 // TODO: calculate line thickness based on image height
 	vector.DrawFilledRect(screen, midX-hW/2, topY, hW, hH, headingColor, false)
@@ -180,12 +165,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		iHeading := c.targetIndicator.heading
 		iDeg := int(geom.Degrees(iHeading))
 
-		iColor := _colorEnemy
-		if hudOpts.UseCustomColor {
-			iColor = hudOpts.Color
-		} else {
-			iColor.A = hudOpts.Color.A
-		}
+		iColor := hudOpts.HudColor(_colorEnemy)
 
 		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
@@ -229,12 +209,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 		iHeading := c.navIndicator.heading
 		iDeg := int(geom.Degrees(iHeading))
 
-		iColor := _colorNavPoint
-		if hudOpts.UseCustomColor {
-			iColor = hudOpts.Color
-		} else {
-			iColor.A = hudOpts.Color.A
-		}
+		iColor := hudOpts.HudColor(_colorNavPoint)
 
 		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {

@@ -30,12 +30,7 @@ func (c *Crosshairs) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	cScale := float64(bW) / float64(c.Width())
 
-	cColor := _colorCrosshair
-	if hudOpts.UseCustomColor {
-		cColor = hudOpts.Color
-	} else {
-		cColor.A = hudOpts.Color.A
-	}
+	cColor := hudOpts.HudColor(_colorCrosshair)
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest

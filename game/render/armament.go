@@ -143,12 +143,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups))
 
 		if isWeaponSelected {
-			wColor := w.weaponColor
-			if hudOpts.UseCustomColor {
-				wColor = hudOpts.Color
-			} else {
-				wColor.A = hudOpts.Color.A
-			}
+			wColor := hudOpts.HudColor(w.weaponColor)
 
 			if w.weapon.Cooldown() > 0 {
 				wAlpha := uint8(2 * (int(wColor.A) / 5))
@@ -171,12 +166,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
-	wColor := w.weaponColor
-	if hudOpts.UseCustomColor {
-		wColor = hudOpts.Color
-	} else {
-		wColor.A = hudOpts.Color.A
-	}
+	wColor := hudOpts.HudColor(w.weaponColor)
 
 	// render weapon name and status indicator
 	weapon := w.weapon

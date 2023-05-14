@@ -71,22 +71,12 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	sX, sY := float32(bX), float32(bY)
 
 	// background box
-	bColor := _colorStatusBackground
-	if hudOpts.UseCustomColor {
-		bColor = hudOpts.Color
-	} else {
-		bColor.A = hudOpts.Color.A
-	}
+	bColor := hudOpts.HudColor(_colorStatusBackground)
 
 	sAlpha := uint8(int(bColor.A) / 3)
 	vector.DrawFilledRect(screen, sX, sY, sW, sH, color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
 
-	nColor := _colorNavPoint
-	if hudOpts.UseCustomColor {
-		nColor = hudOpts.Color
-	} else {
-		nColor.A = hudOpts.Color.A
-	}
+	nColor := hudOpts.HudColor(_colorNavPoint)
 
 	// draw nav image
 	nTexture := n.navPoint.Image()
@@ -102,12 +92,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen.DrawImage(nTexture, op)
 
 	// setup text color
-	tColor := _colorStatusText
-	if hudOpts.UseCustomColor {
-		tColor = hudOpts.Color
-	} else {
-		tColor.A = hudOpts.Color.A
-	}
+	tColor := hudOpts.HudColor(_colorStatusText)
 	n.fontRenderer.SetColor(color.RGBA(tColor))
 
 	// nav point distance

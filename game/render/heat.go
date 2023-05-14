@@ -67,17 +67,11 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	hW, hH := heatRatio*float32(bW), float32(bH)/2
 	hX, hY := midX-hW/2, float32(bY)
 
-	var hColor color.NRGBA
-	if hudOpts.UseCustomColor {
-		hColor = hudOpts.Color
-	} else {
-		hColor = _colorHeatCool
-		if heatRatio > 0.7 {
-			hColor = _colorHeatHot
-		} else if heatRatio > 0.35 {
-			hColor = _colorHeatWarm
-		}
-		hColor.A = hudOpts.Color.A
+	hColor := hudOpts.HudColor(_colorHeatCool)
+	if heatRatio > 0.7 {
+		hColor = hudOpts.HudColor(_colorHeatHot)
+	} else if heatRatio > 0.35 {
+		hColor = hudOpts.HudColor(_colorHeatWarm)
 	}
 
 	vector.DrawFilledRect(screen, hX, hY, hW, hH, hColor, false)
@@ -93,12 +87,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	vector.StrokeRect(screen, oX, oY, oW, oH, oT, oColor, false)
 
 	// current heat level text
-	tColor := _colorHeatText
-	if hudOpts.UseCustomColor {
-		tColor = hudOpts.Color
-	} else {
-		tColor.A = hudOpts.Color.A
-	}
+	tColor := hudOpts.HudColor(_colorHeatText)
 	h.fontRenderer.SetColor(color.RGBA(tColor))
 
 	heatStr := fmt.Sprintf("Heat: %0.1f", heat)

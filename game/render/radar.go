@@ -102,24 +102,14 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	midY += float64(bY)
 
 	// Draw radar range text
-	rColor := _colorRadar
-	if hudOpts.UseCustomColor {
-		rColor = hudOpts.Color
-	} else {
-		rColor.A = hudOpts.Color.A
-	}
+	rColor := hudOpts.HudColor(_colorRadar)
 	r.fontRenderer.SetColor(color.RGBA(rColor))
 
 	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
 	r.fontRenderer.Draw(radarStr, bX, bY)
 
 	// Draw radar circle outline
-	oColor := _colorRadarOutline
-	if hudOpts.UseCustomColor {
-		oColor = hudOpts.Color
-	} else {
-		oColor.A = hudOpts.Color.A
-	}
+	oColor := hudOpts.HudColor(_colorRadarOutline)
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
 	oAlpha := uint8(oColor.A / 5)
@@ -136,12 +126,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 			continue
 		}
 
-		wColor := _colorRadarOutline
-		if hudOpts.UseCustomColor {
-			wColor = hudOpts.Color
-		} else {
-			wColor.A = hudOpts.Color.A
-		}
+		wColor := hudOpts.HudColor(_colorRadarOutline)
 
 		// determine distance to wall line, convert to relative radar angle and draw
 		line1 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X1, Y2: borderLine.Y1}
@@ -176,12 +161,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	vector.DrawFilledRect(screen, float32(midX)+refW/2-refT, float32(midY)-refH, refT, refH, rColor, false)
 
 	// Draw nav points
-	nColor := _colorRadarOutline
-	if hudOpts.UseCustomColor {
-		nColor = hudOpts.Color
-	} else {
-		nColor.A = hudOpts.Color.A
-	}
+	nColor := hudOpts.HudColor(_colorRadarOutline)
 
 	for _, nav := range r.navPoints {
 		// convert heading angle into relative radar angle where "up" is forward
@@ -201,12 +181,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	}
 
 	// Draw radar blips
-	bColor := _colorEnemy
-	if hudOpts.UseCustomColor {
-		bColor = hudOpts.Color
-	} else {
-		bColor.A = hudOpts.Color.A
-	}
+	bColor := hudOpts.HudColor(_colorEnemy)
 
 	for _, blip := range r.radarBlips {
 		// convert heading angle into relative radar angle where "up" is forward
