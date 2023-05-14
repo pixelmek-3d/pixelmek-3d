@@ -109,6 +109,7 @@ type sliderResources struct {
 
 type panelResources struct {
 	image    *image.NineSlice
+	filled   *image.NineSlice
 	titleBar *image.NineSlice
 	padding  widget.Insets
 }
@@ -135,7 +136,7 @@ type fonts struct {
 }
 
 func NewUIResources(m *GameMenu) (*uiResources, error) {
-	background := image.NewNineSliceColor(hexToColorAlpha(backgroundColor, 155))
+	background := image.NewNineSliceColor(hexToColorAlpha(backgroundColor, 96))
 
 	fonts, err := loadFonts(m.fontScale)
 	if err != nil {
@@ -588,12 +589,17 @@ func newPanelResources() (*panelResources, error) {
 	if err != nil {
 		return nil, err
 	}
+	f, err := loadImageNineSlice("menu/panel-filled.png", 10, 10, 1.0)
+	if err != nil {
+		return nil, err
+	}
 	t, err := loadImageNineSlice("menu/titlebar-idle.png", 10, 10, 1.0)
 	if err != nil {
 		return nil, err
 	}
 	return &panelResources{
 		image:    i,
+		filled:   f,
 		titleBar: t,
 		padding: widget.Insets{
 			Left:   30,

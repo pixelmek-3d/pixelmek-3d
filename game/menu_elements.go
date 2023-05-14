@@ -66,15 +66,21 @@ func settingsContainer(m *GameMenu) widget.PreferredSizeLocateableWidget {
 			widget.GridLayoutOpts.Spacing(m.spacing, 0),
 		)))
 
+	gameSettings := gamePage(m)
+	displaySettings := displayPage(m)
+	renderSettings := renderPage(m)
+	hudSettings := hudPage(m)
+
 	pages := make([]interface{}, 0, 8)
+	pages = append(pages, gameSettings)
+	pages = append(pages, displaySettings)
+	pages = append(pages, renderSettings)
+	pages = append(pages, hudSettings)
 
-	pages = append(pages, gamePage(m))
-	pages = append(pages, displayPage(m))
-	pages = append(pages, renderPage(m))
-	pages = append(pages, hudPage(m))
-
+	var lightingSettings *page
 	if m.game.debug {
-		pages = append(pages, lightingPage(m))
+		lightingSettings = lightingPage(m)
+		pages = append(pages, lightingSettings)
 	}
 
 	pageContainer := newPageContainer(res)
@@ -96,7 +102,17 @@ func settingsContainer(m *GameMenu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.HideHorizontalSlider(),
 
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
-			pageContainer.setPage(args.Entry.(*page))
+			nextPage := args.Entry.(*page)
+			pageContainer.setPage(nextPage)
+			if nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings) {
+				// for HUD and lighting setting, apply custom background so can see behind while adjusting
+				m.root.BackgroundImage = nil
+				pageContainer.widget.(*widget.Container).BackgroundImage = nil
+				nextPage.content.(*widget.Container).BackgroundImage = res.panel.filled
+			} else {
+				m.root.BackgroundImage = res.background
+				pageContainer.widget.(*widget.Container).BackgroundImage = res.panel.image
+			}
 			m.root.RequestRelayout()
 		}))
 	c.AddChild(pageList)

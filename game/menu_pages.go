@@ -479,7 +479,8 @@ func newPageContentContainer() *widget.Container {
 
 func newPageContainer(res *uiResources) *pageContainer {
 	c := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(res.panel.image),
+	    // background image will instead be set based on which page is showing
+		//widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(res.panel.padding),

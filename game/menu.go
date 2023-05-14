@@ -130,7 +130,8 @@ func (m *GameMenu) initMenu() {
 			}),
 			// Spacing defines how much space to put between each column and row
 			widget.GridLayoutOpts.Spacing(0, m.spacing))),
-		widget.ContainerOpts.BackgroundImage(m.res.background),
+		// background image will instead be set based on which page is showing
+		//widget.ContainerOpts.BackgroundImage(m.res.background),
 	)
 
 	// window title
