@@ -215,6 +215,12 @@ func displayPage(m *GameMenu) *page {
 	}, res)
 	c.AddChild(vsCheckbox)
 
+	// fps checkbox
+	floorCheckbox := newCheckbox("Show FPS", m.game.fpsEnabled, func(args *widget.CheckboxChangedEventArgs) {
+		m.game.fpsEnabled = args.State == widget.WidgetChecked
+	}, res)
+	c.AddChild(floorCheckbox)
+
 	return &page{
 		title:   "Display",
 		content: c,
