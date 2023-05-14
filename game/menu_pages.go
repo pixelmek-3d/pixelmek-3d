@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"math"
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -294,16 +295,16 @@ func hudPage(m *GameMenu) *page {
 		widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		}), widget.WidgetOpts.MinSize(100, 6)),
-		widget.SliderOpts.MinMax(0, 255),
+		widget.SliderOpts.MinMax(0, 100),
 		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
 		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
 		widget.SliderOpts.TrackOffset(5),
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
-			opacityValueText.Label = fmt.Sprintf("%d", args.Current)
-			m.game.hudRGBA.A = uint8(args.Current)
+			opacityValueText.Label = fmt.Sprintf("%d%%", args.Current)
+			m.game.hudRGBA.A = uint8(math.Round(255 * float64(args.Current) / 100))
 		}),
 	)
-	opacitySlider.Current = int(m.game.hudRGBA.A)
+	opacitySlider.Current = int(math.Round(100 * float64(m.game.hudRGBA.A) / 255))
 	opacityRow.AddChild(opacitySlider)
 
 	opacityValueText = widget.NewLabel(
