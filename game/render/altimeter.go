@@ -32,7 +32,7 @@ func NewAltimeter(font *Font) *Altimeter {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.YCenter, etxt.Right)
-	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
+	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	a := &Altimeter{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -56,7 +56,6 @@ func (a *Altimeter) updateFontSize(width, height int) {
 func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitude, pitch float64) {
 	screen := hudOpts.Screen
 	a.fontRenderer.SetTarget(screen)
-	a.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	a.updateFontSize(bW, bH)
@@ -88,7 +87,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, altitu
 	} else {
 		pipColor.A = hudOpts.Color.A
 	}
-	a.fontRenderer.SetColor(pipColor)
+	a.fontRenderer.SetColor(color.RGBA(pipColor))
 
 	var maxAltitude float32 = float32(model.METERS_PER_UNIT)
 	for i := int(-maxAltitude); i <= int(maxAltitude); i++ {

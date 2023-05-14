@@ -2,6 +2,7 @@ package render
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/efixed"
@@ -17,7 +18,7 @@ type FPSIndicator struct {
 	fpsText      string
 }
 
-//NewFPSIndicator creates an FPS indicator to be rendered on demand
+// NewFPSIndicator creates an FPS indicator to be rendered on demand
 func NewFPSIndicator(font *Font) *FPSIndicator {
 	// create and configure font renderer
 	renderer := etxt.NewStdRenderer()
@@ -59,7 +60,7 @@ func (f *FPSIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	if hudOpts.UseCustomColor {
 		tColor = hudOpts.Color
 	}
-	f.fontRenderer.SetColor(tColor)
+	f.fontRenderer.SetColor(color.RGBA(tColor))
 	f.fontRenderer.SetAlign(etxt.Top, etxt.Left)
 	f.fontRenderer.Draw(f.fpsText, bX, bY)
 }

@@ -108,7 +108,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	} else {
 		tColor.A = hudOpts.Color.A
 	}
-	n.fontRenderer.SetColor(tColor)
+	n.fontRenderer.SetColor(color.RGBA(tColor))
 
 	// nav point distance
 	if n.navDistance >= 0 {
@@ -118,7 +118,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	}
 
 	// nav point name
-	n.fontRenderer.SetColor(nColor)
+	n.fontRenderer.SetColor(color.RGBA(nColor))
 	n.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 
 	navName := "NAV " + strings.ToUpper(n.navPoint.Name)

@@ -38,7 +38,7 @@ func NewCompass(font *Font) *Compass {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.XCenter)
-	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
+	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	c := &Compass{
 		HUDSprite:       NewHUDSprite(nil, 1.0),
@@ -86,7 +86,6 @@ func (c *Compass) SetNavHeading(heading float64) {
 func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle float64) {
 	screen := hudOpts.Screen
 	c.fontRenderer.SetTarget(screen)
-	c.fontRenderer.SetColor(hudOpts.Color)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	c.updateFontSize(bW, bH)
@@ -119,7 +118,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	} else {
 		pipColor.A = hudOpts.Color.A
 	}
-	c.fontRenderer.SetColor(pipColor)
+	c.fontRenderer.SetColor(color.RGBA(pipColor))
 
 	for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
 		actualDeg := i + int(math.Round(headingDeg))

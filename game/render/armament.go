@@ -180,12 +180,10 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 
 	// render weapon name and status indicator
 	weapon := w.weapon
-	if weapon.Cooldown() == 0 {
-		a.fontRenderer.SetColor(wColor)
-	} else {
-		wAlpha := uint8(2 * (int(wColor.A) / 5))
-		a.fontRenderer.SetColor(color.RGBA{wColor.R, wColor.G, wColor.B, wAlpha})
+	if weapon.Cooldown() > 0 {
+		wColor.A = uint8(2 * (int(wColor.A) / 5))
 	}
+	a.fontRenderer.SetColor(color.RGBA(wColor))
 
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing
 

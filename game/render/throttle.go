@@ -3,6 +3,7 @@ package render
 import (
 	"fmt"
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tinne26/etxt"
@@ -90,7 +91,7 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	} else {
 		tColor.A = hudOpts.Color.A
 	}
-	t.fontRenderer.SetColor(tColor)
+	t.fontRenderer.SetColor(color.RGBA(tColor))
 
 	velocityStr := fmt.Sprintf("%0.1f kph", velocity)
 	if velocityZ != 0 {

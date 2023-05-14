@@ -167,7 +167,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	} else {
 		tColor.A = hudOpts.Color.A
 	}
-	u.fontRenderer.SetColor(tColor)
+	u.fontRenderer.SetColor(color.RGBA(tColor))
 
 	// armor readout
 	armorStr := fmt.Sprintf("ARMOR\n %0.0f%%", armorPercent)
@@ -194,7 +194,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			} else {
 				eColor.A = hudOpts.Color.A
 			}
-			u.fontRenderer.SetColor(eColor)
+			u.fontRenderer.SetColor(color.RGBA(eColor))
 
 			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 			chassisVariant := strings.ToUpper(tUnit.Variant())
@@ -210,7 +210,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 					}
 				}
 				lColor.A = hudOpts.Color.A
-				u.fontRenderer.SetColor(lColor)
+				u.fontRenderer.SetColor(color.RGBA(lColor))
 				u.fontRenderer.SetAlign(etxt.Bottom, etxt.Left)
 
 				lockStr := fmt.Sprintf("LOCK: %0.0f%%", u.targetLock*100)

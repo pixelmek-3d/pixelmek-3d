@@ -29,7 +29,7 @@ func NewHeatIndicator(font *Font) *HeatIndicator {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.Left)
-	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
+	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	h := &HeatIndicator{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -99,7 +99,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, he
 	} else {
 		tColor.A = hudOpts.Color.A
 	}
-	h.fontRenderer.SetColor(tColor)
+	h.fontRenderer.SetColor(color.RGBA(tColor))
 
 	heatStr := fmt.Sprintf("Heat: %0.1f", heat)
 	h.fontRenderer.SetAlign(etxt.Top, etxt.Left)

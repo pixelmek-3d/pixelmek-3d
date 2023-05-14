@@ -47,7 +47,7 @@ func NewRadar(font *Font) *Radar {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.Left)
-	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
+	renderer.SetColor(color.RGBA{255, 255, 255, 255})
 
 	r := &Radar{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -108,7 +108,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, position *
 	} else {
 		rColor.A = hudOpts.Color.A
 	}
-	r.fontRenderer.SetColor(rColor)
+	r.fontRenderer.SetColor(color.RGBA(rColor))
 
 	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
 	r.fontRenderer.Draw(radarStr, bX, bY)
