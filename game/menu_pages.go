@@ -368,7 +368,7 @@ func lightingPage(m *GameMenu) *page {
 	res := m.res
 
 	// raycaster lighting options for debug mode only
-	debugLabel := widget.NewLabel(widget.LabelOpts.Text("Debug Only Options", res.label.face, res.label.text))
+	debugLabel := widget.NewLabel(widget.LabelOpts.Text("~Debug Mode Only", res.label.face, res.label.text))
 	c.AddChild(debugLabel)
 	c.AddChild(m.newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
@@ -461,7 +461,7 @@ func lightingPage(m *GameMenu) *page {
 	c.AddChild(pickerMaxRGB)
 
 	return &page{
-		title:   "Lighting",
+		title:   "~Lighting",
 		content: c,
 	}
 }
@@ -479,7 +479,7 @@ func newPageContentContainer() *widget.Container {
 
 func newPageContainer(res *uiResources) *pageContainer {
 	c := widget.NewContainer(
-	    // background image will instead be set based on which page is showing
+		// background image will instead be set based on which page is showing
 		//widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
