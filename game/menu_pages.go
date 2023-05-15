@@ -338,7 +338,7 @@ func hudPage(m *GameMenu) *page {
 
 	// custom HUD RGB picker
 	hudRGB := &color.NRGBA{
-		R: m.game.hudRGBA.R, G: m.game.hudRGBA.G, B: m.game.hudRGBA.B,
+		R: m.game.hudRGBA.R, G: m.game.hudRGBA.G, B: m.game.hudRGBA.B, A: 255,
 	}
 	pickerMinRGB = m.newColorPickerRGB("Color", hudRGB, func(args *widget.SliderChangedEventArgs) {
 		m.game.hudRGBA.R = hudRGB.R

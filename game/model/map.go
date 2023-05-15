@@ -143,10 +143,10 @@ type MapLighting struct {
 
 func (m MapLighting) LightRGB() (*color.NRGBA, *color.NRGBA) {
 	min := &color.NRGBA{
-		R: m.MinLightRGB[0], G: m.MinLightRGB[1], B: m.MinLightRGB[2],
+		R: m.MinLightRGB[0], G: m.MinLightRGB[1], B: m.MinLightRGB[2], A: 255,
 	}
 	max := &color.NRGBA{
-		R: m.MaxLightRGB[0], G: m.MaxLightRGB[1], B: m.MaxLightRGB[2],
+		R: m.MaxLightRGB[0], G: m.MaxLightRGB[1], B: m.MaxLightRGB[2], A: 255,
 	}
 	return min, max
 }
