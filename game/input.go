@@ -6,7 +6,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
-	"github.com/harbdog/raycaster-go/geom"
 )
 
 type MouseMode int
@@ -54,6 +53,9 @@ func (g *Game) handleInput() {
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyAlt) {
 		if g.mouseMode == MouseModeBody {
 			g.mouseMode = MouseModeTurret
+
+			// reset relative heading target when no longer using mouse turn
+			g.player.SetTargetRelativeHeading(0)
 		}
 	}
 
@@ -80,9 +82,11 @@ func (g *Game) handleInput() {
 			g.mouseX, g.mouseY = x, y
 
 			if dx != 0 {
-				turnRate := g.player.TurnRate()
-				turnAmount := geom.Clamp(0.1*float64(dx), -turnRate, turnRate)
+				turnAmount := 0.01 * float64(dx) / g.zoomFovDepth
 				g.player.SetTargetRelativeHeading(turnAmount)
+			} else {
+				// reset relative heading target when mouse stops
+				g.player.SetTargetRelativeHeading(0)
 			}
 
 			if dy != 0 {
@@ -107,9 +111,13 @@ func (g *Game) handleInput() {
 				if g.player.HasTurret() {
 					g.RotateTurret(0.005 * float64(dx) / g.zoomFovDepth)
 				} else {
-					turnRate := g.player.TurnRate()
-					turnAmount := geom.Clamp(0.005*float64(dx), -turnRate, turnRate)
+					turnAmount := 0.01 * float64(dx) / g.zoomFovDepth
 					g.player.SetTargetRelativeHeading(turnAmount)
+				}
+			} else {
+				if !g.player.HasTurret() {
+					// reset relative heading target when mouse stops
+					g.player.SetTargetRelativeHeading(0)
 				}
 			}
 

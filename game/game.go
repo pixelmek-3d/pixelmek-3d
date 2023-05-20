@@ -551,19 +551,7 @@ func (g *Game) VerticalMove(vSpeed float64) {
 
 // Rotate player heading angle by rotation speed
 func (g *Game) Rotate(rSpeed float64) {
-	angle := g.player.Heading() + rSpeed
-
-	if angle >= geom.Pi2 {
-		angle = geom.Pi2 - angle
-	} else if angle < 0 {
-		angle = angle + geom.Pi2
-	}
-
-	if angle < 0 {
-		// handle rounding errors
-		angle = 0
-	}
-
+	angle := model.ClampAngle(g.player.Heading() + rSpeed)
 	g.player.SetHeading(angle)
 	g.player.moved = true
 }
@@ -571,12 +559,12 @@ func (g *Game) Rotate(rSpeed float64) {
 // Rotate player turret angle, relative to body heading, by rotation speed
 func (g *Game) RotateTurret(rSpeed float64) {
 	if !g.player.HasTurret() {
-		g.Rotate(rSpeed)
 		return
 	}
 
 	angle := g.player.TurretAngle() + rSpeed
 
+	// currently restricting turret rotation to only 90 degrees,
 	if angle > geom.HalfPi {
 		angle = geom.HalfPi
 	} else if angle < -geom.HalfPi {

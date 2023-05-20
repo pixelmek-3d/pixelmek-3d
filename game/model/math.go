@@ -17,6 +17,16 @@ func RandFloat64In(lo, hi float64) float64 {
 	return lo + (hi-lo)*rand.Float64()
 }
 
+func ClampAngle(angle float64) float64 {
+	for angle > geom.Pi {
+		angle = angle - geom.Pi2
+	}
+	for angle <= -geom.Pi {
+		angle = angle + geom.Pi2
+	}
+	return angle
+}
+
 func IsBetweenDegrees(start, end, mid float64) bool {
 	if end-start < 0.0 {
 		end = end - start + 360.0

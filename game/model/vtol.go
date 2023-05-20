@@ -163,17 +163,7 @@ func (e *VTOL) Update() bool {
 		}
 
 		newH += deltaH
-
-		if newH >= geom.Pi2 {
-			newH = geom.Pi2 - newH
-		} else if newH < 0 {
-			newH = newH + geom.Pi2
-		}
-
-		if newH < 0 {
-			// handle rounding errors
-			newH = 0
-		}
+		newH = ClampAngle(newH)
 
 		e.targetRelHeading -= deltaH
 		e.heading = newH
