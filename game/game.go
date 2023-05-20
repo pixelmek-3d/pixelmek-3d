@@ -34,8 +34,14 @@ const (
 	clipDistance = 0.1
 )
 
+type Scene interface {
+	Update() error
+	Draw(*ebiten.Image)
+}
+
 // Game - This is the main type for your game.
 type Game struct {
+	scene  Scene
 	menu   *GameMenu
 	paused bool
 
@@ -82,8 +88,8 @@ type Game struct {
 	hudUseCustomColor bool
 
 	//--define camera and render scene--//
-	camera *raycaster.Camera
-	scene  *ebiten.Image
+	camera   *raycaster.Camera
+	rayScene *ebiten.Image
 
 	mouseMode      MouseMode
 	mouseX, mouseY int
@@ -142,6 +148,7 @@ const (
 func NewGame() *Game {
 	// initialize Game object
 	g := new(Game)
+	g.scene = NewMissionScene(g) // TODO: NewIntroScene(g)
 	g.fonts = render.NewFontHandler()
 
 	g.initConfig()
@@ -401,75 +408,13 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update - Allows the game to run logic such as updating the world, gathering input, and playing audio.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
-	if g.osType == osTypeBrowser && ebiten.CursorMode() == ebiten.CursorModeVisible && !g.menu.active && !g.menu.closing {
-		// capture not working sometimes (https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API#iframe_limitations):
-		//   sm_exec.js:349 pointerlockerror event is fired. 'sandbox="allow-pointer-lock"' might be required at an iframe.
-		//   This function on browsers must be called as a result of a gestural interaction or orientation change.
-		//   localhost/:1 Uncaught (in promise) DOMException: The user has exited the lock before this request was completed.
-		g.openMenu()
-	}
-
-	if g.menu.closing && !g.menu.active {
-		// reset simple flag to make sure that if we really wanted the menu closed in browser it won't trigger reopen
-		g.menu.closing = false
-	}
-
-	// handle input (when paused making sure only to allow input for closing menu so it can be unpaused)
-	g.handleInput()
-
-	if !g.paused {
-		// Perform logical updates
-		g.updatePlayer()
-		g.updateProjectiles()
-		g.updateSprites()
-
-		if g.clutter != nil {
-			g.clutter.Update(g, false)
-		}
-
-		// handle player weapon updates
-		g.updateWeaponCooldowns(g.player.Unit)
-
-		// handle player camera movement
-		g.updatePlayerCamera(false)
-	}
-
-	// update the menu (if active)
-	g.menu.update(g)
-
-	return nil
+	return g.scene.Update()
 }
 
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Put projectiles together with sprites for raycasting both as sprites
-	raycastSprites := g.getRaycastSprites()
-
-	// Update camera (calculate raycast)
-	g.camera.Update(raycastSprites)
-
-	// Render raycast scene
-	g.camera.Draw(g.scene)
-
-	// draw raycasted scene
-	op := &ebiten.DrawImageOptions{}
-	if g.renderScale < 1 {
-		op.Filter = ebiten.FilterNearest
-		op.GeoM.Scale(1/g.renderScale, 1/g.renderScale)
-	}
-	screen.DrawImage(g.scene, op)
-
-	// store raycasted convergence point for next Update
-	g.player.convergenceDistance = g.camera.GetConvergenceDistance()
-	g.player.convergencePoint = g.camera.GetConvergencePoint()
-	g.player.convergenceSprite = getSpriteFromInterface(g.camera.GetConvergenceSprite())
-
-	// draw HUD elements
-	g.drawHUD(screen)
-
-	// draw menu (if active)
-	g.menu.draw(screen)
+	g.scene.Draw(screen)
 }
 
 func (g *Game) setFullscreen(fullscreen bool) {
@@ -490,7 +435,7 @@ func (g *Game) setRenderScale(renderScale float64) {
 	if g.camera != nil {
 		g.camera.SetViewSize(g.width, g.height)
 	}
-	g.scene = ebiten.NewImage(g.width, g.height)
+	g.rayScene = ebiten.NewImage(g.width, g.height)
 }
 
 func (g *Game) setRenderDistance(renderDistance float64) {
