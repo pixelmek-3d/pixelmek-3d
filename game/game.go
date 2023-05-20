@@ -148,7 +148,6 @@ const (
 func NewGame() *Game {
 	// initialize Game object
 	g := new(Game)
-	g.scene = NewMissionScene(g) // TODO: NewIntroScene(g)
 	g.fonts = render.NewFontHandler()
 
 	g.initConfig()
@@ -255,6 +254,9 @@ func NewGame() *Game {
 
 	// init menu system
 	g.menu = createMenu(g)
+
+	// setup initial scene
+	g.scene = NewIntroScene(g)
 
 	return g
 }
@@ -415,6 +417,41 @@ func (g *Game) Update() error {
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.scene.Draw(screen)
+}
+
+// Gets the inner screen rect for UI space to account for ultra-wide resolutions
+func (g *Game) uiRect() image.Rectangle {
+	minUiAspectRatio, maxUiAspectRatio := 1.0, 1.5
+	screenW, screenH := float64(g.screenWidth), float64(g.screenHeight)
+	screenAspectRatio := screenW / screenH
+
+	var paddingX, paddingY, uiWidth, uiHeight int
+
+	if screenAspectRatio > maxUiAspectRatio {
+		// ultra-wide aspect, constrict HUD width based on screen height
+		paddingY = int(screenH * 0.02)
+		uiHeight = int(screenH) - paddingY*2
+
+		uiWidth = int(screenH * maxUiAspectRatio)
+		//paddingX = menuWidth * 0.02
+	} else if screenAspectRatio < minUiAspectRatio {
+		// tall vertical aspect, constrict HUD height based on screen width
+		paddingX = int(screenW * 0.02)
+		uiWidth = int(screenW) - paddingX*2
+
+		uiHeight = int(screenW / minUiAspectRatio)
+		//paddingY = menuHeight * 0.02
+	} else {
+		// use current aspect ratio
+		paddingX, paddingY = int(screenW*0.02), int(screenH*0.02)
+		uiWidth, uiHeight = int(screenW)-paddingX*2, int(screenH)-paddingY*2
+	}
+
+	uiX, uiY := (g.screenWidth-uiWidth)/2, (g.screenHeight-uiHeight)/2
+	return image.Rect(
+		uiX, uiY,
+		uiX+uiWidth, uiY+uiHeight,
+	)
 }
 
 func (g *Game) setFullscreen(fullscreen bool) {

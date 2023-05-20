@@ -65,31 +65,8 @@ func createMenu(g *Game) *GameMenu {
 
 func (m *GameMenu) initResources() {
 	// adjust menu and resource sizes based on window size
-	minMenuAspectRatio, maxMenuAspectRatio := 1.0, 1.5
-	screenW, screenH := float64(m.game.screenWidth), float64(m.game.screenHeight)
-	screenAspectRatio := screenW / screenH
-
-	var paddingX, paddingY, menuWidth, menuHeight int
-
-	if screenAspectRatio > maxMenuAspectRatio {
-		// ultra-wide aspect, constrict HUD width based on screen height
-		paddingY = int(screenH * 0.02)
-		menuHeight = int(screenH) - paddingY*2
-
-		menuWidth = int(screenH * maxMenuAspectRatio)
-		//paddingX = menuWidth * 0.02
-	} else if screenAspectRatio < minMenuAspectRatio {
-		// tall vertical aspect, constrict HUD height based on screen width
-		paddingX = int(screenW * 0.02)
-		menuWidth = int(screenW) - paddingX*2
-
-		menuHeight = int(screenW / minMenuAspectRatio)
-		//paddingY = menuHeight * 0.02
-	} else {
-		// use current aspect ratio
-		paddingX, paddingY = int(screenW*0.02), int(screenH*0.02)
-		menuWidth, menuHeight = int(screenW)-paddingX*2, int(screenH)-paddingY*2
-	}
+	menuRect := m.game.uiRect()
+	menuWidth, menuHeight := menuRect.Dx(), menuRect.Dy()
 
 	menuSize := menuHeight
 	if menuWidth < menuHeight {

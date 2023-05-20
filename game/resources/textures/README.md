@@ -1,6 +1,7 @@
 # Texture Resource Attribution
 
 - `ebitengine_splash`: Hajime Hoshi - https://github.com/hajimehoshi/ebiten
+- `gopher_space`: Maria Letta - https://github.com/MariaLetta/free-gophers-pack
 
 ## ./floors
 
