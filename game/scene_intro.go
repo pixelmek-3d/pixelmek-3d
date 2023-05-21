@@ -3,9 +3,11 @@ package game
 import (
 	"image"
 
+	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/pixelmek-3d/game/resources"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/harbdog/pixelmek-3d/game/resources"
 )
 
 const (
@@ -14,6 +16,7 @@ const (
 
 type IntroScene struct {
 	Game        *Game
+	starSpace   *render.StarSpace
 	splashes    []*ebiten.Image
 	splashRect  image.Rectangle
 	splashIndex int
@@ -36,6 +39,7 @@ func NewIntroScene(g *Game) *IntroScene {
 
 	return &IntroScene{
 		Game:        g,
+		starSpace:   render.NewStarSpace(g.width, g.height),
 		splashes:    images,
 		splashRect:  g.uiRect(),
 		splashTimer: SPLASH_TIMEOUT,
@@ -43,6 +47,7 @@ func NewIntroScene(g *Game) *IntroScene {
 }
 
 func (s *IntroScene) Update() error {
+	s.starSpace.Update()
 
 	// TODO: add transitional animation between images?
 
@@ -67,6 +72,10 @@ func (s *IntroScene) Update() error {
 }
 
 func (s *IntroScene) Draw(screen *ebiten.Image) {
+	// draw star space as splash image background
+	s.starSpace.Draw(screen)
+
+	// draw splash image
 	splash := s.splashes[s.splashIndex]
 	sW, sH := float64(splash.Bounds().Dx()), float64(splash.Bounds().Dy())
 	bX, bY, bW, bH := s.splashRect.Min.X, s.splashRect.Min.Y, s.splashRect.Dx(), s.splashRect.Dy()
