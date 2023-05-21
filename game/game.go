@@ -34,11 +34,6 @@ const (
 	clipDistance = 0.1
 )
 
-type Scene interface {
-	Update() error
-	Draw(*ebiten.Image)
-}
-
 // Game - This is the main type for your game.
 type Game struct {
 	scene  Scene

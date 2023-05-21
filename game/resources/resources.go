@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	//go:embed fonts maps menu missions sprites textures units weapons
+	//go:embed fonts maps menu missions shaders sprites textures units weapons
 	embedded          embed.FS
 	hasLocalResources bool = false
 )
@@ -107,6 +107,14 @@ func LoadFont(path string, size float64) (font.Face, error) {
 	}
 
 	return nil, errors.New("unhandled font extension for " + path)
+}
+
+func NewShaderFromFile(path string) (*ebiten.Shader, error) {
+	shaderData, err := embedded.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return ebiten.NewShader(shaderData)
 }
 
 func FilesInPath(path string) ([]fs.DirEntry, error) {

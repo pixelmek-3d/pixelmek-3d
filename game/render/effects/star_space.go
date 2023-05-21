@@ -1,4 +1,4 @@
-package render
+package effects
 
 import (
 	"image/color"
