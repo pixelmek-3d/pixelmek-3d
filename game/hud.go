@@ -63,37 +63,8 @@ func (g *Game) loadHUD() {
 
 // drawHUD draws HUD elements on the screen
 func (g *Game) drawHUD(screen *ebiten.Image) {
-	minHudAspectRatio, maxHudAspectRatio := 1.0, 1.5
-	screenW, screenH := float64(g.screenWidth), float64(g.screenHeight)
-	screenAspectRatio := screenW / screenH
-
-	var marginX, marginY, hudWidth, hudHeight int
-
-	if screenAspectRatio > maxHudAspectRatio {
-		// ultra-wide aspect, constrict HUD width based on screen height
-		marginY = int(screenH / 50)
-		hudHeight = int(screenH) - marginY*2
-
-		hudWidth = int(screenH * maxHudAspectRatio)
-		marginX = hudWidth / 50
-	} else if screenAspectRatio < minHudAspectRatio {
-		// tall vertical aspect, constrict HUD height based on screen width
-		marginX = int(screenW / 50)
-		hudWidth = int(screenW) - marginX*2
-
-		hudHeight = int(screenW / minHudAspectRatio)
-		marginY = hudHeight / 50
-	} else {
-		// use current aspect ratio
-		marginX, marginY = int(screenW/50), int(screenH/50)
-		hudWidth, hudHeight = int(screenW)-marginX*2, int(screenH)-marginY*2
-	}
-
-	hudX, hudY := (g.screenWidth-hudWidth)/2, (g.screenHeight-hudHeight)/2
-	hudRect := image.Rect(
-		hudX, hudY,
-		hudX+hudWidth, hudY+hudHeight,
-	)
+	hudRect := g.uiRect()
+	marginX, marginY := hudRect.Dx()/50, hudRect.Dy()/50
 
 	hudOpts := &render.DrawHudOptions{
 		Screen:         screen,
