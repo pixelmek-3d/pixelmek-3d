@@ -69,12 +69,16 @@ func (s *IntroScene) Update() error {
 func (s *IntroScene) Draw(screen *ebiten.Image) {
 	splash := s.splashes[s.splashIndex]
 	sW, sH := float64(splash.Bounds().Dx()), float64(splash.Bounds().Dy())
-
 	bX, bY, bW, bH := s.splashRect.Min.X, s.splashRect.Min.Y, s.splashRect.Dx(), s.splashRect.Dy()
+
+	// scale image to only take up a portion of the space
+	sScale := 0.75 * float64(bH) / sH
+	sW, sH = sW*sScale, sH*sScale
 	sX, sY := float64(bX)+float64(bW)/2-sW/2, float64(bY)+float64(bH)/2-sH/2
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
+	op.GeoM.Scale(sScale, sScale)
 	op.GeoM.Translate(sX, sY)
 	screen.DrawImage(splash, op)
 }
