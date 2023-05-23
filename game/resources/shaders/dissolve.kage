@@ -1,16 +1,18 @@
 package main
 
+var Direction float
+var Duration float
 var Time float
 var Cursor vec2
 var ScreenSize vec2
 
 func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
 	// Triangle wave to go 0-->1-->0...
-	limit := abs(2*fract(Time/3) - 1)
+	limit := abs(fract(Time/Duration)-Direction)
 	level := imageSrc1UnsafeAt(texCoord).x
 
 	// Add a white border
-	if limit-0.1 < level && level < limit {
+	if limit < level && level < limit {
 		alpha := imageSrc0UnsafeAt(texCoord).w
 		return vec4(alpha)
 	}

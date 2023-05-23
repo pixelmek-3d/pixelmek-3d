@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	SPLASH_TIMEOUT = 4.0
+	SPLASH_TIMEOUT = 5.0
 )
 
 type IntroScene struct {
@@ -39,8 +39,8 @@ func NewIntroScene(g *Game) *IntroScene {
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
 		splash := &SplashScreen{
-			Image:      im,
-			transition: transitions.NewDissolve(im, geoM),
+			Image:      nil,
+			transition: transitions.NewDissolve(im, SPLASH_TIMEOUT/2, geoM),
 			geoM:       geoM,
 		}
 		splashes = append(splashes, splash)
@@ -126,11 +126,13 @@ func (s *IntroScene) Draw(screen *ebiten.Image) {
 		splash.effect.Draw(screen)
 	}
 
-	// draw splash image
-	op := &ebiten.DrawImageOptions{}
-	op.Filter = ebiten.FilterNearest
-	op.GeoM = splash.geoM
-	screen.DrawImage(splash.Image, op)
+	if splash.Image != nil {
+		// draw splash image
+		op := &ebiten.DrawImageOptions{}
+		op.Filter = ebiten.FilterNearest
+		op.GeoM = splash.geoM
+		screen.DrawImage(splash.Image, op)
+	}
 
 	if splash.transition != nil {
 		// TODO: only draw transition at beginning/end

@@ -10,11 +10,13 @@ type Dissolve struct {
 	noiseImage    *ebiten.Image
 	shader        *ebiten.Shader
 	geoM          ebiten.GeoM
-	time          int
-	tps           float32
+	direction     int
+	duration      float32
+	time          float32
+	tickDelta     float32
 }
 
-func NewDissolve(img *ebiten.Image, geoM ebiten.GeoM) *Dissolve {
+func NewDissolve(img *ebiten.Image, duration float64, geoM ebiten.GeoM) *Dissolve {
 	shader, _ := resources.NewShaderFromFile("shaders/dissolve.kage")
 	noise, _, _ := resources.NewImageFromFile("shaders/noise.png")
 
@@ -30,19 +32,26 @@ func NewDissolve(img *ebiten.Image, geoM ebiten.GeoM) *Dissolve {
 		noise = scaledImage
 	}
 
+	// TODO: direction 1|0 needs to be a parameter for transition direction in|out
+
 	d := &Dissolve{
 		dissolveImage: img,
 		noiseImage:    noise,
 		shader:        shader,
 		geoM:          geoM,
-		tps:           float32(ebiten.TPS()),
+		direction:     1,
+		duration:      float32(duration),
+		tickDelta:     1 / float32(ebiten.TPS()),
 	}
 
 	return d
 }
 
 func (d *Dissolve) Update() error {
-	d.time++
+	if d.time+d.tickDelta < d.duration {
+		d.time += d.tickDelta
+	}
+
 	return nil
 }
 
@@ -50,7 +59,9 @@ func (d *Dissolve) Draw(screen *ebiten.Image) {
 	w, h := d.dissolveImage.Bounds().Dx(), d.dissolveImage.Bounds().Dy()
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
-		"Time":       float32(d.time) / d.tps,
+		"Direction":  float32(d.direction),
+		"Duration":   d.duration,
+		"Time":       d.time,
 		"ScreenSize": []float32{float32(w), float32(h)},
 	}
 	op.Images[0] = d.dissolveImage
