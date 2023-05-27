@@ -7,7 +7,6 @@ import (
 	"os"
 	"runtime"
 	"sort"
-	"strings"
 
 	"image/color"
 	_ "image/png"
@@ -257,12 +256,6 @@ func NewGame() *Game {
 }
 
 func (g *Game) initConfig() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("json")
-	viper.SetEnvPrefix("pixelmek")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
-
 	// special behavior needed for wasm play
 	switch runtime.GOOS {
 	case "js":
@@ -270,13 +263,6 @@ func (g *Game) initConfig() {
 	default:
 		g.osType = osTypeDesktop
 	}
-
-	userHomePath, _ := os.UserHomeDir()
-	if userHomePath != "" {
-		userHomePath = userHomePath + "/.pixelmek-3d"
-		viper.AddConfigPath(userHomePath)
-	}
-	viper.AddConfigPath(".")
 
 	// set default config values
 	viper.SetDefault("debug", false)
@@ -315,11 +301,6 @@ func (g *Game) initConfig() {
 
 	viper.SetDefault("controls.throttleDecay", false)
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Error(err)
-	}
-
 	// get config values
 	g.debug = viper.GetBool("debug")
 	g.fpsEnabled = viper.GetBool("showFPS")
@@ -343,6 +324,7 @@ func (g *Game) initConfig() {
 	clutterDistanceMeters := viper.GetFloat64("screen.clutterDistance")
 	g.clutterDistance = clutterDistanceMeters / model.METERS_PER_UNIT
 
+	var err error
 	g.fonts.HUDFont, err = g.fonts.LoadFont(viper.GetString("hud.font"))
 	if err != nil {
 		log.Fatal(err)

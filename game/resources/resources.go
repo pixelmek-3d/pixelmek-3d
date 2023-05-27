@@ -12,6 +12,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/spf13/viper"
 	"github.com/tinne26/etxt"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -27,8 +28,31 @@ var (
 )
 
 func init() {
-	info, err := os.Stat(filepath.Join("game", "resources"))
-	hasLocalResources = !errors.Is(err, fs.ErrNotExist) && info != nil && info.IsDir()
+	viper.SetConfigName("config")
+	viper.SetConfigType("json")
+	viper.SetEnvPrefix("pixelmek")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+
+	userHomePath, _ := os.UserHomeDir()
+	if userHomePath != "" {
+		userHomePath = userHomePath + "/.pixelmek-3d"
+		viper.AddConfigPath(userHomePath)
+	}
+	viper.AddConfigPath(".")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+func init() {
+	ignoreLocal := viper.GetBool("ignoreLocalResources")
+	if !ignoreLocal {
+		info, err := os.Stat(filepath.Join("game", "resources"))
+		hasLocalResources = !errors.Is(err, fs.ErrNotExist) && info != nil && info.IsDir()
+	}
 }
 
 func NewImageFromFile(path string) (*ebiten.Image, image.Image, error) {
