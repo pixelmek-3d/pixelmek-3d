@@ -9,7 +9,15 @@ type MissionScene struct {
 }
 
 func NewMissionScene(g *Game) *MissionScene {
-	g.menu = createGameMenu(g)
+	// capture the cursor for battle
+	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
+
+	gMenu := createGameMenu(g)
+	if g.osType == osTypeBrowser {
+		gMenu.closing = true // set as closing to keep browser from leaving it open
+	}
+
+	g.menu = gMenu
 	return &MissionScene{
 		Game: g,
 	}
