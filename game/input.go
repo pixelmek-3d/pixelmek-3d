@@ -19,7 +19,7 @@ const (
 func (g *Game) handleInput() {
 	menuKeyPressed := inpututil.IsKeyJustPressed(ebiten.KeyEscape) || inpututil.IsKeyJustPressed(ebiten.KeyF1)
 	if menuKeyPressed {
-		if g.menu.active {
+		if g.menu.Active() {
 			if g.osType == osTypeBrowser && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 				// do not allow Esc key close menu in browser, since Esc key releases browser mouse capture
 			} else {

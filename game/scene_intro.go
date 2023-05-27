@@ -115,7 +115,7 @@ func (s *IntroScene) Update() error {
 
 	if s.splashIndex >= len(s.splashes) {
 		// TODO: make last splash require key/button press to move on to main menu?
-		s.Game.scene = NewMissionScene(s.Game)
+		s.Game.scene = NewMenuScene(s.Game)
 	}
 
 	return nil

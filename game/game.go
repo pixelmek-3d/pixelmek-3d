@@ -36,7 +36,7 @@ const (
 // Game - This is the main type for your game.
 type Game struct {
 	scene  Scene
-	menu   *GameMenu
+	menu   Menu
 	paused bool
 
 	resources *model.ModelResources
@@ -150,11 +150,12 @@ func NewGame() *Game {
 		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
 	}
 
-	if g.osType == osTypeBrowser {
-		// web browser cannot start with cursor captured
-	} else {
-		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
-	}
+	// TODO: capture the mouse only when battle starts
+	// if g.osType == osTypeBrowser {
+	// 	// web browser cannot start with cursor captured
+	// } else {
+	// 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
+	// }
 
 	g.initInteractiveTypes()
 	g.initCollisionTypes()
@@ -245,9 +246,6 @@ func NewGame() *Game {
 	if g.clutter != nil {
 		g.clutter.Update(g, true)
 	}
-
-	// init menu system
-	g.menu = createMenu(g)
 
 	// setup initial scene
 	g.scene = NewIntroScene(g)

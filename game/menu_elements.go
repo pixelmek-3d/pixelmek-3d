@@ -8,16 +8,144 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-func titleBarContainer(m *GameMenu) *widget.Container {
-	res := m.res
+type MenuResolution struct {
+	width, height int
+	aspectRatio   MenuAspectRatio
+}
+
+type MenuAspectRatio struct {
+	w, h, fov int
+}
+
+func (r MenuResolution) String() string {
+	if r.aspectRatio.w == 0 || r.aspectRatio.h == 0 {
+		return fmt.Sprintf("(*) %dx%d", r.width, r.height)
+	}
+	return fmt.Sprintf("(%d:%d) %dx%d", r.aspectRatio.w, r.aspectRatio.h, r.width, r.height)
+}
+
+func generateMenuResolutions() []MenuResolution {
+	resolutions := make([]MenuResolution, 0)
+
+	ratios := []MenuAspectRatio{
+		{5, 4, 64},
+		{4, 3, 68},
+		{3, 2, 74},
+		{16, 9, 84},
+		{21, 9, 100},
+	}
+
+	widths := []int{
+		640,
+		800,
+		960,
+		1024,
+		1280,
+		1440,
+		1600,
+		1920,
+	}
+
+	for _, r := range ratios {
+		for _, w := range widths {
+			h := (w / r.w) * r.h
+			resolutions = append(
+				resolutions,
+				MenuResolution{width: w, height: h, aspectRatio: r},
+			)
+		}
+	}
+
+	return resolutions
+}
+
+func mainMenuTitleContainer(m Menu) *widget.Container {
+	res := m.Resources()
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1), widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}), widget.GridLayoutOpts.Padding(widget.Insets{
+			Left:   m.Padding(),
+			Right:  m.Padding(),
+			Top:    m.Padding(),
+			Bottom: m.Padding(),
+		}))))
+
+	c.AddChild(widget.NewText(
+		widget.TextOpts.Text("PixelMek 3D", res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	))
+
+	return c
+}
+
+func mainMenuItemsContainer(m *MainMenu) *widget.Container {
+	c := newPageContentContainer()
+	res := m.Resources()
+	game := m.Game()
+
+	resume := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.button.text),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			game.scene = NewMissionScene(game)
+		}),
+	)
+	c.AddChild(resume)
+
+	if game.osType == osTypeBrowser {
+		// exit in browser kills but freezes the application, users can just close the tab/window
+	} else {
+		// show in game exit button
+		c.AddChild(newSeparator(m, res, widget.RowLayoutData{
+			Stretch: true,
+		}))
+
+		// TODO: add pop up to confirm exit to main menu or exit application
+
+		exit := widget.NewButton(
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.Text("Exit", res.button.face, res.button.text),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) { exit(0) }),
+		)
+		c.AddChild(exit)
+	}
+
+	return c
+}
+
+func mainMenuFooterContainer(m Menu) *widget.Container {
+	res := m.Resources()
+
+	c := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
+		widget.RowLayoutOpts.Padding(widget.Insets{
+			Left:  m.Spacing(),
+			Right: m.Spacing(),
+		}),
+	)))
+	c.AddChild(widget.NewText(
+		widget.TextOpts.Text("github.com/harbdog/pixelmek-3d", res.text.smallFace, res.text.disabledColor)))
+	return c
+}
+
+func gameMenuTitleContainer(m *GameMenu) *widget.Container {
+	res := m.Resources()
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}), widget.GridLayoutOpts.Padding(widget.Insets{
-			Left:   m.padding,
-			Right:  m.padding,
-			Top:    m.padding,
-			Bottom: m.padding,
+			Left:   m.Padding(),
+			Right:  m.Padding(),
+			Top:    m.Padding(),
+			Bottom: m.Padding(),
 		}))))
 
 	c.AddChild(widget.NewText(
@@ -30,7 +158,7 @@ func titleBarContainer(m *GameMenu) *widget.Container {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			m.game.closeMenu()
+			m.Game().closeMenu()
 		}),
 		widget.ButtonOpts.TabOrder(99),
 	))
@@ -38,32 +166,18 @@ func titleBarContainer(m *GameMenu) *widget.Container {
 	return c
 }
 
-func footerContainer(m *GameMenu) *widget.Container {
-	res := m.res
-
-	c := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
-		widget.RowLayoutOpts.Padding(widget.Insets{
-			Left:  m.spacing,
-			Right: m.spacing,
-		}),
-	)))
-	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("github.com/harbdog/pixelmek-3d", res.text.smallFace, res.text.disabledColor)))
-	return c
-}
-
-func settingsContainer(m *GameMenu) widget.PreferredSizeLocateableWidget {
-	res := m.res
+func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
+	res := m.Resources()
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Padding(widget.Insets{
-				Left:  m.spacing,
-				Right: m.spacing,
+				Left:  m.Spacing(),
+				Right: m.Spacing(),
 			}),
 			widget.GridLayoutOpts.Columns(2),
 			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{true}),
-			widget.GridLayoutOpts.Spacing(m.spacing, 0),
+			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
 
 	gameSettings := gamePage(m)
@@ -78,7 +192,7 @@ func settingsContainer(m *GameMenu) widget.PreferredSizeLocateableWidget {
 	pages = append(pages, hudSettings)
 
 	var lightingSettings *page
-	if m.game.debug {
+	if m.Game().debug {
 		lightingSettings = lightingPage(m)
 		pages = append(pages, lightingSettings)
 	}
@@ -106,23 +220,28 @@ func settingsContainer(m *GameMenu) widget.PreferredSizeLocateableWidget {
 			pageContainer.setPage(nextPage)
 			if nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings) {
 				// for HUD and lighting setting, apply custom background so can see behind while adjusting
-				m.root.BackgroundImage = nil
+				m.Root().BackgroundImage = nil
 				pageContainer.widget.(*widget.Container).BackgroundImage = nil
 				nextPage.content.(*widget.Container).BackgroundImage = res.panel.filled
 			} else {
-				m.root.BackgroundImage = res.background
+				m.Root().BackgroundImage = res.background
 				pageContainer.widget.(*widget.Container).BackgroundImage = res.panel.image
 			}
-			m.root.RequestRelayout()
+			m.Root().RequestRelayout()
 		}))
 	c.AddChild(pageList)
 
 	c.AddChild(pageContainer.widget)
 
-	pageList.SetSelectedEntry(pages[m.preSelectedPage])
-	if m.preSelectedPage != 0 {
-		// reset pre-selected page selection
-		m.preSelectedPage = 0
+	pageList.SetSelectedEntry(pages[0])
+
+	gMenu, ok := m.(*GameMenu)
+	if ok {
+		pageList.SetSelectedEntry(pages[gMenu.preSelectedPage])
+		if gMenu.preSelectedPage != 0 {
+			// reset pre-selected page selection
+			gMenu.preSelectedPage = 0
+		}
 	}
 
 	return c
@@ -184,9 +303,11 @@ func newListComboButton(entries []interface{}, selectedEntry interface{}, button
 	return c
 }
 
-func (m *GameMenu) newColorPickerRGB(label string, clr *color.NRGBA, f widget.SliderChangedHandlerFunc) *widget.Container {
+func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderChangedHandlerFunc) *widget.Container {
 	// create custom RGB selection group container
-	res := m.res
+	res := m.Resources()
+	padding := m.Padding()
+
 	picker := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
@@ -194,7 +315,7 @@ func (m *GameMenu) newColorPickerRGB(label string, clr *color.NRGBA, f widget.Sl
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(4),
 			widget.GridLayoutOpts.Stretch([]bool{true, true, true, true}, nil),
-			widget.GridLayoutOpts.Spacing(m.padding, m.padding))))
+			widget.GridLayoutOpts.Spacing(padding, padding))))
 
 	pickerLabel := widget.NewLabel(widget.LabelOpts.Text(label, res.label.face, res.label.text))
 	var rText, gText, bText *widget.Label
@@ -261,10 +382,10 @@ func (m *GameMenu) newColorPickerRGB(label string, clr *color.NRGBA, f widget.Sl
 			Stretch: false,
 		})),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Padding(widget.Insets{
-			Top:    m.padding,
-			Bottom: m.padding,
-			Left:   m.padding,
-			Right:  m.padding,
+			Top:    padding,
+			Bottom: padding,
+			Left:   padding,
+			Right:  padding,
 		}))),
 		widget.ContainerOpts.BackgroundImage(rgbBackground),
 	)
@@ -284,13 +405,13 @@ func (m *GameMenu) newColorPickerRGB(label string, clr *color.NRGBA, f widget.Sl
 	return picker
 }
 
-func (m *GameMenu) newSeparator(res *uiResources, ld interface{}) widget.PreferredSizeLocateableWidget {
+func newSeparator(m Menu, res *uiResources, ld interface{}) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(widget.Insets{
-				Top:    m.spacing,
-				Bottom: m.spacing,
+				Top:    m.Spacing(),
+				Bottom: m.Spacing(),
 			}))),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(ld)))
 

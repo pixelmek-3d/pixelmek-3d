@@ -135,13 +135,8 @@ type fonts struct {
 	toolTipFace  font.Face
 }
 
-func NewUIResources(m *GameMenu) (*uiResources, error) {
+func NewUIResources(fonts *fonts) (*uiResources, error) {
 	background := image.NewNineSliceColor(hexToColorAlpha(backgroundColor, 96))
-
-	fonts, err := loadFonts(m.fontScale)
-	if err != nil {
-		return nil, err
-	}
 
 	button, err := newButtonResources(fonts)
 	if err != nil {

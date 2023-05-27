@@ -9,6 +9,7 @@ type MissionScene struct {
 }
 
 func NewMissionScene(g *Game) *MissionScene {
+	g.menu = createGameMenu(g)
 	return &MissionScene{
 		Game: g,
 	}
@@ -17,7 +18,7 @@ func NewMissionScene(g *Game) *MissionScene {
 func (s *MissionScene) Update() error {
 	g := s.Game
 
-	if g.osType == osTypeBrowser && ebiten.CursorMode() == ebiten.CursorModeVisible && !g.menu.active && !g.menu.closing {
+	if g.osType == osTypeBrowser && ebiten.CursorMode() == ebiten.CursorModeVisible && !g.menu.Active() && !g.menu.Closing() {
 		// capture not working sometimes (https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API#iframe_limitations):
 		//   sm_exec.js:349 pointerlockerror event is fired. 'sandbox="allow-pointer-lock"' might be required at an iframe.
 		//   This function on browsers must be called as a result of a gestural interaction or orientation change.
@@ -25,9 +26,12 @@ func (s *MissionScene) Update() error {
 		g.openMenu()
 	}
 
-	if g.menu.closing && !g.menu.active {
+	if g.menu.Closing() && !g.menu.Active() {
 		// reset simple flag to make sure that if we really wanted the menu closed in browser it won't trigger reopen
-		g.menu.closing = false
+		gMenu, ok := g.menu.(*GameMenu)
+		if ok {
+			gMenu.closing = false
+		}
 	}
 
 	// handle input (when paused making sure only to allow input for closing menu so it can be unpaused)
@@ -51,7 +55,7 @@ func (s *MissionScene) Update() error {
 	}
 
 	// update the menu (if active)
-	g.menu.update(g)
+	g.menu.Update()
 
 	return nil
 }
@@ -85,5 +89,5 @@ func (s *MissionScene) Draw(screen *ebiten.Image) {
 	g.drawHUD(screen)
 
 	// draw menu (if active)
-	g.menu.draw(screen)
+	g.menu.Draw(screen)
 }
