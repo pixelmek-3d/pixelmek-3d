@@ -13,13 +13,13 @@ const (
 	starsCount = 256
 )
 
-type StarSpace struct {
+type Stars struct {
 	screenWidth, screenHeight float32
 	stars                     [starsCount]Star
 }
 
-func NewStarSpace(screenWidth, screenHeight int) *StarSpace {
-	s := &StarSpace{
+func NewStars(screenWidth, screenHeight int) *Stars {
+	s := &Stars{
 		screenWidth:  float32(screenWidth),
 		screenHeight: float32(screenHeight),
 	}
@@ -29,7 +29,7 @@ func NewStarSpace(screenWidth, screenHeight int) *StarSpace {
 	return s
 }
 
-func (s *StarSpace) Update() error {
+func (s *Stars) Update() error {
 	x, y := s.screenWidth/2, s.screenHeight/2
 	for i := 0; i < starsCount; i++ {
 		s.stars[i].Update(float32(x*scale), float32(y*scale))
@@ -37,7 +37,7 @@ func (s *StarSpace) Update() error {
 	return nil
 }
 
-func (s *StarSpace) Draw(screen *ebiten.Image) {
+func (s *Stars) Draw(screen *ebiten.Image) {
 	for i := 0; i < starsCount; i++ {
 		s.stars[i].Draw(screen)
 	}

@@ -38,9 +38,14 @@ func NewIntroScene(g *Game) *IntroScene {
 	im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
+		tOpts := &transitions.TransitionOptions{
+			InDuration:   2.0,
+			HoldDuration: 1.5,
+			OutDuration:  1.0,
+		}
 		splash := &SplashScreen{
 			Image:      nil,
-			transition: transitions.NewDissolve(im, SPLASH_TIMEOUT/2, geoM),
+			transition: transitions.NewDissolve(im, tOpts, geoM),
 			geoM:       geoM,
 		}
 		splashes = append(splashes, splash)
@@ -51,7 +56,7 @@ func NewIntroScene(g *Game) *IntroScene {
 		geoM := splashGeoM(im, splashRect)
 		splash := &SplashScreen{
 			Image:  im,
-			effect: effects.NewStarSpace(g.width, g.height),
+			effect: effects.NewStars(g.width, g.height),
 			geoM:   geoM,
 		}
 		splashes = append(splashes, splash)
@@ -93,11 +98,8 @@ func (s *IntroScene) Update() error {
 		splash.effect.Update()
 	}
 	if splash.transition != nil {
-		// TODO: only update transition at beginning/end
 		splash.transition.Update()
 	}
-
-	// TODO: add transitional animation between images?
 
 	keys := inpututil.AppendJustPressedKeys(nil)
 	if len(keys) > 0 || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -126,16 +128,15 @@ func (s *IntroScene) Draw(screen *ebiten.Image) {
 		splash.effect.Draw(screen)
 	}
 
+	if splash.transition != nil {
+		splash.transition.Draw(screen)
+	}
+
 	if splash.Image != nil {
 		// draw splash image
 		op := &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM = splash.geoM
 		screen.DrawImage(splash.Image, op)
-	}
-
-	if splash.transition != nil {
-		// TODO: only draw transition at beginning/end
-		splash.transition.Draw(screen)
 	}
 }
