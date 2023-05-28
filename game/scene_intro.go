@@ -56,7 +56,7 @@ func NewIntroScene(g *Game) *IntroScene {
 		geoM := splashGeoM(im, splashRect)
 		splash := &SplashScreen{
 			Image:  im,
-			effect: effects.NewStars(g.width, g.height),
+			effect: effects.NewStars(g.screenWidth, g.screenHeight),
 			geoM:   geoM,
 		}
 		splashes = append(splashes, splash)
