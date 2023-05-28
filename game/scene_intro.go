@@ -102,8 +102,10 @@ func (s *IntroScene) Update() error {
 	}
 
 	keys := inpututil.AppendJustPressedKeys(nil)
-	if len(keys) > 0 || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+	skip := len(keys) > 0 || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
+	if skip {
 		s.splashIndex += 1
+		s.splashTimer = SPLASH_TIMEOUT
 	}
 
 	// use timer to move on if no input

@@ -14,7 +14,7 @@ func NewMissionScene(g *Game) *MissionScene {
 	g.menu = gameMenu
 	g.closeMenu()
 
-	// TODO: load mission
+	// TODO: load mission here instead of when game opens
 
 	return &MissionScene{
 		Game: g,
