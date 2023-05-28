@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"os"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -117,7 +118,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		// exit in browser kills but freezes the application, users can just close the tab/window
 	} else {
 		// show in game exit button
-		c.AddChild(newSeparator(m, res, widget.RowLayoutData{
+		c.AddChild(newSeparator(m, widget.RowLayoutData{
 			Stretch: true,
 		}))
 
@@ -130,7 +131,9 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 			widget.ButtonOpts.Image(res.button.image),
 			widget.ButtonOpts.Text("Exit", res.button.face, res.button.text),
 			widget.ButtonOpts.TextPadding(res.button.padding),
-			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) { exit(0) }),
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				openExitWindow(m)
+			}),
 		)
 		c.AddChild(exit)
 	}
@@ -201,6 +204,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 
 	var gameSettings *page
 	if gameMenu != nil {
+		// only show the Resume/Exit buttons page in-mission
 		gameSettings = gamePage(m)
 	}
 
@@ -274,7 +278,8 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	return c
 }
 
-func newCheckbox(label string, checked bool, changedHandler widget.CheckboxChangedHandlerFunc, res *uiResources) *widget.LabeledCheckbox {
+func newCheckbox(m Menu, label string, checked bool, changedHandler widget.CheckboxChangedHandlerFunc) *widget.LabeledCheckbox {
+	res := m.Resources()
 	c := widget.NewLabeledCheckbox(
 		widget.LabeledCheckboxOpts.Spacing(res.checkbox.spacing),
 		widget.LabeledCheckboxOpts.CheckboxOpts(
@@ -432,7 +437,8 @@ func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderCh
 	return picker
 }
 
-func newSeparator(m Menu, res *uiResources, ld interface{}) widget.PreferredSizeLocateableWidget {
+func newSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWidget {
+	res := m.Resources()
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -451,4 +457,140 @@ func newSeparator(m Menu, res *uiResources, ld interface{}) widget.PreferredSize
 	))
 
 	return c
+}
+
+func openExitWindow(m Menu) {
+	var rmWindow widget.RemoveWindowFunc
+	var window *widget.Window
+
+	game := m.Game()
+	uiRect := game.uiRect()
+	res := m.Resources()
+	padding := m.Padding()
+	spacing := m.Spacing()
+
+	showLeave := false
+	showExit := false
+
+	if game.osType == osTypeBrowser {
+		// only show leave battle button in browser
+		// exit in browser kills but freezes the application, users can just close the tab/window
+	} else {
+		showExit = true
+	}
+
+	_, isGameMenu := m.(*GameMenu)
+	if isGameMenu {
+		// leave battle only applicable in mission/game
+		showLeave = true
+	}
+
+	titleBar := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}), widget.GridLayoutOpts.Padding(widget.Insets{
+			Left:   padding,
+			Right:  padding,
+			Top:    padding,
+			Bottom: padding,
+		}))))
+
+	titleBar.AddChild(widget.NewText(
+		widget.TextOpts.Text("Embrace Cowardice?", res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	))
+
+	titleBar.AddChild(widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			rmWindow()
+		}),
+		widget.ButtonOpts.TabOrder(99),
+	))
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(
+			widget.NewGridLayout(
+				widget.GridLayoutOpts.Columns(1),
+				widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, false, true}),
+				widget.GridLayoutOpts.Padding(res.panel.padding),
+				widget.GridLayoutOpts.Spacing(1, spacing),
+			),
+		),
+	)
+
+	cancel := widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Cancel", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			rmWindow()
+		}),
+	)
+	c.AddChild(cancel)
+
+	c.AddChild(newSeparator(m, widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	numExitOptions := 0
+	if showLeave {
+		numExitOptions += 1
+	}
+	if showExit {
+		numExitOptions += 1
+	}
+
+	if numExitOptions > 0 {
+		bc := widget.NewContainer(
+			widget.ContainerOpts.BackgroundImage(res.panel.image),
+			widget.ContainerOpts.Layout(
+				widget.NewGridLayout(
+					widget.GridLayoutOpts.Columns(numExitOptions),
+					widget.GridLayoutOpts.Stretch([]bool{true, true}, []bool{true}),
+					widget.GridLayoutOpts.Padding(res.panel.padding),
+					widget.GridLayoutOpts.Spacing(1, spacing),
+				),
+			),
+		)
+		c.AddChild(bc)
+
+		if showLeave {
+			leave := widget.NewButton(
+				widget.ButtonOpts.Image(res.button.image),
+				widget.ButtonOpts.TextPadding(res.button.padding),
+				widget.ButtonOpts.Text("Leave Battle", res.button.face, res.button.text),
+				widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+					// go back to main menu
+					game.scene = NewMenuScene(game)
+				}),
+			)
+			bc.AddChild(leave)
+		}
+
+		if showExit {
+			exit := widget.NewButton(
+				widget.ButtonOpts.Image(res.button.image),
+				widget.ButtonOpts.TextPadding(res.button.padding),
+				widget.ButtonOpts.Text("Exit Game", res.button.face, res.button.text),
+				widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+					os.Exit(0)
+				}),
+			)
+			bc.AddChild(exit)
+		}
+	}
+
+	window = widget.NewWindow(
+		widget.WindowOpts.Modal(),
+		widget.WindowOpts.Contents(c),
+		widget.WindowOpts.TitleBar(titleBar, uiRect.Dy()/12),
+	)
+
+	wRect := uiRect.Inset(uiRect.Dy() / 6)
+	window.SetLocation(wRect)
+
+	rmWindow = m.UI().AddWindow(window)
 }

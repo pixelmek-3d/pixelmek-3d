@@ -40,7 +40,7 @@ func gamePage(m Menu) *page {
 		// exit in browser kills but freezes the application, users can just close the tab/window
 	} else {
 		// show in game exit button
-		c.AddChild(newSeparator(m, res, widget.RowLayoutData{
+		c.AddChild(newSeparator(m, widget.RowLayoutData{
 			Stretch: true,
 		}))
 
@@ -53,7 +53,9 @@ func gamePage(m Menu) *page {
 			widget.ButtonOpts.Image(res.button.image),
 			widget.ButtonOpts.Text("Exit", res.button.face, res.button.text),
 			widget.ButtonOpts.TextPadding(res.button.padding),
-			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) { exit(0) }),
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				openExitWindow(m)
+			}),
 		)
 		c.AddChild(exit)
 	}
@@ -222,21 +224,21 @@ func displayPage(m Menu) *page {
 	scalingRow.AddChild(scalingCombo)
 
 	// fullscreen checkbox
-	fsCheckbox := newCheckbox("Fullscreen", game.fullscreen, func(args *widget.CheckboxChangedEventArgs) {
+	fsCheckbox := newCheckbox(m, "Fullscreen", game.fullscreen, func(args *widget.CheckboxChangedEventArgs) {
 		game.setFullscreen(args.State == widget.WidgetChecked)
-	}, res)
+	})
 	c.AddChild(fsCheckbox)
 
 	// vsync checkbox
-	vsCheckbox := newCheckbox("Use VSync", game.vsync, func(args *widget.CheckboxChangedEventArgs) {
+	vsCheckbox := newCheckbox(m, "Use VSync", game.vsync, func(args *widget.CheckboxChangedEventArgs) {
 		game.setVsyncEnabled(args.State == widget.WidgetChecked)
-	}, res)
+	})
 	c.AddChild(vsCheckbox)
 
 	// fps checkbox
-	floorCheckbox := newCheckbox("Show FPS", game.fpsEnabled, func(args *widget.CheckboxChangedEventArgs) {
+	floorCheckbox := newCheckbox(m, "Show FPS", game.fpsEnabled, func(args *widget.CheckboxChangedEventArgs) {
 		game.fpsEnabled = args.State == widget.WidgetChecked
-	}, res)
+	})
 	c.AddChild(floorCheckbox)
 
 	return &page{
@@ -288,9 +290,9 @@ func renderPage(m Menu) *page {
 	distanceRow.AddChild(distanceValueText)
 
 	// floor/ground texturing checkbox
-	floorCheckbox := newCheckbox("Ground Texturing", game.tex.renderFloorTex, func(args *widget.CheckboxChangedEventArgs) {
+	floorCheckbox := newCheckbox(m, "Ground Texturing", game.tex.renderFloorTex, func(args *widget.CheckboxChangedEventArgs) {
 		game.tex.renderFloorTex = args.State == widget.WidgetChecked
-	}, res)
+	})
 	c.AddChild(floorCheckbox)
 
 	return &page{
@@ -343,7 +345,7 @@ func hudPage(m Menu) *page {
 
 	// custom HUD color checkbox
 	var pickerMinRGB *widget.Container
-	customCheckbox := newCheckbox("Use Custom Color", game.hudUseCustomColor, func(args *widget.CheckboxChangedEventArgs) {
+	customCheckbox := newCheckbox(m, "Use Custom Color", game.hudUseCustomColor, func(args *widget.CheckboxChangedEventArgs) {
 		game.hudUseCustomColor = args.State == widget.WidgetChecked
 
 		// regenerate nav sprites to pick up color change
@@ -353,7 +355,7 @@ func hudPage(m Menu) *page {
 		for _, cb := range pickerMinRGB.Children() {
 			cb.GetWidget().Disabled = !game.hudUseCustomColor
 		}
-	}, res)
+	})
 	c.AddChild(customCheckbox)
 
 	// custom HUD RGB picker
@@ -391,7 +393,7 @@ func lightingPage(m Menu) *page {
 	// raycaster lighting options for debug mode only
 	debugLabel := widget.NewLabel(widget.LabelOpts.Text("~Debug Mode Only", res.label.face, res.label.text))
 	c.AddChild(debugLabel)
-	c.AddChild(newSeparator(m, res, widget.RowLayoutData{
+	c.AddChild(newSeparator(m, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
