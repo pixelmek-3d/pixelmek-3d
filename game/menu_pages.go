@@ -117,12 +117,23 @@ func displayPage(m Menu) *page {
 				// pre-select ideal FOV for the aspect ratio
 				game.setFovAngle(float64(r.aspectRatio.fov))
 
-				gMenu, ok := m.(*GameMenu)
-				if ok {
+				gameMenu, _ := m.(*GameMenu)
+				settingsMenu, _ := m.(*SettingsMenu)
+				switch {
+				case gameMenu != nil:
 					// re-initialize the menu with the Display settings pre-selected
-					gMenu.preSelectedPage = 1
-					gMenu.initResources()
-					gMenu.initMenu()
+					gameMenu.preSelectedPage = 1
+					gameMenu.initResources()
+					gameMenu.initMenu()
+				case settingsMenu != nil:
+					menuScene, ok := game.scene.(*MenuScene)
+					if ok {
+						menuScene.settings.preSelectedPage = 0
+						menuScene.settings.initResources()
+						menuScene.settings.initMenu()
+						menuScene.main.initResources()
+						menuScene.main.initMenu()
+					}
 				}
 			}
 		},

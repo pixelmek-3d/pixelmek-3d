@@ -12,12 +12,12 @@ func NewMissionScene(g *Game) *MissionScene {
 	// capture the cursor for battle
 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
 
-	gMenu := createGameMenu(g)
+	gameMenu := createGameMenu(g)
 	if g.osType == osTypeBrowser {
-		gMenu.closing = true // set as closing to keep browser from leaving it open
+		gameMenu.closing = true // set as closing to keep browser from leaving it open
 	}
 
-	g.menu = gMenu
+	g.menu = gameMenu
 	return &MissionScene{
 		Game: g,
 	}
@@ -36,9 +36,9 @@ func (s *MissionScene) Update() error {
 
 	if g.menu.Closing() && !g.menu.Active() {
 		// reset simple flag to make sure that if we really wanted the menu closed in browser it won't trigger reopen
-		gMenu, ok := g.menu.(*GameMenu)
+		gameMenu, ok := g.menu.(*GameMenu)
 		if ok {
-			gMenu.closing = false
+			gameMenu.closing = false
 		}
 	}
 

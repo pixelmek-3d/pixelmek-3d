@@ -5,18 +5,19 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type MainMenu struct {
+type GameMenu struct {
 	*MenuModel
+	preSelectedPage int
 }
 
-func createMainMenu(g *Game) *MainMenu {
+func createGameMenu(g *Game) *GameMenu {
 	var ui *ebitenui.UI = &ebitenui.UI{}
 
-	menu := &MainMenu{
+	menu := &GameMenu{
 		MenuModel: &MenuModel{
 			game:        g,
 			ui:          ui,
-			active:      true,
+			active:      false,
 			fontScale:   1.0,
 			resolutions: generateMenuResolutions(),
 		},
@@ -28,26 +29,30 @@ func createMainMenu(g *Game) *MainMenu {
 	return menu
 }
 
-func (m *MainMenu) initMenu() {
+func (m *GameMenu) initMenu() {
 	m.MenuModel.initMenu()
 
-	// window title
-	titleBar := mainMenuTitleContainer(m)
+	// menu title
+	titleBar := settingsTitleContainer(m)
 	m.root.AddChild(titleBar)
 
-	// main menu items
-	items := mainMenuItemsContainer(m)
-	m.root.AddChild(items)
-
-	// footer
-	footer := mainMenuFooterContainer(m)
-	m.root.AddChild(footer)
+	// settings pages
+	settings := settingsContainer(m)
+	m.root.AddChild(settings)
 }
 
-func (m *MainMenu) Update() {
+func (m *GameMenu) Update() {
+	if !m.active {
+		return
+	}
+
 	m.ui.Update()
 }
 
-func (m *MainMenu) Draw(screen *ebiten.Image) {
+func (m *GameMenu) Draw(screen *ebiten.Image) {
+	if !m.active {
+		return
+	}
+
 	m.ui.Draw(screen)
 }

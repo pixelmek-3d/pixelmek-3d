@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math"
 	"os"
 
 	"github.com/ebitenui/ebitenui"
@@ -145,4 +146,37 @@ func (m *MenuModel) initMenu() {
 		//widget.ContainerOpts.BackgroundImage(m.res.background),
 	)
 	m.ui.Container = m.root
+}
+
+func (g *Game) openMenu() {
+	gameMenu, _ := g.menu.(*GameMenu)
+
+	switch {
+	case gameMenu != nil:
+		g.paused = true
+		g.mouseMode = MouseModeCursor
+		ebiten.SetCursorMode(ebiten.CursorModeVisible)
+		gameMenu.initMenu()
+		gameMenu.active = true
+	}
+}
+
+func (g *Game) closeMenu() {
+	gameMenu, _ := g.menu.(*GameMenu)
+	settingsMenu, _ := g.menu.(*SettingsMenu)
+
+	switch {
+	case gameMenu != nil:
+		g.mouseMode = MouseModeTurret
+		g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
+		gameMenu.active = false
+		gameMenu.closing = true
+		g.paused = false
+		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
+	case settingsMenu != nil:
+		menuScene, ok := g.scene.(*MenuScene)
+		if ok {
+			menuScene.SetMenu(menuScene.main)
+		}
+	}
 }

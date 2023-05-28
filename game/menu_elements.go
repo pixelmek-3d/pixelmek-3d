@@ -72,7 +72,7 @@ func mainMenuTitleContainer(m Menu) *widget.Container {
 		}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("PixelMek 3D", res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Text("PixelMek 3D", res.text.bigTitleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
@@ -84,7 +84,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 	res := m.Resources()
 	game := m.Game()
 
-	resume := widget.NewButton(
+	instantAction := widget.NewButton(
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
@@ -95,7 +95,23 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 			game.scene = NewMissionScene(game)
 		}),
 	)
-	c.AddChild(resume)
+	c.AddChild(instantAction)
+
+	settings := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.Text("Settings", res.button.face, res.button.text),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			mScene, ok := game.scene.(*MenuScene)
+			if ok {
+				mScene.SetMenu(mScene.settings)
+			}
+		}),
+	)
+	c.AddChild(settings)
 
 	if game.osType == osTypeBrowser {
 		// exit in browser kills but freezes the application, users can just close the tab/window
@@ -136,7 +152,7 @@ func mainMenuFooterContainer(m Menu) *widget.Container {
 	return c
 }
 
-func gameMenuTitleContainer(m *GameMenu) *widget.Container {
+func settingsTitleContainer(m Menu) *widget.Container {
 	res := m.Resources()
 
 	c := widget.NewContainer(
@@ -180,13 +196,22 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
 
-	gameSettings := gamePage(m)
+	gameMenu, _ := m.(*GameMenu)
+	settingsMenu, _ := m.(*SettingsMenu)
+
+	var gameSettings *page
+	if gameMenu != nil {
+		gameSettings = gamePage(m)
+	}
+
 	displaySettings := displayPage(m)
 	renderSettings := renderPage(m)
 	hudSettings := hudPage(m)
 
 	pages := make([]interface{}, 0, 8)
-	pages = append(pages, gameSettings)
+	if gameSettings != nil {
+		pages = append(pages, gameSettings)
+	}
 	pages = append(pages, displaySettings)
 	pages = append(pages, renderSettings)
 	pages = append(pages, hudSettings)
@@ -218,8 +243,8 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			nextPage := args.Entry.(*page)
 			pageContainer.setPage(nextPage)
-			if nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings) {
-				// for HUD and lighting setting, apply custom background so can see behind while adjusting
+			if gameSettings != nil && (nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings)) {
+				// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
 				m.Root().BackgroundImage = nil
 				pageContainer.widget.(*widget.Container).BackgroundImage = nil
 				nextPage.content.(*widget.Container).BackgroundImage = res.panel.filled
@@ -235,13 +260,15 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 
 	pageList.SetSelectedEntry(pages[0])
 
-	gMenu, ok := m.(*GameMenu)
-	if ok {
-		pageList.SetSelectedEntry(pages[gMenu.preSelectedPage])
-		if gMenu.preSelectedPage != 0 {
-			// reset pre-selected page selection
-			gMenu.preSelectedPage = 0
-		}
+	switch {
+	case gameMenu != nil && gameMenu.preSelectedPage > 0:
+		pageList.SetSelectedEntry(pages[gameMenu.preSelectedPage])
+		// reset pre-selected page selection
+		gameMenu.preSelectedPage = 0
+	case settingsMenu != nil && settingsMenu.preSelectedPage > 0:
+		pageList.SetSelectedEntry(pages[settingsMenu.preSelectedPage])
+		// reset pre-selected page selection
+		settingsMenu.preSelectedPage = 0
 	}
 
 	return c

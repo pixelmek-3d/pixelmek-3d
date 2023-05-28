@@ -5,14 +5,27 @@ import (
 )
 
 type MenuScene struct {
-	Game *Game
+	Game     *Game
+	main     *MainMenu
+	settings *SettingsMenu
+	//instantAction *InstantActionMenu
 }
 
 func NewMenuScene(g *Game) *MenuScene {
-	g.menu = createMainMenu(g)
-	return &MenuScene{
-		Game: g,
+	main := createMainMenu(g)
+	settings := createSettingsMenu(g)
+
+	scene := &MenuScene{
+		Game:     g,
+		main:     main,
+		settings: settings,
 	}
+	scene.SetMenu(main)
+	return scene
+}
+
+func (s *MenuScene) SetMenu(m Menu) {
+	s.Game.menu = m
 }
 
 func (s *MenuScene) Update() error {
