@@ -18,7 +18,6 @@ func createGameMenu(g *Game) *GameMenu {
 			game:        g,
 			ui:          ui,
 			active:      false,
-			fontScale:   1.0,
 			resolutions: generateMenuResolutions(),
 		},
 	}

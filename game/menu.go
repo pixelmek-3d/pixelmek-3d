@@ -36,11 +36,13 @@ type MenuModel struct {
 	res     *uiResources
 	game    *Game
 
-	fontScale float64
-	marginX   int
-	marginY   int
-	padding   int
-	spacing   int
+	dynamicFontScale float64
+	fontScale        float64
+
+	marginX int
+	marginY int
+	padding int
+	spacing int
 
 	resolutions []MenuResolution
 }
@@ -70,6 +72,9 @@ func (m *MenuModel) Game() *Game {
 }
 
 func (m *MenuModel) FontScale() float64 {
+	if m.dynamicFontScale > 0 {
+		return m.dynamicFontScale
+	}
 	return m.fontScale
 }
 
@@ -103,8 +108,13 @@ func (m *MenuModel) initResources() {
 		menuSize = menuWidth
 	}
 
-	m.fontScale = geom.Clamp(float64(menuSize)*0.002, 0.5, 2.0)
-	fonts, err := loadFonts(m.fontScale)
+	postDynamicScale := 1.0
+	if m.fontScale > 0 {
+		postDynamicScale = m.fontScale
+	}
+	m.dynamicFontScale = geom.Clamp(float64(menuSize)*0.002*postDynamicScale, 0.5, 2.0)
+
+	fonts, err := loadFonts(m.dynamicFontScale)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)

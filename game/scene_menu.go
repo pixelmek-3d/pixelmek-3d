@@ -8,7 +8,6 @@ type MenuScene struct {
 	Game     *Game
 	main     *MainMenu
 	settings *SettingsMenu
-	//instantAction *InstantActionMenu
 }
 
 func NewMenuScene(g *Game) *MenuScene {
