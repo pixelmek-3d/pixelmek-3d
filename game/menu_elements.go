@@ -190,6 +190,26 @@ func newSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWidget {
 	return c
 }
 
+func newBlankSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWidget {
+	c := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Padding(widget.Insets{
+				Top:    m.Spacing(),
+				Bottom: m.Spacing(),
+			}))),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(ld)))
+
+	c.AddChild(widget.NewGraphic(
+		widget.GraphicOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch:   true,
+			MaxHeight: 4,
+		})),
+	))
+
+	return c
+}
+
 func openExitWindow(m Menu) {
 	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window

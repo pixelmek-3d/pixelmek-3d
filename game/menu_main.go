@@ -89,7 +89,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			game.scene = NewMissionScene(game)
+			game.scene = NewInstantActionScene(game)
 		}),
 	)
 	c.AddChild(instantAction)
