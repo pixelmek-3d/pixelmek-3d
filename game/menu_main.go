@@ -30,6 +30,8 @@ func createMainMenu(g *Game) *MainMenu {
 func (m *MainMenu) initMenu() {
 	m.MenuModel.initMenu()
 
+	m.root.BackgroundImage = m.Resources().background
+
 	// menu title
 	titleBar := mainMenuTitleContainer(m)
 	m.root.AddChild(titleBar)

@@ -83,9 +83,10 @@ func mainMenuTitleContainer(m Menu) *widget.Container {
 }
 
 func mainMenuItemsContainer(m *MainMenu) *widget.Container {
-	c := newPageContentContainer()
 	res := m.Resources()
 	game := m.Game()
+
+	c := newPageContentContainer()
 
 	instantAction := widget.NewButton(
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
