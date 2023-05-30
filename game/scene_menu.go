@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type MenuScene struct {
@@ -29,6 +30,21 @@ func (s *MenuScene) SetMenu(m Menu) {
 
 func (s *MenuScene) Update() error {
 	g := s.Game
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		// if exit window is open, close it
+		closedWindow := g.menu.CloseWindow()
+		if closedWindow == nil {
+			switch g.menu {
+			case s.settings:
+				g.closeMenu()
+			case s.main:
+				fallthrough
+			default:
+				openExitWindow(s.main)
+			}
+		}
+	}
 
 	// update the menu
 	g.menu.Update()

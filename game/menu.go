@@ -16,6 +16,8 @@ type Menu interface {
 	Closing() bool
 	UI() *ebitenui.UI
 	Root() *widget.Container
+	SetWindow(*widget.Window)
+	CloseWindow() *widget.Window
 	Resources() *uiResources
 	Game() *Game
 	FontScale() float64
@@ -31,10 +33,12 @@ type Menu interface {
 type MenuModel struct {
 	active  bool
 	closing bool
-	ui      *ebitenui.UI
-	root    *widget.Container
-	res     *uiResources
-	game    *Game
+
+	ui     *ebitenui.UI
+	root   *widget.Container
+	window *widget.Window
+	res    *uiResources
+	game   *Game
 
 	dynamicFontScale float64
 	fontScale        float64
@@ -61,6 +65,20 @@ func (m *MenuModel) UI() *ebitenui.UI {
 
 func (m *MenuModel) Root() *widget.Container {
 	return m.root
+}
+
+func (m *MenuModel) SetWindow(window *widget.Window) {
+	m.window = window
+}
+
+func (m *MenuModel) CloseWindow() *widget.Window {
+	if m.window == nil {
+		return nil
+	}
+	window := m.window
+	m.window = nil
+	window.Close()
+	return window
 }
 
 func (m *MenuModel) Resources() *uiResources {

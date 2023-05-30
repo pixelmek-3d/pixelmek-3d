@@ -97,11 +97,8 @@ func launchMenuFooterContainer(m *LaunchMenu) *widget.Container {
 		widget.ButtonOpts.Text("Back", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// back to unit select
-			iScene, ok := game.scene.(*InstantActionScene)
-			if ok {
-				iScene.SetMenu(iScene.unitSelect)
-			}
+			iScene, _ := game.scene.(*InstantActionScene)
+			iScene.back()
 		}),
 	)
 	c.AddChild(back)
@@ -118,8 +115,8 @@ func launchMenuFooterContainer(m *LaunchMenu) *widget.Container {
 		widget.ButtonOpts.Text("Launch", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// launch mission
-			game.scene = NewMissionScene(game)
+			iScene, _ := game.scene.(*InstantActionScene)
+			iScene.next()
 		}),
 	)
 	c.AddChild(next)

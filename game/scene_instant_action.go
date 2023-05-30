@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type InstantActionScene struct {
@@ -33,6 +34,10 @@ func (s *InstantActionScene) SetMenu(m Menu) {
 func (s *InstantActionScene) Update() error {
 	g := s.Game
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		s.back()
+	}
+
 	// update the menu
 	g.menu.Update()
 
@@ -44,4 +49,41 @@ func (s *InstantActionScene) Draw(screen *ebiten.Image) {
 
 	// draw menu
 	g.menu.Draw(screen)
+}
+
+func (s *InstantActionScene) back() {
+	g := s.Game
+
+	switch g.menu {
+	case s.launchBriefing:
+		// back to unit select
+		s.SetMenu(s.unitSelect)
+	case s.unitSelect:
+		// back to mission select
+		s.SetMenu(s.missionSelect)
+	case s.missionSelect:
+		fallthrough
+	default:
+		// back to main menu
+		g.scene = NewMenuScene(g)
+	}
+}
+
+func (s *InstantActionScene) next() {
+	g := s.Game
+
+	switch g.menu {
+	case s.launchBriefing:
+		// launch mission
+		g.scene = NewMissionScene(g)
+	case s.unitSelect:
+		// to pre-launch briefing
+		s.SetMenu(s.launchBriefing)
+	case s.missionSelect:
+		// to unit select
+		s.SetMenu(s.unitSelect)
+	default:
+		// back to main menu
+		g.scene = NewMenuScene(g)
+	}
 }
