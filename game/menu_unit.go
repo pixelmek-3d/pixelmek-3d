@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/ebitenui/ebitenui"
@@ -127,16 +128,68 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 	return c
 }
 
-func unitSelectionPage(m *UnitMenu, r *model.ModelMechResource) *page {
+type unitPageContainer struct {
+	widget    widget.PreferredSizeLocateableWidget
+	titleText *widget.Text
+	flipBook  *widget.FlipBook
+}
+
+type unitPage struct {
+	title   string
+	content widget.PreferredSizeLocateableWidget
+	unit    *model.ModelMechResource // TODO: any resource
+}
+
+func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
+	res := m.Resources()
+
+	c := widget.NewContainer(
+		// background image will instead be set based on which page is showing
+		//widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Padding(res.panel.padding),
+			widget.RowLayoutOpts.Spacing(m.Spacing()))),
+	)
+
+	titleText := widget.NewText(
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.TextOpts.Text("", res.text.titleFace, res.text.idleColor))
+	c.AddChild(titleText)
+
+	flipBook := widget.NewFlipBook(
+		widget.FlipBookOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		}))),
+	)
+	c.AddChild(flipBook)
+
+	return &unitPageContainer{
+		widget:    c,
+		titleText: titleText,
+		flipBook:  flipBook,
+	}
+}
+
+func (p *unitPageContainer) setPage(page *unitPage) {
+	p.titleText.Label = page.unit.Name
+	p.flipBook.SetPage(page.content)
+	p.flipBook.RequestRelayout()
+}
+
+func unitSelectionPage(m *UnitMenu, unit *model.ModelMechResource) *unitPage {
 	c := newPageContentContainer()
 	// res := m.Resources()
 	// game := m.Game()
 
 	// TODO: more content
 
-	return &page{
-		title:   r.Name,
+	return &unitPage{
+		title:   fmt.Sprintf("%0.0f - %s", unit.Tonnage, unit.Name),
 		content: c,
+		unit:    unit,
 	}
 }
 
@@ -167,8 +220,15 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
 
-	// TODO: sort by weight and then name
-	sort.Strings(chassisList)
+	// sort by weight and then chassis name
+	sort.Slice(chassisList, func(i, j int) bool {
+		unitA, unitB := chassisMap[chassisList[i]][0], chassisMap[chassisList[j]][0]
+		if unitA.Tonnage == unitB.Tonnage {
+			return unitA.Name < unitB.Name
+		}
+		return unitA.Tonnage < unitB.Tonnage
+	})
+
 	pages := make([]interface{}, 0, len(chassisMap))
 	for _, chassis := range chassisList {
 		unitList := chassisMap[chassis]
@@ -176,12 +236,12 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 		pages = append(pages, unitPage)
 	}
 
-	pageContainer := newPageContainer(res)
+	pageContainer := newUnitPageContainer(m)
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
-			return e.(*page).title
+			return e.(*unitPage).title
 		}),
 		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
 		widget.ListOpts.SliderOpts(
@@ -195,7 +255,7 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.HideHorizontalSlider(),
 
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
-			nextPage := args.Entry.(*page)
+			nextPage := args.Entry.(*unitPage)
 			pageContainer.setPage(nextPage)
 			m.Root().RequestRelayout()
 		}))

@@ -9,18 +9,18 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
-type pageContainer struct {
+type settingsPageContainer struct {
 	widget    widget.PreferredSizeLocateableWidget
 	titleText *widget.Text
 	flipBook  *widget.FlipBook
 }
 
-type page struct {
+type settingsPage struct {
 	title   string
 	content widget.PreferredSizeLocateableWidget
 }
 
-func gamePage(m Menu) *page {
+func gamePage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	game := m.Game()
@@ -60,13 +60,13 @@ func gamePage(m Menu) *page {
 		c.AddChild(exit)
 	}
 
-	return &page{
+	return &settingsPage{
 		title:   "Game",
 		content: c,
 	}
 }
 
-func displayPage(m Menu) *page {
+func displayPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	game := m.Game()
@@ -241,13 +241,13 @@ func displayPage(m Menu) *page {
 	})
 	c.AddChild(floorCheckbox)
 
-	return &page{
+	return &settingsPage{
 		title:   "Display",
 		content: c,
 	}
 }
 
-func renderPage(m Menu) *page {
+func renderPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	game := m.Game()
@@ -295,13 +295,13 @@ func renderPage(m Menu) *page {
 	})
 	c.AddChild(floorCheckbox)
 
-	return &page{
+	return &settingsPage{
 		title:   "Render",
 		content: c,
 	}
 }
 
-func hudPage(m Menu) *page {
+func hudPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	game := m.Game()
@@ -379,13 +379,13 @@ func hudPage(m Menu) *page {
 		}
 	}
 
-	return &page{
+	return &settingsPage{
 		title:   "HUD",
 		content: c,
 	}
 }
 
-func lightingPage(m Menu) *page {
+func lightingPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	game := m.Game()
@@ -483,7 +483,7 @@ func lightingPage(m Menu) *page {
 	})
 	c.AddChild(pickerMaxRGB)
 
-	return &page{
+	return &settingsPage{
 		title:   "~Lighting",
 		content: c,
 	}
@@ -500,14 +500,16 @@ func newPageContentContainer() *widget.Container {
 		)))
 }
 
-func newPageContainer(res *uiResources) *pageContainer {
+func newSettingsPageContainer(m Menu) *settingsPageContainer {
+	res := m.Resources()
+
 	c := widget.NewContainer(
 		// background image will instead be set based on which page is showing
 		//widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(res.panel.padding),
-			widget.RowLayoutOpts.Spacing(15))),
+			widget.RowLayoutOpts.Spacing(m.Spacing()))),
 	)
 
 	titleText := widget.NewText(
@@ -524,14 +526,14 @@ func newPageContainer(res *uiResources) *pageContainer {
 	)
 	c.AddChild(flipBook)
 
-	return &pageContainer{
+	return &settingsPageContainer{
 		widget:    c,
 		titleText: titleText,
 		flipBook:  flipBook,
 	}
 }
 
-func (p *pageContainer) setPage(page *page) {
+func (p *settingsPageContainer) setPage(page *settingsPage) {
 	p.titleText.Label = page.title
 	p.flipBook.SetPage(page.content)
 	p.flipBook.RequestRelayout()

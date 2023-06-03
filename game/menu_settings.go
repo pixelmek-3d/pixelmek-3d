@@ -151,7 +151,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	gameMenu, _ := m.(*GameMenu)
 	settingsMenu, _ := m.(*SettingsMenu)
 
-	var gameSettings *page
+	var gameSettings *settingsPage
 	if gameMenu != nil {
 		// only show the Resume/Exit buttons page in-mission
 		gameSettings = gamePage(m)
@@ -169,18 +169,18 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	pages = append(pages, renderSettings)
 	pages = append(pages, hudSettings)
 
-	var lightingSettings *page
+	var lightingSettings *settingsPage
 	if m.Game().debug {
 		lightingSettings = lightingPage(m)
 		pages = append(pages, lightingSettings)
 	}
 
-	pageContainer := newPageContainer(res)
+	pageContainer := newSettingsPageContainer(m)
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
-			return e.(*page).title
+			return e.(*settingsPage).title
 		}),
 		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
 		widget.ListOpts.SliderOpts(
@@ -194,7 +194,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.HideHorizontalSlider(),
 
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
-			nextPage := args.Entry.(*page)
+			nextPage := args.Entry.(*settingsPage)
 			pageContainer.setPage(nextPage)
 			if gameSettings != nil && (nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings)) {
 				// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
