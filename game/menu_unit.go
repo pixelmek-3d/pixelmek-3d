@@ -8,6 +8,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/pixelmek-3d/game/render"
 )
 
 type UnitMenu struct {
@@ -144,8 +145,7 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 	res := m.Resources()
 
 	c := widget.NewContainer(
-		// background image will instead be set based on which page is showing
-		//widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(res.panel.padding),
@@ -156,7 +156,7 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
-		widget.TextOpts.Text("", res.text.titleFace, res.text.idleColor))
+		widget.TextOpts.Text("", res.text.face, res.text.idleColor))
 	c.AddChild(titleText)
 
 	flipBook := widget.NewFlipBook(
@@ -181,8 +181,19 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 
 func unitSelectionPage(m *UnitMenu, unit *model.ModelMechResource) *unitPage {
 	c := newPageContentContainer()
-	// res := m.Resources()
-	// game := m.Game()
+	game := m.Game()
+
+	// show unit image graphic
+	modelMech := game.createModelMechFromResource(unit)
+	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, unit.Image)
+	mechImg := getSpriteFromFile(mechRelPath)
+	scale := convertHeightToScale(unit.Height, unit.HeightPxRatio)
+	mechSprite := render.NewMechSprite(modelMech, scale, mechImg)
+
+	imageLabel := widget.NewGraphic(
+		widget.GraphicOpts.Image(mechSprite.Texture()),
+	)
+	c.AddChild(imageLabel)
 
 	// TODO: more content
 
@@ -219,6 +230,8 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{true}),
 			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
+
+	// TODO: add entry for Random unit
 
 	// sort by weight and then chassis name
 	sort.Slice(chassisList, func(i, j int) bool {

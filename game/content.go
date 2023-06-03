@@ -387,6 +387,10 @@ func (g *Game) loadMissionSprites() {
 
 func (g *Game) createModelMech(unit string) *model.Mech {
 	mechResource := g.resources.GetMechResource(unit)
+	return g.createModelMechFromResource(mechResource)
+}
+
+func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource) *model.Mech {
 	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechResource.Image)
 	mechImg := getSpriteFromFile(mechRelPath)
 
