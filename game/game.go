@@ -202,7 +202,7 @@ func NewGame() *Game {
 
 	// init player model
 	pX, pY, pDegrees := g.mission.DropZone.Position[0], g.mission.DropZone.Position[1], g.mission.DropZone.Heading
-	pUnit := g.SetPlayerUnit(model.MechResourceType, "timberwolf_prime.yaml")
+	pUnit := g.SetPlayerUnit(model.MechResourceType, "timber_wolf_d.yaml")
 	//pUnit := g.SetPlayerUnit(model.MechResourceType, "jenner_iic.yaml")
 	//pUnit := g.createModelInfantry("heavy_foot.yaml")
 	//pUnit := g.createModelVehicle("srm_carrier.yaml")

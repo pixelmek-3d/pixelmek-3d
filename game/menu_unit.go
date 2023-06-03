@@ -1,9 +1,12 @@
 package game
 
 import (
+	"sort"
+
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
 type UnitMenu struct {
@@ -35,9 +38,9 @@ func (m *UnitMenu) initMenu() {
 	titleBar := unitTitleContainer(m)
 	m.root.AddChild(titleBar)
 
-	// TODO: unit selection
-	content := newBlankSeparator(m, nil) //mainMenuItemsContainer(m)
-	m.root.AddChild(content)
+	// unit selection
+	selection := unitSelectionContainer(m)
+	m.root.AddChild(selection)
 
 	// footer
 	footer := unitMenuFooterContainer(m)
@@ -120,6 +123,86 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		}),
 	)
 	c.AddChild(next)
+
+	return c
+}
+
+func unitSelectionPage(m *UnitMenu, r *model.ModelMechResource) *page {
+	c := newPageContentContainer()
+	// res := m.Resources()
+	// game := m.Game()
+
+	// TODO: more content
+
+	return &page{
+		title:   r.Name,
+		content: c,
+	}
+}
+
+func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
+	res := m.Resources()
+	game := m.Game()
+
+	chassisList := []string{}
+	chassisMap := make(map[string][]*model.ModelMechResource, 32)
+	for _, unit := range game.resources.GetMechResourceList() {
+		chassis := unit.Name
+		_, found := chassisMap[chassis]
+		if !found {
+			chassisList = append(chassisList, chassis)
+			chassisMap[chassis] = make([]*model.ModelMechResource, 0, 4)
+		}
+		chassisMap[chassis] = append(chassisMap[chassis], unit)
+	}
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Left:  m.Spacing(),
+				Right: m.Spacing(),
+			}),
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{true}),
+			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
+		)))
+
+	// TODO: sort by weight and then name
+	sort.Strings(chassisList)
+	pages := make([]interface{}, 0, len(chassisMap))
+	for _, chassis := range chassisList {
+		unitList := chassisMap[chassis]
+		unitPage := unitSelectionPage(m, unitList[0]) // TODO: handle variant selection
+		pages = append(pages, unitPage)
+	}
+
+	pageContainer := newPageContainer(res)
+
+	pageList := widget.NewList(
+		widget.ListOpts.Entries(pages),
+		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+			return e.(*page).title
+		}),
+		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
+		widget.ListOpts.SliderOpts(
+			widget.SliderOpts.Images(res.list.track, res.list.handle),
+			widget.SliderOpts.MinHandleSize(res.list.handleSize),
+			widget.SliderOpts.TrackPadding(res.list.trackPadding),
+		),
+		widget.ListOpts.EntryColor(res.list.entry),
+		widget.ListOpts.EntryFontFace(res.list.face),
+		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
+		widget.ListOpts.HideHorizontalSlider(),
+
+		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
+			nextPage := args.Entry.(*page)
+			pageContainer.setPage(nextPage)
+			m.Root().RequestRelayout()
+		}))
+
+	c.AddChild(pageList)
+
+	c.AddChild(pageContainer.widget)
 
 	return c
 }

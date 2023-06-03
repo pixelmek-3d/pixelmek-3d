@@ -2,7 +2,7 @@
 # https://www.sarna.net/wiki/Timber_Wolf_(Mad_Cat)
 name: Timber Wolf
 variant: TBR-Prime
-image: timberwolf.png
+image: timber_wolf.png
 tech: clan
 tonnage: 75
 height: 15

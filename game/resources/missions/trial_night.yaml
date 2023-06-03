@@ -24,7 +24,7 @@ mechs:
 - unit: "adder_prime.yaml"
   position: [12, 21]
   patrolPath: [[18, 21], [18, 16], [3, 16], [3, 21], [18, 21]]
-- unit: "timberwolf_prime.yaml"
+- unit: "timber_wolf_prime.yaml"
   position: [15, 23]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 vehicles:
