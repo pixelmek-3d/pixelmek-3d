@@ -138,7 +138,7 @@ type unitPageContainer struct {
 type unitPage struct {
 	title   string
 	content widget.PreferredSizeLocateableWidget
-	unit    *model.ModelMechResource // TODO: any resource
+	unit    model.Unit
 }
 
 func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
@@ -174,21 +174,20 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 }
 
 func (p *unitPageContainer) setPage(page *unitPage) {
-	p.titleText.Label = page.unit.Name
+	p.titleText.Label = page.unit.Name()
 	p.flipBook.SetPage(page.content)
 	p.flipBook.RequestRelayout()
 }
 
-func unitSelectionPage(m *UnitMenu, unit *model.ModelMechResource) *unitPage {
+func unitSelectionPage(m *UnitMenu, unit model.Unit) *unitPage {
 	c := newPageContentContainer()
-	game := m.Game()
 
 	// show unit image graphic
-	modelMech := game.createModelMechFromResource(unit)
-	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, unit.Image)
+	mechUnit := unit.(*model.Mech) // TODO: refactor to handle any unit type
+	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechUnit.Resource.Image)
 	mechImg := getSpriteFromFile(mechRelPath)
-	scale := convertHeightToScale(unit.Height, unit.HeightPxRatio)
-	mechSprite := render.NewMechSprite(modelMech, scale, mechImg)
+	scale := convertHeightToScale(mechUnit.Resource.Height, mechUnit.Resource.HeightPxRatio)
+	mechSprite := render.NewMechSprite(mechUnit, scale, mechImg)
 
 	imageLabel := widget.NewGraphic(
 		widget.GraphicOpts.Image(mechSprite.Texture()),
@@ -198,7 +197,7 @@ func unitSelectionPage(m *UnitMenu, unit *model.ModelMechResource) *unitPage {
 	// TODO: more content
 
 	return &unitPage{
-		title:   fmt.Sprintf("%0.0f - %s", unit.Tonnage, unit.Name),
+		title:   fmt.Sprintf("%0.0f - %s", unit.Tonnage(), unit.Name()),
 		content: c,
 		unit:    unit,
 	}
@@ -245,7 +244,8 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 	pages := make([]interface{}, 0, len(chassisMap))
 	for _, chassis := range chassisList {
 		unitList := chassisMap[chassis]
-		unitPage := unitSelectionPage(m, unitList[0]) // TODO: handle variant selection
+		modelUnit := game.createModelMechFromResource(unitList[0])
+		unitPage := unitSelectionPage(m, modelUnit) // TODO: handle variant selection
 		pages = append(pages, unitPage)
 	}
 
