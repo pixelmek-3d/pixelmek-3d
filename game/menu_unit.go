@@ -183,14 +183,16 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit) *unitPage {
 	c := newPageContentContainer()
 
 	// show unit image graphic
-	mechUnit := unit.(*model.Mech) // TODO: refactor to handle any unit type
-	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechUnit.Resource.Image)
-	mechImg := getSpriteFromFile(mechRelPath)
-	scale := convertHeightToScale(mechUnit.Resource.Height, mechUnit.Resource.HeightPxRatio)
-	mechSprite := render.NewMechSprite(mechUnit, scale, mechImg)
+	var sprite *render.Sprite
+	switch interfaceType := unit.(type) {
+	case *model.Mech:
+		sprite = m.game.createUnitSprite(unit).(*render.MechSprite).Sprite
+	default: // TODO: handle any unit type
+		panic(fmt.Errorf("currently unable to handle selection of model.Unit for type %v", interfaceType))
+	}
 
 	imageLabel := widget.NewGraphic(
-		widget.GraphicOpts.Image(mechSprite.Texture()),
+		widget.GraphicOpts.Image(sprite.Texture()),
 	)
 	c.AddChild(imageLabel)
 

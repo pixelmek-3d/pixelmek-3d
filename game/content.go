@@ -250,11 +250,6 @@ func (g *Game) loadNavSprites() {
 
 // loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
-	vehicleSpriteTemplates := g.sprites.vehicleSpriteTemplates
-	vtolSpriteTemplates := g.sprites.vtolSpriteTemplates
-	infantrySpriteTemplates := g.sprites.infantrySpriteTemplates
-	emplacementSpriteTemplates := g.sprites.emplacementSpriteTemplates
-
 	for _, missionMech := range g.mission.Mechs {
 		modelMech := g.createModelMech(missionMech.Unit)
 		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
@@ -276,19 +271,8 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVehicle := range g.mission.Vehicles {
-		if _, ok := vehicleSpriteTemplates[missionVehicle.Unit]; !ok {
-			modelVehicle := g.createModelVehicle(missionVehicle.Unit)
-
-			vehicleResource := g.resources.GetVehicleResource(missionVehicle.Unit)
-			vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
-			vehicleImg := getSpriteFromFile(vehicleRelPath)
-
-			scale := convertHeightToScale(vehicleResource.Height, vehicleResource.HeightPxRatio)
-			vehicleSpriteTemplates[missionVehicle.Unit] = render.NewVehicleSprite(modelVehicle, scale, vehicleImg)
-		}
-
-		vehicleTemplate := vehicleSpriteTemplates[missionVehicle.Unit]
-		vehicle := vehicleTemplate.Clone()
+		modelVehicle := g.createModelVehicle(missionVehicle.Unit)
+		vehicle := g.createUnitSprite(modelVehicle).(*render.VehicleSprite)
 
 		posX, posY := missionVehicle.Position[0], missionVehicle.Position[1]
 		vehicle.SetPos(&geom.Vector2{X: posX, Y: posY})
@@ -301,19 +285,8 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVTOL := range g.mission.VTOLs {
-		if _, ok := vtolSpriteTemplates[missionVTOL.Unit]; !ok {
-			modelVTOL := g.createModelVTOL(missionVTOL.Unit)
-
-			vtolResource := g.resources.GetVTOLResource(missionVTOL.Unit)
-			vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
-			vtolImg := getSpriteFromFile(vtolRelPath)
-
-			scale := convertHeightToScale(vtolResource.Height, vtolResource.HeightPxRatio)
-			vtolSpriteTemplates[missionVTOL.Unit] = render.NewVTOLSprite(modelVTOL, scale, vtolImg)
-		}
-
-		vtolTemplate := vtolSpriteTemplates[missionVTOL.Unit]
-		vtol := vtolTemplate.Clone()
+		modelVTOL := g.createModelVTOL(missionVTOL.Unit)
+		vtol := g.createUnitSprite(modelVTOL).(*render.VTOLSprite)
 
 		posX, posY, posZ := missionVTOL.Position[0], missionVTOL.Position[1], missionVTOL.ZPosition
 		vtol.SetPos(&geom.Vector2{X: posX, Y: posY})
@@ -327,19 +300,8 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionInfantry := range g.mission.Infantry {
-		if _, ok := infantrySpriteTemplates[missionInfantry.Unit]; !ok {
-			modelInfantry := g.createModelInfantry(missionInfantry.Unit)
-
-			infantryResource := g.resources.GetInfantryResource(missionInfantry.Unit)
-			infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
-			infantryImg := getSpriteFromFile(infantryRelPath)
-
-			scale := convertHeightToScale(infantryResource.Height, infantryResource.HeightPxRatio)
-			infantrySpriteTemplates[missionInfantry.Unit] = render.NewInfantrySprite(modelInfantry, scale, infantryImg)
-		}
-
-		infantryTemplate := infantrySpriteTemplates[missionInfantry.Unit]
-		infantry := infantryTemplate.Clone()
+		modelInfantry := g.createModelInfantry(missionInfantry.Unit)
+		infantry := g.createUnitSprite(modelInfantry).(*render.InfantrySprite)
 
 		posX, posY := missionInfantry.Position[0], missionInfantry.Position[1]
 		infantry.SetPos(&geom.Vector2{X: posX, Y: posY})
@@ -352,19 +314,8 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionEmplacement := range g.mission.Emplacements {
-		if _, ok := emplacementSpriteTemplates[missionEmplacement.Unit]; !ok {
-			modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit)
-
-			emplacementResource := g.resources.GetEmplacementResource(missionEmplacement.Unit)
-			emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
-			emplacementImg := getSpriteFromFile(emplacementRelPath)
-
-			scale := convertHeightToScale(emplacementResource.Height, emplacementResource.HeightPxRatio)
-			emplacementSpriteTemplates[missionEmplacement.Unit] = render.NewEmplacementSprite(modelEmplacement, scale, emplacementImg)
-		}
-
-		emplacementTemplate := emplacementSpriteTemplates[missionEmplacement.Unit]
-		emplacement := emplacementTemplate.Clone()
+		modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit)
+		emplacement := g.createUnitSprite(modelEmplacement).(*render.EmplacementSprite)
 
 		posX, posY := missionEmplacement.Position[0], missionEmplacement.Position[1]
 		emplacement.SetPos(&geom.Vector2{X: posX, Y: posY})

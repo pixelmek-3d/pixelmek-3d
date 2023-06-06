@@ -138,8 +138,64 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 		}
 		return unitSprite.Clone(u)
 
+	case *model.Vehicle:
+		u := unit.(*model.Vehicle)
+		uKey := u.Resource.File
+		unitSprite, found := g.sprites.vehicleSpriteTemplates[uKey]
+		if !found {
+			relPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, u.Resource.Image)
+			img := getSpriteFromFile(relPath)
+			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+
+			unitSprite = render.NewVehicleSprite(u, scale, img)
+			g.sprites.vehicleSpriteTemplates[uKey] = unitSprite
+		}
+		return unitSprite.Clone(u)
+
+	case *model.VTOL:
+		u := unit.(*model.VTOL)
+		uKey := u.Resource.File
+		unitSprite, found := g.sprites.vtolSpriteTemplates[uKey]
+		if !found {
+			relPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, u.Resource.Image)
+			img := getSpriteFromFile(relPath)
+			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+
+			unitSprite = render.NewVTOLSprite(u, scale, img)
+			g.sprites.vtolSpriteTemplates[uKey] = unitSprite
+		}
+		return unitSprite.Clone(u)
+
+	case *model.Infantry:
+		u := unit.(*model.Infantry)
+		uKey := u.Resource.File
+		unitSprite, found := g.sprites.infantrySpriteTemplates[uKey]
+		if !found {
+			relPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, u.Resource.Image)
+			img := getSpriteFromFile(relPath)
+			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+
+			unitSprite = render.NewInfantrySprite(u, scale, img)
+			g.sprites.infantrySpriteTemplates[uKey] = unitSprite
+		}
+		return unitSprite.Clone(u)
+
+	case *model.Emplacement:
+		u := unit.(*model.Emplacement)
+		uKey := u.Resource.File
+		unitSprite, found := g.sprites.emplacementSpriteTemplates[uKey]
+		if !found {
+			relPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, u.Resource.Image)
+			img := getSpriteFromFile(relPath)
+			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+
+			unitSprite = render.NewEmplacementSprite(u, scale, img)
+			g.sprites.emplacementSpriteTemplates[uKey] = unitSprite
+		}
+		return unitSprite.Clone(u)
+
 	default:
-		panic(fmt.Errorf("unable to determine model.Unit from type %v", interfaceType))
+		panic(fmt.Errorf("unable to handle model.Unit from type %v", interfaceType))
 	}
 }
 

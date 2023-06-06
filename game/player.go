@@ -1,8 +1,6 @@
 package game
 
 import (
-	"fmt"
-
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 
@@ -70,34 +68,19 @@ func (g *Game) SetPlayerUnit(unitType, unitResource string) model.Unit {
 		unitSprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
 
 	case model.VehicleResourceType:
-		vUnit := g.createModelVehicle(unitResource)
-		unit = vUnit
-
-		unitImgPath := fmt.Sprintf("%s/%s", unitType, vUnit.Resource.Image)
-		unitImg := getSpriteFromFile(unitImgPath)
-		scale := convertHeightToScale(vUnit.Resource.Height, vUnit.Resource.HeightPxRatio)
-		unitSprite = render.NewVehicleSprite(vUnit, scale, unitImg).Sprite
+		unit = g.createModelVehicle(unitResource)
+		unitSprite = g.createUnitSprite(unit).(*render.VehicleSprite).Sprite
 
 	case model.VTOLResourceType:
-		vUnit := g.createModelVTOL(unitResource)
-		unit = vUnit
-
-		unitImgPath := fmt.Sprintf("%s/%s", unitType, vUnit.Resource.Image)
-		unitImg := getSpriteFromFile(unitImgPath)
-		scale := convertHeightToScale(vUnit.Resource.Height, vUnit.Resource.HeightPxRatio)
-		unitSprite = render.NewVTOLSprite(vUnit, scale, unitImg).Sprite
+		unit = g.createModelVTOL(unitResource)
+		unitSprite = g.createUnitSprite(unit).(*render.VTOLSprite).Sprite
 
 	case model.InfantryResourceType:
-		iUnit := g.createModelInfantry(unitResource)
-		unit = iUnit
-
-		unitImgPath := fmt.Sprintf("%s/%s", unitType, iUnit.Resource.Image)
-		unitImg := getSpriteFromFile(unitImgPath)
-		scale := convertHeightToScale(iUnit.Resource.Height, iUnit.Resource.HeightPxRatio)
-		unitSprite = render.NewInfantrySprite(iUnit, scale, unitImg).Sprite
+		unit = g.createModelInfantry(unitResource)
+		unitSprite = g.createUnitSprite(unit).(*render.InfantrySprite).Sprite
 
 	default:
-		log.Fatalf("unable to set player unit, resource type %s does not exist", unitType)
+		log.Fatalf("unable to set player unit, resource type %s not handled", unitType)
 		return nil
 	}
 
