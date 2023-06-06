@@ -122,6 +122,27 @@ func (s *SpriteHandler) deleteEffect(effect *render.EffectSprite) {
 	s.sprites[EffectSpriteType].Delete(effect)
 }
 
+func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
+	switch interfaceType := unit.(type) {
+	case *model.Mech:
+		u := unit.(*model.Mech)
+		uKey := u.Resource.File
+		unitSprite, found := g.sprites.mechSpriteTemplates[uKey]
+		if !found {
+			relPath := fmt.Sprintf("%s/%s", model.MechResourceType, u.Resource.Image)
+			img := getSpriteFromFile(relPath)
+			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+
+			unitSprite = render.NewMechSprite(u, scale, img)
+			g.sprites.mechSpriteTemplates[uKey] = unitSprite
+		}
+		return unitSprite.Clone(u)
+
+	default:
+		panic(fmt.Errorf("unable to determine model.Unit from type %v", interfaceType))
+	}
+}
+
 func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	raycastSprites := make([]raycaster.Sprite, 0, 512)
 

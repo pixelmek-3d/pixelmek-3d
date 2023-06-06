@@ -66,13 +66,8 @@ func (g *Game) SetPlayerUnit(unitType, unitResource string) model.Unit {
 
 	switch unitType {
 	case model.MechResourceType:
-		mUnit := g.createModelMech(unitResource)
-		unit = mUnit
-
-		unitImgPath := fmt.Sprintf("%s/%s", unitType, mUnit.Resource.Image)
-		unitImg := getSpriteFromFile(unitImgPath)
-		scale := convertHeightToScale(mUnit.Resource.Height, mUnit.Resource.HeightPxRatio)
-		unitSprite = render.NewMechSprite(mUnit, scale, unitImg).Sprite
+		unit = g.createModelMech(unitResource)
+		unitSprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
 
 	case model.VehicleResourceType:
 		vUnit := g.createModelVehicle(unitResource)

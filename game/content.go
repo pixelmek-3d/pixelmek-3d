@@ -250,26 +250,14 @@ func (g *Game) loadNavSprites() {
 
 // loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
-	mechSpriteTemplates := g.sprites.mechSpriteTemplates
 	vehicleSpriteTemplates := g.sprites.vehicleSpriteTemplates
 	vtolSpriteTemplates := g.sprites.vtolSpriteTemplates
 	infantrySpriteTemplates := g.sprites.infantrySpriteTemplates
 	emplacementSpriteTemplates := g.sprites.emplacementSpriteTemplates
 
 	for _, missionMech := range g.mission.Mechs {
-		if _, ok := mechSpriteTemplates[missionMech.Unit]; !ok {
-			modelMech := g.createModelMech(missionMech.Unit)
-
-			mechResource := g.resources.GetMechResource(missionMech.Unit)
-			mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechResource.Image)
-			mechImg := getSpriteFromFile(mechRelPath)
-
-			scale := convertHeightToScale(mechResource.Height, mechResource.HeightPxRatio)
-			mechSpriteTemplates[missionMech.Unit] = render.NewMechSprite(modelMech, scale, mechImg)
-		}
-
-		mechTemplate := mechSpriteTemplates[missionMech.Unit]
-		mech := mechTemplate.Clone()
+		modelMech := g.createModelMech(missionMech.Unit)
+		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
 
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
 		mech.SetPos(&geom.Vector2{X: posX, Y: posY})
