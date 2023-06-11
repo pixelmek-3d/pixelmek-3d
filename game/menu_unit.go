@@ -174,35 +174,13 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 }
 
 func (p *unitPageContainer) setPage(page *unitPage) {
-	p.titleText.Label = page.unit.Name()
+	if page.unit == nil {
+		p.titleText.Label = "Random"
+	} else {
+		p.titleText.Label = page.unit.Name()
+	}
 	p.flipBook.SetPage(page.content)
 	p.flipBook.RequestRelayout()
-}
-
-func unitSelectionPage(m *UnitMenu, unit model.Unit) *unitPage {
-	c := newPageContentContainer()
-
-	// show unit image graphic
-	var sprite *render.Sprite
-	switch interfaceType := unit.(type) {
-	case *model.Mech:
-		sprite = m.game.createUnitSprite(unit).(*render.MechSprite).Sprite
-	default: // TODO: handle any unit type
-		panic(fmt.Errorf("currently unable to handle selection of model.Unit for type %v", interfaceType))
-	}
-
-	imageLabel := widget.NewGraphic(
-		widget.GraphicOpts.Image(sprite.Texture()),
-	)
-	c.AddChild(imageLabel)
-
-	// TODO: more content
-
-	return &unitPage{
-		title:   fmt.Sprintf("%0.0f - %s", unit.Tonnage(), unit.Name()),
-		content: c,
-		unit:    unit,
-	}
 }
 
 func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
@@ -243,7 +221,10 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 		return unitA.Tonnage < unitB.Tonnage
 	})
 
-	pages := make([]interface{}, 0, len(chassisMap))
+	pages := make([]interface{}, 0, 1+len(chassisMap))
+	randomUnitPage := unitSelectionPage(m, nil)
+	pages = append(pages, randomUnitPage)
+
 	for _, chassis := range chassisList {
 		unitList := chassisMap[chassis]
 		modelUnit := game.createModelMechFromResource(unitList[0])
@@ -279,5 +260,49 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 
 	c.AddChild(pageContainer.widget)
 
+	pageList.SetSelectedEntry(pages[0])
+
 	return c
+}
+
+func unitSelectionPage(m *UnitMenu, unit model.Unit) *unitPage {
+	c := newPageContentContainer()
+	res := m.Resources()
+
+	// show unit image graphic
+	var sprite *render.Sprite
+	switch interfaceType := unit.(type) {
+	case *model.Mech:
+		sprite = m.game.createUnitSprite(unit).(*render.MechSprite).Sprite
+	case nil:
+		// nil represents random unit selection
+		sprite = nil
+	default: // TODO: handle any unit type
+		panic(fmt.Errorf("currently unable to handle selection of model.Unit for type %v", interfaceType))
+	}
+
+	var imageLabel widget.PreferredSizeLocateableWidget
+	if sprite == nil {
+		imageLabel = widget.NewLabel(widget.LabelOpts.Text("?", res.fonts.bigTitleFace, res.label.text))
+	} else {
+		imageLabel = widget.NewGraphic(
+			widget.GraphicOpts.Image(sprite.Texture()),
+		)
+	}
+	c.AddChild(imageLabel)
+
+	// TODO: more content
+
+	var unitTitle string
+	if unit == nil {
+		unitTitle = "?? - Random"
+	} else {
+		unitTitle = fmt.Sprintf("%0.0f - %s", unit.Tonnage(), unit.Name())
+	}
+
+	return &unitPage{
+		title:   unitTitle,
+		content: c,
+		unit:    unit,
+	}
 }
