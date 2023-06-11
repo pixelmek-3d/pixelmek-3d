@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
@@ -136,9 +137,10 @@ type unitPageContainer struct {
 }
 
 type unitPage struct {
-	title   string
-	content widget.PreferredSizeLocateableWidget
-	unit    model.Unit
+	title    string
+	content  widget.PreferredSizeLocateableWidget
+	unit     model.Unit
+	variants []model.Unit
 }
 
 func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
@@ -188,14 +190,15 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 	game := m.Game()
 
 	chassisList := []string{}
-	chassisMap := make(map[string][]*model.ModelMechResource, 32)
-	for _, unit := range game.resources.GetMechResourceList() {
-		chassis := unit.Name
+	chassisMap := make(map[string][]model.Unit, 32)
+	for _, unitResource := range game.resources.GetMechResourceList() {
+		chassis := unitResource.Name
 		_, found := chassisMap[chassis]
 		if !found {
 			chassisList = append(chassisList, chassis)
-			chassisMap[chassis] = make([]*model.ModelMechResource, 0, 4)
+			chassisMap[chassis] = make([]model.Unit, 0, 4)
 		}
+		unit := game.createModelMechFromResource(unitResource)
 		chassisMap[chassis] = append(chassisMap[chassis], unit)
 	}
 
@@ -210,25 +213,38 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
 
-	// TODO: add entry for Random unit
-
 	// sort by weight and then chassis name
 	sort.Slice(chassisList, func(i, j int) bool {
 		unitA, unitB := chassisMap[chassisList[i]][0], chassisMap[chassisList[j]][0]
-		if unitA.Tonnage == unitB.Tonnage {
-			return unitA.Name < unitB.Name
+		if unitA.Tonnage() == unitB.Tonnage() {
+			return unitA.Name() < unitB.Name()
 		}
-		return unitA.Tonnage < unitB.Tonnage
+		return unitA.Tonnage() < unitB.Tonnage()
 	})
 
+	// sort within chassis by variant designation (except Prime comes first)
+	for _, variantList := range chassisMap {
+		sort.Slice(variantList, func(i, j int) bool {
+			unitA, unitB := variantList[i], variantList[j]
+
+			if strings.HasSuffix(strings.ToLower(unitA.Variant()), "prime") {
+				return true
+			} else if strings.HasSuffix(strings.ToLower(unitB.Variant()), "prime") {
+				return false
+			}
+			return unitA.Variant() < unitB.Variant()
+		})
+	}
+
 	pages := make([]interface{}, 0, 1+len(chassisMap))
-	randomUnitPage := unitSelectionPage(m, nil)
+
+	// add entry for random unit
+	randomUnitPage := unitSelectionPage(m, nil, []model.Unit{})
 	pages = append(pages, randomUnitPage)
 
 	for _, chassis := range chassisList {
 		unitList := chassisMap[chassis]
-		modelUnit := game.createModelMechFromResource(unitList[0])
-		unitPage := unitSelectionPage(m, modelUnit) // TODO: handle variant selection
+		unitPage := unitSelectionPage(m, unitList[0], unitList)
 		pages = append(pages, unitPage)
 	}
 
@@ -265,9 +281,19 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 	return c
 }
 
-func unitSelectionPage(m *UnitMenu, unit model.Unit) *unitPage {
+func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *unitPage {
 	c := newPageContentContainer()
 	res := m.Resources()
+
+	unitTable := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(10),
+			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
+		)),
+	)
+	c.AddChild(unitTable)
+
+	// TODO: do not load sprite/graphic until the page is selected
 
 	// show unit image graphic
 	var sprite *render.Sprite
@@ -289,20 +315,63 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit) *unitPage {
 			widget.GraphicOpts.Image(sprite.Texture()),
 		)
 	}
-	c.AddChild(imageLabel)
+	unitTable.AddChild(imageLabel)
+
+	// show unit variant selection
+	if unit != nil {
+		comboVariants := []interface{}{}
+		for _, v := range variants {
+			comboVariants = append(comboVariants, v)
+		}
+
+		variantCombo := newListComboButton(
+			comboVariants,
+			unit,
+			func(e interface{}) string {
+				u := e.(model.Unit)
+				if u != nil {
+					return u.Variant()
+				}
+				return "?"
+			},
+			func(e interface{}) string {
+				u := e.(model.Unit)
+				if u != nil {
+					return u.Variant()
+				}
+				return "?"
+			},
+			func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+				u := args.Entry.(model.Unit)
+				if u != nil {
+					// TODO: set selected as unit
+					fmt.Printf("%s\n", u.Variant())
+				}
+			},
+			res)
+		unitTable.AddChild(variantCombo)
+
+		if len(comboVariants) <= 1 {
+			// only allow variant selection if more than one to choose from
+			variantCombo.GetWidget().Disabled = true
+		}
+	}
 
 	// TODO: more content
 
-	var unitTitle string
+	var unitName, unitTonnage string
 	if unit == nil {
-		unitTitle = "?? - Random"
+		unitName = "Random"
+		unitTonnage = "??"
 	} else {
-		unitTitle = fmt.Sprintf("%0.0f - %s", unit.Tonnage(), unit.Name())
+		unitName = unit.Name()
+		unitTonnage = fmt.Sprintf("%0.0f", unit.Tonnage())
 	}
 
 	return &unitPage{
-		title:   unitTitle,
-		content: c,
-		unit:    unit,
+		title:    fmt.Sprintf("%s - %s", unitTonnage, unitName),
+		content:  c,
+		unit:     unit,
+		variants: variants,
 	}
 }

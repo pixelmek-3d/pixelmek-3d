@@ -425,7 +425,8 @@ func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
 		Disabled: disabled,
 	}
 
-	arrowDown, err := loadGraphicImages("menu/arrow-down-idle.png", "menu/arrow-down-disabled.png", rS)
+	// adjusted disabled combo box state to show as normal text color but not show selection arrow
+	arrowDown, err := loadGraphicImages("menu/arrow-down-idle.png", "menu/arrow-down-hidden.png", rS)
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +436,7 @@ func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
 
 		text: &widget.ButtonTextColor{
 			Idle:     hexToColor(buttonIdleColor),
-			Disabled: hexToColor(buttonDisabledColor),
+			Disabled: hexToColor(buttonIdleColor),
 		},
 
 		face:    fonts.face,
