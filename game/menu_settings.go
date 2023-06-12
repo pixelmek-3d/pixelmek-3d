@@ -170,7 +170,8 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	pages = append(pages, hudSettings)
 
 	var lightingSettings *settingsPage
-	if m.Game().debug {
+	if gameMenu != nil && m.Game().debug {
+		// only show the lighting menu page in-mission and when debug mode
 		lightingSettings = lightingPage(m)
 		pages = append(pages, lightingSettings)
 	}

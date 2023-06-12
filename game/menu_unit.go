@@ -14,6 +14,7 @@ import (
 
 type UnitMenu struct {
 	*MenuModel
+	selectedUnit model.Unit
 }
 
 func createUnitMenu(g *Game) *UnitMenu {
@@ -25,6 +26,7 @@ func createUnitMenu(g *Game) *UnitMenu {
 			ui:     ui,
 			active: true,
 		},
+		selectedUnit: nil,
 	}
 
 	menu.initResources()
@@ -270,6 +272,8 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 			nextPage := args.Entry.(*unitPage)
 			pageContainer.setPage(nextPage)
 			m.Root().RequestRelayout()
+
+			m.selectedUnit = nextPage.unit
 		}))
 
 	c.AddChild(pageList)
@@ -285,6 +289,8 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 	c := newPageContentContainer()
 	res := m.Resources()
 
+	var page *unitPage
+
 	unitTable := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Spacing(10),
@@ -293,7 +299,7 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 	)
 	c.AddChild(unitTable)
 
-	// TODO: do not load sprite/graphic until the page is selected
+	// TODO: do not load sprite/graphic until the page/variant is selected
 
 	// show unit image graphic
 	var sprite *render.Sprite
@@ -343,10 +349,8 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 			},
 			func(args *widget.ListComboButtonEntrySelectedEventArgs) {
 				u := args.Entry.(model.Unit)
-				if u != nil {
-					// TODO: set selected as unit
-					fmt.Printf("%s\n", u.Variant())
-				}
+				page.unit = u
+				m.selectedUnit = u
 			},
 			res)
 		unitTable.AddChild(variantCombo)
@@ -368,10 +372,11 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 		unitTonnage = fmt.Sprintf("%0.0f", unit.Tonnage())
 	}
 
-	return &unitPage{
+	page = &unitPage{
 		title:    fmt.Sprintf("%s - %s", unitTonnage, unitName),
 		content:  c,
 		unit:     unit,
 		variants: variants,
 	}
+	return page
 }

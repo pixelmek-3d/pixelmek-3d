@@ -58,6 +58,12 @@ func NewSpriteHandler() *SpriteHandler {
 	return s
 }
 
+func (s *SpriteHandler) clear() {
+	for spriteType := range s.sprites {
+		s.sprites[spriteType] = &sync.Map{}
+	}
+}
+
 func (s *SpriteHandler) addMapSprite(sprite *render.Sprite) {
 	s.sprites[MapSpriteType].Store(sprite, struct{}{})
 }

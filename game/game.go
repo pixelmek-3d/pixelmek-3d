@@ -150,13 +150,6 @@ func NewGame() *Game {
 		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
 	}
 
-	// TODO: capture the mouse only when battle starts
-	// if g.osType == osTypeBrowser {
-	// 	// web browser cannot start with cursor captured
-	// } else {
-	// 	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
-	// }
-
 	g.initInteractiveTypes()
 	g.initCollisionTypes()
 	g.initCombatVariables()
@@ -178,9 +171,22 @@ func NewGame() *Game {
 		exit(1)
 	}
 
+	// init texture and sprite handlers
+	g.tex = NewTextureHandler(nil)
+	g.tex.renderFloorTex = g.initRenderFloorTex
+	g.sprites = NewSpriteHandler()
+
+	// setup initial scene
+	g.scene = NewIntroScene(g)
+
+	return g
+}
+
+func (g *Game) initMission() {
 	// load mission // TODO: mission select UI
 	missionPath := "trial.yaml"
 	//missionPath := "debug.yaml"
+	var err error
 	g.mission, err = model.LoadMission(missionPath)
 	if err != nil {
 		log.Error("Error loading mission: ", missionPath)
@@ -188,9 +194,15 @@ func NewGame() *Game {
 		exit(1)
 	}
 
-	// load texture handler
+	// reload texture handler
+	if g.tex != nil {
+		g.initRenderFloorTex = g.tex.renderFloorTex
+	}
 	g.tex = NewTextureHandler(g.mission.Map())
 	g.tex.renderFloorTex = g.initRenderFloorTex
+
+	// clear mission sprites
+	g.sprites.clear()
 
 	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
 	worldMap := g.mission.Map().Level(0)
@@ -200,16 +212,13 @@ func NewGame() *Game {
 	// load map and mission content once when first run
 	g.loadContent()
 
-	// init player model
+	// init player at DZ
 	pX, pY, pDegrees := g.mission.DropZone.Position[0], g.mission.DropZone.Position[1], g.mission.DropZone.Heading
-	pUnit := g.SetPlayerUnit(model.MechResourceType, "timber_wolf_prime.yaml")
-	//pUnit := g.SetPlayerUnit(model.MechResourceType, "jenner_iic.yaml")
-	//pUnit := g.createModelInfantry("heavy_foot.yaml")
-	//pUnit := g.createModelVehicle("srm_carrier.yaml")
-	//pUnit:= g.createModelVTOL("donar.yaml")
+	g.player.SetPos(&geom.Vector2{X: pX, Y: pY})
+	g.player.SetHeading(geom.Radians(pDegrees))
 
-	pUnit.SetPos(&geom.Vector2{X: pX, Y: pY})
-	pUnit.SetHeading(geom.Radians(pDegrees))
+	// init player armament for display
+	g.armament.SetWeapons(g.player.Armament())
 
 	// initial mouse position to establish delta
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
@@ -246,11 +255,6 @@ func NewGame() *Game {
 	if g.clutter != nil {
 		g.clutter.Update(g, true)
 	}
-
-	// setup initial scene
-	g.scene = NewIntroScene(g)
-
-	return g
 }
 
 func (g *Game) initConfig() {
@@ -444,31 +448,40 @@ func (g *Game) setRenderScale(renderScale float64) {
 	g.renderScale = renderScale
 	g.width = int(math.Floor(float64(g.screenWidth) * g.renderScale))
 	g.height = int(math.Floor(float64(g.screenHeight) * g.renderScale))
+
+	g.rayScene = ebiten.NewImage(g.width, g.height)
 	if g.camera != nil {
 		g.camera.SetViewSize(g.width, g.height)
 	}
-	g.rayScene = ebiten.NewImage(g.width, g.height)
 }
 
 func (g *Game) setRenderDistance(renderDistance float64) {
 	g.renderDistance = renderDistance
-	g.camera.SetRenderDistance(g.renderDistance)
+	if g.camera != nil {
+		g.camera.SetRenderDistance(g.renderDistance)
+	}
 }
 
 func (g *Game) setLightFalloff(lightFalloff float64) {
 	g.lightFalloff = lightFalloff
-	g.camera.SetLightFalloff(g.lightFalloff)
+	if g.camera != nil {
+		g.camera.SetLightFalloff(g.lightFalloff)
+	}
 }
 
 func (g *Game) setGlobalIllumination(globalIllumination float64) {
 	g.globalIllumination = globalIllumination
-	g.camera.SetGlobalIllumination(g.globalIllumination)
+	if g.camera != nil {
+		g.camera.SetGlobalIllumination(g.globalIllumination)
+	}
 }
 
 func (g *Game) setLightRGB(minLightRGB, maxLightRGB *color.NRGBA) {
 	g.minLightRGB = minLightRGB
 	g.maxLightRGB = maxLightRGB
-	g.camera.SetLightRGB(*g.minLightRGB, *g.maxLightRGB)
+	if g.camera != nil {
+		g.camera.SetLightRGB(*g.minLightRGB, *g.maxLightRGB)
+	}
 }
 
 func (g *Game) setVsyncEnabled(enableVsync bool) {
@@ -478,7 +491,9 @@ func (g *Game) setVsyncEnabled(enableVsync bool) {
 
 func (g *Game) setFovAngle(fovDegrees float64) {
 	g.fovDegrees = fovDegrees
-	g.camera.SetFovAngle(fovDegrees, 1.0)
+	if g.camera != nil {
+		g.camera.SetFovAngle(fovDegrees, 1.0)
+	}
 }
 
 // Move player by move speed in the forward/backward direction

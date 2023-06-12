@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
 type InstantActionScene struct {
@@ -58,9 +59,11 @@ func (s *InstantActionScene) back() {
 	case s.launchBriefing:
 		// back to unit select
 		s.SetMenu(s.unitSelect)
+
 	case s.unitSelect:
 		// back to mission select
 		s.SetMenu(s.missionSelect)
+
 	case s.missionSelect:
 		fallthrough
 	default:
@@ -74,14 +77,29 @@ func (s *InstantActionScene) next() {
 
 	switch g.menu {
 	case s.launchBriefing:
-		// launch mission
+		// launch mission scene
+		if g.player == nil {
+			// TODO: actually pick player unit at random
+			g.setPlayerUnitFromResourceFile(model.MechResourceType, "timber_wolf_prime.yaml")
+		}
+
 		g.scene = NewMissionScene(g)
+
 	case s.unitSelect:
-		// to pre-launch briefing
+		// to pre-launch briefing after setting player unit
+		if s.unitSelect.selectedUnit == nil {
+			// set player unit nil to indicate randomized pick for launch briefing
+			g.player = nil
+		} else {
+			g.SetPlayerUnit(s.unitSelect.selectedUnit)
+		}
+
 		s.SetMenu(s.launchBriefing)
+
 	case s.missionSelect:
 		// to unit select
 		s.SetMenu(s.unitSelect)
+
 	default:
 		// back to main menu
 		g.scene = NewMenuScene(g)

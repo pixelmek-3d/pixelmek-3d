@@ -58,62 +58,76 @@ func (p *Player) SetPosZ(z float64) {
 	p.Unit.SetPosZ(z)
 }
 
-func (g *Game) SetPlayerUnit(unitType, unitResource string) model.Unit {
+func (g *Game) setPlayerUnitFromResourceFile(resourceType, resourceFile string) model.Unit {
 	var unit model.Unit
-	var unitSprite *render.Sprite
 
-	switch unitType {
+	switch resourceType {
 	case model.MechResourceType:
-		unit = g.createModelMech(unitResource)
-		unitSprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
+		unit = g.createModelMech(resourceFile)
 
 	case model.VehicleResourceType:
-		unit = g.createModelVehicle(unitResource)
-		unitSprite = g.createUnitSprite(unit).(*render.VehicleSprite).Sprite
+		unit = g.createModelVehicle(resourceFile)
 
 	case model.VTOLResourceType:
-		unit = g.createModelVTOL(unitResource)
-		unitSprite = g.createUnitSprite(unit).(*render.VTOLSprite).Sprite
+		unit = g.createModelVTOL(resourceFile)
 
 	case model.InfantryResourceType:
-		unit = g.createModelInfantry(unitResource)
-		unitSprite = g.createUnitSprite(unit).(*render.InfantrySprite).Sprite
+		unit = g.createModelInfantry(resourceFile)
 
 	default:
-		log.Fatalf("unable to set player unit, resource type %s not handled", unitType)
+		log.Fatalf("unable to set player unit, resource type %s not handled", resourceType)
 		return nil
 	}
 
 	if unit == nil {
-		log.Fatalf("unable to set player unit, resource does not exist %s/%s", unitType, unitResource)
+		log.Fatalf("unable to set player unit, resource does not exist %s/%s", resourceType, resourceFile)
 		return nil
 	}
 
+	g.SetPlayerUnit(unit)
+	return unit
+}
+
+func (g *Game) SetPlayerUnit(unit model.Unit) {
+	var unitSprite *render.Sprite
+
 	var pX, pY, pZ, pH float64
 	if g.player != nil {
-		pX, pY, pZ, pH = g.player.Pos().X, g.player.Pos().Y, g.player.PosZ(), g.player.Heading()
+		// handle in-mission player unit changes
+		pX, pY = g.player.Pos().X, g.player.Pos().Y
+		pZ = 0.0
+		pH = g.player.Heading()
 	}
 
-	if unitType == model.VTOLResourceType {
+	switch unitType := unit.(type) {
+	case *model.Mech:
+		unitSprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
+
+	case *model.Vehicle:
+		unitSprite = g.createUnitSprite(unit).(*render.VehicleSprite).Sprite
+
+	case *model.VTOL:
+		unitSprite = g.createUnitSprite(unit).(*render.VTOLSprite).Sprite
 		if pZ < unit.CollisionHeight() {
 			// for VTOL, adjust Z position to not be stuck in the ground
 			pZ = unit.CollisionHeight()
 		}
-	} else {
-		// adjust Z position to be on the ground
-		pZ = 0
+
+	case *model.Infantry:
+		unitSprite = g.createUnitSprite(unit).(*render.InfantrySprite).Sprite
+
+	default:
+		log.Fatalf("unable to set player unit, resource type %s not handled", unitType)
+		return
 	}
 
 	g.player = NewPlayer(unit, unitSprite, pX, pY, pZ, pH, 0)
 	g.player.SetCollisionRadius(unit.CollisionRadius())
 	g.player.SetCollisionHeight(unit.CollisionHeight())
-	g.armament.SetWeapons(g.player.Armament())
 
 	if unit.HasTurret() {
 		g.mouseMode = MouseModeTurret
 	} else {
 		g.mouseMode = MouseModeBody
 	}
-
-	return unit
 }

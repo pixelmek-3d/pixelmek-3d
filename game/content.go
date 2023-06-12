@@ -88,8 +88,6 @@ func getSpriteFromFile(sFile string) *ebiten.Image {
 
 // loadContent loads all map texture and static sprite resources
 func (g *Game) loadContent() {
-	g.sprites = NewSpriteHandler()
-
 	// keep a map of textures by name to only load duplicate entries once
 	g.tex.texMap = make(map[string]*ebiten.Image, 128)
 
@@ -236,6 +234,10 @@ func (g *Game) loadContent() {
 
 // loadNavSprites generates nav point sprites
 func (g *Game) loadNavSprites() {
+	if g.mission == nil {
+		return
+	}
+
 	navSize := texWidth / 2
 	var nColor *color.NRGBA
 	if g.hudUseCustomColor {
@@ -250,6 +252,10 @@ func (g *Game) loadNavSprites() {
 
 // loadMissionSprites loads all mission sprite reources
 func (g *Game) loadMissionSprites() {
+	if g.mission == nil {
+		return
+	}
+
 	for _, missionMech := range g.mission.Mechs {
 		modelMech := g.createModelMech(missionMech.Unit)
 		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
