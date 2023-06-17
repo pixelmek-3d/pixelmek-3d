@@ -133,9 +133,10 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 }
 
 type unitPageContainer struct {
-	widget    widget.PreferredSizeLocateableWidget
-	titleText *widget.Text
-	flipBook  *widget.FlipBook
+	unitMenu         *UnitMenu
+	widget           *widget.Container
+	variantContainer *widget.Container
+	flipBook         *widget.FlipBook
 }
 
 type unitPage struct {
@@ -156,12 +157,17 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 			widget.RowLayoutOpts.Spacing(m.Spacing()))),
 	)
 
-	titleText := widget.NewText(
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.TextOpts.Text("", res.text.face, res.text.idleColor))
-	c.AddChild(titleText)
+	variantContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Left:  0,
+				Right: 0,
+			}),
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{false}),
+			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
+		)))
+	c.AddChild(variantContainer)
 
 	flipBook := widget.NewFlipBook(
 		widget.FlipBookOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -171,18 +177,67 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 	c.AddChild(flipBook)
 
 	return &unitPageContainer{
-		widget:    c,
-		titleText: titleText,
-		flipBook:  flipBook,
+		unitMenu:         m,
+		widget:           c,
+		variantContainer: variantContainer,
+		flipBook:         flipBook,
 	}
 }
 
 func (p *unitPageContainer) setPage(page *unitPage) {
-	if page.unit == nil {
-		p.titleText.Label = "Random"
-	} else {
-		p.titleText.Label = page.unit.Name()
+	p.variantContainer.RemoveChildren()
+	m := p.unitMenu
+	res := m.Resources()
+
+	chassisName := "Random"
+	if page.unit != nil {
+		chassisName = page.unit.Name()
 	}
+	chassisText := widget.NewText(widget.TextOpts.Text(chassisName, res.text.face, res.text.idleColor))
+	p.variantContainer.AddChild(chassisText)
+
+	// show unit variant selection
+	if page.unit != nil {
+		comboVariants := []interface{}{}
+		for _, v := range page.variants {
+			comboVariants = append(comboVariants, v)
+		}
+
+		variantCombo := newListComboButton(
+			comboVariants,
+			page.unit,
+			func(e interface{}) string {
+				u := e.(model.Unit)
+				if u != nil {
+					return u.Variant()
+				}
+				return "?"
+			},
+			func(e interface{}) string {
+				u := e.(model.Unit)
+				if u != nil {
+					return u.Variant()
+				}
+				return "?"
+			},
+			func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+				u := args.Entry.(model.Unit)
+				page.unit = u
+				m.selectedUnit = u
+
+				// TODO: update page content info
+			},
+			res)
+
+		p.variantContainer.AddChild(variantCombo)
+
+		if len(comboVariants) <= 1 {
+			// only allow variant selection if more than one to choose from
+			variantCombo.GetWidget().Disabled = true
+		}
+	}
+	p.variantContainer.RequestRelayout()
+
 	p.flipBook.SetPage(page.content)
 	p.flipBook.RequestRelayout()
 }
@@ -322,44 +377,6 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 		)
 	}
 	unitTable.AddChild(imageLabel)
-
-	// show unit variant selection
-	if unit != nil {
-		comboVariants := []interface{}{}
-		for _, v := range variants {
-			comboVariants = append(comboVariants, v)
-		}
-
-		variantCombo := newListComboButton(
-			comboVariants,
-			unit,
-			func(e interface{}) string {
-				u := e.(model.Unit)
-				if u != nil {
-					return u.Variant()
-				}
-				return "?"
-			},
-			func(e interface{}) string {
-				u := e.(model.Unit)
-				if u != nil {
-					return u.Variant()
-				}
-				return "?"
-			},
-			func(args *widget.ListComboButtonEntrySelectedEventArgs) {
-				u := args.Entry.(model.Unit)
-				page.unit = u
-				m.selectedUnit = u
-			},
-			res)
-		unitTable.AddChild(variantCombo)
-
-		if len(comboVariants) <= 1 {
-			// only allow variant selection if more than one to choose from
-			variantCombo.GetWidget().Disabled = true
-		}
-	}
 
 	// TODO: more content
 
