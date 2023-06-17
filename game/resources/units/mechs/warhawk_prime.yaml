@@ -24,12 +24,12 @@ armament:
   offset: [17, 36]
 - weapon: "cl_er_ppc.yaml"
   type: energy
-  location: la
-  offset: [20, 39]
-- weapon: "cl_er_ppc.yaml"
-  type: energy
   location: ra
   offset: [-17, 36]
+- weapon: "cl_er_ppc.yaml"
+  type: energy
+  location: la
+  offset: [20, 39]
 - weapon: "cl_er_ppc.yaml"
   type: energy
   location: ra
