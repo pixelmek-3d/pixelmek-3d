@@ -141,7 +141,7 @@ type unitPageContainer struct {
 
 type unitPage struct {
 	title    string
-	content  widget.PreferredSizeLocateableWidget
+	content  *widget.Container
 	unit     model.Unit
 	variants []model.Unit
 }
@@ -189,6 +189,10 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 	m := p.unitMenu
 	res := m.Resources()
 
+	// update page unit content to current unit
+	page.setUnit(m, page.unit)
+
+	// show unit chassis name
 	chassisName := "Random"
 	if page.unit != nil {
 		chassisName = page.unit.Name()
@@ -222,10 +226,10 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 			},
 			func(args *widget.ListComboButtonEntrySelectedEventArgs) {
 				u := args.Entry.(model.Unit)
-				page.unit = u
 				m.selectedUnit = u
 
-				// TODO: update page content info
+				// update page content info
+				page.setUnit(m, u)
 			},
 			res)
 
@@ -341,20 +345,38 @@ func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
 }
 
 func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *unitPage {
-	c := newPageContentContainer()
-	res := m.Resources()
+	// create page stub container, not loading unit data until the page/variant is selected
 
-	var page *unitPage
+	var unitName, unitTonnage string
+	if unit == nil {
+		unitName = "Random"
+		unitTonnage = "??"
+	} else {
+		unitName = unit.Name()
+		unitTonnage = fmt.Sprintf("%0.0f", unit.Tonnage())
+	}
+
+	page := &unitPage{
+		title:    fmt.Sprintf("%s - %s", unitTonnage, unitName),
+		content:  newPageContentContainer(),
+		unit:     unit,
+		variants: variants,
+	}
+	return page
+}
+
+func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
+	p.content.RemoveChildren()
+	p.unit = unit
+	res := m.Resources()
 
 	unitTable := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(10),
+			widget.RowLayoutOpts.Spacing(m.Spacing()),
 			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
 		)),
 	)
-	c.AddChild(unitTable)
-
-	// TODO: do not load sprite/graphic until the page/variant is selected
+	p.content.AddChild(unitTable)
 
 	// show unit image graphic
 	var sprite *render.Sprite
@@ -378,22 +400,28 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 	}
 	unitTable.AddChild(imageLabel)
 
-	// TODO: more content
-
-	var unitName, unitTonnage string
 	if unit == nil {
-		unitName = "Random"
-		unitTonnage = "??"
-	} else {
-		unitName = unit.Name()
-		unitTonnage = fmt.Sprintf("%0.0f", unit.Tonnage())
+		// no more content to add for random unit select
+		return
 	}
 
-	page = &unitPage{
-		title:    fmt.Sprintf("%s - %s", unitTonnage, unitName),
-		content:  c,
-		unit:     unit,
-		variants: variants,
+	// unit content container
+	unitContent := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(0),
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+		)),
+	)
+	unitTable.AddChild(unitContent)
+
+	// show unit armament
+	for _, weapon := range unit.Armament() {
+		weaponText := widget.NewText(
+			widget.TextOpts.Text(weapon.ShortName(), res.text.smallFace, res.text.idleColor),
+			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+		)
+		unitContent.AddChild(weaponText)
 	}
-	return page
+
+	// TODO: add more content
 }
