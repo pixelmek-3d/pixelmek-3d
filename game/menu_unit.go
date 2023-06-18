@@ -368,6 +368,7 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 	p.content.RemoveChildren()
 	p.unit = unit
+	g := m.game
 	res := m.Resources()
 
 	unitTable := widget.NewContainer(
@@ -394,8 +395,18 @@ func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 	if sprite == nil {
 		imageLabel = widget.NewLabel(widget.LabelOpts.Text("?", res.fonts.bigTitleFace, res.label.text))
 	} else {
+		imageH := float64(g.screenHeight) / 5
+		spriteW, spriteH := float64(sprite.Texture().Bounds().Dx()), float64(sprite.Texture().Bounds().Dy())
+		imageScale := imageH / spriteH
+
+		unitImage := ebiten.NewImage(int(spriteW*imageScale), int(spriteH*imageScale))
+		op := &ebiten.DrawImageOptions{}
+		op.Filter = ebiten.FilterNearest
+		op.GeoM.Scale(imageScale, imageScale)
+		unitImage.DrawImage(sprite.Texture(), op)
+
 		imageLabel = widget.NewGraphic(
-			widget.GraphicOpts.Image(sprite.Texture()),
+			widget.GraphicOpts.Image(unitImage),
 		)
 	}
 	unitTable.AddChild(imageLabel)
