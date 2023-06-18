@@ -425,14 +425,55 @@ func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 	)
 	unitTable.AddChild(unitContent)
 
-	// show unit armament
-	for _, weapon := range unit.Armament() {
+	// show unit armament summary
+	for _, weaponString := range armamentSummary(unit) {
 		weaponText := widget.NewText(
-			widget.TextOpts.Text(weapon.ShortName(), res.text.smallFace, res.text.idleColor),
+			widget.TextOpts.Text(weaponString, res.text.smallFace, res.text.idleColor),
 			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 		)
 		unitContent.AddChild(weaponText)
 	}
 
 	// TODO: add more content
+}
+
+func armamentSummary(unit model.Unit) []string {
+	if unit == nil {
+		return []string{}
+	}
+
+	type weaponSummary struct {
+		name     string
+		quantity int
+	}
+
+	weaponSummaryList := make([]*weaponSummary, 0, len(unit.Armament()))
+	for _, weapon := range unit.Armament() {
+		name := weapon.Name()
+
+		var foundSummary *weaponSummary
+		for _, summary := range weaponSummaryList {
+			if summary.name == name {
+				foundSummary = summary
+				break
+			}
+		}
+
+		if foundSummary == nil {
+			newSummary := &weaponSummary{
+				name:     name,
+				quantity: 1,
+			}
+			weaponSummaryList = append(weaponSummaryList, newSummary)
+		} else {
+			foundSummary.quantity += 1
+		}
+	}
+
+	summaryStrings := make([]string, 0, len(weaponSummaryList))
+	for _, summary := range weaponSummaryList {
+		weaponString := fmt.Sprintf("%dx%s", summary.quantity, summary.name)
+		summaryStrings = append(summaryStrings, weaponString)
+	}
+	return summaryStrings
 }
