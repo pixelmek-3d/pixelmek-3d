@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -8,6 +10,7 @@ import (
 
 type LaunchMenu struct {
 	*MenuModel
+	content *widget.Container
 }
 
 func createLaunchMenu(g *Game) *LaunchMenu {
@@ -35,9 +38,9 @@ func (m *LaunchMenu) initMenu() {
 	titleBar := launchTitleContainer(m)
 	m.root.AddChild(titleBar)
 
-	// TODO: pre-launch mission briefing
-	content := newBlankSeparator(m, nil) //mainMenuItemsContainer(m)
-	m.root.AddChild(content)
+	// pre-launch briefing
+	m.content = launchMenuBriefingContainer(m)
+	m.root.AddChild(m.content)
 
 	// footer
 	footer := launchMenuFooterContainer(m)
@@ -122,4 +125,37 @@ func launchMenuFooterContainer(m *LaunchMenu) *widget.Container {
 	c.AddChild(next)
 
 	return c
+}
+
+func launchMenuBriefingContainer(m *LaunchMenu) *widget.Container {
+	c := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Left:  m.Spacing(),
+				Right: m.Spacing(),
+			}),
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Stretch([]bool{true, true}, []bool{true}),
+			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
+		)))
+
+	return c
+}
+
+func (m *LaunchMenu) loadBriefing() {
+	m.content.RemoveChildren()
+	res := m.Resources()
+	g := m.game
+
+	// TODO: more info about mission
+	missionText := widget.NewText(widget.TextOpts.Text("Some Mission", res.text.bigTitleFace, res.text.idleColor))
+	m.content.AddChild(missionText)
+
+	// TODO: more info about player unit
+	chassisVariant := "Random Mech"
+	if g.player != nil {
+		chassisVariant = fmt.Sprintf("%s\n%s", g.player.Unit.Name(), g.player.Unit.Variant())
+	}
+	chassisText := widget.NewText(widget.TextOpts.Text(chassisVariant, res.text.bigTitleFace, res.text.idleColor))
+	m.content.AddChild(chassisText)
 }

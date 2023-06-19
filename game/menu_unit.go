@@ -44,7 +44,7 @@ func (m *UnitMenu) initMenu() {
 	m.root.AddChild(titleBar)
 
 	// unit selection
-	selection := unitSelectionContainer(m)
+	selection := unitMenuSelectionContainer(m)
 	m.root.AddChild(selection)
 
 	// footer
@@ -128,6 +128,104 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		}),
 	)
 	c.AddChild(next)
+
+	return c
+}
+
+func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
+	res := m.Resources()
+	game := m.Game()
+
+	chassisList := []string{}
+	chassisMap := make(map[string][]model.Unit, 32)
+	for _, unitResource := range game.resources.GetMechResourceList() {
+		chassis := unitResource.Name
+		_, found := chassisMap[chassis]
+		if !found {
+			chassisList = append(chassisList, chassis)
+			chassisMap[chassis] = make([]model.Unit, 0, 4)
+		}
+		unit := game.createModelMechFromResource(unitResource)
+		chassisMap[chassis] = append(chassisMap[chassis], unit)
+	}
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Left:  m.Spacing(),
+				Right: m.Spacing(),
+			}),
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{true}),
+			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
+		)))
+
+	// sort by weight and then chassis name
+	sort.Slice(chassisList, func(i, j int) bool {
+		unitA, unitB := chassisMap[chassisList[i]][0], chassisMap[chassisList[j]][0]
+		if unitA.Tonnage() == unitB.Tonnage() {
+			return unitA.Name() < unitB.Name()
+		}
+		return unitA.Tonnage() < unitB.Tonnage()
+	})
+
+	// sort within chassis by variant designation (except Prime comes first)
+	for _, variantList := range chassisMap {
+		sort.Slice(variantList, func(i, j int) bool {
+			unitA, unitB := variantList[i], variantList[j]
+
+			if strings.HasSuffix(strings.ToLower(unitA.Variant()), "prime") {
+				return true
+			} else if strings.HasSuffix(strings.ToLower(unitB.Variant()), "prime") {
+				return false
+			}
+			return unitA.Variant() < unitB.Variant()
+		})
+	}
+
+	pages := make([]interface{}, 0, 1+len(chassisMap))
+
+	// add entry for random unit
+	randomUnitPage := unitSelectionPage(m, nil, []model.Unit{})
+	pages = append(pages, randomUnitPage)
+
+	for _, chassis := range chassisList {
+		unitList := chassisMap[chassis]
+		unitPage := unitSelectionPage(m, unitList[0], unitList)
+		pages = append(pages, unitPage)
+	}
+
+	pageContainer := newUnitPageContainer(m)
+
+	pageList := widget.NewList(
+		widget.ListOpts.Entries(pages),
+		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+			return e.(*unitPage).title
+		}),
+		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
+		widget.ListOpts.SliderOpts(
+			widget.SliderOpts.Images(res.list.track, res.list.handle),
+			widget.SliderOpts.MinHandleSize(res.list.handleSize),
+			widget.SliderOpts.TrackPadding(res.list.trackPadding),
+		),
+		widget.ListOpts.EntryColor(res.list.entry),
+		widget.ListOpts.EntryFontFace(res.list.face),
+		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
+		widget.ListOpts.HideHorizontalSlider(),
+
+		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
+			nextPage := args.Entry.(*unitPage)
+			pageContainer.setPage(nextPage)
+			m.Root().RequestRelayout()
+
+			m.selectedUnit = nextPage.unit
+		}))
+
+	c.AddChild(pageList)
+
+	c.AddChild(pageContainer.widget)
+
+	pageList.SetSelectedEntry(pages[0])
 
 	return c
 }
@@ -244,104 +342,6 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 
 	p.flipBook.SetPage(page.content)
 	p.flipBook.RequestRelayout()
-}
-
-func unitSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidget {
-	res := m.Resources()
-	game := m.Game()
-
-	chassisList := []string{}
-	chassisMap := make(map[string][]model.Unit, 32)
-	for _, unitResource := range game.resources.GetMechResourceList() {
-		chassis := unitResource.Name
-		_, found := chassisMap[chassis]
-		if !found {
-			chassisList = append(chassisList, chassis)
-			chassisMap[chassis] = make([]model.Unit, 0, 4)
-		}
-		unit := game.createModelMechFromResource(unitResource)
-		chassisMap[chassis] = append(chassisMap[chassis], unit)
-	}
-
-	c := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
-				Left:  m.Spacing(),
-				Right: m.Spacing(),
-			}),
-			widget.GridLayoutOpts.Columns(2),
-			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{true}),
-			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
-		)))
-
-	// sort by weight and then chassis name
-	sort.Slice(chassisList, func(i, j int) bool {
-		unitA, unitB := chassisMap[chassisList[i]][0], chassisMap[chassisList[j]][0]
-		if unitA.Tonnage() == unitB.Tonnage() {
-			return unitA.Name() < unitB.Name()
-		}
-		return unitA.Tonnage() < unitB.Tonnage()
-	})
-
-	// sort within chassis by variant designation (except Prime comes first)
-	for _, variantList := range chassisMap {
-		sort.Slice(variantList, func(i, j int) bool {
-			unitA, unitB := variantList[i], variantList[j]
-
-			if strings.HasSuffix(strings.ToLower(unitA.Variant()), "prime") {
-				return true
-			} else if strings.HasSuffix(strings.ToLower(unitB.Variant()), "prime") {
-				return false
-			}
-			return unitA.Variant() < unitB.Variant()
-		})
-	}
-
-	pages := make([]interface{}, 0, 1+len(chassisMap))
-
-	// add entry for random unit
-	randomUnitPage := unitSelectionPage(m, nil, []model.Unit{})
-	pages = append(pages, randomUnitPage)
-
-	for _, chassis := range chassisList {
-		unitList := chassisMap[chassis]
-		unitPage := unitSelectionPage(m, unitList[0], unitList)
-		pages = append(pages, unitPage)
-	}
-
-	pageContainer := newUnitPageContainer(m)
-
-	pageList := widget.NewList(
-		widget.ListOpts.Entries(pages),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
-			return e.(*unitPage).title
-		}),
-		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.ListOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
-		),
-		widget.ListOpts.EntryColor(res.list.entry),
-		widget.ListOpts.EntryFontFace(res.list.face),
-		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
-		widget.ListOpts.HideHorizontalSlider(),
-
-		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
-			nextPage := args.Entry.(*unitPage)
-			pageContainer.setPage(nextPage)
-			m.Root().RequestRelayout()
-
-			m.selectedUnit = nextPage.unit
-		}))
-
-	c.AddChild(pageList)
-
-	c.AddChild(pageContainer.widget)
-
-	pageList.SetSelectedEntry(pages[0])
-
-	return c
 }
 
 func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *unitPage {

@@ -36,8 +36,8 @@ func (m *MissionMenu) initMenu() {
 	m.root.AddChild(titleBar)
 
 	// TODO: mission selection
-	content := newBlankSeparator(m, nil) //mainMenuItemsContainer(m)
-	m.root.AddChild(content)
+	missionText := widget.NewText(widget.TextOpts.Text("Some Mission", m.Resources().text.bigTitleFace, m.Resources().text.idleColor))
+	m.root.AddChild(missionText)
 
 	// footer
 	footer := missionMenuFooterContainer(m)

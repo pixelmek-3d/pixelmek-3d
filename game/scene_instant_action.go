@@ -79,7 +79,7 @@ func (s *InstantActionScene) next() {
 	case s.launchBriefing:
 		// launch mission scene
 		if g.player == nil {
-			// TODO: actually pick player unit at random
+			// pick player unit at random
 			g.SetPlayerUnit(g.randomUnit(model.MechResourceType))
 		}
 
@@ -94,6 +94,7 @@ func (s *InstantActionScene) next() {
 			g.SetPlayerUnit(s.unitSelect.selectedUnit)
 		}
 
+		s.launchBriefing.loadBriefing()
 		s.SetMenu(s.launchBriefing)
 
 	case s.missionSelect:
