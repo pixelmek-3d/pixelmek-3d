@@ -1,12 +1,14 @@
 package game
 
 import (
+	"fmt"
 	"image"
 	"math"
 	"math/rand"
 	"os"
 	"runtime"
 	"sort"
+	"time"
 
 	"image/color"
 	_ "image/png"
@@ -1070,6 +1072,20 @@ func (g *Game) updateWeaponCooldowns(unit model.Unit) {
 
 	for _, weapon := range armament {
 		weapon.DecreaseCooldown(model.SECONDS_PER_TICK)
+	}
+}
+
+func (g *Game) randomUnit(unitResourceType string) model.Unit {
+	// TODO: make it useful for random unit of any unit type, or within some tonnage range
+	switch unitResourceType {
+	case model.MechResourceType:
+		rand.Seed(time.Now().UnixNano())
+		mechResources := g.resources.GetMechResourceList()
+		randIndex := rand.Intn(len(mechResources))
+		randResource := mechResources[randIndex]
+		return g.createModelMechFromResource(randResource)
+	default:
+		panic(fmt.Errorf("currently unable to handle random model.Unit for resource type %v", unitResourceType))
 	}
 }
 

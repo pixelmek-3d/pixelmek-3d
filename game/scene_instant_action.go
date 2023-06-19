@@ -80,7 +80,7 @@ func (s *InstantActionScene) next() {
 		// launch mission scene
 		if g.player == nil {
 			// TODO: actually pick player unit at random
-			g.setPlayerUnitFromResourceFile(model.MechResourceType, "timber_wolf_prime.yaml")
+			g.SetPlayerUnit(g.randomUnit(model.MechResourceType))
 		}
 
 		g.scene = NewMissionScene(g)
