@@ -20,32 +20,54 @@ type settingsPage struct {
 	content widget.PreferredSizeLocateableWidget
 }
 
-func gamePage(m Menu) *settingsPage {
+func missionPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
-	game := m.Game()
+	g := m.Game()
 
-	resume := widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.Text("Resume", res.button.face, res.button.text),
-		widget.ButtonOpts.TextPadding(res.button.padding),
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) { game.closeMenu() }),
+	mContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Top:    0,
+				Bottom: 0,
+				Left:   0,
+				Right:  0,
+			}),
+			// Spacing defines how much space to put between each column and row
+			widget.GridLayoutOpts.Spacing(0, m.Spacing()))),
 	)
-	c.AddChild(resume)
+	c.AddChild(mContainer)
 
-	if game.osType == osTypeBrowser {
+	// show player unit card
+	var playerUnit model.Unit
+	if g.player != nil {
+		playerUnit = g.player.Unit
+	}
+	unitCard := createUnitCard(g, res, playerUnit, UnitCardMission)
+	mContainer.AddChild(unitCard)
+
+	// show container with Exit/Resume buttons
+	bContainer := widget.NewContainer(
+		// TODO: fix exit/resume container buttons not stretching to fit width
+		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
+			widget.GridLayoutOpts.Stretch([]bool{false, true, false}, []bool{false}),
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Left:   m.Padding(),
+				Right:  m.Padding(),
+				Top:    m.Padding(),
+				Bottom: m.Padding(),
+			}))))
+	mContainer.AddChild(bContainer)
+
+	if g.osType == osTypeBrowser {
 		// exit in browser kills but freezes the application, users can just close the tab/window
-	} else {
-		// show in game exit button
-		c.AddChild(newSeparator(m, widget.RowLayoutData{
+		bContainer.AddChild(newBlankSeparator(m, widget.RowLayoutData{
 			Stretch: true,
 		}))
-
-		// TODO: add pop up to confirm exit to main menu or exit application
-
+	} else {
 		exit := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -57,11 +79,26 @@ func gamePage(m Menu) *settingsPage {
 				openExitWindow(m)
 			}),
 		)
-		c.AddChild(exit)
+		bContainer.AddChild(exit)
 	}
 
+	bContainer.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	resume := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.Text("Resume", res.button.face, res.button.text),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) { g.closeMenu() }),
+	)
+	bContainer.AddChild(resume)
+
 	return &settingsPage{
-		title:   "Game",
+		title:   "Mission",
 		content: c,
 	}
 }

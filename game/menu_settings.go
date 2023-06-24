@@ -151,10 +151,10 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	gameMenu, _ := m.(*GameMenu)
 	settingsMenu, _ := m.(*SettingsMenu)
 
-	var gameSettings *settingsPage
+	var missionSettings *settingsPage
 	if gameMenu != nil {
 		// only show the Resume/Exit buttons page in-mission
-		gameSettings = gamePage(m)
+		missionSettings = missionPage(m)
 	}
 
 	displaySettings := displayPage(m)
@@ -162,8 +162,8 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	hudSettings := hudPage(m)
 
 	pages := make([]interface{}, 0, 8)
-	if gameSettings != nil {
-		pages = append(pages, gameSettings)
+	if missionSettings != nil {
+		pages = append(pages, missionSettings)
 	}
 	pages = append(pages, displaySettings)
 	pages = append(pages, renderSettings)
@@ -197,7 +197,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			nextPage := args.Entry.(*settingsPage)
 			pageContainer.setPage(nextPage)
-			if gameSettings != nil && (nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings)) {
+			if missionSettings != nil && (nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings)) {
 				// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
 				m.Root().BackgroundImage = nil
 				pageContainer.widget.(*widget.Container).BackgroundImage = nil

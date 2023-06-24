@@ -36,6 +36,7 @@ type UnitCardStyle int
 const (
 	UnitCardSelect UnitCardStyle = iota
 	UnitCardLaunch
+	UnitCardMission
 )
 
 type UnitCard struct {
@@ -403,15 +404,20 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 		style:     style,
 	}
 
-	if style == UnitCardLaunch {
+	switch style {
+	case UnitCardLaunch:
 		// also show chassis name and variant header
 		chassisVariant := "Random Mech"
-		if g.player != nil {
+		if unit != nil {
 			chassisVariant = fmt.Sprintf("%s\n%s", unit.Name(), unit.Variant())
 		}
 		chassisText := widget.NewText(widget.TextOpts.Text(chassisVariant, res.text.titleFace, res.text.idleColor))
 		cardContainer.AddChild(chassisText)
-
+	case UnitCardMission:
+		// also show chassis name and variant header
+		chassisVariant := fmt.Sprintf("%s / %s", unit.Name(), unit.Variant())
+		chassisText := widget.NewText(widget.TextOpts.Text(chassisVariant, res.text.face, res.text.idleColor))
+		cardContainer.AddChild(chassisText)
 	}
 
 	unitTable := widget.NewContainer(
