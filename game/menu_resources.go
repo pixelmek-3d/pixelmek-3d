@@ -30,6 +30,8 @@ const (
 
 	headerColor = textIdleColor
 
+	toolTipColor = backgroundColor
+
 	separatorColor = listDisabledSelectedBackground
 )
 
@@ -53,6 +55,7 @@ type uiResources struct {
 	panel       *panelResources
 	tabBook     *tabBookResources
 	header      *headerResources
+	toolTip     *toolTipResources
 }
 
 type textResources struct {
@@ -127,6 +130,13 @@ type headerResources struct {
 	color      color.Color
 }
 
+type toolTipResources struct {
+	background *image.NineSlice
+	padding    widget.Insets
+	face       font.Face
+	color      color.Color
+}
+
 type fonts struct {
 	scale        float64
 	face         font.Face
@@ -178,6 +188,11 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 		return nil, err
 	}
 
+	toolTip, err := newToolTipResources(fonts)
+	if err != nil {
+		return nil, err
+	}
+
 	return &uiResources{
 		fonts:          fonts,
 		background:     background,
@@ -201,6 +216,7 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 		panel:       panel,
 		tabBook:     tabBook,
 		header:      header,
+		toolTip:     toolTip,
 	}, nil
 }
 
@@ -641,6 +657,27 @@ func newHeaderResources(fonts *fonts) (*headerResources, error) {
 
 		face:  fonts.bigTitleFace,
 		color: hexToColor(headerColor),
+	}, nil
+}
+
+func newToolTipResources(fonts *fonts) (*toolTipResources, error) {
+	bg, _, err := resources.NewImageFromFile("menu/tool-tip.png")
+	if err != nil {
+		return nil, err
+	}
+
+	return &toolTipResources{
+		background: image.NewNineSlice(bg, [3]int{19, 6, 13}, [3]int{19, 5, 13}),
+
+		padding: widget.Insets{
+			Left:   15,
+			Right:  15,
+			Top:    10,
+			Bottom: 10,
+		},
+
+		face:  fonts.toolTipFace,
+		color: hexToColor(toolTipColor),
 	}, nil
 }
 

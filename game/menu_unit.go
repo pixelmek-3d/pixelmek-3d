@@ -17,6 +17,37 @@ type UnitMenu struct {
 	selectedUnit model.Unit
 }
 
+type unitPageContainer struct {
+	unitMenu         *UnitMenu
+	widget           *widget.Container
+	variantContainer *widget.Container
+	flipBook         *widget.FlipBook
+}
+
+type unitPage struct {
+	title    string
+	content  *widget.Container
+	unit     model.Unit
+	variants []model.Unit
+}
+
+type UnitCardStyle int
+
+const (
+	UnitCardSelect UnitCardStyle = iota
+	UnitCardLaunch
+)
+
+type UnitCard struct {
+	*widget.Container
+	style UnitCardStyle
+}
+
+type unitCardWeapon struct {
+	weapon   model.Weapon
+	quantity int
+}
+
 func createUnitMenu(g *Game) *UnitMenu {
 	var ui *ebitenui.UI = &ebitenui.UI{}
 
@@ -230,20 +261,6 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 	return c
 }
 
-type unitPageContainer struct {
-	unitMenu         *UnitMenu
-	widget           *widget.Container
-	variantContainer *widget.Container
-	flipBook         *widget.FlipBook
-}
-
-type unitPage struct {
-	title    string
-	content  *widget.Container
-	unit     model.Unit
-	variants []model.Unit
-}
-
 func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 	res := m.Resources()
 
@@ -368,22 +385,48 @@ func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *uni
 func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 	p.content.RemoveChildren()
 	p.unit = unit
-	g := m.game
-	res := m.Resources()
+
+	unitCard := createUnitCard(m.game, m.Resources(), unit, UnitCardSelect)
+	p.content.AddChild(unitCard)
+}
+
+func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardStyle) *UnitCard {
+
+	cardContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+		)),
+	)
+	unitCard := &UnitCard{
+		Container: cardContainer,
+		style:     style,
+	}
+
+	if style == UnitCardLaunch {
+		// also show chassis name and variant header
+		chassisVariant := "Random Mech"
+		if g.player != nil {
+			chassisVariant = fmt.Sprintf("%s\n%s", unit.Name(), unit.Variant())
+		}
+		chassisText := widget.NewText(widget.TextOpts.Text(chassisVariant, res.text.titleFace, res.text.idleColor))
+		cardContainer.AddChild(chassisText)
+
+	}
 
 	unitTable := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(m.Spacing()),
+			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
 			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
 		)),
 	)
-	p.content.AddChild(unitTable)
+	cardContainer.AddChild(unitTable)
 
 	// show unit image graphic
 	var sprite *render.Sprite
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
-		sprite = m.game.createUnitSprite(unit).(*render.MechSprite).Sprite
+		sprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
 	case nil:
 		// nil represents random unit selection
 		sprite = nil
@@ -413,7 +456,7 @@ func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 
 	if unit == nil {
 		// no more content to add for random unit select
-		return
+		return unitCard
 	}
 
 	// unit content container
@@ -426,42 +469,60 @@ func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 	unitTable.AddChild(unitContent)
 
 	// show unit armament summary
-	for _, weaponString := range armamentSummary(unit) {
+	for _, weapon := range armamentSummary(unit) {
+		weaponFull := weapon.weapon.Name()
+		weaponShort := weapon.weapon.ShortName()
+
+		// TODO: add more weapon data in tooltip
+		toolTipString := fmt.Sprintf("%dx %s", weapon.quantity, weaponFull)
+		toolTip := widget.NewContainer(
+			widget.ContainerOpts.BackgroundImage(res.toolTip.background),
+			widget.ContainerOpts.Layout(widget.NewRowLayout(
+				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+				widget.RowLayoutOpts.Padding(res.toolTip.padding),
+				widget.RowLayoutOpts.Spacing(2),
+			)))
+		toolTipText := widget.NewText(
+			widget.TextOpts.Text(toolTipString, res.toolTip.face, res.toolTip.color),
+		)
+		toolTip.AddChild(toolTipText)
+
+		weaponString := fmt.Sprintf("%dx %s", weapon.quantity, weaponShort)
 		weaponText := widget.NewText(
 			widget.TextOpts.Text(weaponString, res.text.smallFace, res.text.idleColor),
 			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+			widget.TextOpts.WidgetOpts(widget.WidgetOpts.ToolTip(widget.NewToolTip(
+				widget.ToolTipOpts.Content(toolTip),
+			))),
 		)
 		unitContent.AddChild(weaponText)
 	}
 
 	// TODO: add more content
+
+	return unitCard
 }
 
-func armamentSummary(unit model.Unit) []string {
+func armamentSummary(unit model.Unit) []*unitCardWeapon {
 	if unit == nil {
-		return []string{}
+		return []*unitCardWeapon{}
 	}
 
-	type weaponSummary struct {
-		name     string
-		quantity int
-	}
-
-	weaponSummaryList := make([]*weaponSummary, 0, len(unit.Armament()))
+	weaponSummaryList := make([]*unitCardWeapon, 0, len(unit.Armament()))
 	for _, weapon := range unit.Armament() {
 		name := weapon.Name()
 
-		var foundSummary *weaponSummary
+		var foundSummary *unitCardWeapon
 		for _, summary := range weaponSummaryList {
-			if summary.name == name {
+			if summary.weapon.Name() == name {
 				foundSummary = summary
 				break
 			}
 		}
 
 		if foundSummary == nil {
-			newSummary := &weaponSummary{
-				name:     name,
+			newSummary := &unitCardWeapon{
+				weapon:   weapon,
 				quantity: 1,
 			}
 			weaponSummaryList = append(weaponSummaryList, newSummary)
@@ -470,10 +531,5 @@ func armamentSummary(unit model.Unit) []string {
 		}
 	}
 
-	summaryStrings := make([]string, 0, len(weaponSummaryList))
-	for _, summary := range weaponSummaryList {
-		weaponString := fmt.Sprintf("%dx%s", summary.quantity, summary.name)
-		summaryStrings = append(summaryStrings, weaponString)
-	}
-	return summaryStrings
+	return weaponSummaryList
 }

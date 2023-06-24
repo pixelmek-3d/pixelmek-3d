@@ -1,11 +1,10 @@
 package game
 
 import (
-	"fmt"
-
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
 type LaunchMenu struct {
@@ -151,11 +150,11 @@ func (m *LaunchMenu) loadBriefing() {
 	missionText := widget.NewText(widget.TextOpts.Text("Some Mission", res.text.bigTitleFace, res.text.idleColor))
 	m.content.AddChild(missionText)
 
-	// TODO: more info about player unit
-	chassisVariant := "Random Mech"
+	// show player unit card
+	var playerUnit model.Unit
 	if g.player != nil {
-		chassisVariant = fmt.Sprintf("%s\n%s", g.player.Unit.Name(), g.player.Unit.Variant())
+		playerUnit = g.player.Unit
 	}
-	chassisText := widget.NewText(widget.TextOpts.Text(chassisVariant, res.text.bigTitleFace, res.text.idleColor))
-	m.content.AddChild(chassisText)
+	unitCard := createUnitCard(g, res, playerUnit, UnitCardLaunch)
+	m.content.AddChild(unitCard)
 }
