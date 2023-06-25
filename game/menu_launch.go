@@ -146,9 +146,9 @@ func (m *LaunchMenu) loadBriefing() {
 	res := m.Resources()
 	g := m.game
 
-	// TODO: more info about mission
-	missionText := widget.NewText(widget.TextOpts.Text("Some Mission", res.text.bigTitleFace, res.text.idleColor))
-	m.content.AddChild(missionText)
+	// show mission card
+	missionCard := createMissionCard(g, res, g.mission, MissionCardLaunch)
+	m.content.AddChild(missionCard)
 
 	// show player unit card
 	var playerUnit model.Unit

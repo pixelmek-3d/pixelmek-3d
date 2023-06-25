@@ -86,7 +86,9 @@ func (s *InstantActionScene) next() {
 		g.scene = NewMissionScene(g)
 
 	case s.unitSelect:
-		// to pre-launch briefing after setting player unit
+		// to pre-launch briefing after setting player unit and mission
+		g.mission = s.missionSelect.selectedMission
+
 		if s.unitSelect.selectedUnit == nil {
 			// set player unit nil to indicate randomized pick for launch briefing
 			g.player = nil

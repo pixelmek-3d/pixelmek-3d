@@ -185,15 +185,8 @@ func NewGame() *Game {
 }
 
 func (g *Game) initMission() {
-	// load mission // TODO: mission select UI
-	missionPath := "trial.yaml"
-	//missionPath := "debug.yaml"
-	var err error
-	g.mission, err = model.LoadMission(missionPath)
-	if err != nil {
-		log.Error("Error loading mission: ", missionPath)
-		log.Error(err)
-		exit(1)
+	if g.mission == nil {
+		panic("g.mission must be set before initMission!")
 	}
 
 	// reload texture handler

@@ -10,7 +10,6 @@ type MissionScene struct {
 
 func NewMissionScene(g *Game) *MissionScene {
 	// load mission resources and launch
-	// TODO: load mission from the selection menu
 	g.initMission()
 
 	// prepare for battle
