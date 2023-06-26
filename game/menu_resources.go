@@ -55,6 +55,7 @@ type uiResources struct {
 	panel       *panelResources
 	tabBook     *tabBookResources
 	header      *headerResources
+	textArea    *textAreaResources
 	toolTip     *toolTipResources
 }
 
@@ -130,6 +131,16 @@ type headerResources struct {
 	color      color.Color
 }
 
+type textAreaResources struct {
+	image        *widget.ScrollContainerImage
+	track        *widget.SliderTrackImage
+	trackPadding widget.Insets
+	handle       *widget.ButtonImage
+	handleSize   int
+	face         font.Face
+	entryPadding widget.Insets
+}
+
 type toolTipResources struct {
 	background *image.NineSlice
 	padding    widget.Insets
@@ -188,6 +199,11 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 		return nil, err
 	}
 
+	textArea, err := newTextAreaResources(fonts)
+	if err != nil {
+		return nil, err
+	}
+
 	toolTip, err := newToolTipResources(fonts)
 	if err != nil {
 		return nil, err
@@ -216,6 +232,7 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 		panel:       panel,
 		tabBook:     tabBook,
 		header:      header,
+		textArea:    textArea,
 		toolTip:     toolTip,
 	}, nil
 }
@@ -657,6 +674,79 @@ func newHeaderResources(fonts *fonts) (*headerResources, error) {
 
 		face:  fonts.bigTitleFace,
 		color: hexToColor(headerColor),
+	}, nil
+}
+
+func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
+	idle, _, err := resources.NewImageFromFile("menu/list-idle.png")
+	if err != nil {
+		return nil, err
+	}
+
+	disabled, _, err := resources.NewImageFromFile("menu/list-disabled.png")
+	if err != nil {
+		return nil, err
+	}
+
+	mask, _, err := resources.NewImageFromFile("menu/list-mask.png")
+	if err != nil {
+		return nil, err
+	}
+
+	trackIdle, _, err := resources.NewImageFromFile("menu/list-track-idle.png")
+	if err != nil {
+		return nil, err
+	}
+
+	trackDisabled, _, err := resources.NewImageFromFile("menu/list-track-disabled.png")
+	if err != nil {
+		return nil, err
+	}
+
+	handleIdle, _, err := resources.NewImageFromFile("menu/slider-handle-idle.png")
+	if err != nil {
+		return nil, err
+	}
+
+	handleHover, _, err := resources.NewImageFromFile("menu/slider-handle-hover.png")
+	if err != nil {
+		return nil, err
+	}
+
+	return &textAreaResources{
+		image: &widget.ScrollContainerImage{
+			Idle:     image.NewNineSlice(idle, [3]int{25, 12, 22}, [3]int{25, 12, 25}),
+			Disabled: image.NewNineSlice(disabled, [3]int{25, 12, 22}, [3]int{25, 12, 25}),
+			Mask:     image.NewNineSlice(mask, [3]int{26, 10, 23}, [3]int{26, 10, 26}),
+		},
+
+		track: &widget.SliderTrackImage{
+			Idle:     image.NewNineSlice(trackIdle, [3]int{5, 0, 0}, [3]int{25, 12, 25}),
+			Hover:    image.NewNineSlice(trackIdle, [3]int{5, 0, 0}, [3]int{25, 12, 25}),
+			Disabled: image.NewNineSlice(trackDisabled, [3]int{0, 5, 0}, [3]int{25, 12, 25}),
+		},
+
+		trackPadding: widget.Insets{
+			Top:    5,
+			Bottom: 24,
+		},
+
+		handle: &widget.ButtonImage{
+			Idle:     image.NewNineSliceSimple(handleIdle, 0, 5),
+			Hover:    image.NewNineSliceSimple(handleHover, 0, 5),
+			Pressed:  image.NewNineSliceSimple(handleHover, 0, 5),
+			Disabled: image.NewNineSliceSimple(handleIdle, 0, 5),
+		},
+
+		handleSize: 5,
+		face:       fonts.face,
+
+		entryPadding: widget.Insets{
+			Left:   20,
+			Right:  20,
+			Top:    2,
+			Bottom: 2,
+		},
 	}, nil
 }
 

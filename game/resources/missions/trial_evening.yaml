@@ -1,3 +1,8 @@
+title: "Trial by Dusk"
+briefing: |
+  A call to trial at dusk.
+
+  Justice by combat.
 map: "testing_grounds.yaml"
 dropZone:
   position: [100, 100]

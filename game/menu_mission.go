@@ -264,7 +264,7 @@ func (p *missionMenuPageContainer) setPage(page *missionMenuPage) {
 	page.setMission(m)
 
 	// show mission title
-	p.titleText.Label = page.missionFile
+	p.titleText.Label = page.mission.Title
 
 	p.flipBook.SetPage(page.content)
 	p.flipBook.RequestRelayout()
@@ -313,18 +313,29 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 
 	switch style {
 	case MissionCardLaunch:
-		// TODO: show mission name
-		missionText := widget.NewText(widget.TextOpts.Text(mission.MapPath, res.text.titleFace, res.text.idleColor))
+		missionText := widget.NewText(widget.TextOpts.Text(mission.Title, res.text.titleFace, res.text.idleColor))
 		cardContainer.AddChild(missionText)
 	}
 
-	missionTable := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
-			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
-		)),
+	textAreaContainer := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+			widget.WidgetOpts.MinSize(0, 100),
+		),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
+			widget.GridLayoutOpts.Spacing(0, 0)),
+		),
 	)
-	cardContainer.AddChild(missionTable)
+	cardContainer.AddChild(textAreaContainer)
+
+	briefingText := newTextArea(mission.Briefing, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+		MaxWidth: 400, // FIXME: figure out auto-size or adjust width/height based on resolution
+	}))
+	textAreaContainer.AddChild(briefingText)
 
 	// TODO: show mission map image preview
 

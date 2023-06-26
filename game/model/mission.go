@@ -14,6 +14,8 @@ import (
 
 type Mission struct {
 	missionMap   *Map
+	Title        string               `yaml:"title" validate:"required"`
+	Briefing     string               `yaml:"briefing" validate:"required"`
 	MapPath      string               `yaml:"map" validate:"required"`
 	DropZone     *MissionDropZone     `yaml:"dropZone" validate:"required"`
 	Lighting     *MapLighting         `yaml:"lighting,omitempty"`

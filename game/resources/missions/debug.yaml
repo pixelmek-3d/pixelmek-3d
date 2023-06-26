@@ -1,3 +1,8 @@
+title: "Debug"
+briefing: |
+  A mission to debug things.
+
+  And do stuff.
 map: "debug_land.yaml"
 dropZone:
   position: [50, 50]

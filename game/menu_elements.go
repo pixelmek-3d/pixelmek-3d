@@ -168,6 +168,25 @@ func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderCh
 	return picker
 }
 
+func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) *widget.TextArea {
+	return widget.NewTextArea(
+		widget.TextAreaOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widgetOpts...)),
+		widget.TextAreaOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
+		widget.TextAreaOpts.SliderOpts(
+			widget.SliderOpts.Images(res.list.track, res.list.handle),
+			widget.SliderOpts.MinHandleSize(res.list.handleSize),
+			widget.SliderOpts.TrackPadding(res.list.trackPadding),
+		),
+		widget.TextAreaOpts.ShowVerticalScrollbar(),
+		widget.TextAreaOpts.VerticalScrollMode(widget.PositionAtEnd),
+		widget.TextAreaOpts.ProcessBBCode(true),
+		widget.TextAreaOpts.FontFace(res.textArea.face),
+		widget.TextAreaOpts.FontColor(color.NRGBA{R: 200, G: 100, B: 0, A: 255}),
+		widget.TextAreaOpts.TextPadding(res.textArea.entryPadding),
+		widget.TextAreaOpts.Text(text),
+	)
+}
+
 func newSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWidget {
 	res := m.Resources()
 	c := widget.NewContainer(
