@@ -468,13 +468,43 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	// unit content container
 	unitContent := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(0),
+			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 		)),
 	)
 	unitTable.AddChild(unitContent)
 
-	// show unit armament summary
+	// unit specifications (tonnage, speed, jumpjets, armor, structure)
+	massString := fmt.Sprintf("Mass: %0.0f Tons", unit.Tonnage())
+	massText := widget.NewText(
+		widget.TextOpts.Text(massString, res.text.smallFace, res.text.idleColor),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	)
+	unitContent.AddChild(massText)
+
+	topSpeedKph := unit.MaxVelocity() * model.VELOCITY_TO_KPH
+	speedString := fmt.Sprintf("Top Speed: %0.1f kph", topSpeedKph)
+	speedText := widget.NewText(
+		widget.TextOpts.Text(speedString, res.text.smallFace, res.text.idleColor),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	)
+	unitContent.AddChild(speedText)
+
+	// armament summary container
+	armsContent := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(0),
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+		)),
+	)
+	cardContainer.AddChild(armsContent)
+
+	armamentText := widget.NewText(
+		widget.TextOpts.Text("Armament:", res.text.face, res.text.idleColor),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	)
+	armsContent.AddChild(armamentText)
+
 	for _, weapon := range armamentSummary(unit) {
 		weaponFull := weapon.weapon.Name()
 		weaponShort := weapon.weapon.ShortName()
@@ -501,7 +531,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 				widget.ToolTipOpts.Content(toolTip),
 			))),
 		)
-		unitContent.AddChild(weaponText)
+		armsContent.AddChild(weaponText)
 	}
 
 	// TODO: add more content

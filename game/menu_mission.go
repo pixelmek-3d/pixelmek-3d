@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ebitenui/ebitenui"
@@ -317,6 +318,15 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		cardContainer.AddChild(missionText)
 	}
 
+	// mission map area
+	worldMap := mission.Map().Level(0)
+	mapWidthKm := float64(len(worldMap)) * model.METERS_PER_UNIT / 1000
+	mapHeightKm := float64(len(worldMap[0])) * model.METERS_PER_UNIT / 1000
+	mapString := fmt.Sprintf("Area: %0.0fkm x %0.0fkm", mapWidthKm, mapHeightKm)
+	mapText := widget.NewText(widget.TextOpts.Text(mapString, res.text.face, res.text.idleColor))
+	cardContainer.AddChild(mapText)
+
+	// mission briefing text area
 	textAreaContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
