@@ -467,27 +467,27 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 
 	// unit content container
 	unitContent := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-		)),
-	)
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Left:  g.menu.Spacing(),
+				Right: g.menu.Spacing(),
+			}),
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false, false}),
+			widget.GridLayoutOpts.Spacing(g.menu.Spacing(), g.menu.Spacing()),
+		)))
 	unitTable.AddChild(unitContent)
 
 	// unit specifications (tonnage, speed, jumpjets, armor, structure)
-	massString := fmt.Sprintf("Mass: %0.0f Tons", unit.Tonnage())
-	massText := widget.NewText(
-		widget.TextOpts.Text(massString, res.text.smallFace, res.text.idleColor),
-		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
-	)
+	massString := fmt.Sprintf("%0.0f Tons", unit.Tonnage())
+	massText := newUnitContentText(res, massString)
+	unitContent.AddChild(newUnitContentText(res, "Mass:"))
 	unitContent.AddChild(massText)
 
 	topSpeedKph := unit.MaxVelocity() * model.VELOCITY_TO_KPH
-	speedString := fmt.Sprintf("Top Speed: %0.1f kph", topSpeedKph)
-	speedText := widget.NewText(
-		widget.TextOpts.Text(speedString, res.text.smallFace, res.text.idleColor),
-		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
-	)
+	speedString := fmt.Sprintf("%0.1f kph", topSpeedKph)
+	speedText := newUnitContentText(res, speedString)
+	unitContent.AddChild(newUnitContentText(res, "Top Speed:"))
 	unitContent.AddChild(speedText)
 
 	// armament summary container
@@ -537,6 +537,13 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	// TODO: add more content
 
 	return unitCard
+}
+
+func newUnitContentText(res *uiResources, str string) *widget.Text {
+	return widget.NewText(
+		widget.TextOpts.Text(str, res.text.smallFace, res.text.idleColor),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	)
 }
 
 func armamentSummary(unit model.Unit) []*unitCardWeapon {
