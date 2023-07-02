@@ -302,11 +302,18 @@ func (p *missionMenuPage) setMission(m *MissionMenu) {
 func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style MissionCardStyle) *MissionCard {
 
 	cardContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-		)),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, false, true}),
+			widget.GridLayoutOpts.Spacing(0, 0)),
+		),
 	)
+
 	missionCard := &MissionCard{
 		Container: cardContainer,
 		style:     style,
@@ -314,7 +321,12 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 
 	switch style {
 	case MissionCardLaunch:
-		missionText := widget.NewText(widget.TextOpts.Text(mission.Title, res.text.titleFace, res.text.idleColor))
+		missionText := widget.NewText(widget.TextOpts.Text(mission.Title, res.text.titleFace, res.text.idleColor),
+			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.TextOpts.Position(widget.TextPositionEnd, widget.TextPositionCenter),
+		)
 		cardContainer.AddChild(missionText)
 	}
 
@@ -327,25 +339,10 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 	cardContainer.AddChild(mapText)
 
 	// mission briefing text area
-	textAreaContainer := widget.NewContainer(
-		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-				Stretch: true,
-			}),
-			widget.WidgetOpts.MinSize(0, 100),
-		),
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(1),
-			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-			widget.GridLayoutOpts.Spacing(0, 0)),
-		),
-	)
-	cardContainer.AddChild(textAreaContainer)
-
 	briefingText := newTextArea(mission.Briefing, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-		MaxWidth: 400, // FIXME: figure out auto-size or adjust width/height based on resolution
+		MaxHeight: g.uiRect().Dy() / 3,
 	}))
-	textAreaContainer.AddChild(briefingText)
+	cardContainer.AddChild(briefingText)
 
 	// TODO: show mission map image preview
 
