@@ -10,7 +10,7 @@ dropZone:
 lighting:
   falloff: -500
   illumination: 350
-  minLightRGB: [130, 165, 200]
+  minLightRGB: [70, 80, 90]
   maxLightRGB: [255, 255, 255]
 floorBox:
   image: "floors/floor_green_evening.png"
@@ -20,7 +20,7 @@ navPoints:
 - name: "Alpha"
   position: [25, 25]
 - name: "Zulu"
-  position: [100, 100]
+  position: [75, 75]
 mechs:
 - unit: "jenner_iic.yaml"
   position: [10, 10]
