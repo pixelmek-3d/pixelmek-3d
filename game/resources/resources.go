@@ -22,6 +22,8 @@ import (
 )
 
 var (
+	UserConfigFile string
+
 	//go:embed fonts maps menu missions shaders sprites textures units weapons
 	embedded          embed.FS
 	hasLocalResources bool = false
@@ -34,12 +36,14 @@ func init() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	userHomePath, _ := os.UserHomeDir()
-	if userHomePath != "" {
-		userHomePath = userHomePath + "/.pixelmek-3d"
-		viper.AddConfigPath(userHomePath)
+	userConfigPath, _ := os.UserHomeDir()
+	if userConfigPath == "" {
+		userConfigPath = "./"
 	}
-	viper.AddConfigPath(".")
+	userConfigPath += "/.pixelmek-3d"
+	UserConfigFile = userConfigPath + "/config.json"
+
+	viper.AddConfigPath(userConfigPath)
 
 	err := viper.ReadInConfig()
 	if err != nil {
