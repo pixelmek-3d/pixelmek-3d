@@ -273,10 +273,10 @@ func displayPage(m Menu) *settingsPage {
 	c.AddChild(vsCheckbox)
 
 	// fps checkbox
-	floorCheckbox := newCheckbox(m, "Show FPS", game.fpsEnabled, func(args *widget.CheckboxChangedEventArgs) {
+	fpsCheckbox := newCheckbox(m, "Show FPS", game.fpsEnabled, func(args *widget.CheckboxChangedEventArgs) {
 		game.fpsEnabled = args.State == widget.WidgetChecked
 	})
-	c.AddChild(floorCheckbox)
+	c.AddChild(fpsCheckbox)
 
 	return &settingsPage{
 		title:   "Display",
@@ -329,6 +329,7 @@ func renderPage(m Menu) *settingsPage {
 	// floor/ground texturing checkbox
 	floorCheckbox := newCheckbox(m, "Ground Texturing", game.tex.renderFloorTex, func(args *widget.CheckboxChangedEventArgs) {
 		game.tex.renderFloorTex = args.State == widget.WidgetChecked
+		game.initRenderFloorTex = game.tex.renderFloorTex
 	})
 	c.AddChild(floorCheckbox)
 

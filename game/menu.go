@@ -207,4 +207,7 @@ func (g *Game) closeMenu() {
 			menuScene.SetMenu(menuScene.main)
 		}
 	}
+
+	// save settings to file when closing settings menu
+	g.saveConfig()
 }

@@ -333,6 +333,9 @@ func openExitWindow(m Menu) {
 				widget.ButtonOpts.TextPadding(res.button.padding),
 				widget.ButtonOpts.Text("Leave Battle", res.button.face, res.button.text),
 				widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+					// save config now in case settings changes were made
+					game.saveConfig()
+
 					// go back to main menu
 					game.scene = NewMenuScene(game)
 				}),
@@ -346,6 +349,8 @@ func openExitWindow(m Menu) {
 				widget.ButtonOpts.TextPadding(res.button.padding),
 				widget.ButtonOpts.Text("Exit Game", res.button.face, res.button.text),
 				widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+					// save config now in case settings changes were made
+					game.saveConfig()
 					os.Exit(0)
 				}),
 			)

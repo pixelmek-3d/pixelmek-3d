@@ -14,6 +14,33 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	CONFIG_KEY_DEBUG   = "debug"
+	CONFIG_KEY_SHOWFPS = "show_fps"
+
+	CONFIG_KEY_SCREEN_WIDTH     = "screen.width"
+	CONFIG_KEY_SCREEN_HEIGHT    = "screen.height"
+	CONFIG_KEY_RENDER_SCALE     = "screen.render_scale"
+	CONFIG_KEY_FOV_DEGREES      = "screen.fov_degrees"
+	CONFIG_KEY_FULLSCREEN       = "screen.fullscreen"
+	CONFIG_KEY_VSYNC            = "screen.vsync"
+	CONFIG_KEY_RENDER_FLOOR     = "screen.render_floor"
+	CONFIG_KEY_RENDER_DISTANCE  = "screen.render_distance"
+	CONFIG_KEY_CLUTTER_DISTANCE = "screen.clutter_distance"
+	CONFIG_KEY_OPENGL           = "screen.opengl"
+
+	CONFIG_KEY_HUD_ENABLED      = "hud.enabled"
+	CONFIG_KEY_HUD_SCALE        = "hud.scale"
+	CONFIG_KEY_HUD_FONT         = "hud.font"
+	CONFIG_KEY_HUD_COLOR_CUSTOM = "hud.color.use_custom"
+	CONFIG_KEY_HUD_COLOR_R      = "hud.color.red"
+	CONFIG_KEY_HUD_COLOR_G      = "hud.color.green"
+	CONFIG_KEY_HUD_COLOR_B      = "hud.color.blue"
+	CONFIG_KEY_HUD_COLOR_A      = "hud.color.alpha"
+
+	CONFIG_KEY_CONTROL_DECAY = "controls.throttle_decay"
+)
+
 func (g *Game) initConfig() {
 	// special behavior needed for wasm play
 	switch runtime.GOOS {
@@ -24,86 +51,86 @@ func (g *Game) initConfig() {
 	}
 
 	// set default config values
-	viper.SetDefault("debug", false)
-	viper.SetDefault("showFPS", false)
+	viper.SetDefault(CONFIG_KEY_DEBUG, false)
+	viper.SetDefault(CONFIG_KEY_SHOWFPS, false)
 
-	viper.SetDefault("screen.fovDegrees", 70)
-	viper.SetDefault("screen.fullscreen", false)
-	viper.SetDefault("screen.vsync", true)
-	viper.SetDefault("screen.renderFloor", true)
-	viper.SetDefault("screen.renderDistance", 2000)
-	viper.SetDefault("screen.clutterDistance", 500)
+	viper.SetDefault(CONFIG_KEY_FOV_DEGREES, 70)
+	viper.SetDefault(CONFIG_KEY_FULLSCREEN, false)
+	viper.SetDefault(CONFIG_KEY_VSYNC, true)
+	viper.SetDefault(CONFIG_KEY_RENDER_FLOOR, true)
+	viper.SetDefault(CONFIG_KEY_RENDER_DISTANCE, 2000)
+	viper.SetDefault(CONFIG_KEY_CLUTTER_DISTANCE, 500)
 
 	if g.osType == osTypeBrowser {
-		viper.SetDefault("screen.width", 800)
-		viper.SetDefault("screen.height", 600)
-		viper.SetDefault("screen.renderScale", 0.5)
+		viper.SetDefault(CONFIG_KEY_SCREEN_WIDTH, 800)
+		viper.SetDefault(CONFIG_KEY_SCREEN_HEIGHT, 600)
+		viper.SetDefault(CONFIG_KEY_RENDER_SCALE, 0.5)
 	} else {
-		viper.SetDefault("screen.width", 1024)
-		viper.SetDefault("screen.height", 768)
-		viper.SetDefault("screen.renderScale", 1.0)
+		viper.SetDefault(CONFIG_KEY_SCREEN_WIDTH, 1024)
+		viper.SetDefault(CONFIG_KEY_SCREEN_HEIGHT, 768)
+		viper.SetDefault(CONFIG_KEY_RENDER_SCALE, 1.0)
 	}
 
 	if runtime.GOOS == "windows" {
 		// default windows to opengl for better performance
-		viper.SetDefault("screen.opengl", true)
+		viper.SetDefault(CONFIG_KEY_OPENGL, true)
 	}
 
-	viper.SetDefault("hud.enabled", true)
-	viper.SetDefault("hud.scale", 1.0)
-	viper.SetDefault("hud.font", "pixeloid.otf")
-	viper.SetDefault("hud.color.useCustom", false)
-	viper.SetDefault("hud.color.red", 100)
-	viper.SetDefault("hud.color.green", 255)
-	viper.SetDefault("hud.color.blue", 230)
-	viper.SetDefault("hud.color.alpha", 255)
+	viper.SetDefault(CONFIG_KEY_HUD_ENABLED, true)
+	viper.SetDefault(CONFIG_KEY_HUD_SCALE, 1.0)
+	viper.SetDefault(CONFIG_KEY_HUD_FONT, "pixeloid.otf")
+	viper.SetDefault(CONFIG_KEY_HUD_COLOR_CUSTOM, false)
+	viper.SetDefault(CONFIG_KEY_HUD_COLOR_R, 100)
+	viper.SetDefault(CONFIG_KEY_HUD_COLOR_G, 255)
+	viper.SetDefault(CONFIG_KEY_HUD_COLOR_B, 230)
+	viper.SetDefault(CONFIG_KEY_HUD_COLOR_A, 255)
 
-	viper.SetDefault("controls.throttleDecay", false)
+	viper.SetDefault(CONFIG_KEY_CONTROL_DECAY, false)
 
 	// get config values
-	g.debug = viper.GetBool("debug")
-	g.fpsEnabled = viper.GetBool("showFPS")
+	g.debug = viper.GetBool(CONFIG_KEY_DEBUG)
+	g.fpsEnabled = viper.GetBool(CONFIG_KEY_SHOWFPS)
 
 	if g.debug {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	g.screenWidth = viper.GetInt("screen.width")
-	g.screenHeight = viper.GetInt("screen.height")
-	g.fovDegrees = viper.GetFloat64("screen.fovDegrees")
-	g.renderScale = viper.GetFloat64("screen.renderScale")
-	g.fullscreen = viper.GetBool("screen.fullscreen")
-	g.vsync = viper.GetBool("screen.vsync")
-	g.opengl = viper.GetBool("screen.opengl")
-	g.initRenderFloorTex = viper.GetBool("screen.renderFloor")
+	g.screenWidth = viper.GetInt(CONFIG_KEY_SCREEN_WIDTH)
+	g.screenHeight = viper.GetInt(CONFIG_KEY_SCREEN_HEIGHT)
+	g.fovDegrees = viper.GetFloat64(CONFIG_KEY_FOV_DEGREES)
+	g.renderScale = viper.GetFloat64(CONFIG_KEY_RENDER_SCALE)
+	g.fullscreen = viper.GetBool(CONFIG_KEY_FULLSCREEN)
+	g.vsync = viper.GetBool(CONFIG_KEY_VSYNC)
+	g.opengl = viper.GetBool(CONFIG_KEY_OPENGL)
+	g.initRenderFloorTex = viper.GetBool(CONFIG_KEY_RENDER_FLOOR)
 
-	renderDistanceMeters := viper.GetFloat64("screen.renderDistance")
+	renderDistanceMeters := viper.GetFloat64(CONFIG_KEY_RENDER_DISTANCE)
 	g.renderDistance = renderDistanceMeters / model.METERS_PER_UNIT
 
-	clutterDistanceMeters := viper.GetFloat64("screen.clutterDistance")
+	clutterDistanceMeters := viper.GetFloat64(CONFIG_KEY_CLUTTER_DISTANCE)
 	g.clutterDistance = clutterDistanceMeters / model.METERS_PER_UNIT
 
 	var err error
-	g.fonts.HUDFont, err = g.fonts.LoadFont(viper.GetString("hud.font"))
+	g.fonts.HUDFont, err = g.fonts.LoadFont(viper.GetString(CONFIG_KEY_HUD_FONT))
 	if err != nil {
 		log.Fatal(err)
 		exit(1)
 	}
-	g.hudEnabled = viper.GetBool("hud.enabled")
-	g.hudScale = viper.GetFloat64("hud.scale")
-	g.hudUseCustomColor = viper.GetBool("hud.color.useCustom")
+	g.hudEnabled = viper.GetBool(CONFIG_KEY_HUD_ENABLED)
+	g.hudScale = viper.GetFloat64(CONFIG_KEY_HUD_SCALE)
+	g.hudUseCustomColor = viper.GetBool(CONFIG_KEY_HUD_COLOR_CUSTOM)
 	g.hudRGBA = &color.NRGBA{
-		R: uint8(viper.GetUint("hud.color.red")),
-		G: uint8(viper.GetUint("hud.color.green")),
-		B: uint8(viper.GetUint("hud.color.blue")),
-		A: uint8(viper.GetUint("hud.color.alpha")),
+		R: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_R)),
+		G: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_G)),
+		B: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_B)),
+		A: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_A)),
 	}
 
-	g.throttleDecay = viper.GetBool("controls.throttleDecay")
+	g.throttleDecay = viper.GetBool(CONFIG_KEY_CONTROL_DECAY)
 }
 
 func (g *Game) saveConfig() error {
-	log.Info("Saving config file ", resources.UserConfigFile)
+	log.Debug("saving config file ", resources.UserConfigFile)
 
 	userConfigPath := filepath.Dir(resources.UserConfigFile)
 	if _, err := os.Stat(userConfigPath); os.IsNotExist(err) {
@@ -113,6 +140,31 @@ func (g *Game) saveConfig() error {
 			return err
 		}
 	}
+
+	// update stored values in viper in case any may have changed since last written
+	viper.Set(CONFIG_KEY_SHOWFPS, g.fpsEnabled)
+	viper.Set(CONFIG_KEY_SCREEN_WIDTH, g.screenWidth)
+	viper.Set(CONFIG_KEY_SCREEN_HEIGHT, g.screenHeight)
+	viper.Set(CONFIG_KEY_RENDER_SCALE, g.renderScale)
+	viper.Set(CONFIG_KEY_FOV_DEGREES, g.fovDegrees)
+	viper.Set(CONFIG_KEY_FULLSCREEN, g.fullscreen)
+	viper.Set(CONFIG_KEY_VSYNC, g.vsync)
+	viper.Set(CONFIG_KEY_OPENGL, g.opengl)
+
+	viper.Set(CONFIG_KEY_RENDER_FLOOR, g.initRenderFloorTex)
+	viper.Set(CONFIG_KEY_RENDER_DISTANCE, g.renderDistance*model.METERS_PER_UNIT)
+	viper.Set(CONFIG_KEY_CLUTTER_DISTANCE, g.clutterDistance*model.METERS_PER_UNIT)
+
+	viper.Set(CONFIG_KEY_HUD_ENABLED, g.hudEnabled)
+	viper.Set(CONFIG_KEY_HUD_SCALE, g.hudScale)
+	viper.Set(CONFIG_KEY_HUD_COLOR_CUSTOM, g.hudUseCustomColor)
+	viper.Set(CONFIG_KEY_HUD_COLOR_R, g.hudRGBA.R)
+	viper.Set(CONFIG_KEY_HUD_COLOR_G, g.hudRGBA.G)
+	viper.Set(CONFIG_KEY_HUD_COLOR_B, g.hudRGBA.B)
+	viper.Set(CONFIG_KEY_HUD_COLOR_A, g.hudRGBA.A)
+
+	viper.Set(CONFIG_KEY_CONTROL_DECAY, g.throttleDecay)
+
 	err := viper.WriteConfigAs(resources.UserConfigFile)
 	if err != nil {
 		log.Error(err)
