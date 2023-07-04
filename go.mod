@@ -8,6 +8,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.5.4
 	github.com/harbdog/raycaster-go v1.9.0
 	github.com/jinzhu/copier v0.3.5
+	github.com/quasilyte/ebitengine-input v0.8.1-0.20230305210228-d7b1f165d452
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
 	github.com/tinne26/etxt v0.0.8
@@ -15,7 +16,10 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-require golang.org/x/exp/shiny v0.0.0-20230510235704-dd950f8aeaea // indirect
+require (
+	github.com/quasilyte/gmath v0.0.0-20221217210116-fba37a2e15c7 // indirect
+	golang.org/x/exp/shiny v0.0.0-20230510235704-dd950f8aeaea // indirect
+)
 
 require (
 	github.com/ebitengine/purego v0.3.2 // indirect

@@ -1,11 +1,13 @@
 package game
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	input "github.com/quasilyte/ebitengine-input"
 )
 
 type MouseMode int
@@ -16,8 +18,135 @@ const (
 	MouseModeCursor
 )
 
+const (
+	ActionUnknown input.Action = iota
+	ActionUp
+	ActionDown
+	ActionLeft
+	ActionRight
+	ActionMenu
+	ActionBack
+	ActionThrottleReverse
+	ActionThrottle0
+	ActionJumpJet
+	ActionWeaponGroupFireToggle
+	ActionWeaponGroupSetModifier
+	ActionWeaponGroup1
+	ActionWeaponGroup2
+	ActionWeaponGroup3
+	ActionNavCycle
+	ActionTargetCrosshairs
+	ActionTargetNearest
+	ActionTargetNext
+	ActionTargetPrevious
+	ActionZoomToggle
+	actionCount
+)
+
+var (
+	stringToAction map[string]input.Action
+)
+
+func stringAction(aName string) input.Action {
+	a, ok := stringToAction[aName]
+	if !ok {
+		return ActionUnknown
+	}
+	return a
+}
+
+func actionString(a input.Action) string {
+	switch a {
+	case ActionUp:
+		return "up"
+	case ActionDown:
+		return "down"
+	case ActionLeft:
+		return "left"
+	case ActionRight:
+		return "right"
+	case ActionMenu:
+		return "menu"
+	case ActionBack:
+		return "back"
+	case ActionThrottleReverse:
+		return "throttle_reverse"
+	case ActionThrottle0:
+		return "throttle_0"
+	case ActionJumpJet:
+		return "jump_jet"
+	case ActionWeaponGroupFireToggle:
+		return "weapon_group_toggle"
+	case ActionWeaponGroupSetModifier:
+		return "weapon_group_set"
+	case ActionWeaponGroup1:
+		return "weapon_group_1"
+	case ActionWeaponGroup2:
+		return "weapon_group_2"
+	case ActionWeaponGroup3:
+		return "weapon_group_3"
+	case ActionNavCycle:
+		return "nav_cycle"
+	case ActionTargetCrosshairs:
+		return "target_crosshairs"
+	case ActionTargetNearest:
+		return "target_nearest"
+	case ActionTargetNext:
+		return "target_next"
+	case ActionTargetPrevious:
+		return "target_prev"
+	case ActionZoomToggle:
+		return "zoom_toggle"
+	default:
+		panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
+	}
+}
+
+func (g *Game) initControls() {
+	// TODO: read keymap config from viper
+	// https://github.com/quasilyte/ebitengine-input/blob/master/_examples/configfile/main.go
+
+	// Build a reverse index to get an action by its name
+	stringToAction = map[string]input.Action{}
+	for a := ActionUnknown + 1; a < actionCount; a++ {
+		stringToAction[actionString(a)] = a
+	}
+
+	keymap := input.Keymap{
+		ActionUp:    {input.KeyW, input.KeyUp, input.KeyGamepadUp, input.KeyGamepadLStickUp},
+		ActionDown:  {input.KeyS, input.KeyDown, input.KeyGamepadDown, input.KeyGamepadLStickDown},
+		ActionLeft:  {input.KeyA, input.KeyLeft, input.KeyGamepadLeft, input.KeyGamepadLStickLeft},
+		ActionRight: {input.KeyD, input.KeyRight, input.KeyGamepadRight, input.KeyGamepadLStickRight},
+
+		ActionMenu: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart},
+		ActionBack: {input.KeyEscape, input.KeyGamepadBack},
+
+		ActionThrottleReverse: {input.KeyBackspace},
+		ActionThrottle0:       {input.KeyX, input.KeyGamepadLStick},
+		ActionJumpJet:         {input.KeySpace},
+
+		ActionWeaponGroupFireToggle:  {input.KeyBackspace},
+		ActionWeaponGroupSetModifier: {input.KeyShift},
+		ActionWeaponGroup1:           {input.Key1},
+		ActionWeaponGroup2:           {input.Key2},
+		ActionWeaponGroup3:           {input.Key3},
+
+		ActionNavCycle:         {input.KeyN},
+		ActionTargetCrosshairs: {input.KeyQ},
+		ActionTargetNearest:    {input.KeyE},
+		ActionTargetNext:       {input.KeyT},
+		ActionTargetPrevious:   {input.KeyR},
+		ActionZoomToggle:       {input.KeyZ},
+	}
+
+	g.inputSystem.Init(input.SystemConfig{
+		DevicesEnabled: input.AnyDevice,
+	})
+	g.input = g.inputSystem.NewHandler(0, keymap)
+}
+
 func (g *Game) handleInput() {
-	menuKeyPressed := inpututil.IsKeyJustPressed(ebiten.KeyEscape) || inpututil.IsKeyJustPressed(ebiten.KeyF1)
+	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenu)
 	if menuKeyPressed {
 		if g.menu.Active() {
 			if g.osType == osTypeBrowser && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
@@ -195,15 +324,15 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.player.fireMode == model.CHAIN_FIRE && ebiten.IsKeyPressed(ebiten.KeyShift) {
+	if g.player.fireMode == model.CHAIN_FIRE && g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
 		// set group for selected weapon
 		setGroupIndex := -1
 		switch {
-		case inpututil.IsKeyJustPressed(ebiten.Key1):
+		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
 			setGroupIndex = 0
-		case inpututil.IsKeyJustPressed(ebiten.Key2):
+		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
 			setGroupIndex = 1
-		case inpututil.IsKeyJustPressed(ebiten.Key3):
+		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
 			setGroupIndex = 2
 		}
 
@@ -232,7 +361,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyBackslash) {
+	if g.input.ActionIsJustPressed(ActionWeaponGroupFireToggle) {
 		// toggle group fire mode
 		switch g.player.fireMode {
 		case model.CHAIN_FIRE:
@@ -267,32 +396,32 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyN) {
+	if g.input.ActionIsJustPressed(ActionNavCycle) {
 		// cycle nav points
 		g.navPointCycle()
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+	if g.input.ActionIsJustPressed(ActionTargetCrosshairs) {
 		// target on crosshairs
 		g.targetCrosshairs()
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyE) {
+	if g.input.ActionIsJustPressed(ActionTargetNearest) {
 		// target nearest to player
 		g.targetCycle(TARGET_NEAREST)
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
+	if g.input.ActionIsJustPressed(ActionTargetNext) {
 		// cycle player targets
 		g.targetCycle(TARGET_NEXT)
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+	if g.input.ActionIsJustPressed(ActionTargetPrevious) {
 		// cycle player targets in reverse order
 		g.targetCycle(TARGET_PREVIOUS)
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
+	if g.input.ActionIsJustPressed(ActionZoomToggle) {
 		// toggle zoom
 		if g.camera.FovDepth() != g.zoomFovDepth {
 			// zoom in
@@ -306,7 +435,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
+	if g.input.ActionIsJustPressed(ActionThrottleReverse) {
 		// toggle reverse throttle
 		if g.player.TargetVelocity() > 0 {
 			// switch to reverse
@@ -319,7 +448,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeySpace) {
+	if g.input.ActionIsPressed(ActionJumpJet) {
 		switch {
 		case isVTOL:
 			// TODO: use unit tonnage and gravity to determine ascent speed
@@ -356,21 +485,21 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
+	if g.input.ActionIsPressed(ActionLeft) {
 		rotLeft = true
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyRight) {
+	if g.input.ActionIsPressed(ActionRight) {
 		rotRight = true
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyUp) {
+	if g.input.ActionIsPressed(ActionUp) {
 		forward = true
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyDown) {
+	if g.input.ActionIsPressed(ActionDown) {
 		backward = true
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyX) {
+	if g.input.ActionIsPressed(ActionThrottle0) {
 		stop = true
 	}
 

@@ -2,7 +2,6 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 )
 
@@ -35,7 +34,7 @@ func (s *InstantActionScene) SetMenu(m Menu) {
 func (s *InstantActionScene) Update() error {
 	g := s.Game
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+	if g.input.ActionIsJustPressed(ActionBack) {
 		s.back()
 	}
 

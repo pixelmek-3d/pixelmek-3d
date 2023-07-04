@@ -19,6 +19,7 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 
+	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -39,7 +40,9 @@ type Game struct {
 	menu   Menu
 	paused bool
 
-	resources *model.ModelResources
+	resources   *model.ModelResources
+	input       *input.Handler
+	inputSystem input.System
 
 	//--create slicer and declare slices--//
 	tex                *TextureHandler
@@ -145,6 +148,7 @@ func NewGame() *Game {
 	g.fonts = render.NewFontHandler()
 
 	g.initConfig()
+	g.initControls()
 
 	if g.opengl {
 		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
@@ -269,6 +273,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update - Allows the game to run logic such as updating the world, gathering input, and playing audio.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
+	g.inputSystem.Update()
 	return g.scene.Update()
 }
 
