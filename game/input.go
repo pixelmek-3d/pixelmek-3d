@@ -29,6 +29,9 @@ const (
 	ActionThrottleReverse
 	ActionThrottle0
 	ActionJumpJet
+	ActionDescend
+	ActionWeaponFire
+	ActionWeaponCycle
 	ActionWeaponGroupFireToggle
 	ActionWeaponGroupSetModifier
 	ActionWeaponGroup1
@@ -75,6 +78,12 @@ func actionString(a input.Action) string {
 		return "throttle_0"
 	case ActionJumpJet:
 		return "jump_jet"
+	case ActionDescend:
+		return "descend"
+	case ActionWeaponFire:
+		return "weapon_fire"
+	case ActionWeaponCycle:
+		return "weapon_cycle"
 	case ActionWeaponGroupFireToggle:
 		return "weapon_group_toggle"
 	case ActionWeaponGroupSetModifier:
@@ -124,7 +133,10 @@ func (g *Game) initControls() {
 		ActionThrottleReverse: {input.KeyBackspace},
 		ActionThrottle0:       {input.KeyX, input.KeyGamepadLStick},
 		ActionJumpJet:         {input.KeySpace},
+		ActionDescend:         {input.KeyControl},
 
+		ActionWeaponFire:             {input.KeyMouseLeft, input.KeyGamepadR2},
+		ActionWeaponCycle:            {input.KeyMouseRight, input.KeyGamepadL2},
 		ActionWeaponGroupFireToggle:  {input.KeyBackspace},
 		ActionWeaponGroupSetModifier: {input.KeyShift},
 		ActionWeaponGroup1:           {input.Key1},
@@ -143,6 +155,31 @@ func (g *Game) initControls() {
 		DevicesEnabled: input.AnyDevice,
 	})
 	g.input = g.inputSystem.NewHandler(0, keymap)
+
+	// temporary input action holder to know when an action is just released
+	g.inputHeld = make(map[input.Action]bool, 8)
+}
+
+func (g *Game) holdInputAction(a input.Action) {
+	g.inputHeld[a] = true
+}
+
+func (g *Game) releaseInputAction(a input.Action) {
+	_, ok := g.inputHeld[a]
+	if ok {
+		g.inputHeld[a] = false
+	}
+}
+
+func (g *Game) isInputActionJustReleased(a input.Action) bool {
+	// very simple justReleased method until implemented by ebitengine-input:
+	//     https://github.com/quasilyte/ebitengine-input/issues/25
+	v, ok := g.inputHeld[a]
+	if ok && !v {
+		delete(g.inputHeld, a)
+		return true
+	}
+	return false
 }
 
 func (g *Game) handleInput() {
@@ -170,23 +207,24 @@ func (g *Game) handleInput() {
 	var stop, forward, backward bool
 	var rotLeft, rotRight bool
 
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
+	if g.debug && ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
 		// TESTING purposes only
 		g.fireTestWeaponAtPlayer()
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyAlt) {
-		if g.mouseMode != MouseModeBody {
-			g.mouseMode = MouseModeBody
-		}
-	} else if inpututil.IsKeyJustReleased(ebiten.KeyAlt) {
-		if g.mouseMode == MouseModeBody {
-			g.mouseMode = MouseModeTurret
+	// TODO: change to toggle mode
+	// if ebiten.IsKeyPressed(ebiten.KeyAlt) {
+	// 	if g.mouseMode != MouseModeBody {
+	// 		g.mouseMode = MouseModeBody
+	// 	}
+	// } else if inpututil.IsKeyJustReleased(ebiten.KeyAlt) {
+	// 	if g.mouseMode == MouseModeBody {
+	// 		g.mouseMode = MouseModeTurret
 
-			// reset relative heading target when no longer using mouse turn
-			g.player.SetTargetRelativeHeading(0)
-		}
-	}
+	// 		// reset relative heading target when no longer using mouse turn
+	// 		g.player.SetTargetRelativeHeading(0)
+	// 	}
+	// }
 
 	if (g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody) && ebiten.CursorMode() != ebiten.CursorModeCaptured {
 		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -257,11 +295,15 @@ func (g *Game) handleInput() {
 	}
 
 	if g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody {
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		if g.input.ActionIsPressed(ActionWeaponFire) {
+			g.holdInputAction(ActionWeaponFire)
 			g.fireWeapon()
+		} else {
+			g.releaseInputAction(ActionWeaponFire)
 		}
 
-		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		isMouseButtonJustReleased := g.isInputActionJustReleased(ActionWeaponFire)
+		if isMouseButtonJustReleased {
 			if g.player.fireMode == model.CHAIN_FIRE {
 				// cycle to next weapon only in same group (g.player.selectedGroup)
 				prevWeapon := g.player.Armament()[g.player.selectedWeapon]
@@ -289,7 +331,7 @@ func (g *Game) handleInput() {
 			}
 		}
 
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		if g.input.ActionIsJustPressed(ActionWeaponCycle) {
 			if g.player.fireMode == model.GROUP_FIRE {
 				g.player.selectedGroup++
 				if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
@@ -324,40 +366,68 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.player.fireMode == model.CHAIN_FIRE && g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
-		// set group for selected weapon
-		setGroupIndex := -1
-		switch {
-		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
-			setGroupIndex = 0
-		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
-			setGroupIndex = 1
-		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
-			setGroupIndex = 2
-		}
+	if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
+		if g.player.fireMode == model.CHAIN_FIRE {
+			// set group for selected weapon
+			setGroupIndex := -1
+			switch {
+			case g.input.ActionIsJustPressed(ActionWeaponGroup1):
+				setGroupIndex = 0
+			case g.input.ActionIsJustPressed(ActionWeaponGroup2):
+				setGroupIndex = 1
+			case g.input.ActionIsJustPressed(ActionWeaponGroup3):
+				setGroupIndex = 2
+			}
 
-		if setGroupIndex >= 0 {
-			weapon := g.player.Armament()[g.player.selectedWeapon]
-			groups := model.GetGroupsForWeapon(weapon, g.player.weaponGroups)
-			for _, gIndex := range groups {
-				if int(gIndex) == setGroupIndex {
-					// already in group
-					return
-				} else {
-					// remove from current group
-					weaponsInGroup := g.player.weaponGroups[gIndex]
-					g.player.weaponGroups[gIndex] = make([]model.Weapon, 0, len(weaponsInGroup)-1)
-					for _, chkWeapon := range weaponsInGroup {
-						if chkWeapon != weapon {
-							g.player.weaponGroups[gIndex] = append(g.player.weaponGroups[gIndex], chkWeapon)
+			if setGroupIndex >= 0 {
+				weapon := g.player.Armament()[g.player.selectedWeapon]
+				groups := model.GetGroupsForWeapon(weapon, g.player.weaponGroups)
+				for _, gIndex := range groups {
+					if int(gIndex) == setGroupIndex {
+						// already in group
+						return
+					} else {
+						// remove from current group
+						weaponsInGroup := g.player.weaponGroups[gIndex]
+						g.player.weaponGroups[gIndex] = make([]model.Weapon, 0, len(weaponsInGroup)-1)
+						for _, chkWeapon := range weaponsInGroup {
+							if chkWeapon != weapon {
+								g.player.weaponGroups[gIndex] = append(g.player.weaponGroups[gIndex], chkWeapon)
+							}
 						}
 					}
 				}
-			}
 
-			// add to selected group
-			g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
-			g.player.selectedGroup = uint(setGroupIndex)
+				// add to selected group
+				g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
+				g.player.selectedGroup = uint(setGroupIndex)
+			}
+		}
+	} else {
+		// set currently selected weapon/group if weapon group number key pressed
+		selectGroupIndex := -1
+		switch {
+		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
+			selectGroupIndex = 0
+		case g.input.ActionIsJustPressed(ActionWeaponGroup2):
+			selectGroupIndex = 1
+		case g.input.ActionIsJustPressed(ActionWeaponGroup3):
+			selectGroupIndex = 2
+		}
+
+		if selectGroupIndex >= 0 {
+			g.player.selectedGroup = uint(selectGroupIndex)
+			weapons := g.player.weaponGroups[selectGroupIndex]
+			if len(weapons) == 0 {
+				g.player.selectedWeapon = 0
+			} else {
+				for i, w := range g.player.Armament() {
+					if w == weapons[0] {
+						g.player.selectedWeapon = uint(i)
+						break
+					}
+				}
+			}
 		}
 	}
 
@@ -470,10 +540,10 @@ func (g *Game) handleInput() {
 		}
 		// TODO: infantry jump (or jump jet infantry)
 
-	} else if ebiten.IsKeyPressed(ebiten.KeyControl) {
+	} else if g.input.ActionIsPressed(ActionDescend) {
 		switch {
 		case isVTOL:
-			// TODO: use unit tonnage and gravity to determine ascent speed
+			// TODO: use unit tonnage and gravity to determine descent speed
 			g.player.SetTargetVelocityZ(-g.player.MaxVelocity() / 2)
 		}
 

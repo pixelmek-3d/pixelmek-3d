@@ -102,7 +102,21 @@ func (s *IntroScene) Update() error {
 	}
 
 	keys := inpututil.AppendJustPressedKeys(nil)
-	skip := len(keys) > 0 || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
+	keyPressed := len(keys) > 0
+
+	var buttonPressed bool
+	gamepadIDs := ebiten.AppendGamepadIDs(nil)
+	if len(gamepadIDs) > 0 {
+		for _, g := range gamepadIDs {
+			buttons := inpututil.AppendJustPressedGamepadButtons(g, nil)
+			if len(buttons) > 0 {
+				buttonPressed = true
+				break
+			}
+		}
+	}
+
+	skip := keyPressed || buttonPressed || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
 	if skip {
 		s.splashIndex += 1
 		s.splashTimer = SPLASH_TIMEOUT

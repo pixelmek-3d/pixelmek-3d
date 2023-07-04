@@ -43,6 +43,7 @@ type Game struct {
 	resources   *model.ModelResources
 	input       *input.Handler
 	inputSystem input.System
+	inputHeld   map[input.Action]bool
 
 	//--create slicer and declare slices--//
 	tex                *TextureHandler
