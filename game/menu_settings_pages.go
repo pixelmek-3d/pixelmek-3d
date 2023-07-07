@@ -26,6 +26,11 @@ func missionPage(m Menu) *settingsPage {
 	g := m.Game()
 
 	mContainer := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
@@ -40,14 +45,6 @@ func missionPage(m Menu) *settingsPage {
 	)
 	c.AddChild(mContainer)
 
-	// show player unit card
-	var playerUnit model.Unit
-	if g.player != nil {
-		playerUnit = g.player.Unit
-	}
-	unitCard := createUnitCard(g, res, playerUnit, UnitCardMission)
-	mContainer.AddChild(unitCard)
-
 	// show container with Exit/Resume buttons
 	bContainer := widget.NewContainer(
 		// TODO: fix exit/resume container buttons not stretching to fit width
@@ -61,6 +58,14 @@ func missionPage(m Menu) *settingsPage {
 				Bottom: m.Padding(),
 			}))))
 	mContainer.AddChild(bContainer)
+
+	// show player unit card
+	var playerUnit model.Unit
+	if g.player != nil {
+		playerUnit = g.player.Unit
+	}
+	unitCard := createUnitCard(g, res, playerUnit, UnitCardMission)
+	mContainer.AddChild(unitCard)
 
 	if g.osType == osTypeBrowser {
 		// exit in browser kills but freezes the application, users can just close the tab/window

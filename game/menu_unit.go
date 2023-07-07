@@ -392,12 +392,17 @@ func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 }
 
 func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardStyle) *UnitCard {
-
 	cardContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-		)),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, false, true}),
+			widget.GridLayoutOpts.Spacing(0, 0)),
+		),
 	)
 	unitCard := &UnitCard{
 		Container: cardContainer,
