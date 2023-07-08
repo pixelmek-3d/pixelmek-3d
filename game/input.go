@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	input "github.com/quasilyte/ebitengine-input"
+	log "github.com/sirupsen/logrus"
 )
 
 type MouseMode int
@@ -24,6 +25,12 @@ const (
 	ActionDown
 	ActionLeft
 	ActionRight
+	ActionMoveAxes
+	ActionTurretUp
+	ActionTurretDown
+	ActionTurretLeft
+	ActionTurretRight
+	ActionTurretAxes
 	ActionMenu
 	ActionBack
 	ActionThrottleReverse
@@ -68,6 +75,18 @@ func actionString(a input.Action) string {
 		return "left"
 	case ActionRight:
 		return "right"
+	case ActionMoveAxes:
+		return "move_axes"
+	case ActionTurretUp:
+		return "turret_up"
+	case ActionTurretDown:
+		return "turret_down"
+	case ActionTurretLeft:
+		return "turret_left"
+	case ActionTurretRight:
+		return "turret_right"
+	case ActionTurretAxes:
+		return "turret_axes"
 	case ActionMenu:
 		return "menu"
 	case ActionBack:
@@ -126,6 +145,13 @@ func (g *Game) initControls() {
 		ActionDown:  {input.KeyS, input.KeyDown, input.KeyGamepadDown, input.KeyGamepadLStickDown},
 		ActionLeft:  {input.KeyA, input.KeyLeft, input.KeyGamepadLeft, input.KeyGamepadLStickLeft},
 		ActionRight: {input.KeyD, input.KeyRight, input.KeyGamepadRight, input.KeyGamepadLStickRight},
+		//TODO: ActionMoveAxes: {input.KeyGamepadLStickMotion},
+
+		ActionTurretUp:    {input.KeyGamepadRStickUp},
+		ActionTurretDown:  {input.KeyGamepadRStickDown},
+		ActionTurretLeft:  {input.KeyGamepadRStickLeft},
+		ActionTurretRight: {input.KeyGamepadRStickRight},
+		//TODO: ActionTurretAxes: {input.KeyGamepadRStickMotion},
 
 		ActionMenu: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart},
 		ActionBack: {input.KeyEscape, input.KeyGamepadBack},
@@ -204,9 +230,6 @@ func (g *Game) handleInput() {
 	_, isMech := g.player.Unit.(*model.Mech)
 	_, isVTOL := g.player.Unit.(*model.VTOL)
 
-	var stop, forward, backward bool
-	var rotLeft, rotRight bool
-
 	if g.debug && ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
 		// TESTING purposes only
 		g.fireTestWeaponAtPlayer()
@@ -273,6 +296,10 @@ func (g *Game) handleInput() {
 		default:
 			dx, dy := g.mouseX-x, g.mouseY-y
 			g.mouseX, g.mouseY = x, y
+
+			if info, ok := g.input.PressedActionInfo(ActionTurretAxes); ok {
+				log.Debugf("%v\n", info.Pos)
+			}
 
 			if dx != 0 {
 				if g.player.HasTurret() {
@@ -555,6 +582,22 @@ func (g *Game) handleInput() {
 		}
 	}
 
+	var stop, forward, backward bool
+	var rotLeft, rotRight bool
+	var lookUp, lookDown, lookLeft, lookRight bool
+
+	if g.input.ActionIsPressed(ActionTurretLeft) {
+		lookLeft = true
+	} else if g.input.ActionIsPressed(ActionTurretRight) {
+		lookRight = true
+	}
+
+	if g.input.ActionIsPressed(ActionTurretUp) {
+		lookUp = true
+	} else if g.input.ActionIsPressed(ActionTurretDown) {
+		lookDown = true
+	}
+
 	if g.input.ActionIsPressed(ActionLeft) {
 		rotLeft = true
 	}
@@ -600,6 +643,22 @@ func (g *Game) handleInput() {
 			// strafe instead of rotate
 			isStrafe = true
 		}
+	}
+
+	if lookUp {
+		// TODO: better and configurable values for dx/dy
+		dy := 2.0
+		g.Pitch(0.005 * dy)
+	} else if lookDown {
+		dy := -2.0
+		g.Pitch(0.005 * dy)
+	}
+	if lookLeft {
+		dx := 5.0
+		g.RotateTurret(0.005 * dx / g.zoomFovDepth)
+	} else if lookRight {
+		dx := -5.0
+		g.RotateTurret(0.005 * dx / g.zoomFovDepth)
 	}
 
 	if isStrafe {
