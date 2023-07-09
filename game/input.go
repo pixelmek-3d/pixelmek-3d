@@ -140,17 +140,17 @@ func (g *Game) initControls() {
 	}
 
 	keymap := input.Keymap{
-		ActionUp:    {input.KeyW, input.KeyUp, input.KeyGamepadUp, input.KeyGamepadLStickUp},
-		ActionDown:  {input.KeyS, input.KeyDown, input.KeyGamepadDown, input.KeyGamepadLStickDown},
-		ActionLeft:  {input.KeyA, input.KeyLeft, input.KeyGamepadLeft, input.KeyGamepadLStickLeft},
-		ActionRight: {input.KeyD, input.KeyRight, input.KeyGamepadRight, input.KeyGamepadLStickRight},
-		//TODO: ActionMoveAxes: {input.KeyGamepadLStickMotion},
+		ActionUp:       {input.KeyW, input.KeyUp, input.KeyGamepadUp},
+		ActionDown:     {input.KeyS, input.KeyDown, input.KeyGamepadDown},
+		ActionLeft:     {input.KeyA, input.KeyLeft, input.KeyGamepadLeft},
+		ActionRight:    {input.KeyD, input.KeyRight, input.KeyGamepadRight},
+		ActionMoveAxes: {input.KeyGamepadLStickMotion},
 
-		// ActionTurretUp:    {input.KeyGamepadRStickUp},
-		// ActionTurretDown:  {input.KeyGamepadRStickDown},
-		// ActionTurretLeft:  {input.KeyGamepadRStickLeft},
-		// ActionTurretRight: {input.KeyGamepadRStickRight},
-		ActionTurretAxes: {input.KeyGamepadRStickMotion},
+		ActionTurretUp:    {},
+		ActionTurretDown:  {},
+		ActionTurretLeft:  {},
+		ActionTurretRight: {},
+		ActionTurretAxes:  {input.KeyGamepadRStickMotion},
 
 		ActionMenu: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart},
 		ActionBack: {input.KeyEscape, input.KeyGamepadBack},
@@ -242,11 +242,34 @@ func (g *Game) handleInput() {
 	// } else if inpututil.IsKeyJustReleased(ebiten.KeyAlt) {
 	// 	if g.mouseMode == MouseModeBody {
 	// 		g.mouseMode = MouseModeTurret
-
 	// 		// reset relative heading target when no longer using mouse turn
 	// 		g.player.SetTargetRelativeHeading(0)
 	// 	}
 	// }
+	// switch g.mouseMode {
+	// case MouseModeBody:
+	// 	x, y := ebiten.CursorPosition()
+	// 	switch {
+	// 	case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
+	// 		// initialize first position to establish delta
+	// 		if x != 0 && y != 0 {
+	// 			g.mouseX, g.mouseY = x, y
+	// 		}
+	// 	default:
+	// 		dx, dy := g.mouseX-x, g.mouseY-y
+	// 		g.mouseX, g.mouseY = x, y
+	// 		if dx != 0 {
+	// 			turnAmount := 0.01 * float64(dx) / g.zoomFovDepth
+	// 			g.player.SetTargetRelativeHeading(turnAmount)
+	// 		} else {
+	// 			// reset relative heading target when mouse stops
+	// 			g.player.SetTargetRelativeHeading(0)
+	// 		}
+	// 		if dy != 0 {
+	// 			g.Pitch(0.005 * float64(dy) / g.zoomFovDepth)
+	// 		}
+	// 	}
+	// case MouseModeTurret:
 
 	if (g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody) && ebiten.CursorMode() != ebiten.CursorModeCaptured {
 		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
@@ -255,145 +278,141 @@ func (g *Game) handleInput() {
 		g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 	}
 
-	switch g.mouseMode {
-	case MouseModeBody:
-		x, y := ebiten.CursorPosition()
+	var moveDx, moveDy float64
+	var turretDx, turretDy float64
+	cursorX, cursorY := ebiten.CursorPosition()
 
-		switch {
-		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
-			// initialize first position to establish delta
-			if x != 0 && y != 0 {
-				g.mouseX, g.mouseY = x, y
-			}
-
-		default:
-			dx, dy := g.mouseX-x, g.mouseY-y
-			g.mouseX, g.mouseY = x, y
-
-			if dx != 0 {
-				turnAmount := 0.01 * float64(dx) / g.zoomFovDepth
-				g.player.SetTargetRelativeHeading(turnAmount)
-			} else {
-				// reset relative heading target when mouse stops
-				g.player.SetTargetRelativeHeading(0)
-			}
-
-			if dy != 0 {
-				g.Pitch(0.005 * float64(dy) / g.zoomFovDepth)
-			}
+	if moveAxes, ok := g.input.PressedActionInfo(ActionMoveAxes); ok {
+		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
+		if math.Abs(moveAxes.Pos.X) >= 0.2 {
+			moveDx = 10 * -moveAxes.Pos.X
 		}
-	case MouseModeTurret:
-		x, y := ebiten.CursorPosition()
+		if math.Abs(moveAxes.Pos.Y) >= 0.2 {
+			moveDy = 5 * -moveAxes.Pos.Y
+		}
+	} // else {
+	// TODO: handle mouse mode body
+	//}
 
+	if moveDx != 0 {
+		turnAmount := 0.01 * float64(moveDx) / g.zoomFovDepth
+		g.player.SetTargetRelativeHeading(turnAmount)
+	} else {
+		if !g.player.HasTurret() {
+			// reset relative heading target when mouse stops
+			g.player.SetTargetRelativeHeading(0)
+		}
+	}
+	// if moveDy != 0 {
+	// handled in throttle section below
+	// }
+
+	if turretAxes, ok := g.input.PressedActionInfo(ActionTurretAxes); ok {
+		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
+		if math.Abs(turretAxes.Pos.X) >= 0.2 {
+			turretDx = 10 * -turretAxes.Pos.X
+		}
+		if math.Abs(turretAxes.Pos.Y) >= 0.2 {
+			turretDy = 5 * -turretAxes.Pos.Y
+		}
+	} else {
+		// handle mouse mode turret
 		switch {
 		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
 			// initialize first position to establish delta
-			if x != 0 && y != 0 {
-				g.mouseX, g.mouseY = x, y
+			if cursorX != 0 && cursorY != 0 {
+				g.mouseX, g.mouseY = cursorX, cursorY
 			}
 
 		default:
-			dx, dy := float64(g.mouseX-x), float64(g.mouseY-y)
-			g.mouseX, g.mouseY = x, y
+			turretDx, turretDy = float64(g.mouseX-cursorX), float64(g.mouseY-cursorY)
+			g.mouseX, g.mouseY = cursorX, cursorY
+		}
+	}
 
-			if info, ok := g.input.PressedActionInfo(ActionTurretAxes); ok {
-				// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
-				if math.Abs(info.Pos.X) >= 0.2 {
-					dx += 10 * -info.Pos.X
-				}
-				if math.Abs(info.Pos.Y) >= 0.2 {
-					dy += 5 * -info.Pos.Y
+	if turretDx != 0 {
+		if g.player.HasTurret() {
+			g.RotateTurret(0.005 * turretDx / g.zoomFovDepth)
+		} else {
+			turnAmount := 0.01 * turretDx / g.zoomFovDepth
+			g.player.SetTargetRelativeHeading(turnAmount)
+		}
+	} else {
+		if !g.player.HasTurret() {
+			// reset relative heading target when mouse stops
+			g.player.SetTargetRelativeHeading(0)
+		}
+	}
+	if turretDy != 0 {
+		g.Pitch(0.005 * turretDy)
+	}
+
+	if g.input.ActionIsPressed(ActionWeaponFire) {
+		g.holdInputAction(ActionWeaponFire)
+		g.fireWeapon()
+	} else {
+		g.releaseInputAction(ActionWeaponFire)
+	}
+
+	isFireButtonJustReleased := g.isInputActionJustReleased(ActionWeaponFire)
+	if isFireButtonJustReleased {
+		if g.player.fireMode == model.CHAIN_FIRE {
+			// cycle to next weapon only in same group (g.player.selectedGroup)
+			prevWeapon := g.player.Armament()[g.player.selectedWeapon]
+			groupWeapons := g.player.weaponGroups[g.player.selectedGroup]
+
+			var nextWeapon model.Weapon
+			nextIndex := 0
+			for i, w := range groupWeapons {
+				if w == prevWeapon {
+					nextIndex = i + 1
+					break
 				}
 			}
-
-			if dx != 0 {
-				if g.player.HasTurret() {
-					g.RotateTurret(0.005 * dx / g.zoomFovDepth)
-				} else {
-					turnAmount := 0.01 * dx / g.zoomFovDepth
-					g.player.SetTargetRelativeHeading(turnAmount)
-				}
-			} else {
-				if !g.player.HasTurret() {
-					// reset relative heading target when mouse stops
-					g.player.SetTargetRelativeHeading(0)
-				}
+			if nextIndex >= len(groupWeapons) {
+				nextIndex = 0
 			}
+			nextWeapon = groupWeapons[nextIndex]
 
-			if dy != 0 {
-				g.Pitch(0.005 * dy)
+			for i, w := range g.player.Armament() {
+				if w == nextWeapon {
+					g.player.selectedWeapon = uint(i)
+					break
+				}
 			}
 		}
 	}
 
-	if g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody {
-		if g.input.ActionIsPressed(ActionWeaponFire) {
-			g.holdInputAction(ActionWeaponFire)
-			g.fireWeapon()
-		} else {
-			g.releaseInputAction(ActionWeaponFire)
-		}
-
-		isMouseButtonJustReleased := g.isInputActionJustReleased(ActionWeaponFire)
-		if isMouseButtonJustReleased {
-			if g.player.fireMode == model.CHAIN_FIRE {
-				// cycle to next weapon only in same group (g.player.selectedGroup)
-				prevWeapon := g.player.Armament()[g.player.selectedWeapon]
-				groupWeapons := g.player.weaponGroups[g.player.selectedGroup]
-
-				var nextWeapon model.Weapon
-				nextIndex := 0
-				for i, w := range groupWeapons {
-					if w == prevWeapon {
-						nextIndex = i + 1
-						break
-					}
-				}
-				if nextIndex >= len(groupWeapons) {
-					nextIndex = 0
-				}
-				nextWeapon = groupWeapons[nextIndex]
-
-				for i, w := range g.player.Armament() {
-					if w == nextWeapon {
-						g.player.selectedWeapon = uint(i)
-						break
-					}
-				}
+	if g.input.ActionIsJustPressed(ActionWeaponCycle) {
+		if g.player.fireMode == model.GROUP_FIRE {
+			g.player.selectedGroup++
+			if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
+				g.player.selectedGroup = 0
 			}
-		}
 
-		if g.input.ActionIsJustPressed(ActionWeaponCycle) {
-			if g.player.fireMode == model.GROUP_FIRE {
+			// set next selectedGroup only if >0 weapons in it
+			weaponsInGroup := len(g.player.weaponGroups[g.player.selectedGroup])
+			for weaponsInGroup == 0 {
 				g.player.selectedGroup++
 				if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
 					g.player.selectedGroup = 0
 				}
+				weaponsInGroup = len(g.player.weaponGroups[g.player.selectedGroup])
+			}
 
-				// set next selectedGroup only if >0 weapons in it
-				weaponsInGroup := len(g.player.weaponGroups[g.player.selectedGroup])
-				for weaponsInGroup == 0 {
-					g.player.selectedGroup++
-					if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
-						g.player.selectedGroup = 0
-					}
-					weaponsInGroup = len(g.player.weaponGroups[g.player.selectedGroup])
-				}
+		} else if g.player.fireMode == model.CHAIN_FIRE {
+			g.player.selectedWeapon++
+			if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
+				g.player.selectedWeapon = 0
+			}
 
-			} else if g.player.fireMode == model.CHAIN_FIRE {
-				g.player.selectedWeapon++
-				if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
-					g.player.selectedWeapon = 0
-				}
-
-				// set selectedGroup if the newly selected weapon is in different group
-				newSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
-				groups := model.GetGroupsForWeapon(newSelectedWeapon, g.player.weaponGroups)
-				if len(groups) == 0 {
-					g.player.selectedGroup = 0
-				} else {
-					g.player.selectedGroup = groups[0]
-				}
+			// set selectedGroup if the newly selected weapon is in different group
+			newSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
+			groups := model.GetGroupsForWeapon(newSelectedWeapon, g.player.weaponGroups)
+			if len(groups) == 0 {
+				g.player.selectedGroup = 0
+			} else {
+				g.player.selectedGroup = groups[0]
 			}
 		}
 	}
@@ -610,10 +629,10 @@ func (g *Game) handleInput() {
 		rotRight = true
 	}
 
-	if g.input.ActionIsPressed(ActionUp) {
+	if g.input.ActionIsPressed(ActionUp) || moveDy >= 0.2 {
 		forward = true
 	}
-	if g.input.ActionIsPressed(ActionDown) {
+	if g.input.ActionIsPressed(ActionDown) || moveDy <= -0.2 {
 		backward = true
 	}
 
@@ -632,12 +651,15 @@ func (g *Game) handleInput() {
 		}
 	case false:
 		deltaV := 0.0004 // FIXME: testing
-		if forward {
+		if math.Abs(moveDy) >= 0.2 {
+			deltaV *= math.Abs(moveDy)
+		}
+		if stop {
+			g.player.SetTargetVelocity(0)
+		} else if forward {
 			g.player.SetTargetVelocity(g.player.TargetVelocity() + deltaV)
 		} else if backward {
 			g.player.SetTargetVelocity(g.player.TargetVelocity() - deltaV)
-		} else if stop {
-			g.player.SetTargetVelocity(0)
 		}
 	}
 
