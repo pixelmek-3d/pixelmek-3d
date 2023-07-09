@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	input "github.com/quasilyte/ebitengine-input"
-	log "github.com/sirupsen/logrus"
 )
 
 type MouseMode int
@@ -147,11 +146,11 @@ func (g *Game) initControls() {
 		ActionRight: {input.KeyD, input.KeyRight, input.KeyGamepadRight, input.KeyGamepadLStickRight},
 		//TODO: ActionMoveAxes: {input.KeyGamepadLStickMotion},
 
-		ActionTurretUp:    {input.KeyGamepadRStickUp},
-		ActionTurretDown:  {input.KeyGamepadRStickDown},
-		ActionTurretLeft:  {input.KeyGamepadRStickLeft},
-		ActionTurretRight: {input.KeyGamepadRStickRight},
-		//TODO: ActionTurretAxes: {input.KeyGamepadRStickMotion},
+		// ActionTurretUp:    {input.KeyGamepadRStickUp},
+		// ActionTurretDown:  {input.KeyGamepadRStickDown},
+		// ActionTurretLeft:  {input.KeyGamepadRStickLeft},
+		// ActionTurretRight: {input.KeyGamepadRStickRight},
+		ActionTurretAxes: {input.KeyGamepadRStickMotion},
 
 		ActionMenu: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart},
 		ActionBack: {input.KeyEscape, input.KeyGamepadBack},
@@ -294,18 +293,24 @@ func (g *Game) handleInput() {
 			}
 
 		default:
-			dx, dy := g.mouseX-x, g.mouseY-y
+			dx, dy := float64(g.mouseX-x), float64(g.mouseY-y)
 			g.mouseX, g.mouseY = x, y
 
 			if info, ok := g.input.PressedActionInfo(ActionTurretAxes); ok {
-				log.Debugf("%v\n", info.Pos)
+				// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
+				if math.Abs(info.Pos.X) >= 0.2 {
+					dx += 10 * -info.Pos.X
+				}
+				if math.Abs(info.Pos.Y) >= 0.2 {
+					dy += 5 * -info.Pos.Y
+				}
 			}
 
 			if dx != 0 {
 				if g.player.HasTurret() {
-					g.RotateTurret(0.005 * float64(dx) / g.zoomFovDepth)
+					g.RotateTurret(0.005 * dx / g.zoomFovDepth)
 				} else {
-					turnAmount := 0.01 * float64(dx) / g.zoomFovDepth
+					turnAmount := 0.01 * dx / g.zoomFovDepth
 					g.player.SetTargetRelativeHeading(turnAmount)
 				}
 			} else {
@@ -316,7 +321,7 @@ func (g *Game) handleInput() {
 			}
 
 			if dy != 0 {
-				g.Pitch(0.005 * float64(dy))
+				g.Pitch(0.005 * dy)
 			}
 		}
 	}
