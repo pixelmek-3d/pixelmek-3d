@@ -140,10 +140,10 @@ func (g *Game) initControls() {
 	}
 
 	keymap := input.Keymap{
-		ActionUp:       {input.KeyW, input.KeyUp, input.KeyGamepadUp},
-		ActionDown:     {input.KeyS, input.KeyDown, input.KeyGamepadDown},
-		ActionLeft:     {input.KeyA, input.KeyLeft, input.KeyGamepadLeft},
-		ActionRight:    {input.KeyD, input.KeyRight, input.KeyGamepadRight},
+		ActionUp:       {input.KeyW, input.KeyUp},
+		ActionDown:     {input.KeyS, input.KeyDown},
+		ActionLeft:     {input.KeyA, input.KeyLeft},
+		ActionRight:    {input.KeyD, input.KeyRight},
 		ActionMoveAxes: {input.KeyGamepadLStickMotion},
 
 		ActionTurretUp:    {},
@@ -156,24 +156,24 @@ func (g *Game) initControls() {
 		ActionBack: {input.KeyEscape, input.KeyGamepadBack},
 
 		ActionThrottleReverse: {input.KeyBackspace},
-		ActionThrottle0:       {input.KeyX, input.KeyGamepadLStick},
-		ActionJumpJet:         {input.KeySpace},
+		ActionThrottle0:       {input.KeyX},
+		ActionJumpJet:         {input.KeySpace, input.KeyGamepadLStick},
 		ActionDescend:         {input.KeyControl},
 
 		ActionWeaponFire:             {input.KeyMouseLeft, input.KeyGamepadR2},
-		ActionWeaponCycle:            {input.KeyMouseRight, input.KeyGamepadL2},
-		ActionWeaponGroupFireToggle:  {input.KeyBackspace},
+		ActionWeaponCycle:            {input.KeyMouseRight, input.KeyGamepadR1},
+		ActionWeaponGroupFireToggle:  {input.KeyBackspace, input.KeyGamepadY},
 		ActionWeaponGroupSetModifier: {input.KeyShift},
 		ActionWeaponGroup1:           {input.Key1},
 		ActionWeaponGroup2:           {input.Key2},
 		ActionWeaponGroup3:           {input.Key3},
 
-		ActionNavCycle:         {input.KeyN},
-		ActionTargetCrosshairs: {input.KeyQ},
-		ActionTargetNearest:    {input.KeyE},
-		ActionTargetNext:       {input.KeyT},
-		ActionTargetPrevious:   {input.KeyR},
-		ActionZoomToggle:       {input.KeyZ},
+		ActionNavCycle:         {input.KeyN, input.KeyGamepadDown},
+		ActionTargetCrosshairs: {input.KeyQ, input.KeyGamepadL2},
+		ActionTargetNearest:    {input.KeyE, input.KeyGamepadUp},
+		ActionTargetNext:       {input.KeyT, input.KeyGamepadRight},
+		ActionTargetPrevious:   {input.KeyR, input.KeyGamepadLeft},
+		ActionZoomToggle:       {input.KeyZ, input.KeyGamepadRStick},
 	}
 
 	g.inputSystem.Init(input.SystemConfig{
@@ -570,6 +570,7 @@ func (g *Game) handleInput() {
 	}
 
 	if g.input.ActionIsPressed(ActionJumpJet) {
+		// TODO: add jump jet toggle option
 		switch {
 		case isVTOL:
 			// TODO: use unit tonnage and gravity to determine ascent speed
