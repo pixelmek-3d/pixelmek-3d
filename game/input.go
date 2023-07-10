@@ -1,13 +1,20 @@
 package game
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
+	"os"
+	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/pixelmek-3d/game/resources"
 	input "github.com/quasilyte/ebitengine-input"
+	log "github.com/sirupsen/logrus"
+	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 type MouseMode int
@@ -130,15 +137,32 @@ func actionString(a input.Action) string {
 }
 
 func (g *Game) initControls() {
-	// TODO: read keymap config from viper
-	// https://github.com/quasilyte/ebitengine-input/blob/master/_examples/configfile/main.go
-
 	// Build a reverse index to get an action by its name
 	stringToAction = map[string]input.Action{}
 	for a := ActionUnknown + 1; a < actionCount; a++ {
 		stringToAction[actionString(a)] = a
 	}
 
+	// import from keymap file if exists
+	var keymap input.Keymap
+	if _, err := os.Stat(resources.UserKeymapFile); err == nil {
+		keymap, err = g.restoreControls()
+		if err != nil {
+			panic(fmt.Errorf("error loading keymap file %s: %v", resources.UserKeymapFile, err))
+		}
+	}
+
+	if len(keymap) == 0 {
+		// first time intitialize defaults into file
+		g.setDefaultControls()
+		g.saveControls()
+	}
+
+	// temporary input action holder to know when an action is just released
+	g.inputHeld = make(map[input.Action]bool, 8)
+}
+
+func (g *Game) setDefaultControls() {
 	keymap := input.Keymap{
 		ActionUp:       {input.KeyW, input.KeyUp},
 		ActionDown:     {input.KeyS, input.KeyDown},
@@ -180,9 +204,103 @@ func (g *Game) initControls() {
 		DevicesEnabled: input.AnyDevice,
 	})
 	g.input = g.inputSystem.NewHandler(0, keymap)
+}
 
-	// temporary input action holder to know when an action is just released
-	g.inputHeld = make(map[input.Action]bool, 8)
+func (g *Game) restoreControls() (input.Keymap, error) {
+	log.Debug("restoring keymap file ", resources.UserKeymapFile)
+	keymap := input.Keymap{}
+
+	keymapFile, err := os.Open(resources.UserKeymapFile)
+	if err != nil {
+		log.Error(err)
+		return keymap, err
+	}
+	defer keymapFile.Close()
+
+	fileBytes, err := io.ReadAll(keymapFile)
+	if err != nil {
+		log.Error(err)
+		return keymap, err
+	}
+
+	if len(fileBytes) == 0 {
+		// caller expected to handle empty keymap without error
+		return keymap, nil
+	}
+
+	var keymapConfig map[string][]string
+	err = json.Unmarshal(fileBytes, &keymapConfig)
+	if err != nil {
+		log.Error(err)
+		return keymap, err
+	}
+
+	// Parse our config file into a keymap object.
+	var actionErrorString string
+
+	for actionName, keyNames := range keymapConfig {
+		a := stringAction(actionName)
+		if a == ActionUnknown {
+			actionErrorString += fmt.Sprintf("unexpected action name: %s\n", actionName)
+		}
+		keys := make([]input.Key, len(keyNames))
+		for i, keyString := range keyNames {
+			k, err := input.ParseKey(keyString)
+			if err != nil {
+				actionErrorString += err.Error() + "\n"
+			}
+			keys[i] = k
+		}
+		keymap[a] = keys
+	}
+
+	if len(actionErrorString) > 0 {
+		err = fmt.Errorf(actionErrorString)
+		log.Error(err)
+		return keymap, err
+	}
+
+	g.inputSystem.Init(input.SystemConfig{
+		DevicesEnabled: input.AnyDevice,
+	})
+	g.input = g.inputSystem.NewHandler(0, keymap)
+
+	return keymap, nil
+}
+
+func (g *Game) saveControls() error {
+	log.Debug("saving keymap file ", resources.UserKeymapFile)
+
+	userConfigPath := filepath.Dir(resources.UserKeymapFile)
+	if _, err := os.Stat(userConfigPath); os.IsNotExist(err) {
+		err = os.MkdirAll(userConfigPath, os.ModePerm)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+	}
+
+	keymapFile, err := os.Create(resources.UserKeymapFile)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	defer keymapFile.Close()
+
+	// first time intitialize defaults into file
+	keymapConfig := orderedmap.New[string, []string]()
+	for a := ActionUnknown + 1; a < actionCount; a++ {
+		actionKey := actionString(a)
+		keymapConfig.Set(actionKey, g.input.ActionKeyNames(a, input.AnyDevice))
+	}
+	keymapJson, _ := json.MarshalIndent(keymapConfig, "", "    ")
+	_, err = io.WriteString(keymapFile, string(keymapJson))
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 func (g *Game) holdInputAction(a input.Action) {

@@ -3,22 +3,26 @@ module github.com/harbdog/pixelmek-3d
 go 1.19
 
 require (
-	github.com/ebitenui/ebitenui v0.5.3
+	github.com/ebitenui/ebitenui v0.5.4
 	github.com/go-playground/validator/v10 v10.13.0
-	github.com/hajimehoshi/ebiten/v2 v2.5.4
+	github.com/hajimehoshi/ebiten/v2 v2.5.5
 	github.com/harbdog/raycaster-go v1.9.0
 	github.com/jinzhu/copier v0.3.5
-	github.com/quasilyte/ebitengine-input v0.8.1-0.20230305210228-d7b1f165d452
+	github.com/quasilyte/ebitengine-input v0.8.1-0.20230613094547-2655c8a1956c
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
 	github.com/tinne26/etxt v0.0.8
+	github.com/wk8/go-ordered-map/v2 v2.1.8
 	golang.org/x/image v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/quasilyte/gmath v0.0.0-20221217210116-fba37a2e15c7 // indirect
-	golang.org/x/exp/shiny v0.0.0-20230510235704-dd950f8aeaea // indirect
+	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1 // indirect
 )
 
 require (

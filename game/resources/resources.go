@@ -23,6 +23,7 @@ import (
 
 var (
 	UserConfigFile string
+	UserKeymapFile string
 
 	//go:embed fonts maps menu missions shaders sprites textures units weapons
 	embedded          embed.FS
@@ -42,6 +43,7 @@ func init() {
 	}
 	userConfigPath += "/.pixelmek-3d"
 	UserConfigFile = userConfigPath + "/config.json"
+	UserKeymapFile = userConfigPath + "/keymap.json"
 
 	viper.AddConfigPath(userConfigPath)
 
