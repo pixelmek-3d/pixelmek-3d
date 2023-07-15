@@ -186,7 +186,7 @@ func (g *Game) setDefaultControls() {
 
 		ActionWeaponFire:             {input.KeyMouseLeft, input.KeyGamepadR2},
 		ActionWeaponCycle:            {input.KeyMouseRight, input.KeyGamepadR1},
-		ActionWeaponGroupFireToggle:  {input.KeyBackspace, input.KeyGamepadY},
+		ActionWeaponGroupFireToggle:  {input.KeySlash, input.KeyGamepadY},
 		ActionWeaponGroupSetModifier: {input.KeyShift},
 		ActionWeaponGroup1:           {input.Key1},
 		ActionWeaponGroup2:           {input.Key2},

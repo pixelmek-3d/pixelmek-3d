@@ -10,10 +10,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type StrideDirection uint
+
+const (
+	StrideUp StrideDirection = iota
+	StrideDown
+)
+
 type Player struct {
 	model.Unit
 	sprite              *render.Sprite
 	cameraZ             float64
+	strideDir           StrideDirection
+	strideZ             float64
 	moved               bool
 	convergenceDistance float64
 	convergencePoint    *geom3d.Vector3
@@ -54,38 +63,8 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 }
 
 func (p *Player) SetPosZ(z float64) {
-	p.cameraZ = z + p.Unit.CockpitOffset().Y // TODO: support cockpit offset in sprite X direction
+	p.cameraZ = z + p.strideZ + p.Unit.CockpitOffset().Y // TODO: support cockpit offset in sprite X direction
 	p.Unit.SetPosZ(z)
-}
-
-func (g *Game) setPlayerUnitFromResourceFile(resourceType, resourceFile string) model.Unit {
-	var unit model.Unit
-
-	switch resourceType {
-	case model.MechResourceType:
-		unit = g.createModelMech(resourceFile)
-
-	case model.VehicleResourceType:
-		unit = g.createModelVehicle(resourceFile)
-
-	case model.VTOLResourceType:
-		unit = g.createModelVTOL(resourceFile)
-
-	case model.InfantryResourceType:
-		unit = g.createModelInfantry(resourceFile)
-
-	default:
-		log.Fatalf("unable to set player unit, resource type %s not handled", resourceType)
-		return nil
-	}
-
-	if unit == nil {
-		log.Fatalf("unable to set player unit, resource does not exist %s/%s", resourceType, resourceFile)
-		return nil
-	}
-
-	g.SetPlayerUnit(unit)
-	return unit
 }
 
 func (g *Game) SetPlayerUnit(unit model.Unit) {
@@ -130,4 +109,64 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 	} else {
 		g.mouseMode = MouseModeBody
 	}
+}
+
+func (p *Player) Update() bool {
+	// handle player specific updates such as camera bobbing from movement
+	switch p.Unit.(type) {
+	case *model.Mech:
+		resource := p.Unit.(*model.Mech).Resource
+		// TODO: cap stride height for really tall mechs (or generally slower mechs?)
+		maxStrideHeight := 0.1 * resource.Height / model.METERS_PER_UNIT // TODO: calculate this once on init
+		velocity := p.Velocity()
+		velocityMult := velocity / p.MaxVelocity()
+
+		// TODO: handle stride effects from gravity != 1.0
+
+		if p.PosZ() > 0 {
+			if p.JumpJetsActive() {
+				// jump jets on, settle view down to 0
+				p.strideDir = StrideDown
+			} else {
+				// jump jets off, raise view due so when it hits ground gets effect going back to 0
+				p.strideDir = StrideUp
+			}
+		} else {
+
+			if velocity == 0 {
+				p.strideDir = StrideDown
+			} else {
+				// cap stride height based on current velocity
+				maxStrideHeight = (maxStrideHeight / 2) + velocityMult*(maxStrideHeight/2)
+			}
+		}
+
+		// set stride delta based on current velocity and max stride height
+		strideSeconds := 0.5 / velocityMult
+		strideDelta := (2 * maxStrideHeight) / (strideSeconds * model.TICKS_PER_SECOND)
+
+		// update player stride camera offset
+		switch p.strideDir {
+		case StrideUp:
+			p.strideZ += strideDelta
+		case StrideDown:
+			p.strideZ -= strideDelta
+		}
+
+		// cap stride height effect on camera
+		if p.strideZ > maxStrideHeight {
+			p.strideZ = maxStrideHeight
+			if p.PosZ() == 0 {
+				p.strideDir = StrideDown
+			}
+		}
+		if p.strideZ < 0 {
+			p.strideZ = 0
+			if p.PosZ() == 0 && velocity > 0 {
+				p.strideDir = StrideUp
+			}
+		}
+	}
+
+	return p.Unit.Update()
 }
