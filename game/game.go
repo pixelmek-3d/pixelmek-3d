@@ -14,8 +14,11 @@ import (
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/solarlune/resound"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 
@@ -183,6 +186,21 @@ func NewGame() *Game {
 
 	// setup initial scene
 	g.scene = NewIntroScene(g)
+
+	// testing audio
+	audio.NewContext(resources.SampleRate)
+	dsp := resound.NewDSPChannel()
+	dsp.Add("volume", resound.NewVolume(nil))
+	stream, length, err := resources.NewAudioStreamFromFile("audio/music/soundflakes_crossing-horizon.mp3")
+	if err != nil {
+		log.Error("Error loading music:")
+		log.Error(err)
+	}
+	bgm := audio.NewInfiniteLoop(stream, length)
+	vol := resound.NewVolume(bgm).SetStrength(0.7)
+	player := dsp.CreatePlayer(vol)
+	player.SetBufferSize(time.Millisecond * 100)
+	player.Play()
 
 	return g
 }

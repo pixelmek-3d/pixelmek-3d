@@ -20,8 +20,13 @@ require (
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
+	github.com/hajimehoshi/oto/v2 v2.4.0 // indirect
+	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
+	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/quasilyte/gmath v0.0.0-20221217210116-fba37a2e15c7 // indirect
+	github.com/tanema/gween v0.0.0-20220318192052-2db1c2d931bd // indirect
 	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1 // indirect
 )
 
@@ -38,6 +43,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
+	github.com/solarlune/resound v0.0.0-20230523165158-84c79670585c
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

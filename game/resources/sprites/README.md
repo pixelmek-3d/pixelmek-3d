@@ -14,8 +14,8 @@
 - `missile_impact`: "helpcomputer"
   - https://opengameart.org/content/explosions-2
 
-* `ppc_impact`: "Skorpio"
-  * https://opengameart.org/content/sci-fi-effects
+- `ppc_impact`: "Skorpio"
+  - https://opengameart.org/content/sci-fi-effects
 
 ## ./hud
 
