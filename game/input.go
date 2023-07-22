@@ -479,23 +479,27 @@ func (g *Game) handleInput() {
 			prevWeapon := g.player.Armament()[g.player.selectedWeapon]
 			groupWeapons := g.player.weaponGroups[g.player.selectedGroup]
 
-			var nextWeapon model.Weapon
-			nextIndex := 0
-			for i, w := range groupWeapons {
-				if w == prevWeapon {
-					nextIndex = i + 1
-					break
+			if len(groupWeapons) == 0 {
+				g.player.selectedWeapon = 0
+			} else {
+				var nextWeapon model.Weapon
+				nextIndex := 0
+				for i, w := range groupWeapons {
+					if w == prevWeapon {
+						nextIndex = i + 1
+						break
+					}
 				}
-			}
-			if nextIndex >= len(groupWeapons) {
-				nextIndex = 0
-			}
-			nextWeapon = groupWeapons[nextIndex]
+				if nextIndex >= len(groupWeapons) {
+					nextIndex = 0
+				}
+				nextWeapon = groupWeapons[nextIndex]
 
-			for i, w := range g.player.Armament() {
-				if w == nextWeapon {
-					g.player.selectedWeapon = uint(i)
-					break
+				for i, w := range g.player.Armament() {
+					if w == nextWeapon {
+						g.player.selectedWeapon = uint(i)
+						break
+					}
 				}
 			}
 		}
