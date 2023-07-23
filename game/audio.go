@@ -16,9 +16,16 @@ var (
 )
 
 type AudioHandler struct {
-	bgmChannel *resound.DSPChannel
-	bgmPlayer  *resound.DSPPlayer
+	bgm *BGMHandler
+	sfx *SFXHandler
+}
 
+type BGMHandler struct {
+	channel *resound.DSPChannel
+	player  *resound.DSPPlayer
+}
+
+type SFXHandler struct {
 	engineChannel *resound.DSPChannel
 	enginePlayer  *resound.DSPPlayer
 }
@@ -29,14 +36,16 @@ func init() {
 
 func NewAudioHandler() *AudioHandler {
 	a := &AudioHandler{}
-	a.bgmChannel = resound.NewDSPChannel()
-	a.engineChannel = resound.NewDSPChannel()
 
-	a.bgmChannel.Add("volume", resound.NewVolume(nil))
+	a.bgm = &BGMHandler{}
+	a.bgm.channel = resound.NewDSPChannel()
+	a.bgm.channel.Add("volume", resound.NewVolume(nil))
 	a.SetMusicVolume(bgmVolume)
 
-	a.engineChannel.Add("volume", resound.NewVolume(nil))
-	a.SetMusicVolume(sfxVolume)
+	a.sfx = &SFXHandler{}
+	a.sfx.engineChannel = resound.NewDSPChannel()
+	a.sfx.engineChannel.Add("volume", resound.NewVolume(nil))
+	a.SetSFXVolume(sfxVolume)
 
 	return a
 }
@@ -47,46 +56,101 @@ func (a *AudioHandler) MusicVolume() float64 {
 
 func (a *AudioHandler) SetMusicVolume(strength float64) {
 	bgmVolume = strength
-	v := a.bgmChannel.Effects["volume"].(*resound.Volume)
+	v := a.bgm.channel.Effects["volume"].(*resound.Volume)
 	v.SetStrength(bgmVolume)
 }
 
-func (a *AudioHandler) PlayMusicFromFile(path string) {
-	if a.bgmPlayer != nil {
-		a.bgmPlayer.Close()
+func (a *AudioHandler) SFXVolume() float64 {
+	return sfxVolume
+}
+
+func (a *AudioHandler) SetSFXVolume(strength float64) {
+	sfxVolume = strength
+	v := a.sfx.engineChannel.Effects["volume"].(*resound.Volume)
+	v.SetStrength(bgmVolume)
+}
+
+func (a *AudioHandler) IsMusicPlaying() bool {
+	return a.bgm.player != nil && a.bgm.player.IsPlaying()
+}
+
+func (a *AudioHandler) StopMusic() {
+	if a.bgm.player != nil {
+		a.bgm.player.Close()
+		a.bgm.player = nil
+	}
+}
+
+func (a *AudioHandler) PauseMusic() {
+	if a.bgm.player != nil && a.bgm.player.IsPlaying() {
+		a.bgm.player.Pause()
+	}
+}
+
+func (a *AudioHandler) ResumeMusic() {
+	if a.bgm.player != nil && !a.bgm.player.IsPlaying() {
+		a.bgm.player.Play()
+	}
+}
+
+func (a *AudioHandler) StopSFX() {
+	if a.sfx.enginePlayer != nil {
+		a.sfx.enginePlayer.Close()
+		a.sfx.enginePlayer = nil
+	}
+}
+
+func (a *AudioHandler) PauseSFX() {
+	if a.sfx.enginePlayer != nil && a.sfx.enginePlayer.IsPlaying() {
+		a.sfx.enginePlayer.Pause()
+	}
+}
+
+func (a *AudioHandler) ResumeSFX() {
+	if a.sfx.enginePlayer != nil && !a.sfx.enginePlayer.IsPlaying() {
+		a.sfx.enginePlayer.Play()
+	}
+}
+
+func (a *AudioHandler) StartMenuMusic() {
+	a.StartMusicFromFile("audio/music/soundflakes_crossing-horizon.mp3")
+}
+
+func (a *AudioHandler) StartMusicFromFile(path string) {
+	if a.bgm.player != nil {
+		a.StopMusic()
 	}
 
 	stream, length, err := resources.NewAudioStreamFromFile(path)
 	if err != nil {
 		log.Error("Error loading music:")
 		log.Error(err)
-		a.bgmPlayer = nil
 		return
 	}
 
 	bgm := audio.NewInfiniteLoop(stream, length)
 	vol := resound.NewVolume(bgm)
-	a.bgmPlayer = a.bgmChannel.CreatePlayer(vol)
-	a.bgmPlayer.SetBufferSize(time.Millisecond * 100)
-	a.bgmPlayer.Play()
+	a.bgm.player = a.bgm.channel.CreatePlayer(vol)
+	a.bgm.player.SetBufferSize(time.Millisecond * 100)
+	a.bgm.player.Play()
 }
 
-func (a *AudioHandler) PlayEngineAmbience() {
-	if a.enginePlayer != nil {
-		a.enginePlayer.Close()
+func (a *AudioHandler) StartEngineAmbience() {
+	if a.sfx.enginePlayer != nil {
+		a.sfx.enginePlayer.Close()
 	}
 
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
 	if err != nil {
 		log.Error("Error loading engine ambience:")
 		log.Error(err)
-		a.enginePlayer = nil
+		a.sfx.enginePlayer = nil
 		return
 	}
 
 	engAmb := audio.NewInfiniteLoop(stream, length)
 	vol := resound.NewVolume(engAmb)
-	a.enginePlayer = a.engineChannel.CreatePlayer(vol)
-	a.enginePlayer.SetBufferSize(time.Millisecond * 50)
-	a.enginePlayer.Play()
+	a.sfx.enginePlayer = a.sfx.engineChannel.CreatePlayer(vol)
+	a.sfx.enginePlayer.SetBufferSize(time.Millisecond * 50)
+	a.sfx.enginePlayer.Play()
 }

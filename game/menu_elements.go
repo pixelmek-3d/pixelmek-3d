@@ -336,6 +336,10 @@ func openExitWindow(m Menu) {
 					// save config now in case settings changes were made
 					game.saveConfig()
 
+					// stop mission music and sfx audio
+					game.audio.StopSFX()
+					game.audio.StopMusic()
+
 					// go back to main menu
 					game.scene = NewMenuScene(game)
 				}),

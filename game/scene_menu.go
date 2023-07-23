@@ -11,6 +11,10 @@ type MenuScene struct {
 }
 
 func NewMenuScene(g *Game) *MenuScene {
+	if !g.audio.IsMusicPlaying() {
+		g.audio.StartMenuMusic()
+	}
+
 	main := createMainMenu(g)
 	settings := createSettingsMenu(g)
 

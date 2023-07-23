@@ -158,7 +158,7 @@ func NewGame() *Game {
 
 	// initialize audio and background music
 	g.audio = NewAudioHandler()
-	g.audio.PlayMusicFromFile("audio/music/soundflakes_crossing-horizon.mp3")
+	g.audio.StartMenuMusic()
 
 	g.initInteractiveTypes()
 	g.initCollisionTypes()
