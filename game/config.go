@@ -38,6 +38,9 @@ const (
 	CONFIG_KEY_HUD_COLOR_B      = "hud.color.blue"
 	CONFIG_KEY_HUD_COLOR_A      = "hud.color.alpha"
 
+	CONFIG_KEY_AUDIO_BGM_VOL = "audio.bgm_volume"
+	CONFIG_KEY_AUDIO_SFX_VOL = "audio.sfx_volume"
+
 	CONFIG_KEY_CONTROL_DECAY = "controls.throttle_decay"
 )
 
@@ -76,6 +79,7 @@ func (g *Game) initConfig() {
 		viper.SetDefault(CONFIG_KEY_OPENGL, true)
 	}
 
+	// HUD defaults
 	viper.SetDefault(CONFIG_KEY_HUD_ENABLED, true)
 	viper.SetDefault(CONFIG_KEY_HUD_SCALE, 1.0)
 	viper.SetDefault(CONFIG_KEY_HUD_FONT, "pixeloid.otf")
@@ -85,6 +89,11 @@ func (g *Game) initConfig() {
 	viper.SetDefault(CONFIG_KEY_HUD_COLOR_B, 230)
 	viper.SetDefault(CONFIG_KEY_HUD_COLOR_A, 255)
 
+	// audio defaults
+	viper.SetDefault(CONFIG_KEY_AUDIO_BGM_VOL, 1.0)
+	viper.SetDefault(CONFIG_KEY_AUDIO_SFX_VOL, 1.0)
+
+	// control defaults
 	viper.SetDefault(CONFIG_KEY_CONTROL_DECAY, false)
 
 	// get config values
@@ -125,6 +134,9 @@ func (g *Game) initConfig() {
 		B: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_B)),
 		A: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_A)),
 	}
+
+	bgmVolume = viper.GetFloat64(CONFIG_KEY_AUDIO_BGM_VOL)
+	sfxVolume = viper.GetFloat64(CONFIG_KEY_AUDIO_SFX_VOL)
 
 	g.throttleDecay = viper.GetBool(CONFIG_KEY_CONTROL_DECAY)
 }
