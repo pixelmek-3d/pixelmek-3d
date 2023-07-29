@@ -151,8 +151,13 @@ func NewAudioStreamFromFile(path string) (io.ReadSeeker, int64, error) {
 	if err != nil || audioBytes == nil {
 		return nil, 0, err
 	}
+	return NewAudioStream(audioBytes, path)
+}
+
+func NewAudioStream(audioBytes []byte, path string) (io.ReadSeeker, int64, error) {
 	reader := bytes.NewReader(audioBytes)
 
+	var err error
 	switch {
 	case strings.HasSuffix(path, ".mp3"):
 		stream, err := mp3.DecodeWithSampleRate(SampleRate, reader)
@@ -165,6 +170,7 @@ func NewAudioStreamFromFile(path string) (io.ReadSeeker, int64, error) {
 	}
 
 	return nil, 0, err
+
 }
 
 func NewShaderFromFile(path string) (*ebiten.Shader, error) {

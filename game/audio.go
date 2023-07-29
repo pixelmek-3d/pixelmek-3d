@@ -23,12 +23,13 @@ const (
 var (
 	bgmVolume   float64
 	sfxVolume   float64
-	sfxChannels int = 8 // TODO: improve channel reuse and then make this a config setting
+	sfxChannels int = 16 // TODO: improve channel performance and make this a config setting
 )
 
 type AudioHandler struct {
-	bgm *BGMHandler
-	sfx *SFXHandler
+	bgm    *BGMHandler
+	sfx    *SFXHandler
+	sfxMap map[string][]byte
 }
 
 type BGMHandler struct {
@@ -59,6 +60,7 @@ func NewAudioHandler() *AudioHandler {
 	a.bgm.channel.Add("volume", resound.NewVolume(nil))
 	a.SetMusicVolume(bgmVolume)
 
+	a.sfxMap = make(map[string][]byte, 128)
 	a.sfx = &SFXHandler{}
 	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
 	// engine audio source file setup later since it is a looping ambient source
@@ -132,6 +134,14 @@ func (s *SFXSource) SetSourceVolume(sourceVolume float64) {
 	s.UpdateVolume()
 }
 
+func (s *SFXSource) SetPan(panPercent float64) {
+	if pan, ok := s.channel.Effects["pan"].(*resound.Pan); ok {
+		pan.SetPan(panPercent)
+	} else {
+		s.channel.Add("pan", resound.NewPan(nil).SetPan(panPercent))
+	}
+}
+
 func (s *SFXSource) Play() {
 	if s.player != nil {
 		s.channel.Active = true
@@ -148,14 +158,6 @@ func (s *SFXSource) Close() {
 	s.channel.Active = false
 }
 
-func (s *SFXSource) SetPan(panPercent float64) {
-	if pan, ok := s.channel.Effects["pan"].(*resound.Pan); ok {
-		pan.SetPan(panPercent)
-	} else {
-		s.channel.Add("pan", resound.NewPan(nil).SetPan(panPercent))
-	}
-}
-
 func (a *AudioHandler) PlaySFX(sfxFile string) {
 	// get and close the lowest priority source for reuse
 	source, _ := a.sfx.extSources.Get()
@@ -165,8 +167,19 @@ func (a *AudioHandler) PlaySFX(sfxFile string) {
 		source.Close()
 	}
 
-	// TODO: after done trying stuff, cache somewhere for reuse
-	stream, _, err := resources.NewAudioStreamFromFile(sfxFile)
+	// use cache of audio if possible
+	audioBytes, found := a.sfxMap[sfxFile]
+	if !found {
+		var err error
+		audioBytes, err = resources.ReadFile(sfxFile)
+		if err != nil {
+			log.Error("Error reading sound effect file: " + sfxFile)
+			return
+		}
+		a.sfxMap[sfxFile] = audioBytes
+	}
+
+	stream, _, err := resources.NewAudioStream(audioBytes, sfxFile)
 	if err != nil {
 		log.Error("Error playing sound effect file: " + sfxFile)
 		return
@@ -232,9 +245,10 @@ func (a *AudioHandler) StopSFX() {
 	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
 			s.player.Close()
-			//s.player = nil // do not want to have to reinitialize player sources
+			//s.player = nil // do not want to have to reinitialize main sources
 		}
 	}
+	// TODO: stop extSources
 }
 
 func (a *AudioHandler) PauseSFX() {
@@ -243,6 +257,7 @@ func (a *AudioHandler) PauseSFX() {
 			s.player.Pause()
 		}
 	}
+	// TODO: pause extSources
 }
 
 func (a *AudioHandler) ResumeSFX() {
@@ -251,6 +266,7 @@ func (a *AudioHandler) ResumeSFX() {
 			s.player.Play()
 		}
 	}
+	// TODO: resume extSources
 }
 
 func (a *AudioHandler) StartMenuMusic() {
