@@ -10,6 +10,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type PlayerSource int
+
+const (
+	AUDIO_ENGINE PlayerSource = iota
+	AUDIO_STOMP
+	_AUDIO_PLAYER_SOURCE_COUNT
+)
+
 var (
 	bgmVolume float64
 	sfxVolume float64
@@ -26,8 +34,13 @@ type BGMHandler struct {
 }
 
 type SFXHandler struct {
-	engineChannel *resound.DSPChannel
-	enginePlayer  *resound.DSPPlayer
+	playerSources []*SFXSource
+}
+
+type SFXSource struct {
+	channel *resound.DSPChannel
+	player  *resound.DSPPlayer
+	volume  float64
 }
 
 func init() {
@@ -43,11 +56,29 @@ func NewAudioHandler() *AudioHandler {
 	a.SetMusicVolume(bgmVolume)
 
 	a.sfx = &SFXHandler{}
-	a.sfx.engineChannel = resound.NewDSPChannel()
-	a.sfx.engineChannel.Add("volume", resound.NewVolume(nil))
+	a.sfx.playerSources = make([]*SFXSource, _AUDIO_PLAYER_SOURCE_COUNT)
+	a.sfx.playerSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
+	a.sfx.playerSources[AUDIO_STOMP] = NewSoundEffectSource(0.6)
 	a.SetSFXVolume(sfxVolume)
 
 	return a
+}
+
+func NewSoundEffectSource(sourceVolume float64) *SFXSource {
+	s := &SFXSource{volume: sourceVolume}
+	s.channel = resound.NewDSPChannel()
+	s.channel.Add("volume", resound.NewVolume(nil).SetStrength(sourceVolume))
+	return s
+}
+
+func (s *SFXSource) UpdateVolume() {
+	v := s.channel.Effects["volume"].(*resound.Volume)
+	v.SetStrength(sfxVolume * s.volume)
+}
+
+func (s *SFXSource) SetSourceVolume(sourceVolume float64) {
+	s.volume = sourceVolume
+	s.UpdateVolume()
 }
 
 func (a *AudioHandler) MusicVolume() float64 {
@@ -66,8 +97,9 @@ func (a *AudioHandler) SFXVolume() float64 {
 
 func (a *AudioHandler) SetSFXVolume(strength float64) {
 	sfxVolume = strength
-	v := a.sfx.engineChannel.Effects["volume"].(*resound.Volume)
-	v.SetStrength(bgmVolume)
+	for _, s := range a.sfx.playerSources {
+		s.UpdateVolume()
+	}
 }
 
 func (a *AudioHandler) IsMusicPlaying() bool {
@@ -94,21 +126,27 @@ func (a *AudioHandler) ResumeMusic() {
 }
 
 func (a *AudioHandler) StopSFX() {
-	if a.sfx.enginePlayer != nil {
-		a.sfx.enginePlayer.Close()
-		a.sfx.enginePlayer = nil
+	for _, s := range a.sfx.playerSources {
+		if s.player != nil {
+			s.player.Close()
+			s.player = nil
+		}
 	}
 }
 
 func (a *AudioHandler) PauseSFX() {
-	if a.sfx.enginePlayer != nil && a.sfx.enginePlayer.IsPlaying() {
-		a.sfx.enginePlayer.Pause()
+	for _, s := range a.sfx.playerSources {
+		if s.player != nil {
+			s.player.Pause()
+		}
 	}
 }
 
 func (a *AudioHandler) ResumeSFX() {
-	if a.sfx.enginePlayer != nil && !a.sfx.enginePlayer.IsPlaying() {
-		a.sfx.enginePlayer.Play()
+	for _, s := range a.sfx.playerSources {
+		if s.player != nil {
+			s.player.Play()
+		}
 	}
 }
 
@@ -136,21 +174,22 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 }
 
 func (a *AudioHandler) StartEngineAmbience() {
-	if a.sfx.enginePlayer != nil {
-		a.sfx.enginePlayer.Close()
+	engine := a.sfx.playerSources[AUDIO_ENGINE]
+	if engine.player != nil {
+		engine.player.Close()
 	}
 
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
 	if err != nil {
 		log.Error("Error loading engine ambience:")
 		log.Error(err)
-		a.sfx.enginePlayer = nil
+		engine.player = nil
 		return
 	}
 
 	engAmb := audio.NewInfiniteLoop(stream, length)
 	vol := resound.NewVolume(engAmb)
-	a.sfx.enginePlayer = a.sfx.engineChannel.CreatePlayer(vol)
-	a.sfx.enginePlayer.SetBufferSize(time.Millisecond * 50)
-	a.sfx.enginePlayer.Play()
+	engine.player = engine.channel.CreatePlayer(vol)
+	engine.player.SetBufferSize(time.Millisecond * 50)
+	engine.player.Play()
 }
