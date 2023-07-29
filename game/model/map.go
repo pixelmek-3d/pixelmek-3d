@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"math"
-	"math/rand"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -238,7 +237,7 @@ func (m *Map) generateFillerSprites() error {
 	copier.Copy(&nSprites, &m.Sprites)
 
 	for n, fill := range m.SpriteFill {
-		rand.Seed(m.Seed + int64(n))
+		Randish.Seed(m.Seed + int64(n))
 
 		x0, y0 := float64(fill.Rect[0][0]), float64(fill.Rect[0][1])
 		x1, y1 := float64(fill.Rect[1][0]), float64(fill.Rect[1][1])

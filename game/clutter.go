@@ -1,8 +1,6 @@
 package game
 
 import (
-	"math/rand"
-
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 	"github.com/harbdog/raycaster-go"
@@ -72,7 +70,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 			c.spritesByPosition[posId] = make([]*render.Sprite, numClutter)
 
 			// use position based seed to produce consistent clutter positioning each time the coordinate is in view
-			rand.Seed(g.mission.Map().Seed + posId)
+			model.Randish.Seed(g.mission.Map().Seed + posId)
 
 			for i, clutter := range g.mission.Map().Clutter {
 				// use floorPathMatch to determine if this clutter is for this coordinate based on floor texture
@@ -80,14 +78,19 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 					continue
 				}
 
-				chanceToAppear := rand.Float64() <= clutter.Frequency
+				chanceToAppear := model.Randish.Float64() <= clutter.Frequency
 				if !chanceToAppear {
 					continue
 				}
 
 				clutterImg := g.tex.texMap[clutter.Image]
 				cSprite := render.NewSprite(
-					model.BasicVisualEntity(float64(x)+rand.Float64(), float64(y)+rand.Float64(), 0, raycaster.AnchorBottom),
+					model.BasicVisualEntity(
+						float64(x)+model.Randish.Float64(),
+						float64(y)+model.Randish.Float64(),
+						0,
+						raycaster.AnchorBottom,
+					),
 					clutter.Scale, clutterImg,
 				)
 

@@ -2,9 +2,11 @@ package model
 
 import (
 	"fmt"
+	"math/rand"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/harbdog/pixelmek-3d/game/resources"
 
@@ -28,6 +30,14 @@ const (
 	CEILING_JUMP float64 = 2.0
 	CEILING_VTOL float64 = 5.0 // TODO: set flight ceiling in map yaml
 )
+
+var (
+	Randish *rand.Rand
+)
+
+func init() {
+	Randish = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
 
 type ModelResources struct {
 	Mechs            map[string]*ModelMechResource

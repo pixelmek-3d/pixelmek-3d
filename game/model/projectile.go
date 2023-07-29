@@ -1,7 +1,6 @@
 package model
 
 import (
-	"math/rand"
 	"time"
 
 	"github.com/harbdog/raycaster-go"
@@ -54,7 +53,7 @@ func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
 	if e.lockOnOffset == nil {
 		missileWeapon, isMissile := e.weapon.(*MissileWeapon)
 		if isMissile && missileWeapon.IsLockOn() {
-			rand.Seed(time.Now().UnixNano())
+			Randish.Seed(time.Now().UnixNano())
 
 			groupRadius := missileWeapon.LockOnGroupRadius()
 			randRadius := RandFloat64In(-groupRadius, groupRadius)

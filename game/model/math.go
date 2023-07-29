@@ -2,7 +2,6 @@ package model
 
 import (
 	"math"
-	"math/rand"
 
 	"github.com/harbdog/raycaster-go/geom"
 )
@@ -14,7 +13,7 @@ func PointInProximity(distance, srcX, srcY, tgtX, tgtY float64) bool {
 }
 
 func RandFloat64In(lo, hi float64) float64 {
-	return lo + (hi-lo)*rand.Float64()
+	return lo + (hi-lo)*Randish.Float64()
 }
 
 func ClampAngle(angle float64) float64 {
