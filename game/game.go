@@ -407,8 +407,19 @@ func (g *Game) updatePlayer() {
 
 	if g.player.strideStomp {
 		// make stompy sound
-		stompy := g.audio.sfx.playerSources[AUDIO_STOMP]
-		stompy.Play()
+		switch g.player.strideStompDir {
+		case StrideStompLeft:
+			stompy := g.audio.sfx.mainSources[AUDIO_STOMP_LEFT]
+			stompy.Play()
+		case StrideStompRight:
+			stompy := g.audio.sfx.mainSources[AUDIO_STOMP_RIGHT]
+			stompy.Play()
+		case StrideStompBoth:
+			lStompy := g.audio.sfx.mainSources[AUDIO_STOMP_LEFT]
+			rStompy := g.audio.sfx.mainSources[AUDIO_STOMP_RIGHT]
+			lStompy.Play()
+			rStompy.Play()
+		}
 
 		// clear stomp flag
 		g.player.strideStomp = false

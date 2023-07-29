@@ -10,13 +10,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type PlayerSource int
+type AudioMainSource int
 
 const (
-	AUDIO_ENGINE PlayerSource = iota
-	AUDIO_STOMP
+	AUDIO_ENGINE AudioMainSource = iota
+	AUDIO_STOMP_LEFT
+	AUDIO_STOMP_RIGHT
 	AUDIO_WEAPONS
-	_AUDIO_PLAYER_SOURCE_COUNT
+	_AUDIO_MAIN_SOURCE_COUNT
 )
 
 var (
@@ -35,7 +36,7 @@ type BGMHandler struct {
 }
 
 type SFXHandler struct {
-	playerSources []*SFXSource
+	mainSources []*SFXSource
 }
 
 type SFXSource struct {
@@ -57,13 +58,16 @@ func NewAudioHandler() *AudioHandler {
 	a.SetMusicVolume(bgmVolume)
 
 	a.sfx = &SFXHandler{}
-	a.sfx.playerSources = make([]*SFXSource, _AUDIO_PLAYER_SOURCE_COUNT)
+	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
 	// engine audio source file setup later since it is a looping ambient source
-	a.sfx.playerSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
+	a.sfx.mainSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
 	// TODO: different stomp sounds for different tonnages
-	a.sfx.playerSources[AUDIO_STOMP] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
+	a.sfx.mainSources[AUDIO_STOMP_LEFT] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
+	a.sfx.mainSources[AUDIO_STOMP_LEFT].channel.Add("pan", resound.NewPan(nil).SetPan(-0.5))
+	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
+	a.sfx.mainSources[AUDIO_STOMP_RIGHT].channel.Add("pan", resound.NewPan(nil).SetPan(0.5))
 	// TODO: better way to do reusable weapon audio
-	a.sfx.playerSources[AUDIO_WEAPONS] = NewSoundEffectSource(1.0)
+	a.sfx.mainSources[AUDIO_WEAPONS] = NewSoundEffectSource(1.0)
 	a.SetSFXVolume(sfxVolume)
 
 	return a
@@ -110,6 +114,14 @@ func (s *SFXSource) Play() {
 	}
 }
 
+func (s *SFXSource) SetPan(panPercent float64) {
+	if pan, ok := s.channel.Effects["pan"].(*resound.Pan); ok {
+		pan.SetPan(panPercent)
+	} else {
+		s.channel.Add("pan", resound.NewPan(nil).SetPan(panPercent))
+	}
+}
+
 func (s *SFXSource) PlayFromFile(sourceFile string) {
 	// TODO: do not use this after done trying stuff, cache them somewhere and reuse them
 	stream, _, err := resources.NewAudioStreamFromFile(sourceFile)
@@ -140,7 +152,7 @@ func (a *AudioHandler) SFXVolume() float64 {
 
 func (a *AudioHandler) SetSFXVolume(strength float64) {
 	sfxVolume = strength
-	for _, s := range a.sfx.playerSources {
+	for _, s := range a.sfx.mainSources {
 		s.UpdateVolume()
 	}
 }
@@ -169,7 +181,7 @@ func (a *AudioHandler) ResumeMusic() {
 }
 
 func (a *AudioHandler) StopSFX() {
-	for _, s := range a.sfx.playerSources {
+	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
 			s.player.Close()
 			//s.player = nil // do not want to have to reinitialize player sources
@@ -178,7 +190,7 @@ func (a *AudioHandler) StopSFX() {
 }
 
 func (a *AudioHandler) PauseSFX() {
-	for _, s := range a.sfx.playerSources {
+	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
 			s.player.Pause()
 		}
@@ -186,7 +198,7 @@ func (a *AudioHandler) PauseSFX() {
 }
 
 func (a *AudioHandler) ResumeSFX() {
-	for _, s := range a.sfx.playerSources {
+	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
 			s.player.Play()
 		}
@@ -217,11 +229,12 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 }
 
 func (a *AudioHandler) StartEngineAmbience() {
-	engine := a.sfx.playerSources[AUDIO_ENGINE]
+	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	if engine.player != nil {
 		engine.player.Close()
 	}
 
+	// TODO: different ambient angine sound for different tonnages
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
 	if err != nil {
 		log.Error("Error loading engine ambience file:")

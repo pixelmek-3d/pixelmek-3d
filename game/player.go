@@ -17,6 +17,12 @@ const (
 	StrideDown
 )
 
+const (
+	StrideStompLeft  = -1
+	StrideStompRight = 1
+	StrideStompBoth  = 0
+)
+
 type Player struct {
 	model.Unit
 	sprite              *render.Sprite
@@ -24,6 +30,7 @@ type Player struct {
 	strideDir           StrideDirection
 	strideZ             float64
 	strideStomp         bool
+	strideStompDir      int
 	moved               bool
 	convergenceDistance float64
 	convergencePoint    *geom3d.Vector3
@@ -169,6 +176,14 @@ func (p *Player) Update() bool {
 
 			// foot hit the ground, make stompy sound
 			p.strideStomp = true
+			if p.strideStompDir < 0 {
+				// stomp the right foot
+				p.strideStompDir = 1
+			} else {
+				// stomp the left foot
+				p.strideStompDir = -1
+			}
+			// TODO: stomp both feet on jump jet landing
 		}
 	}
 
