@@ -3,6 +3,7 @@ package game
 import (
 	"time"
 
+	"github.com/adrianbrad/queue"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/harbdog/pixelmek-3d/game/resources"
 	"github.com/solarlune/resound"
@@ -16,13 +17,13 @@ const (
 	AUDIO_ENGINE AudioMainSource = iota
 	AUDIO_STOMP_LEFT
 	AUDIO_STOMP_RIGHT
-	AUDIO_WEAPONS
 	_AUDIO_MAIN_SOURCE_COUNT
 )
 
 var (
-	bgmVolume float64
-	sfxVolume float64
+	bgmVolume   float64
+	sfxVolume   float64
+	sfxChannels int = 8 // TODO: improve channel reuse and then make this a config setting
 )
 
 type AudioHandler struct {
@@ -37,6 +38,7 @@ type BGMHandler struct {
 
 type SFXHandler struct {
 	mainSources []*SFXSource
+	extSources  *queue.Priority[*SFXSource]
 }
 
 type SFXSource struct {
@@ -66,9 +68,24 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx.mainSources[AUDIO_STOMP_LEFT].channel.Add("pan", resound.NewPan(nil).SetPan(-0.5))
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].channel.Add("pan", resound.NewPan(nil).SetPan(0.5))
-	// TODO: better way to do reusable weapon audio
-	a.sfx.mainSources[AUDIO_WEAPONS] = NewSoundEffectSource(1.0)
 	a.SetSFXVolume(sfxVolume)
+
+	a.sfx.extSources = queue.NewPriority(
+		nil,
+		func(elem, other *SFXSource) bool {
+			// give higher priority rating to sources that are still playing and with higher volume
+			var elemRating, otherRating float64
+			if elem.player != nil && elem.player.IsPlaying() {
+				elemRating = elem.player.Volume()
+			}
+			if other.player != nil && other.player.IsPlaying() {
+				otherRating = other.player.Volume()
+			}
+
+			return elemRating < otherRating
+		},
+		queue.WithCapacity(sfxChannels),
+	)
 
 	return a
 }
@@ -92,7 +109,7 @@ func NewSoundEffectSourceFromFile(sourceFile string, sourceVolume float64) *SFXS
 	}
 
 	s.player = s.channel.CreatePlayer(stream)
-	s.player.SetBufferSize(time.Millisecond * 50)
+	s.player.SetBufferSize(time.Millisecond * 200)
 
 	return s
 }
@@ -114,6 +131,15 @@ func (s *SFXSource) Play() {
 	}
 }
 
+func (s *SFXSource) Close() {
+	if s.player != nil {
+		s.player.Close()
+		s.player = nil
+	}
+	s.channel.Active = false
+	s.channel = nil
+}
+
 func (s *SFXSource) SetPan(panPercent float64) {
 	if pan, ok := s.channel.Effects["pan"].(*resound.Pan); ok {
 		pan.SetPan(panPercent)
@@ -122,18 +148,30 @@ func (s *SFXSource) SetPan(panPercent float64) {
 	}
 }
 
-func (s *SFXSource) PlayFromFile(sourceFile string) {
-	// TODO: do not use this after done trying stuff, cache them somewhere and reuse them
-	stream, _, err := resources.NewAudioStreamFromFile(sourceFile)
+func (a *AudioHandler) PlaySFX(sfxFile string) {
+	if a.sfx.extSources.Size() >= sfxChannels {
+		// pop and close the lowest priority source first
+		source, err := a.sfx.extSources.Get()
+		if err == nil && source != nil {
+			source.Close()
+		}
+	}
+
+	// TODO: reuse channels that are no longer needed instead of creating new each time
+	source := NewSoundEffectSource(1.0)
+
+	// TODO: after done trying stuff, cache somewhere for reuse
+	stream, _, err := resources.NewAudioStreamFromFile(sfxFile)
 	if err != nil {
-		log.Error("Error playing sound effect file: " + sourceFile)
-		s.player = nil
+		log.Error("Error playing sound effect file: " + sfxFile)
 		return
 	}
 
-	s.player = s.channel.CreatePlayer(stream)
-	s.player.SetBufferSize(time.Millisecond * 25)
-	s.player.Play()
+	source.player = source.channel.CreatePlayer(stream)
+	source.player.SetBufferSize(time.Millisecond * 200)
+	source.player.Play()
+
+	a.sfx.extSources.Offer(source)
 }
 
 func (a *AudioHandler) MusicVolume() float64 {

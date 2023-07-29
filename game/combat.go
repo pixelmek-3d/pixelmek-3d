@@ -69,8 +69,9 @@ func (g *Game) fireWeapon() {
 
 			if len(weapon.Audio()) > 0 {
 				// play weapon audio
-				wAudio := g.audio.sfx.mainSources[AUDIO_WEAPONS]
-				wAudio.PlayFromFile(weapon.Audio())
+				// TODO: play audio for queued delayed projectiles also
+				// TODO: positional weapon fire audio panning based on location of weapon
+				g.audio.PlaySFX(weapon.Audio())
 			}
 		}
 	}
@@ -310,9 +311,8 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 			if len(p.ImpactAudio) > 0 {
 				// play impact effect audio
-				// FIXME: impact audio needs to take into account distance to player for volume or if it should not play at all
-				eAudio := g.audio.sfx.mainSources[AUDIO_WEAPONS]
-				eAudio.PlayFromFile(p.ImpactAudio)
+				// FIXME: impact audio needs to take into account panning location and distance to player for volume (or if it should not play at all)
+				g.audio.PlaySFX(p.ImpactAudio)
 			}
 
 		} else {

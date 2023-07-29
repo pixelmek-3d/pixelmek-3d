@@ -1,8 +1,9 @@
 module github.com/harbdog/pixelmek-3d
 
-go 1.19
+go 1.20
 
 require (
+	github.com/adrianbrad/queue v1.2.1
 	github.com/ebitenui/ebitenui v0.5.4
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/hajimehoshi/ebiten/v2 v2.5.6
