@@ -405,6 +405,15 @@ func (g *Game) updatePlayer() {
 		g.player.moved = true
 	}
 
+	if g.player.strideStomp {
+		// make stompy sound
+		stompy := g.audio.sfx.playerSources[AUDIO_STOMP]
+		stompy.Play()
+
+		// clear stomp flag
+		g.player.strideStomp = false
+	}
+
 	target := g.player.Target()
 	if target != nil && target.IsDestroyed() {
 		g.player.SetTarget(nil)

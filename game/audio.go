@@ -57,8 +57,9 @@ func NewAudioHandler() *AudioHandler {
 
 	a.sfx = &SFXHandler{}
 	a.sfx.playerSources = make([]*SFXSource, _AUDIO_PLAYER_SOURCE_COUNT)
+	// engine audio source file setup later since it is a looping ambient source
 	a.sfx.playerSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
-	a.sfx.playerSources[AUDIO_STOMP] = NewSoundEffectSource(0.6)
+	a.sfx.playerSources[AUDIO_STOMP] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
 	a.SetSFXVolume(sfxVolume)
 
 	return a
@@ -71,6 +72,23 @@ func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	return s
 }
 
+func NewSoundEffectSourceFromFile(sourceFile string, sourceVolume float64) *SFXSource {
+	s := NewSoundEffectSource(sourceVolume)
+
+	stream, _, err := resources.NewAudioStreamFromFile(sourceFile)
+	if err != nil {
+		log.Error("Error loading sound effect file:")
+		log.Error(err)
+		s.player = nil
+		return s
+	}
+
+	s.player = s.channel.CreatePlayer(stream)
+	s.player.SetBufferSize(time.Millisecond * 50)
+
+	return s
+}
+
 func (s *SFXSource) UpdateVolume() {
 	v := s.channel.Effects["volume"].(*resound.Volume)
 	v.SetStrength(sfxVolume * s.volume)
@@ -79,6 +97,13 @@ func (s *SFXSource) UpdateVolume() {
 func (s *SFXSource) SetSourceVolume(sourceVolume float64) {
 	s.volume = sourceVolume
 	s.UpdateVolume()
+}
+
+func (s *SFXSource) Play() {
+	if s.player != nil {
+		s.player.Rewind()
+		s.player.Play()
+	}
 }
 
 func (a *AudioHandler) MusicVolume() float64 {
@@ -129,7 +154,7 @@ func (a *AudioHandler) StopSFX() {
 	for _, s := range a.sfx.playerSources {
 		if s.player != nil {
 			s.player.Close()
-			s.player = nil
+			//s.player = nil // do not want to have to reinitialize player sources
 		}
 	}
 }
@@ -181,7 +206,7 @@ func (a *AudioHandler) StartEngineAmbience() {
 
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
 	if err != nil {
-		log.Error("Error loading engine ambience:")
+		log.Error("Error loading engine ambience file:")
 		log.Error(err)
 		engine.player = nil
 		return

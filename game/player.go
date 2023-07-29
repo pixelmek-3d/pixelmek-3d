@@ -23,6 +23,7 @@ type Player struct {
 	cameraZ             float64
 	strideDir           StrideDirection
 	strideZ             float64
+	strideStomp         bool
 	moved               bool
 	convergenceDistance float64
 	convergencePoint    *geom3d.Vector3
@@ -165,6 +166,9 @@ func (p *Player) Update() bool {
 			if p.PosZ() == 0 && velocity > 0 {
 				p.strideDir = StrideUp
 			}
+
+			// foot hit the ground, make stompy sound
+			p.strideStomp = true
 		}
 	}
 
