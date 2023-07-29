@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/ebitenui/ebitenui v0.5.4
 	github.com/go-playground/validator/v10 v10.13.0
-	github.com/hajimehoshi/ebiten/v2 v2.5.5
+	github.com/hajimehoshi/ebiten/v2 v2.5.6
 	github.com/harbdog/raycaster-go v1.9.0
 	github.com/jinzhu/copier v0.3.5
 	github.com/quasilyte/ebitengine-input v0.8.1-0.20230613094547-2655c8a1956c
@@ -21,7 +21,7 @@ require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
-	github.com/hajimehoshi/oto/v2 v2.4.0 // indirect
+	github.com/hajimehoshi/oto/v2 v2.4.1 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -31,7 +31,7 @@ require (
 )
 
 require (
-	github.com/ebitengine/purego v0.3.2 // indirect
+	github.com/ebitengine/purego v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
