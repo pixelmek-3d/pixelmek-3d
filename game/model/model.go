@@ -217,6 +217,7 @@ type ModelEnergyWeaponResource struct {
 	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
 	ProjectileDelay float64                  `yaml:"projectileDelay" validate:"gte=0"`
 	Projectile      *ModelProjectileResource `yaml:"projectile"`
+	Audio           string                   `yaml:"audio" validate:"required"`
 }
 
 type ModelMissileWeaponResource struct {
@@ -234,6 +235,7 @@ type ModelMissileWeaponResource struct {
 	ProjectileDelay float64                   `yaml:"projectileDelay" validate:"gte=0"`
 	Projectile      *ModelProjectileResource  `yaml:"projectile"`
 	LockOn          *ModelMissileWeaponLockOn `yaml:"lockOn,omitempty"`
+	Audio           string                    `yaml:"audio" validate:"required"`
 }
 
 type ModelBallisticWeaponResource struct {
@@ -250,6 +252,7 @@ type ModelBallisticWeaponResource struct {
 	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
 	ProjectileDelay float64                  `yaml:"projectileDelay" validate:"gte=0"`
 	Projectile      *ModelProjectileResource `yaml:"projectile"`
+	Audio           string                   `yaml:"audio" validate:"required"`
 }
 
 type ModelProjectileResource struct {
@@ -271,6 +274,7 @@ type ModelEffectResource struct {
 	Image      string                   `yaml:"image" validate:"required"`
 	ImageSheet *ModelResourceImageSheet `yaml:"imageSheet"`
 	Scale      float64                  `yaml:"scale" validate:"gt=0"`
+	Audio      string                   `yaml:"audio" validate:"required"`
 }
 
 type ModelResourceImageSheet struct {

@@ -12,6 +12,7 @@ distance: 750
 velocity: 325
 # cooldown in seconds
 cooldown: 3
+audio: laser.ogg
 projectileCount: 1
 projectile:
   collisionRadius: 4
@@ -32,6 +33,7 @@ projectile:
       270: 2
       330: 1
   impactEffect:
+    audio: fire.ogg
     scale: 0.13
     image: laser_blue_impact.png
     imageSheet:

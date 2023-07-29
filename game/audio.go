@@ -15,6 +15,7 @@ type PlayerSource int
 const (
 	AUDIO_ENGINE PlayerSource = iota
 	AUDIO_STOMP
+	AUDIO_WEAPONS
 	_AUDIO_PLAYER_SOURCE_COUNT
 )
 
@@ -59,7 +60,10 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx.playerSources = make([]*SFXSource, _AUDIO_PLAYER_SOURCE_COUNT)
 	// engine audio source file setup later since it is a looping ambient source
 	a.sfx.playerSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
+	// TODO: different stomp sounds for different tonnages
 	a.sfx.playerSources[AUDIO_STOMP] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
+	// TODO: better way to do reusable weapon audio
+	a.sfx.playerSources[AUDIO_WEAPONS] = NewSoundEffectSource(1.0)
 	a.SetSFXVolume(sfxVolume)
 
 	return a
@@ -104,6 +108,20 @@ func (s *SFXSource) Play() {
 		s.player.Rewind()
 		s.player.Play()
 	}
+}
+
+func (s *SFXSource) PlayFromFile(sourceFile string) {
+	// TODO: do not use this after done trying stuff, cache them somewhere and reuse them
+	stream, _, err := resources.NewAudioStreamFromFile(sourceFile)
+	if err != nil {
+		log.Error("Error playing sound effect file: " + sourceFile)
+		s.player = nil
+		return
+	}
+
+	s.player = s.channel.CreatePlayer(stream)
+	s.player.SetBufferSize(time.Millisecond * 25)
+	s.player.Play()
 }
 
 func (a *AudioHandler) MusicVolume() float64 {

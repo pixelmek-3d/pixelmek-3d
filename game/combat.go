@@ -66,6 +66,12 @@ func (g *Game) fireWeapon() {
 					}
 				}
 			}
+
+			if len(weapon.Audio()) > 0 {
+				// play weapon audio
+				wAudio := g.audio.sfx.playerSources[AUDIO_WEAPONS]
+				wAudio.PlayFromFile(weapon.Audio())
+			}
 		}
 	}
 }
@@ -300,6 +306,13 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				effect := p.SpawnEffect(newPos.X, newPos.Y, newPosZ, p.Heading(), p.Pitch())
 
 				g.sprites.addEffect(effect)
+			}
+
+			if len(p.ImpactAudio) > 0 {
+				// play impact effect audio
+				// FIXME: impact audio needs to take into account distance to player for volume or if it should not play at all
+				eAudio := g.audio.sfx.playerSources[AUDIO_WEAPONS]
+				eAudio.PlayFromFile(p.ImpactAudio)
 			}
 
 		} else {

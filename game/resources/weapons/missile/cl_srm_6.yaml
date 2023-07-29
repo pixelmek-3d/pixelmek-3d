@@ -12,6 +12,7 @@ distance: 270
 velocity: 200
 # cooldown in seconds
 cooldown: 2.5
+audio: missile-1.ogg
 projectileCount: 6
 projectileDelay: 0.15
 projectile:
@@ -29,6 +30,7 @@ projectile:
       180: 2
       270: 3
   impactEffect:
+    audio: explosion.ogg
     scale: 0.15
     image: missile_impact.png
     imageSheet:

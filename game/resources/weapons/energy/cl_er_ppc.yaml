@@ -12,6 +12,7 @@ distance: 690
 velocity: 200
 # cooldown in seconds
 cooldown: 3.5
+audio: ppc.ogg
 projectileCount: 1
 projectile:
   collisionRadius: 55
@@ -23,6 +24,7 @@ projectile:
     rows: 1
     animationRate: 1
   impactEffect:
+    audio: sparks.ogg
     scale: 0.6
     image: ppc_impact.png
     imageSheet:

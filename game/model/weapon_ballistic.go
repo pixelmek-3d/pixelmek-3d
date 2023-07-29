@@ -1,6 +1,8 @@
 package model
 
 import (
+	"path/filepath"
+
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/jinzhu/copier"
@@ -20,6 +22,7 @@ type BallisticWeapon struct {
 	cooldown        float64
 	offset          *geom.Vector2
 	projectile      Projectile
+	audio           string
 	parent          Entity
 }
 
@@ -55,6 +58,10 @@ func NewBallisticWeapon(r *ModelBallisticWeaponResource, collisionRadius, collis
 	if w.ProjectileCount() > 1 {
 		// damage per projectile is divided from the total weapon damage
 		pDamage /= float64(w.ProjectileCount())
+	}
+
+	if len(r.Audio) > 0 {
+		w.audio = filepath.Join("audio/sfx/weapons", r.Audio)
 	}
 
 	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight)
@@ -163,6 +170,10 @@ func (w *BallisticWeapon) TriggerCooldown() {
 
 func (w *BallisticWeapon) Offset() *geom.Vector2 {
 	return w.offset
+}
+
+func (w *BallisticWeapon) Audio() string {
+	return w.audio
 }
 
 func (w *BallisticWeapon) Parent() Entity {

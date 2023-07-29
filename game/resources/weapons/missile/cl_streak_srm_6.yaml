@@ -12,6 +12,7 @@ distance: 360
 velocity: 200
 # cooldown in seconds
 cooldown: 4.5
+audio: missile-1.ogg
 lockOn:
   lockRequired: true
   turnRate: 120
@@ -33,6 +34,7 @@ projectile:
       180: 2
       270: 3
   impactEffect:
+    audio: explosion.ogg
     scale: 0.15
     image: missile_impact.png
     imageSheet:

@@ -519,7 +519,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, eResource.Audio,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -585,7 +585,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, eResource.Audio,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -643,7 +643,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, eResource.Audio,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate

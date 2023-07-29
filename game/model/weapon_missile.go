@@ -2,6 +2,7 @@ package model
 
 import (
 	"math"
+	"path/filepath"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -22,6 +23,7 @@ type MissileWeapon struct {
 	cooldown        float64
 	offset          *geom.Vector2
 	projectile      Projectile
+	audio           string
 	parent          Entity
 
 	missileTube        int
@@ -75,6 +77,10 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 
 	// based on the number of tubes, create offsets for each missile so they spawn from slightly different positions
 	w.loadMissileTubes(onePxOffset)
+
+	if len(r.Audio) > 0 {
+		w.audio = filepath.Join("audio/sfx/weapons", r.Audio)
+	}
 
 	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight)
 	w.projectile = p
@@ -253,6 +259,10 @@ func (w *MissileWeapon) TriggerCooldown() {
 
 func (w *MissileWeapon) Offset() *geom.Vector2 {
 	return w.offset
+}
+
+func (w *MissileWeapon) Audio() string {
+	return w.audio
 }
 
 func (w *MissileWeapon) Parent() Entity {

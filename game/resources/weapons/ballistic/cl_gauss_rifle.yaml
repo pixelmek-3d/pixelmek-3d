@@ -12,6 +12,7 @@ distance: 660
 velocity: 800
 # cooldown in seconds
 cooldown: 4
+audio: gauss.ogg
 projectileCount: 1
 projectile:
   collisionRadius: 2
@@ -28,6 +29,7 @@ projectile:
       180: 2
       270: 3
   impactEffect:
+    audio: sparks.ogg
     scale: 0.7
     image: autocannon_large_impact.png
     imageSheet:

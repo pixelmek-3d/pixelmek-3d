@@ -2,6 +2,7 @@ package render
 
 import (
 	"math"
+	"path/filepath"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 
@@ -12,30 +13,13 @@ import (
 
 type ProjectileSprite struct {
 	*Sprite
+	ImpactAudio  string
 	ImpactEffect EffectSprite
 	Projectile   *model.Projectile
 }
 
-func NewProjectile(
-	projectile *model.Projectile, scale float64, img *ebiten.Image,
-) *ProjectileSprite {
-	p := &ProjectileSprite{
-		Sprite:       NewSprite(projectile, scale, img),
-		ImpactEffect: EffectSprite{},
-		Projectile:   projectile,
-	}
-
-	// projectiles cannot be focused upon by player reticle
-	p.Focusable = false
-
-	// projectiles self illuminate so they do not get dimmed in night conditions
-	p.illumination = 5000
-
-	return p
-}
-
 func NewAnimatedProjectile(
-	projectile *model.Projectile, scale float64, img *ebiten.Image, impactEffect EffectSprite,
+	projectile *model.Projectile, scale float64, img *ebiten.Image, impactEffect EffectSprite, impactAudio string,
 ) *ProjectileSprite {
 	var p *Sprite
 	sheet := projectile.Resource.ImageSheet
@@ -62,8 +46,13 @@ func NewAnimatedProjectile(
 	// projectiles self illuminate so they do not get dimmed in night conditions
 	p.illumination = 5000
 
+	if len(impactAudio) > 0 {
+		impactAudio = filepath.Join("audio/sfx/impacts", impactAudio)
+	}
+
 	s := &ProjectileSprite{
 		Sprite:       p,
+		ImpactAudio:  impactAudio,
 		ImpactEffect: impactEffect,
 		Projectile:   projectile,
 	}

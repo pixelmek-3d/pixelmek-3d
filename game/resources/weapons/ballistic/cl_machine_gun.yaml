@@ -12,6 +12,7 @@ distance: 90
 velocity: 250
 # cooldown in seconds
 cooldown: 1
+audio: machine-gun.ogg
 projectileCount: 5
 projectileDelay: 0.2
 projectile:
@@ -33,6 +34,7 @@ projectile:
       270: 2
       330: 1
   impactEffect:
+    audio: sparks.ogg
     scale: 0.08
     image: bullet_impact.png
     imageSheet:

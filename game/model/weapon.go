@@ -41,6 +41,7 @@ type Weapon interface {
 	SpawnProjectile(angle, pitch float64, spawnedBy Unit) *Projectile
 	SpawnProjectileToward(convergencePoint *geom3d.Vector3, spawnedBy Unit) *Projectile
 
+	Audio() string
 	Clone() Weapon
 	Parent() Entity
 }

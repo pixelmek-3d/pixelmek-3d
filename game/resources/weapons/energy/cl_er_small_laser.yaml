@@ -12,6 +12,7 @@ distance: 180
 velocity: 275
 # cooldown in seconds
 cooldown: 1.5
+audio: laser.ogg
 projectileCount: 1
 projectile:
   collisionRadius: 4
@@ -32,6 +33,7 @@ projectile:
       270: 2
       330: 1
   impactEffect:
+    audio: fire.ogg
     scale: 0.08
     image: laser_red_impact.png
     imageSheet:

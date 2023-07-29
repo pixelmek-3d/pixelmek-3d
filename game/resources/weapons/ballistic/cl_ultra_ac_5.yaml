@@ -12,6 +12,7 @@ distance: 600
 velocity: 600
 # cooldown in seconds
 cooldown: 1.25
+audio: autocannon.ogg
 projectileCount: 3
 projectileDelay: 0.12
 projectile:
@@ -33,6 +34,7 @@ projectile:
       270: 2
       330: 1
   impactEffect:
+    audio: explosion.ogg
     scale: 0.2
     image: autocannon_small_impact.png
     imageSheet:

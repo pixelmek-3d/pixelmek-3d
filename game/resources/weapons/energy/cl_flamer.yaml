@@ -13,6 +13,7 @@ distance: 90
 velocity: 200
 # cooldown in seconds
 cooldown: 1.5
+audio: flamer.ogg
 projectileCount: 1
 projectile:
   collisionRadius: 6
@@ -29,6 +30,7 @@ projectile:
       180: 2
       270: 3
   impactEffect:
+    audio: fire.ogg
     scale: 0.2
     image: missile_impact.png
     imageSheet:
