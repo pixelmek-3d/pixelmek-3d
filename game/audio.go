@@ -64,14 +64,19 @@ func NewAudioHandler() *AudioHandler {
 	// engine audio source file setup later since it is a looping ambient source
 	a.sfx.mainSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
 	// TODO: different stomp sounds for different tonnages
-	a.sfx.mainSources[AUDIO_STOMP_LEFT] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
-	a.sfx.mainSources[AUDIO_STOMP_LEFT].channel.Add("pan", resound.NewPan(nil).SetPan(-0.5))
-	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSourceFromFile("audio/sfx/stomp.ogg", 0.6)
-	a.sfx.mainSources[AUDIO_STOMP_RIGHT].channel.Add("pan", resound.NewPan(nil).SetPan(0.5))
-	a.SetSFXVolume(sfxVolume)
+	stompSound := "audio/sfx/stomp.ogg"
+	a.sfx.mainSources[AUDIO_STOMP_LEFT] = NewSoundEffectSourceFromFile(stompSound, 0.6)
+	a.sfx.mainSources[AUDIO_STOMP_LEFT].SetPan(-0.5)
+	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSourceFromFile(stompSound, 0.6)
+	a.sfx.mainSources[AUDIO_STOMP_RIGHT].SetPan(0.5)
+
+	extInit := make([]*SFXSource, 0, sfxChannels)
+	for i := 0; i < sfxChannels; i++ {
+		extInit = append(extInit, NewSoundEffectSource(0.0))
+	}
 
 	a.sfx.extSources = queue.NewPriority(
-		nil,
+		extInit,
 		func(elem, other *SFXSource) bool {
 			// give higher priority rating to sources that are still playing and with higher volume
 			var elemRating, otherRating float64
@@ -87,6 +92,8 @@ func NewAudioHandler() *AudioHandler {
 		queue.WithCapacity(sfxChannels),
 	)
 
+	a.SetSFXVolume(sfxVolume)
+
 	return a
 }
 
@@ -94,6 +101,7 @@ func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	s := &SFXSource{volume: sourceVolume}
 	s.channel = resound.NewDSPChannel()
 	s.channel.Add("volume", resound.NewVolume(nil).SetStrength(sourceVolume))
+	s.channel.Add("pan", resound.NewPan(nil))
 	return s
 }
 
@@ -126,6 +134,7 @@ func (s *SFXSource) SetSourceVolume(sourceVolume float64) {
 
 func (s *SFXSource) Play() {
 	if s.player != nil {
+		s.channel.Active = true
 		s.player.Rewind()
 		s.player.Play()
 	}
@@ -137,7 +146,6 @@ func (s *SFXSource) Close() {
 		s.player = nil
 	}
 	s.channel.Active = false
-	s.channel = nil
 }
 
 func (s *SFXSource) SetPan(panPercent float64) {
@@ -149,16 +157,13 @@ func (s *SFXSource) SetPan(panPercent float64) {
 }
 
 func (a *AudioHandler) PlaySFX(sfxFile string) {
-	if a.sfx.extSources.Size() >= sfxChannels {
-		// pop and close the lowest priority source first
-		source, err := a.sfx.extSources.Get()
-		if err == nil && source != nil {
-			source.Close()
-		}
+	// get and close the lowest priority source for reuse
+	source, _ := a.sfx.extSources.Get()
+	if source == nil {
+		source = NewSoundEffectSource(0.0)
+	} else {
+		source.Close()
 	}
-
-	// TODO: reuse channels that are no longer needed instead of creating new each time
-	source := NewSoundEffectSource(1.0)
 
 	// TODO: after done trying stuff, cache somewhere for reuse
 	stream, _, err := resources.NewAudioStreamFromFile(sfxFile)
@@ -168,7 +173,7 @@ func (a *AudioHandler) PlaySFX(sfxFile string) {
 	}
 
 	source.player = source.channel.CreatePlayer(stream)
-	source.player.SetBufferSize(time.Millisecond * 200)
+	source.player.SetBufferSize(time.Millisecond * 100)
 	source.player.Play()
 
 	a.sfx.extSources.Offer(source)
@@ -192,6 +197,11 @@ func (a *AudioHandler) SetSFXVolume(strength float64) {
 	sfxVolume = strength
 	for _, s := range a.sfx.mainSources {
 		s.UpdateVolume()
+	}
+
+	for s := range a.sfx.extSources.Iterator() {
+		s.UpdateVolume()
+		a.sfx.extSources.Offer(s)
 	}
 }
 
