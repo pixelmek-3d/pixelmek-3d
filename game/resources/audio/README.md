@@ -21,6 +21,11 @@
 - `fire`: "Vosvoy"
   - http://www.freesound.org/people/Vosvoy/sounds/123632/
 
+- `sizzle`: "roboroo"
+  - https://freesound.org/people/roboroo/sounds/436791/
+
+- `sparks`: unknown
+
 ## ./sfx/weapons
 
 - `autocannon`: "Andromadax24"

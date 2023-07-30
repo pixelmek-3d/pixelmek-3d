@@ -33,7 +33,7 @@ projectile:
       270: 2
       330: 1
   impactEffect:
-    audio: fire.ogg
+    audio: sizzle.ogg
     scale: 0.08
     image: laser_red_impact.png
     imageSheet:
