@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -332,28 +331,13 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				impactDist := impactLine.Distance()
 				impactHeading := impactLine.Heading()
 
-				relHeading := model.AngleDistance(playerHeading, impactHeading)
+				relHeading := -model.AngleDistance(playerHeading, impactHeading)
 				relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
-
-				// FIXME: pan percent amount needs to be based on relative amount
-				var panPercent float64
-				switch {
-				case relHeading > 0:
-					panPercent = -1
-				case relHeading < 0:
-					panPercent = 1
-				}
 
 				impactVolume := (20 - impactDist) / 20
 				if impactVolume > 0.05 {
-					g.audio.PlaySFX(p.ImpactAudio, impactVolume, panPercent)
+					g.audio.PlaySFX(p.ImpactAudio, impactVolume, relPercent)
 				}
-
-				// TESTING!!!
-				fmt.Printf(
-					"dist=%0.2f | relHeading=%0.2f | relPercent=%0.2f | panPercent=%0.2f\n",
-					impactDist, relHeading, relPercent, panPercent,
-				)
 			}
 
 		} else {
