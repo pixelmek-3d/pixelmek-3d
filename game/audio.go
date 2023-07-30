@@ -60,7 +60,7 @@ func NewAudioHandler() *AudioHandler {
 	a.bgm.channel.Add("volume", resound.NewVolume(nil))
 	a.SetMusicVolume(bgmVolume)
 
-	a.sfxMap = make(map[string][]byte, 128)
+	a.sfxMap = make(map[string][]byte, 64)
 	a.sfx = &SFXHandler{}
 	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
 	// engine audio source file setup later since it is a looping ambient source
@@ -144,7 +144,6 @@ func (s *SFXSource) SetPan(panPercent float64) {
 
 func (s *SFXSource) Play() {
 	if s.player != nil {
-		s.channel.Active = true
 		s.player.Rewind()
 		s.player.Play()
 	}
@@ -155,10 +154,9 @@ func (s *SFXSource) Close() {
 		s.player.Close()
 		s.player = nil
 	}
-	s.channel.Active = false
 }
 
-func (a *AudioHandler) PlaySFX(sfxFile string) {
+func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64) {
 	// get and close the lowest priority source for reuse
 	source, _ := a.sfx.extSources.Get()
 	if source == nil {
@@ -166,6 +164,9 @@ func (a *AudioHandler) PlaySFX(sfxFile string) {
 	} else {
 		source.Close()
 	}
+
+	source.SetSourceVolume(sourceVolume)
+	source.SetPan(panPercent)
 
 	// use cache of audio if possible
 	audioBytes, found := a.sfxMap[sfxFile]

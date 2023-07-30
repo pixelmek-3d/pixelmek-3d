@@ -26,6 +26,11 @@ func ClampAngle(angle float64) float64 {
 	return angle
 }
 
+func AngleDistance(a, b float64) float64 {
+	// sourced from https://stackoverflow.com/a/75587465/854696
+	return math.Mod(math.Mod(b-a+geom.Pi, geom.Pi2)-geom.Pi2, geom.Pi2) + geom.Pi
+}
+
 func IsBetweenDegrees(start, end, mid float64) bool {
 	if end-start < 0.0 {
 		end = end - start + 360.0

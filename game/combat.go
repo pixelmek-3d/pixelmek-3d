@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -70,8 +71,17 @@ func (g *Game) fireWeapon() {
 			if len(weapon.Audio()) > 0 {
 				// play weapon audio
 				// TODO: play audio for queued delayed projectiles also
-				// TODO: positional weapon fire audio panning based on location of weapon
-				g.audio.PlaySFX(weapon.Audio())
+				var panPercent float64
+				offsetX := -weapon.Offset().X
+				switch {
+				case offsetX < 0:
+					// pan left
+					panPercent = geom.Clamp(offsetX-0.4, -0.8, 0)
+				case offsetX > 0:
+					// pan right
+					panPercent = geom.Clamp(offsetX+0.4, 0, 0.8)
+				}
+				g.audio.PlaySFX(weapon.Audio(), 1.0, panPercent)
 			}
 		}
 	}
@@ -311,8 +321,39 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 			if len(p.ImpactAudio) > 0 {
 				// play impact effect audio
-				// FIXME: impact audio needs to take into account panning location and distance to player for volume (or if it should not play at all)
-				g.audio.PlaySFX(p.ImpactAudio)
+				// determine distance and player camera relative direction of impact for volume and panning
+				playerPos := g.player.Pos()
+				playerHeading := g.player.Heading() + g.player.TurretAngle()
+
+				impactLine := geom3d.Line3d{
+					X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
+					X2: newPos.X, Y2: newPos.Y, Z2: newPosZ,
+				}
+				impactDist := impactLine.Distance()
+				impactHeading := impactLine.Heading()
+
+				relHeading := model.AngleDistance(playerHeading, impactHeading)
+				relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
+
+				// FIXME: pan percent amount needs to be based on relative amount
+				var panPercent float64
+				switch {
+				case relHeading > 0:
+					panPercent = -1
+				case relHeading < 0:
+					panPercent = 1
+				}
+
+				impactVolume := (20 - impactDist) / 20
+				if impactVolume > 0.05 {
+					g.audio.PlaySFX(p.ImpactAudio, impactVolume, panPercent)
+				}
+
+				// TESTING!!!
+				fmt.Printf(
+					"dist=%0.2f | relHeading=%0.2f | relPercent=%0.2f | panPercent=%0.2f\n",
+					impactDist, relHeading, relPercent, panPercent,
+				)
 			}
 
 		} else {
