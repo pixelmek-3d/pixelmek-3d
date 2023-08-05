@@ -289,6 +289,128 @@ func displayPage(m Menu) *settingsPage {
 	}
 }
 
+func audioPage(m Menu) *settingsPage {
+	c := newPageContentContainer()
+	res := m.Resources()
+	game := m.Game()
+
+	// background music volume slider
+	bgmVolumeRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+	c.AddChild(bgmVolumeRow)
+
+	bgmVolumeLabel := widget.NewLabel(widget.LabelOpts.Text("BGM Volume", res.label.face, res.label.text))
+	bgmVolumeRow.AddChild(bgmVolumeLabel)
+
+	var bgmValueText *widget.Label
+
+	bgmVolumeSlider := widget.NewSlider(
+		widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}), widget.WidgetOpts.MinSize(100, 6)),
+		widget.SliderOpts.MinMax(0, 100),
+		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+		widget.SliderOpts.TrackOffset(5),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			bgmValueText.Label = fmt.Sprintf("%d%%", args.Current)
+			game.audio.SetMusicVolume(float64(args.Current) / 100)
+		}),
+	)
+	bgmVolumeSlider.Current = int(bgmVolume * 100)
+	bgmVolumeRow.AddChild(bgmVolumeSlider)
+
+	bgmValueText = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf("%d", bgmVolumeSlider.Current), res.label.face, res.label.text),
+	)
+	bgmVolumeRow.AddChild(bgmValueText)
+
+	// sound effects volume slider
+	sfxVolumeRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+	c.AddChild(sfxVolumeRow)
+
+	sfxVolumeLabel := widget.NewLabel(widget.LabelOpts.Text("SFX Volume", res.label.face, res.label.text))
+	sfxVolumeRow.AddChild(sfxVolumeLabel)
+
+	var sfxValueText *widget.Label
+
+	sfxVolumeSlider := widget.NewSlider(
+		widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}), widget.WidgetOpts.MinSize(100, 6)),
+		widget.SliderOpts.MinMax(0, 100),
+		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+		widget.SliderOpts.TrackOffset(5),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			sfxValueText.Label = fmt.Sprintf("%d%%", args.Current)
+			game.audio.SetSFXVolume(float64(args.Current) / 100)
+		}),
+	)
+	sfxVolumeSlider.Current = int(sfxVolume * 100)
+	sfxVolumeRow.AddChild(sfxVolumeSlider)
+
+	sfxValueText = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf("%d", sfxVolumeSlider.Current), res.label.face, res.label.text),
+	)
+	sfxVolumeRow.AddChild(sfxValueText)
+
+	// sound effects channels slider
+	sfxChannelsRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+	c.AddChild(sfxChannelsRow)
+
+	sfxChannelsLabel := widget.NewLabel(widget.LabelOpts.Text("SFX Channels", res.label.face, res.label.text))
+	sfxChannelsRow.AddChild(sfxChannelsLabel)
+
+	var sfxChannelsText *widget.Label
+
+	sfxChannelsSlider := widget.NewSlider(
+		widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}), widget.WidgetOpts.MinSize(100, 6)),
+		widget.SliderOpts.MinMax(8, 32),
+		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+		widget.SliderOpts.TrackOffset(5),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			sfxChannelsText.Label = fmt.Sprintf("%d", args.Current)
+			game.audio.SetSFXChannels(int(args.Current))
+		}),
+	)
+	sfxChannelsSlider.Current = sfxChannels
+	sfxChannelsRow.AddChild(sfxChannelsSlider)
+
+	sfxChannelsText = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf("%d", sfxChannelsSlider.Current), res.label.face, res.label.text),
+	)
+	sfxChannelsRow.AddChild(sfxChannelsText)
+
+	return &settingsPage{
+		title:   "Audio",
+		content: c,
+	}
+}
+
 func renderPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()

@@ -38,8 +38,9 @@ const (
 	CONFIG_KEY_HUD_COLOR_B      = "hud.color.blue"
 	CONFIG_KEY_HUD_COLOR_A      = "hud.color.alpha"
 
-	CONFIG_KEY_AUDIO_BGM_VOL = "audio.bgm_volume"
-	CONFIG_KEY_AUDIO_SFX_VOL = "audio.sfx_volume"
+	CONFIG_KEY_AUDIO_BGM_VOL      = "audio.bgm_volume"
+	CONFIG_KEY_AUDIO_SFX_VOL      = "audio.sfx_volume"
+	CONFIG_KEY_AUDIO_SFX_CHANNELS = "audio.sfx_channels"
 
 	CONFIG_KEY_CONTROL_DECAY = "controls.throttle_decay"
 )
@@ -92,6 +93,7 @@ func (g *Game) initConfig() {
 	// audio defaults
 	viper.SetDefault(CONFIG_KEY_AUDIO_BGM_VOL, 1.0)
 	viper.SetDefault(CONFIG_KEY_AUDIO_SFX_VOL, 1.0)
+	viper.SetDefault(CONFIG_KEY_AUDIO_SFX_CHANNELS, 16)
 
 	// control defaults
 	viper.SetDefault(CONFIG_KEY_CONTROL_DECAY, false)
@@ -137,6 +139,7 @@ func (g *Game) initConfig() {
 
 	bgmVolume = viper.GetFloat64(CONFIG_KEY_AUDIO_BGM_VOL)
 	sfxVolume = viper.GetFloat64(CONFIG_KEY_AUDIO_SFX_VOL)
+	sfxChannels = viper.GetInt(CONFIG_KEY_AUDIO_SFX_CHANNELS)
 
 	g.throttleDecay = viper.GetBool(CONFIG_KEY_CONTROL_DECAY)
 }
@@ -176,6 +179,10 @@ func (g *Game) saveConfig() error {
 	viper.Set(CONFIG_KEY_HUD_COLOR_A, g.hudRGBA.A)
 
 	viper.Set(CONFIG_KEY_CONTROL_DECAY, g.throttleDecay)
+
+	viper.Set(CONFIG_KEY_AUDIO_BGM_VOL, bgmVolume)
+	viper.Set(CONFIG_KEY_AUDIO_SFX_VOL, sfxVolume)
+	viper.Set(CONFIG_KEY_AUDIO_SFX_CHANNELS, sfxChannels)
 
 	err := viper.WriteConfigAs(resources.UserConfigFile)
 	if err != nil {

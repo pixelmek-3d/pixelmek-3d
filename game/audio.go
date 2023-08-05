@@ -23,7 +23,7 @@ const (
 var (
 	bgmVolume   float64
 	sfxVolume   float64
-	sfxChannels int = 16 // TODO: improve channel performance and make this a config setting
+	sfxChannels int // TODO: improve channel performance by reusing players from the same audio file
 )
 
 type AudioHandler struct {
@@ -72,28 +72,7 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSourceFromFile(stompSound, 0.6)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].SetPan(0.5)
 
-	extInit := make([]*SFXSource, 0, sfxChannels)
-	for i := 0; i < sfxChannels; i++ {
-		extInit = append(extInit, NewSoundEffectSource(0.0))
-	}
-
-	a.sfx.extSources = queue.NewPriority(
-		extInit,
-		func(elem, other *SFXSource) bool {
-			// give higher priority rating to sources that are still playing and with higher volume
-			var elemRating, otherRating float64
-			if elem.player != nil && elem.player.IsPlaying() {
-				elemRating = elem.player.Volume()
-			}
-			if other.player != nil && other.player.IsPlaying() {
-				otherRating = other.player.Volume()
-			}
-
-			return elemRating < otherRating
-		},
-		queue.WithCapacity(sfxChannels),
-	)
-
+	a.SetSFXChannels(sfxChannels)
 	a.SetSFXVolume(sfxVolume)
 
 	return a
@@ -193,18 +172,10 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	a.sfx.extSources.Offer(source)
 }
 
-func (a *AudioHandler) MusicVolume() float64 {
-	return bgmVolume
-}
-
 func (a *AudioHandler) SetMusicVolume(strength float64) {
 	bgmVolume = strength
 	v := a.bgm.channel.Effects["volume"].(*resound.Volume)
 	v.SetStrength(bgmVolume)
-}
-
-func (a *AudioHandler) SFXVolume() float64 {
-	return sfxVolume
 }
 
 func (a *AudioHandler) SetSFXVolume(strength float64) {
@@ -217,6 +188,45 @@ func (a *AudioHandler) SetSFXVolume(strength float64) {
 		s.UpdateVolume()
 		a.sfx.extSources.Offer(s)
 	}
+}
+
+func (a *AudioHandler) SetSFXChannels(numChannels int) {
+	sfxChannels = numChannels
+
+	extInit := make([]*SFXSource, 0, sfxChannels)
+	for i := 0; i < sfxChannels; i++ {
+		// reuse existing channels if available
+		if a.sfx.extSources != nil && !a.sfx.extSources.IsEmpty() {
+			s, _ := a.sfx.extSources.Get()
+			extInit = append(extInit, s)
+		} else {
+			extInit = append(extInit, NewSoundEffectSource(0.0))
+		}
+	}
+
+	if a.sfx.extSources != nil && !a.sfx.extSources.IsEmpty() {
+		// close out any excess channels as necessary
+		for s := range a.sfx.extSources.Iterator() {
+			s.Close()
+		}
+	}
+
+	a.sfx.extSources = queue.NewPriority(
+		extInit,
+		func(elem, other *SFXSource) bool {
+			// give higher priority rating to sources that are still playing and with higher volume
+			var elemRating, otherRating float64
+			if elem.player != nil && elem.player.IsPlaying() {
+				elemRating = elem.player.Volume()
+			}
+			if other.player != nil && other.player.IsPlaying() {
+				otherRating = other.player.Volume()
+			}
+
+			return elemRating < otherRating
+		},
+		queue.WithCapacity(sfxChannels),
+	)
 }
 
 func (a *AudioHandler) IsMusicPlaying() bool {

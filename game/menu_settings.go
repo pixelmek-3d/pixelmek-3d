@@ -158,6 +158,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	}
 
 	displaySettings := displayPage(m)
+	audioSettings := audioPage(m)
 	renderSettings := renderPage(m)
 	hudSettings := hudPage(m)
 
@@ -166,6 +167,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		pages = append(pages, missionSettings)
 	}
 	pages = append(pages, displaySettings)
+	pages = append(pages, audioSettings)
 	pages = append(pages, renderSettings)
 	pages = append(pages, hudSettings)
 
