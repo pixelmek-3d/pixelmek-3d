@@ -1,6 +1,8 @@
 package game
 
 import (
+	"math"
+
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 
@@ -126,7 +128,7 @@ func (p *Player) Update() bool {
 		resource := p.Unit.(*model.Mech).Resource
 		// TODO: cap stride height for really tall mechs (or generally slower mechs?)
 		maxStrideHeight := 0.1 * resource.Height / model.METERS_PER_UNIT // TODO: calculate this once on init
-		velocity := p.Velocity()
+		velocity := math.Abs(p.Velocity())
 		velocityMult := velocity / p.MaxVelocity()
 
 		// TODO: handle stride effects from gravity != 1.0
@@ -170,7 +172,7 @@ func (p *Player) Update() bool {
 		}
 		if p.strideZ < 0 {
 			p.strideZ = 0
-			if p.PosZ() == 0 && velocity > 0 {
+			if p.PosZ() == 0 && velocity != 0 {
 				p.strideDir = StrideUp
 			}
 
@@ -185,6 +187,8 @@ func (p *Player) Update() bool {
 			}
 			// TODO: stomp both feet on jump jet landing
 		}
+
+		// TODO: stomp foot when coming to full stop
 	}
 
 	return p.Unit.Update()
