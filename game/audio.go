@@ -64,12 +64,12 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx = &SFXHandler{}
 	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
 	// engine audio source file setup later since it is a looping ambient source
+	// TODO: increase engine noise level a bit when running or at high heat levels
 	a.sfx.mainSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
-	// TODO: different stomp sounds for different tonnages
-	stompSound := "audio/sfx/stomp.ogg"
-	a.sfx.mainSources[AUDIO_STOMP_LEFT] = NewSoundEffectSourceFromFile(stompSound, 0.6)
+	// stomp audio track to be initialized based on player unit selection
+	a.sfx.mainSources[AUDIO_STOMP_LEFT] = NewSoundEffectSource(0.5)
 	a.sfx.mainSources[AUDIO_STOMP_LEFT].SetPan(-0.5)
-	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSourceFromFile(stompSound, 0.6)
+	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSource(0.5)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].SetPan(0.5)
 
 	a.SetSFXChannels(sfxChannels)
@@ -86,21 +86,32 @@ func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	return s
 }
 
-func NewSoundEffectSourceFromFile(sourceFile string, sourceVolume float64) *SFXSource {
-	s := NewSoundEffectSource(sourceVolume)
+func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
+	// make sure current source is closed before loading a new one
+	s.Close()
 
-	stream, _, err := resources.NewAudioStreamFromFile(sourceFile)
+	// use cache of audio if possible
+	audioBytes, found := a.sfxMap[sfxFile]
+	if !found {
+		var err error
+		audioBytes, err = resources.ReadFile(sfxFile)
+		if err != nil {
+			log.Error("Error reading sound effect file: " + sfxFile)
+			return err
+		}
+		a.sfxMap[sfxFile] = audioBytes
+	}
+
+	stream, _, err := resources.NewAudioStream(audioBytes, sfxFile)
 	if err != nil {
-		log.Error("Error loading sound effect file:")
-		log.Error(err)
-		s.player = nil
-		return s
+		log.Error("Error playing sound effect file: " + sfxFile)
+		return err
 	}
 
 	s.player = s.channel.CreatePlayer(stream)
-	s.player.SetBufferSize(time.Millisecond * 200)
+	s.player.SetBufferSize(time.Millisecond * 100)
 
-	return s
+	return nil
 }
 
 func (s *SFXSource) UpdateVolume() {
@@ -147,27 +158,8 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	source.SetSourceVolume(sourceVolume)
 	source.SetPan(panPercent)
 
-	// use cache of audio if possible
-	audioBytes, found := a.sfxMap[sfxFile]
-	if !found {
-		var err error
-		audioBytes, err = resources.ReadFile(sfxFile)
-		if err != nil {
-			log.Error("Error reading sound effect file: " + sfxFile)
-			return
-		}
-		a.sfxMap[sfxFile] = audioBytes
-	}
-
-	stream, _, err := resources.NewAudioStream(audioBytes, sfxFile)
-	if err != nil {
-		log.Error("Error playing sound effect file: " + sfxFile)
-		return
-	}
-
-	source.player = source.channel.CreatePlayer(stream)
-	source.player.SetBufferSize(time.Millisecond * 100)
-	source.player.Play()
+	source.LoadSFX(a, sfxFile)
+	source.Play()
 
 	a.sfx.extSources.Offer(source)
 }
@@ -176,6 +168,12 @@ func (a *AudioHandler) SetMusicVolume(strength float64) {
 	bgmVolume = strength
 	v := a.bgm.channel.Effects["volume"].(*resound.Volume)
 	v.SetStrength(bgmVolume)
+
+	if bgmVolume == 0 {
+		a.PauseMusic()
+	} else {
+		a.ResumeMusic()
+	}
 }
 
 func (a *AudioHandler) SetSFXVolume(strength float64) {
@@ -323,4 +321,9 @@ func (a *AudioHandler) StartEngineAmbience() {
 	engine.player = engine.channel.CreatePlayer(vol)
 	engine.player.SetBufferSize(time.Millisecond * 50)
 	engine.player.Play()
+}
+
+func (a *AudioHandler) SetStompSFX(sfxFile string) {
+	a.sfx.mainSources[AUDIO_STOMP_LEFT].LoadSFX(a, sfxFile)
+	a.sfx.mainSources[AUDIO_STOMP_RIGHT].LoadSFX(a, sfxFile)
 }

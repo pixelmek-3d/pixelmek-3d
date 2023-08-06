@@ -8,6 +8,15 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+type MechClass int
+
+const (
+	MECH_LIGHT MechClass = iota
+	MECH_MEDIUM
+	MECH_HEAVY
+	MECH_ASSAULT
+)
+
 type Mech struct {
 	*UnitModel
 	Resource *ModelMechResource
@@ -55,6 +64,19 @@ func (e *Mech) CloneUnit() Unit {
 
 func (e *Mech) Clone() Entity {
 	return e.CloneUnit()
+}
+
+func (e *Mech) Class() MechClass {
+	switch tonnage := e.Tonnage(); {
+	case tonnage < 40:
+		return MECH_LIGHT
+	case tonnage < 60:
+		return MECH_MEDIUM
+	case tonnage < 80:
+		return MECH_HEAVY
+	default:
+		return MECH_ASSAULT
+	}
 }
 
 func (e *Mech) Name() string {

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -91,6 +92,10 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 	switch unitType := unit.(type) {
 	case *model.Mech:
 		unitSprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
+
+		mechClass := unit.(*model.Mech).Class()
+		mechStompFile := fmt.Sprintf("audio/sfx/stomp-%d.ogg", mechClass)
+		g.audio.SetStompSFX(mechStompFile)
 
 	case *model.Vehicle:
 		unitSprite = g.createUnitSprite(unit).(*render.VehicleSprite).Sprite
