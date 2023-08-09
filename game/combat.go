@@ -21,6 +21,7 @@ func (g *Game) initCombatVariables() {
 	g.delayedProjectiles = make(map[*DelayedProjectileSpawn]struct{}, 256)
 }
 
+// fireWeapon fires the currently selected player weapon/weapon group
 func (g *Game) fireWeapon() {
 	// weapons test from model
 	armament := g.player.Armament()
@@ -67,21 +68,7 @@ func (g *Game) fireWeapon() {
 				}
 			}
 
-			if len(weapon.Audio()) > 0 {
-				// play weapon audio
-				// TODO: play audio for queued delayed projectiles also
-				var panPercent float64
-				offsetX := -weapon.Offset().X
-				switch {
-				case offsetX < 0:
-					// pan left
-					panPercent = geom.Clamp(offsetX-0.4, -0.8, 0)
-				case offsetX > 0:
-					// pan right
-					panPercent = geom.Clamp(offsetX+0.4, 0, 0.8)
-				}
-				g.audio.PlaySFX(weapon.Audio(), 1.0, panPercent)
-			}
+			g.audio.PlayLocalWeaponFireAudio(weapon)
 		}
 	}
 }
@@ -172,6 +159,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 	}
 }
 
+// updateProjectiles updates the state of all projectiles in play
 func (g *Game) updateProjectiles() {
 	// update and spawn projectiles on delay timers
 	g.updateDelayedProjectiles()
@@ -207,6 +195,7 @@ func (g *Game) updateProjectiles() {
 	wg.Wait()
 }
 
+// asyncProjectileUpdate updates the positions of a projectile in a parallel fashion
 func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -368,6 +357,7 @@ func (g *Game) updateDelayedProjectiles() {
 	}
 }
 
+// spawnDelayedProjectile puts a projectile in play that was delayed
 func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 	delete(g.delayedProjectiles, p)
 
@@ -391,5 +381,11 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		pSprite.Projectile = projectile
 		pSprite.Entity = projectile
 		g.sprites.addProjectile(pSprite)
+
+		if e == g.player.Unit {
+			g.audio.PlayLocalWeaponFireAudio(w)
+		} // else {
+		// TODO: PlayExternalWeaponFireAudio
+		// }
 	}
 }

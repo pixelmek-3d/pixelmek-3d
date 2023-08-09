@@ -5,7 +5,9 @@ import (
 
 	"github.com/adrianbrad/queue"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/solarlune/resound"
 
 	log "github.com/sirupsen/logrus"
@@ -52,6 +54,7 @@ func init() {
 	audio.NewContext(resources.SampleRate)
 }
 
+// NewAudioHandler creates a new audio handler instance
 func NewAudioHandler() *AudioHandler {
 	a := &AudioHandler{}
 
@@ -78,6 +81,7 @@ func NewAudioHandler() *AudioHandler {
 	return a
 }
 
+// NewSoundEffectSource creates a new sound effect channel
 func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	s := &SFXSource{volume: sourceVolume}
 	s.channel = resound.NewDSPChannel()
@@ -86,6 +90,7 @@ func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	return s
 }
 
+// LoadSFX loads a new sound effect player into the sound effect channel
 func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 	// make sure current source is closed before loading a new one
 	s.Close()
@@ -114,16 +119,19 @@ func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 	return nil
 }
 
+// UpdateVolume updates the volume of the sound channel taking into account relative volume modifier
 func (s *SFXSource) UpdateVolume() {
 	v := s.channel.Effects["volume"].(*resound.Volume)
 	v.SetStrength(sfxVolume * s.volume)
 }
 
+// SetSourceVolume sets the relative volume modifier of the sound channel
 func (s *SFXSource) SetSourceVolume(sourceVolume float64) {
 	s.volume = sourceVolume
 	s.UpdateVolume()
 }
 
+// SetPan sets the left/right panning percent of the sound channel
 func (s *SFXSource) SetPan(panPercent float64) {
 	if pan, ok := s.channel.Effects["pan"].(*resound.Pan); ok {
 		pan.SetPan(panPercent)
@@ -132,6 +140,7 @@ func (s *SFXSource) SetPan(panPercent float64) {
 	}
 }
 
+// Play starts playing the sound effect player from the beginning of the effect
 func (s *SFXSource) Play() {
 	if s.player != nil {
 		s.player.Rewind()
@@ -139,6 +148,7 @@ func (s *SFXSource) Play() {
 	}
 }
 
+// Close stops and closes the sound effect player
 func (s *SFXSource) Close() {
 	if s.player != nil {
 		s.player.Close()
@@ -146,6 +156,7 @@ func (s *SFXSource) Close() {
 	}
 }
 
+// PlaySFX plays given external sound effect file
 func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64) {
 	// get and close the lowest priority source for reuse
 	source, _ := a.sfx.extSources.Get()
@@ -164,6 +175,7 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	a.sfx.extSources.Offer(source)
 }
 
+// SetMusicVolume sets volume of background music
 func (a *AudioHandler) SetMusicVolume(strength float64) {
 	bgmVolume = strength
 	v := a.bgm.channel.Effects["volume"].(*resound.Volume)
@@ -176,6 +188,7 @@ func (a *AudioHandler) SetMusicVolume(strength float64) {
 	}
 }
 
+// SetSFXVolume sets volume of all sound effect sources
 func (a *AudioHandler) SetSFXVolume(strength float64) {
 	sfxVolume = strength
 	for _, s := range a.sfx.mainSources {
@@ -188,6 +201,7 @@ func (a *AudioHandler) SetSFXVolume(strength float64) {
 	}
 }
 
+// SetSFXChannels sets max number of external sound effect channels
 func (a *AudioHandler) SetSFXChannels(numChannels int) {
 	sfxChannels = numChannels
 
@@ -227,10 +241,12 @@ func (a *AudioHandler) SetSFXChannels(numChannels int) {
 	)
 }
 
+// IsMusicPlaying return true if background music is currently playing
 func (a *AudioHandler) IsMusicPlaying() bool {
 	return a.bgm.player != nil && a.bgm.player.IsPlaying()
 }
 
+// StopMusic stops and closes the background music source
 func (a *AudioHandler) StopMusic() {
 	if a.bgm.player != nil {
 		a.bgm.player.Close()
@@ -238,18 +254,21 @@ func (a *AudioHandler) StopMusic() {
 	}
 }
 
+// PauseMusic pauses play of background music
 func (a *AudioHandler) PauseMusic() {
 	if a.bgm.player != nil && a.bgm.player.IsPlaying() {
 		a.bgm.player.Pause()
 	}
 }
 
+// ResumeMusic resumes play of background music
 func (a *AudioHandler) ResumeMusic() {
 	if a.bgm.player != nil && !a.bgm.player.IsPlaying() {
 		a.bgm.player.Play()
 	}
 }
 
+// StopSFX stops and closes all sound effect sources
 func (a *AudioHandler) StopSFX() {
 	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
@@ -260,6 +279,7 @@ func (a *AudioHandler) StopSFX() {
 	// TODO: stop extSources
 }
 
+// PauseSFX pauses all sound effect sources
 func (a *AudioHandler) PauseSFX() {
 	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
@@ -269,6 +289,7 @@ func (a *AudioHandler) PauseSFX() {
 	// TODO: pause extSources
 }
 
+// ResumeSFX resumes play of all sound effect sources
 func (a *AudioHandler) ResumeSFX() {
 	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
@@ -278,10 +299,12 @@ func (a *AudioHandler) ResumeSFX() {
 	// TODO: resume extSources
 }
 
+// StartMenuMusic starts main menu background music audio loop
 func (a *AudioHandler) StartMenuMusic() {
 	a.StartMusicFromFile("audio/music/soundflakes_crossing-horizon.mp3")
 }
 
+// StartMusicFromFile starts background music audio loop
 func (a *AudioHandler) StartMusicFromFile(path string) {
 	if a.bgm.player != nil {
 		a.StopMusic()
@@ -301,6 +324,7 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 	a.bgm.player.Play()
 }
 
+// StartEngineAmbience starts the ambient engine audio loop
 func (a *AudioHandler) StartEngineAmbience() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	if engine.player != nil {
@@ -326,4 +350,21 @@ func (a *AudioHandler) StartEngineAmbience() {
 func (a *AudioHandler) SetStompSFX(sfxFile string) {
 	a.sfx.mainSources[AUDIO_STOMP_LEFT].LoadSFX(a, sfxFile)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].LoadSFX(a, sfxFile)
+}
+
+// PlayLocalWeaponFireAudio plays weapon fire audio intended only if fired by the player unit
+func (a *AudioHandler) PlayLocalWeaponFireAudio(weapon model.Weapon) {
+	if len(weapon.Audio()) > 0 {
+		var panPercent float64
+		offsetX := -weapon.Offset().X
+		switch {
+		case offsetX < 0:
+			// pan left
+			panPercent = geom.Clamp(offsetX-0.4, -0.8, 0)
+		case offsetX > 0:
+			// pan right
+			panPercent = geom.Clamp(offsetX+0.4, 0, 0.8)
+		}
+		a.PlaySFX(weapon.Audio(), 1.0, panPercent)
+	}
 }
