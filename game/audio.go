@@ -301,7 +301,7 @@ func (a *AudioHandler) ResumeSFX() {
 
 // StartMenuMusic starts main menu background music audio loop
 func (a *AudioHandler) StartMenuMusic() {
-	a.StartMusicFromFile("audio/music/soundflakes_crossing-horizon.mp3")
+	a.StartMusicFromFile("audio/music/crossing_horizon.mp3")
 }
 
 // StartMusicFromFile starts background music audio loop

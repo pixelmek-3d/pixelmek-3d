@@ -2,8 +2,22 @@
 
 ## ./music
 
-- `soundflakes_crossing-horizon`: "SoundFlakes"
+- `bone_remains`: "Onision"
+  - https://opengameart.org/content/bone-remains
+
+- `crossing_horizon`: "SoundFlakes"
   - https://freesound.org/people/SoundFlakes/sounds/423967/
+
+- `gi_i_dark_ambient`: "SouljahdeShiva"
+  - https://opengameart.org/content/gi-i-dark-ambient-techno
+
+- `icy_wastes`: "shalpin"
+  - https://opengameart.org/content/icy-wastes
+
+- `scanner_tek`: "SouljahdeShiva"
+  - https://opengameart.org/content/scannertek
+
+
 
 ## ./sfx
 

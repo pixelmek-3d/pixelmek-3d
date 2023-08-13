@@ -4,6 +4,7 @@ briefing: |
 
   And do stuff.
 map: "debug_land.yaml"
+music: "icy_wastes.mp3"
 dropZone:
   position: [50, 50]
   heading: 90

@@ -17,8 +17,13 @@ func NewMissionScene(g *Game) *MissionScene {
 	g.menu = gameMenu
 	g.closeMenu()
 
-	// TODO: level specific background music
+	// stop menu music
 	g.audio.StopMusic()
+
+	// start mission music
+	if len(g.mission.MusicPath) > 0 {
+		g.audio.StartMusicFromFile("audio/music/" + g.mission.MusicPath)
+	}
 
 	// start engine ambience
 	g.audio.StartEngineAmbience()

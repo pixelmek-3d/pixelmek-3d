@@ -4,6 +4,7 @@ briefing: |
 
   Justice by combat.
 map: "testing_grounds.yaml"
+music: "gi_i_dark_ambient.mp3"
 dropZone:
   position: [100, 100]
   heading: 180

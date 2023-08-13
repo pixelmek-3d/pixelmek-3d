@@ -4,6 +4,7 @@ briefing: |
 
   Justice by combat.
 map: "testing_grounds.yaml"
+music: "bone_remains.mp3"
 dropZone:
   position: [8.5, 3.5]
   heading: 60

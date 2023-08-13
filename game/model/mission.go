@@ -17,6 +17,7 @@ type Mission struct {
 	Title        string               `yaml:"title" validate:"required"`
 	Briefing     string               `yaml:"briefing" validate:"required"`
 	MapPath      string               `yaml:"map" validate:"required"`
+	MusicPath    string               `yaml:"music"`
 	DropZone     *MissionDropZone     `yaml:"dropZone" validate:"required"`
 	Lighting     *MapLighting         `yaml:"lighting,omitempty"`
 	FloorBox     *MapTexture          `yaml:"floorBox,omitempty"`
