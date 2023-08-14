@@ -3,6 +3,7 @@ package model
 import (
 	"math"
 	"path/filepath"
+	"strings"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -14,6 +15,7 @@ type MissileWeapon struct {
 	name            string
 	short           string
 	tech            TechBase
+	classification  WeaponClassification
 	tonnage         float64
 	damage          float64
 	heat            float64
@@ -51,6 +53,9 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 		missileTubeOffset: make([]*geom.Vector2, r.ProjectileCount),
 		parent:            parent,
 	}
+
+	// load general classification of weapon programmatically
+	w.loadClassification()
 
 	if r.LockOn != nil {
 		w.lockOnLockRequired = r.LockOn.LockRequired
@@ -210,6 +215,22 @@ func (w *MissileWeapon) ShortName() string {
 
 func (w *MissileWeapon) Type() WeaponType {
 	return MISSILE
+}
+
+func (w *MissileWeapon) Classification() WeaponClassification {
+	return w.classification
+}
+
+func (w *MissileWeapon) loadClassification() {
+	s := strings.ToLower(w.short)
+	switch {
+	case strings.Contains(s, "lrm"):
+		w.classification = MISSILE_LRM
+	case strings.Contains(s, "srm"):
+		w.classification = MISSILE_SRM
+	default:
+		w.classification = WEAPON_CLASS_UNDEFINED
+	}
 }
 
 func (w *MissileWeapon) Tech() TechBase {

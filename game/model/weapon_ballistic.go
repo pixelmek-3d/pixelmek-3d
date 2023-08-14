@@ -2,6 +2,7 @@ package model
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -13,6 +14,7 @@ type BallisticWeapon struct {
 	name            string
 	short           string
 	tech            TechBase
+	classification  WeaponClassification
 	tonnage         float64
 	damage          float64
 	heat            float64
@@ -42,6 +44,9 @@ func NewBallisticWeapon(r *ModelBallisticWeaponResource, collisionRadius, collis
 		offset:          offset,
 		parent:          parent,
 	}
+
+	// load general classification of weapon programmatically
+	w.loadClassification()
 
 	// convert velocity from meters/second to unit distance per tick
 	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
@@ -121,6 +126,24 @@ func (w *BallisticWeapon) ShortName() string {
 
 func (w *BallisticWeapon) Type() WeaponType {
 	return BALLISTIC
+}
+
+func (w *BallisticWeapon) Classification() WeaponClassification {
+	return w.classification
+}
+
+func (w *BallisticWeapon) loadClassification() {
+	s := strings.ToLower(w.short)
+	switch {
+	case strings.Contains(s, "ac"):
+		w.classification = BALLISTIC_AUTOCANNON
+	case strings.Contains(s, "gauss"):
+		w.classification = BALLISTIC_GAUSS
+	case strings.Contains(s, "mg"):
+		w.classification = BALLISTIC_MACHINEGUN
+	default:
+		w.classification = WEAPON_CLASS_UNDEFINED
+	}
 }
 
 func (w *BallisticWeapon) Tech() TechBase {

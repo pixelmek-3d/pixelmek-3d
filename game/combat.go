@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
@@ -12,9 +13,10 @@ import (
 )
 
 type DelayedProjectileSpawn struct {
-	delay  float64
-	weapon model.Weapon
-	parent model.Entity
+	delay      float64
+	weapon     model.Weapon
+	parent     model.Entity
+	sfxEnabled bool
 }
 
 func (g *Game) initCombatVariables() {
@@ -63,7 +65,7 @@ func (g *Game) fireWeapon() {
 				// queue creation of multiple projectiles after time delay
 				if weapon.ProjectileCount() > 1 {
 					for i := 1; i < weapon.ProjectileCount(); i++ {
-						g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, g.player.Unit)
+						g.queueDelayedProjectile(i, weapon, g.player.Unit)
 					}
 				}
 			}
@@ -147,7 +149,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 						// queue creation of multiple projectiles after time delay
 						if weapon.ProjectileCount() > 1 {
 							for i := 1; i < weapon.ProjectileCount(); i++ {
-								g.queueDelayedProjectile(float64(i)*weapon.ProjectileDelay(), weapon, unit)
+								g.queueDelayedProjectile(i, weapon, unit)
 							}
 						}
 					}
@@ -337,12 +339,41 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 	p.Update(g.player.Pos())
 }
 
-// queueDelayedProjectile queues a projectile on a timed delay (seconds)
-func (g *Game) queueDelayedProjectile(delay float64, w model.Weapon, e model.Entity) {
+// queueDelayedProjectile queues a projectile on a timed delay (seconds) between shots
+func (g *Game) queueDelayedProjectile(pIndex int, w model.Weapon, e model.Entity) {
+	delay := float64(pIndex) * w.ProjectileDelay()
+	playSFX := false
+	switch w.Type() {
+	case model.BALLISTIC:
+		// most ballistics play the sound effect every shot
+		switch w.Classification() {
+		case model.BALLISTIC_MACHINEGUN:
+			playSFX = false
+		default:
+			playSFX = true
+		}
+	case model.ENERGY:
+		// energy weapons plays the sound effect every shot
+		playSFX = true
+	case model.MISSILE:
+		// missile weapons play the sound effect every N shots based on weapon
+		switch w.Classification() {
+		case model.MISSILE_LRM:
+			playSFX = pIndex%5 == 0
+		case model.MISSILE_SRM:
+			playSFX = pIndex%2 == 0
+		default:
+			panic(fmt.Sprintf("unhandled missile weapon classification (%v) for %s", w.Classification(), w.Name()))
+		}
+	default:
+		panic(fmt.Sprintf("unhandled weapon type (%v) for %s", w.Type(), w.Name()))
+	}
+
 	p := &DelayedProjectileSpawn{
-		delay:  delay,
-		weapon: w,
-		parent: e,
+		delay:      delay,
+		weapon:     w,
+		parent:     e,
+		sfxEnabled: playSFX,
 	}
 	g.delayedProjectiles[p] = struct{}{}
 }
@@ -382,10 +413,12 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		pSprite.Entity = projectile
 		g.sprites.addProjectile(pSprite)
 
-		if e == g.player.Unit {
-			g.audio.PlayLocalWeaponFireAudio(w)
-		} // else {
-		// TODO: PlayExternalWeaponFireAudio
-		// }
+		if p.sfxEnabled {
+			if e == g.player.Unit {
+				g.audio.PlayLocalWeaponFireAudio(w)
+			} // else {
+			// TODO: PlayExternalWeaponFireAudio
+			// }
+		}
 	}
 }

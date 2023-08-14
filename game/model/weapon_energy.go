@@ -2,6 +2,7 @@ package model
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -13,6 +14,7 @@ type EnergyWeapon struct {
 	name            string
 	short           string
 	tech            TechBase
+	classification  WeaponClassification
 	tonnage         float64
 	damage          float64
 	heat            float64
@@ -42,6 +44,9 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 		offset:          offset,
 		parent:          parent,
 	}
+
+	// load general classification of weapon programmatically
+	w.loadClassification()
 
 	// convert velocity from meters/second to unit distance per tick
 	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
@@ -121,6 +126,24 @@ func (w *EnergyWeapon) ShortName() string {
 
 func (w *EnergyWeapon) Type() WeaponType {
 	return ENERGY
+}
+
+func (w *EnergyWeapon) Classification() WeaponClassification {
+	return w.classification
+}
+
+func (w *EnergyWeapon) loadClassification() {
+	s := strings.ToLower(w.short)
+	switch {
+	case strings.Contains(s, "laser"):
+		w.classification = ENERGY_LASER
+	case strings.Contains(s, "ppc"):
+		w.classification = ENERGY_PPC
+	case strings.Contains(s, "flamer"):
+		w.classification = ENERGY_FLAMER
+	default:
+		w.classification = WEAPON_CLASS_UNDEFINED
+	}
 }
 
 func (w *EnergyWeapon) Tech() TechBase {

@@ -13,6 +13,20 @@ const (
 	MISSILE
 )
 
+type WeaponClassification int
+
+const (
+	WEAPON_CLASS_UNDEFINED WeaponClassification = iota
+	ENERGY_LASER
+	ENERGY_PPC
+	ENERGY_FLAMER
+	BALLISTIC_MACHINEGUN
+	BALLISTIC_AUTOCANNON
+	BALLISTIC_GAUSS
+	MISSILE_LRM
+	MISSILE_SRM
+)
+
 type WeaponFireMode int
 
 const (
@@ -25,6 +39,7 @@ type Weapon interface {
 	ShortName() string
 	Tech() TechBase
 	Type() WeaponType
+	Classification() WeaponClassification
 	Tonnage() float64
 	Damage() float64
 	Heat() float64
