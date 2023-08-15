@@ -294,6 +294,8 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			}
 
 			// destroy projectile after applying damage so it can calculate dropoff if needed
+			p.SetPos(newPos)
+			p.SetPosZ(newPosZ)
 			p.Destroy()
 
 			// make a sprite/wall getting hit by projectile cause some visual effect
@@ -309,27 +311,8 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				g.sprites.addEffect(effect)
 			}
 
-			if len(p.ImpactAudio) > 0 {
-				// play impact effect audio
-				// determine distance and player camera relative direction of impact for volume and panning
-				playerPos := g.player.Pos()
-				playerHeading := g.player.Heading() + g.player.TurretAngle()
-
-				impactLine := geom3d.Line3d{
-					X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
-					X2: newPos.X, Y2: newPos.Y, Z2: newPosZ,
-				}
-				impactDist := impactLine.Distance()
-				impactHeading := impactLine.Heading()
-
-				relHeading := -model.AngleDistance(playerHeading, impactHeading)
-				relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
-
-				impactVolume := (20 - impactDist) / 20
-				if impactVolume > 0.05 {
-					g.audio.PlaySFX(p.ImpactAudio, impactVolume, relPercent)
-				}
-			}
+			// play impact effect audio
+			g.audio.PlayProjectileImpactAudio(g, p)
 
 		} else {
 			p.SetPos(newPos)
@@ -416,9 +399,9 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		if p.sfxEnabled {
 			if e == g.player.Unit {
 				g.audio.PlayLocalWeaponFireAudio(w)
-			} // else {
-			// TODO: PlayExternalWeaponFireAudio
-			// }
+			} else {
+				g.audio.PlayExternalWeaponFireAudio(g, w, e)
+			}
 		}
 	}
 }

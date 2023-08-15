@@ -6,8 +6,10 @@ import (
 	"github.com/adrianbrad/queue"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/pixelmek-3d/game/render"
 	"github.com/harbdog/pixelmek-3d/game/resources"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/solarlune/resound"
 
 	log "github.com/sirupsen/logrus"
@@ -366,5 +368,58 @@ func (a *AudioHandler) PlayLocalWeaponFireAudio(weapon model.Weapon) {
 			panPercent = geom.Clamp(offsetX+0.4, 0, 0.8)
 		}
 		a.PlaySFX(weapon.Audio(), 1.0, panPercent)
+	}
+}
+
+// PlayExternalWeaponFireAudio plays weapon fire audio fired by units other than the player
+func (a *AudioHandler) PlayExternalWeaponFireAudio(g *Game, weapon model.Weapon, extUnit model.Unit) {
+	if len(weapon.Audio()) > 0 {
+		// determine distance and angle of external fire
+
+		// TODO: refactor distance calculation with similar from PlayProjectileImpactAudio
+		// TODO: introduce volume modifier based on weapon type, classification, and size
+		extPos, extPosZ := extUnit.Pos(), extUnit.PosZ()
+		playerPos := g.player.Pos()
+		playerHeading := g.player.Heading() + g.player.TurretAngle()
+
+		pLine := geom3d.Line3d{
+			X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
+			X2: extPos.X, Y2: extPos.Y, Z2: extPosZ,
+		}
+		pDist := pLine.Distance()
+		pHeading := pLine.Heading()
+
+		relHeading := -model.AngleDistance(playerHeading, pHeading)
+		relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
+
+		pVolume := (20 - pDist) / 20
+		if pVolume > 0.05 {
+			g.audio.PlaySFX(weapon.Audio(), pVolume, relPercent)
+		}
+	}
+}
+
+// PlayProjectileImpactAudio plays projectile impact audio near the player
+func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSprite) {
+	if len(p.ImpactAudio) > 0 {
+		// determine distance and player camera relative direction of impact for volume and panning
+		extPos, extPosZ := p.Pos(), p.PosZ()
+		playerPos := g.player.Pos()
+		playerHeading := g.player.Heading() + g.player.TurretAngle()
+
+		impactLine := geom3d.Line3d{
+			X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
+			X2: extPos.X, Y2: extPos.Y, Z2: extPosZ,
+		}
+		impactDist := impactLine.Distance()
+		impactHeading := impactLine.Heading()
+
+		relHeading := -model.AngleDistance(playerHeading, impactHeading)
+		relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
+
+		impactVolume := (20 - impactDist) / 20
+		if impactVolume > 0.05 {
+			g.audio.PlaySFX(p.ImpactAudio, impactVolume, relPercent)
+		}
 	}
 }

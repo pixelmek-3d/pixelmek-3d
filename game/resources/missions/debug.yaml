@@ -8,8 +8,12 @@ music: "icy_wastes.mp3"
 dropZone:
   position: [50, 50]
   heading: 90
-navPoints: []
-mechs: []
+navPoints:
+- name: "Debug"
+  position: [50, 60]
+mechs:
+- unit: "timber_wolf_prime.yaml"
+  position: [60, 60]
 vehicles: []
 vtols: []
 infantry: []
