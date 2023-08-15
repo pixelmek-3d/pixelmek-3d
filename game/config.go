@@ -91,7 +91,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault(CONFIG_KEY_HUD_COLOR_A, 255)
 
 	// audio defaults
-	viper.SetDefault(CONFIG_KEY_AUDIO_BGM_VOL, 1.0)
+	viper.SetDefault(CONFIG_KEY_AUDIO_BGM_VOL, 0.65)
 	viper.SetDefault(CONFIG_KEY_AUDIO_SFX_VOL, 1.0)
 	viper.SetDefault(CONFIG_KEY_AUDIO_SFX_CHANNELS, 16)
 
