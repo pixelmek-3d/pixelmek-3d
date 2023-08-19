@@ -21,6 +21,7 @@ const (
 	AUDIO_ENGINE AudioMainSource = iota
 	AUDIO_STOMP_LEFT
 	AUDIO_STOMP_RIGHT
+	AUDIO_JUMP_JET
 	_AUDIO_MAIN_SOURCE_COUNT
 )
 
@@ -76,6 +77,9 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx.mainSources[AUDIO_STOMP_LEFT].SetPan(-0.5)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT] = NewSoundEffectSource(0.5)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].SetPan(0.5)
+
+	a.sfx.mainSources[AUDIO_JUMP_JET] = NewSoundEffectSource(0.7)
+	a.sfx.mainSources[AUDIO_JUMP_JET].LoadSFX(a, "audio/sfx/jet-thrust.ogg")
 
 	a.SetSFXChannels(sfxChannels)
 	a.SetSFXVolume(sfxVolume)
@@ -147,6 +151,13 @@ func (s *SFXSource) Play() {
 	if s.player != nil {
 		s.player.Rewind()
 		s.player.Play()
+	}
+}
+
+// Pause pauses the sound effect player
+func (s *SFXSource) Pause() {
+	if s.player != nil {
+		s.player.Pause()
 	}
 }
 

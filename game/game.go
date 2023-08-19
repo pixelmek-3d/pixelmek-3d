@@ -404,7 +404,22 @@ func (g *Game) updatePlayer() {
 		g.player.moved = true
 	}
 
-	if g.player.strideStomp {
+	if g.player.JumpJets() > 0 {
+		if g.player.JumpJetsActive() {
+			// make jet thrust sound
+			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
+			if !jetThrust.player.IsPlaying() {
+				jetThrust.Play()
+			}
+		} else {
+			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
+			if jetThrust.player.IsPlaying() {
+				jetThrust.Pause()
+			}
+		}
+	}
+
+	if g.player.strideStomp && !g.player.JumpJetsActive() {
 		// make stompy sound
 		switch g.player.strideStompDir {
 		case StrideStompLeft:
