@@ -24,8 +24,11 @@
 - `ambience-engine`: "Tim Verberne"
   - https://freesound.org/people/Tim_Verberne/sounds/487416/
 
-- `stomp`: "OveMelaa"
-  - https://opengameart.org/content/oves-essential-game-audio-pack-collection-160-files-updated
+- `jet-thrust`: "Maxx222"
+  - https://freesound.org/people/Maxx222/sounds/446764/
+
+- `stomp-N`: "Renovatio871"
+  - https://freesound.org/people/Renovatio871/sounds/324450/
 
 ## ./sfx/impacts
 
