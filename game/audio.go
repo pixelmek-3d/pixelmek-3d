@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/adrianbrad/queue"
@@ -365,6 +366,15 @@ func (a *AudioHandler) SetStompSFX(sfxFile string) {
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].LoadSFX(a, sfxFile)
 }
 
+func StompSFXForMech(m *model.Mech) (string, error) {
+	if m == nil {
+		return "", fmt.Errorf("can not get stomp SFX for nil mech")
+	}
+	mechClass := m.Class()
+	mechStompFile := fmt.Sprintf("audio/sfx/stomp-%d.ogg", mechClass)
+	return mechStompFile, nil
+}
+
 // PlayLocalWeaponFireAudio plays weapon fire audio intended only if fired by the player unit
 func (a *AudioHandler) PlayLocalWeaponFireAudio(weapon model.Weapon) {
 	if len(weapon.Audio()) > 0 {
@@ -385,52 +395,37 @@ func (a *AudioHandler) PlayLocalWeaponFireAudio(weapon model.Weapon) {
 // PlayExternalWeaponFireAudio plays weapon fire audio fired by units other than the player
 func (a *AudioHandler) PlayExternalWeaponFireAudio(g *Game, weapon model.Weapon, extUnit model.Unit) {
 	if len(weapon.Audio()) > 0 {
-		// determine distance and angle of external fire
-
-		// TODO: refactor distance calculation with similar from PlayProjectileImpactAudio
 		// TODO: introduce volume modifier based on weapon type, classification, and size
 		extPos, extPosZ := extUnit.Pos(), extUnit.PosZ()
-		playerPos := g.player.Pos()
-		playerHeading := g.player.Heading() + g.player.TurretAngle()
-
-		pLine := geom3d.Line3d{
-			X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
-			X2: extPos.X, Y2: extPos.Y, Z2: extPosZ,
-		}
-		pDist := pLine.Distance()
-		pHeading := pLine.Heading()
-
-		relHeading := -model.AngleDistance(playerHeading, pHeading)
-		relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
-
-		pVolume := (20 - pDist) / 20
-		if pVolume > 0.05 {
-			g.audio.PlaySFX(weapon.Audio(), pVolume, relPercent)
-		}
+		a.PlayExternalAudio(g, weapon.Audio(), extPos.X, extPos.Y, extPosZ)
 	}
 }
 
 // PlayProjectileImpactAudio plays projectile impact audio near the player
 func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSprite) {
 	if len(p.ImpactAudio) > 0 {
-		// determine distance and player camera relative direction of impact for volume and panning
 		extPos, extPosZ := p.Pos(), p.PosZ()
-		playerPos := g.player.Pos()
-		playerHeading := g.player.Heading() + g.player.TurretAngle()
+		a.PlayExternalAudio(g, p.ImpactAudio, extPos.X, extPos.Y, extPosZ)
+	}
+}
 
-		impactLine := geom3d.Line3d{
-			X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
-			X2: extPos.X, Y2: extPos.Y, Z2: extPosZ,
-		}
-		impactDist := impactLine.Distance()
-		impactHeading := impactLine.Heading()
+// PlayExternalAudio plays audio that may be near the player taking into account distance/direction for volume/panning
+func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPosY, extPosZ float64) {
+	playerPos := g.player.Pos()
+	playerHeading := g.player.Heading() + g.player.TurretAngle()
 
-		relHeading := -model.AngleDistance(playerHeading, impactHeading)
-		relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
+	extLine := geom3d.Line3d{
+		X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
+		X2: extPosX, Y2: extPosY, Z2: extPosZ,
+	}
+	extDist := extLine.Distance()
+	extHeading := extLine.Heading()
 
-		impactVolume := (20 - impactDist) / 20
-		if impactVolume > 0.05 {
-			g.audio.PlaySFX(p.ImpactAudio, impactVolume, relPercent)
-		}
+	relHeading := -model.AngleDistance(playerHeading, extHeading)
+	relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
+
+	extVolume := (20 - extDist) / 20
+	if extVolume > 0.05 {
+		g.audio.PlaySFX(sfxFile, extVolume, relPercent)
 	}
 }

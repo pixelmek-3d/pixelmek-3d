@@ -654,6 +654,7 @@ func (g *Game) updateSprites() {
 
 			case MechSpriteType:
 				s := k.(*render.MechSprite)
+				sUnit := model.EntityUnit(s.Entity)
 				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteMechSprite(s)
@@ -661,7 +662,16 @@ func (g *Game) updateSprites() {
 
 				g.updateMechPosition(s)
 				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
+				g.updateWeaponCooldowns(sUnit)
+
+				if s.StrideStomp() {
+					s.ResetStrideStomp()
+					pos, posZ := s.Pos(), s.PosZ()
+					mechStompFile, err := StompSFXForMech(sUnit.(*model.Mech))
+					if err == nil {
+						g.audio.PlayExternalAudio(g, mechStompFile, pos.X, pos.Y, posZ)
+					}
+				}
 
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)

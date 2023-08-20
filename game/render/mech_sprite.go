@@ -14,12 +14,7 @@ type MechSprite struct {
 	*Sprite
 	mechAnimate  *MechSpriteAnimate
 	animateIndex MechAnimationIndex
-	// static *ebiten.Image
-	// ct     *ebiten.Image
-	// la     *ebiten.Image
-	// ra     *ebiten.Image
-	// ll     *ebiten.Image
-	// rl     *ebiten.Image
+	strideStomp  bool
 
 	// TODO: move to separate AI handler
 	PatrolPathIndex int
@@ -94,6 +89,14 @@ func (s *MechSprite) ResetAnimation() {
 	}
 }
 
+func (s *MechSprite) StrideStomp() bool {
+	return s.strideStomp
+}
+
+func (s *MechSprite) ResetStrideStomp() {
+	s.strideStomp = false
+}
+
 func (s *MechSprite) Update(camPos *geom.Vector2) {
 	if s.AnimationRate <= 0 {
 		return
@@ -121,6 +124,13 @@ func (s *MechSprite) Update(camPos *geom.Vector2) {
 			if s.texNum > maxTexNum || s.texNum < minTexNum {
 				s.texNum = minTexNum
 				s.loopCounter++
+			}
+		}
+
+		if s.animateIndex == ANIMATE_STRUT {
+			// use texture index for when the stomp audio occurs
+			if s.texNum == minTexNum || s.texNum == minTexNum+(maxTexNum-minTexNum)/2 {
+				s.strideStomp = true
 			}
 		}
 	} else {
