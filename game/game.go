@@ -669,7 +669,7 @@ func (g *Game) updateSprites() {
 					pos, posZ := s.Pos(), s.PosZ()
 					mechStompFile, err := StompSFXForMech(sUnit.(*model.Mech))
 					if err == nil {
-						g.audio.PlayExternalAudio(g, mechStompFile, pos.X, pos.Y, posZ, 0.35)
+						g.audio.PlayExternalAudio(g, mechStompFile, pos.X, pos.Y, posZ, 2.5, 0.35)
 					}
 				}
 

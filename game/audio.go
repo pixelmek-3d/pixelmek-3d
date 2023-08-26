@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/adrianbrad/queue"
@@ -397,7 +398,7 @@ func (a *AudioHandler) PlayExternalWeaponFireAudio(g *Game, weapon model.Weapon,
 	if len(weapon.Audio()) > 0 {
 		// TODO: introduce volume modifier based on weapon type, classification, and size
 		extPos, extPosZ := extUnit.Pos(), extUnit.PosZ()
-		a.PlayExternalAudio(g, weapon.Audio(), extPos.X, extPos.Y, extPosZ, 1.0)
+		a.PlayExternalAudio(g, weapon.Audio(), extPos.X, extPos.Y, extPosZ, 10, 1.0)
 	}
 }
 
@@ -406,12 +407,14 @@ func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSp
 	if len(p.ImpactAudio) > 0 {
 		// TODO: introduce volume modifier based on projectile's weapon type, classification, and size
 		extPos, extPosZ := p.Pos(), p.PosZ()
-		a.PlayExternalAudio(g, p.ImpactAudio, extPos.X, extPos.Y, extPosZ, 1.0)
+		a.PlayExternalAudio(g, p.ImpactAudio, extPos.X, extPos.Y, extPosZ, 10, 1.0)
 	}
 }
 
 // PlayExternalAudio plays audio that may be near the player taking into account distance/direction for volume/panning
-func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPosY, extPosZ, volumeMod float64) {
+// intensityDist - distance of 100% sound intensity before volume begins to dropoff at a rate of 1/d^2
+// maxVolume - the maximum volume percent to be perceived by the player
+func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPosY, extPosZ, intensityDist, maxVolume float64) {
 	playerPos := g.player.Pos()
 	playerHeading := g.player.Heading() + g.player.TurretAngle()
 
@@ -425,8 +428,7 @@ func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPo
 	relHeading := -model.AngleDistance(playerHeading, extHeading)
 	relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
 
-	// TODO: instead of volumeMod, input should be the max sound dropoff? (currently hardcoded as 20 units of length)
-	extVolume := ((20 - extDist) / 20) * volumeMod
+	extVolume := geom.Clamp(math.Pow(intensityDist/extDist, 2), 0.0, maxVolume)
 	if extVolume > 0.05 {
 		g.audio.PlaySFX(sfxFile, extVolume, relPercent)
 	}
