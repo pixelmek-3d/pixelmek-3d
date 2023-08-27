@@ -173,6 +173,10 @@ func (s *SFXSource) Close() {
 
 // PlaySFX plays given external sound effect file
 func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64) {
+	if sfxVolume <= 0 || sourceVolume <= 0 {
+		return
+	}
+
 	// get and close the lowest priority source for reuse
 	source, _ := a.sfx.extSources.Get()
 	if source == nil {
