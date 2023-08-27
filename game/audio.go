@@ -393,7 +393,7 @@ func (a *AudioHandler) PlayLocalWeaponFireAudio(weapon model.Weapon) {
 			// pan right
 			panPercent = geom.Clamp(offsetX+0.4, 0, 0.8)
 		}
-		a.PlaySFX(weapon.Audio(), 1.0, panPercent)
+		go a.PlaySFX(weapon.Audio(), 1.0, panPercent)
 	}
 }
 
@@ -434,6 +434,6 @@ func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPo
 
 	extVolume := geom.Clamp(math.Pow(intensityDist/extDist, 2), 0.0, maxVolume)
 	if extVolume > 0.05 {
-		g.audio.PlaySFX(sfxFile, extVolume, relPercent)
+		go g.audio.PlaySFX(sfxFile, extVolume, relPercent)
 	}
 }
