@@ -69,6 +69,10 @@ func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
 	return e.lockOnOffset
 }
 
+func (e *Projectile) InExtremeRange() bool {
+	return e.inExtremeRange
+}
+
 func (e *Projectile) Clone() Entity {
 	eClone := &Projectile{}
 	copier.Copy(eClone, e)

@@ -67,7 +67,7 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
 
 	// convert distance and velocity to number of ticks for lifespan
-	pLifespan := 2 * w.distance * (1 / w.velocity) * TICKS_PER_SECOND
+	pLifespan := w.distance * (1 / w.velocity) * TICKS_PER_SECOND
 
 	pDamage := w.damage
 	if w.ProjectileCount() > 1 {
@@ -78,7 +78,8 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 	if w.extremeDistance == 0 {
 		w.extremeDistance = 2 * w.distance
 	}
-	pExtreme := w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND
+	// subtract normal distance lifespan since it gets added on once it hits extreme ranges
+	pExtreme := (w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND) - pLifespan
 
 	// based on the number of tubes, create offsets for each missile so they spawn from slightly different positions
 	w.loadMissileTubes(onePxOffset)

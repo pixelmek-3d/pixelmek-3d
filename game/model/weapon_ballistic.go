@@ -52,12 +52,13 @@ func NewBallisticWeapon(r *ModelBallisticWeaponResource, collisionRadius, collis
 	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
 
 	// convert distance and velocity to number of ticks for lifespan
-	pLifespan := 2 * w.distance * (1 / w.velocity) * TICKS_PER_SECOND
+	pLifespan := w.distance * (1 / w.velocity) * TICKS_PER_SECOND
 
 	if w.extremeDistance == 0 {
 		w.extremeDistance = 2 * w.distance
 	}
-	pExtreme := w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND
+	// subtract normal distance lifespan since it gets added on once it hits extreme ranges
+	pExtreme := (w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND) - pLifespan
 
 	pDamage := w.damage
 	if w.ProjectileCount() > 1 {

@@ -57,7 +57,8 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 	if w.extremeDistance == 0 {
 		w.extremeDistance = 2 * w.distance
 	}
-	pExtreme := w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND
+	// subtract normal distance lifespan since it gets added on once it hits extreme ranges
+	pExtreme := (w.extremeDistance * (1 / w.velocity) * TICKS_PER_SECOND) - pLifespan
 
 	pDamage := w.damage
 	if w.ProjectileCount() > 1 {

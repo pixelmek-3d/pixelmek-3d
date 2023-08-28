@@ -692,12 +692,13 @@ func (g *Game) handleInput() {
 	}
 
 	if g.input.ActionIsPressed(ActionJumpJet) {
-		// TODO: add jump jet toggle option
 		switch {
 		case isVTOL:
 			// TODO: use unit tonnage and gravity to determine ascent speed
 			g.player.SetTargetVelocityZ(g.player.MaxVelocity() / 2)
 		case isMech:
+			// TODO: add jump jet toggle option
+			// TODO: refactor jump jet code for use by enemy bots
 			if g.player.Unit.JumpJets() > 0 {
 				if g.player.Unit.JumpJetsActive() {
 					// continue jumping until jets run out of charge

@@ -204,9 +204,11 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 	if p.Velocity() != 0 {
 		pPos := p.Pos()
 
-		// adjust pitch and heading if is a locked missile projectile
+		_, isEnergy := p.Projectile.Weapon().(*model.EnergyWeapon)
 		missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
-		if isMissile && missileWeapon.IsLockOn() {
+
+		// adjust pitch and heading if is a locked missile projectile
+		if isMissile && missileWeapon.IsLockOn() && !p.Projectile.InExtremeRange() {
 			pUnit := p.Projectile.Parent().(model.Unit)
 			target := pUnit.Target()
 			if target != nil {
@@ -264,6 +266,19 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 		}
 
 		trajectory := geom3d.Line3dFromAngle(pPos.X, pPos.Y, p.PosZ(), p.Heading(), p.Pitch(), p.Velocity())
+
+		if p.Projectile.InExtremeRange() && !isEnergy {
+			// make extreme range projectile trajectory start to fall (except for energy weapons)
+			extremeTrajectory := &trajectory
+			extremeTrajectory.Z2 -= model.GRAVITY_UNITS_PTT
+			p.SetPitch(extremeTrajectory.Pitch())
+
+				// for now just using gravity as basis for air resistance to reduce velocity at extreme range
+				extremeVelocity := geom.Clamp(p.Velocity()-model.GRAVITY_UNITS_PTT, 0, p.Velocity())
+				p.SetVelocity(extremeVelocity)
+			}
+		}
+
 		xCheck := trajectory.X2
 		yCheck := trajectory.Y2
 		zCheck := trajectory.Z2
