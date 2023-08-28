@@ -273,6 +273,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			extremeTrajectory.Z2 -= model.GRAVITY_UNITS_PTT
 			p.SetPitch(extremeTrajectory.Pitch())
 
+			if p.Velocity() > 0 {
 				// for now just using gravity as basis for air resistance to reduce velocity at extreme range
 				extremeVelocity := geom.Clamp(p.Velocity()-model.GRAVITY_UNITS_PTT, 0, p.Velocity())
 				p.SetVelocity(extremeVelocity)
