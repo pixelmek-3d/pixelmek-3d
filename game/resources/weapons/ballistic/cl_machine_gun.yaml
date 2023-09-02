@@ -4,21 +4,21 @@ name: Machine Gun
 short: MGUN
 tech: clan
 tonnage: 0.25
-damage: 2
+# DPS=2.0 (0.2 * 10/s)
+damage: 0.2
 heat: 0
 # max distance in meters: 3 (hexes) * 30 (meters/hex) = 90 (meters)
 distance: 90
 # velocity in meters/second
 velocity: 250
 # cooldown in seconds
-cooldown: 1
+cooldown: 0.1
 audio: machine-gun.ogg
-projectileCount: 5
-projectileDelay: 0.2
+projectileCount: 1
 projectile:
   collisionRadius: 6
   collisionHeight: 12
-  scale: 0.025
+  scale: 0.02
   image: bullet_tracer.png
   imageSheet:
     columns: 1
