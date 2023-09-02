@@ -30,7 +30,7 @@ const (
 var (
 	bgmVolume   float64
 	sfxVolume   float64
-	sfxChannels int // TODO: improve channel performance by reusing players from the same audio file
+	sfxChannels int
 )
 
 type AudioHandler struct {
