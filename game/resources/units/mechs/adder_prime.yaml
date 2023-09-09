@@ -6,7 +6,7 @@ image: adder.png
 tech: clan
 tonnage: 35
 height: 10
-heightRatio: 1.077
+heightPixelGap: 3
 speed: 97
 jumpJets: 0
 armor: 115

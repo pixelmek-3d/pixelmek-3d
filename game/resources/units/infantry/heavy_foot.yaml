@@ -14,6 +14,7 @@ imageSheet:
     270: 3
 tech: clan
 height: 2
+heightPixelGap: 1
 speed: 7
 jumpJets: 0
 armor: 10

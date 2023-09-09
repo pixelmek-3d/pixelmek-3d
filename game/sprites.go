@@ -137,7 +137,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.MechResourceType, u.Resource.Image)
 			img := getSpriteFromFile(relPath)
-			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+			scale := convertHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
 			unitSprite = render.NewMechSprite(u, scale, img)
 			g.sprites.mechSpriteTemplates[uKey] = unitSprite
@@ -151,7 +151,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, u.Resource.Image)
 			img := getSpriteFromFile(relPath)
-			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+			scale := convertHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
 			unitSprite = render.NewVehicleSprite(u, scale, img)
 			g.sprites.vehicleSpriteTemplates[uKey] = unitSprite
@@ -165,7 +165,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, u.Resource.Image)
 			img := getSpriteFromFile(relPath)
-			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+			scale := convertHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
 			unitSprite = render.NewVTOLSprite(u, scale, img)
 			g.sprites.vtolSpriteTemplates[uKey] = unitSprite
@@ -179,7 +179,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, u.Resource.Image)
 			img := getSpriteFromFile(relPath)
-			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+			scale := convertHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
 			unitSprite = render.NewInfantrySprite(u, scale, img)
 			g.sprites.infantrySpriteTemplates[uKey] = unitSprite
@@ -193,7 +193,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, u.Resource.Image)
 			img := getSpriteFromFile(relPath)
-			scale := convertHeightToScale(u.Resource.Height, u.Resource.HeightPxRatio)
+			scale := convertHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
 			unitSprite = render.NewEmplacementSprite(u, scale, img)
 			g.sprites.emplacementSpriteTemplates[uKey] = unitSprite

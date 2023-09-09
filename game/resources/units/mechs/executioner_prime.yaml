@@ -6,7 +6,7 @@ image: executioner.png
 tech: clan
 tonnage: 95
 height: 17
-heightRatio: 1.075
+heightPixelGap: 
 speed: 64 # TODO: MASC=86kph
 jumpJets: 4
 armor: 259

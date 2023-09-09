@@ -6,7 +6,7 @@ image: dire_wolf.png
 tech: clan
 tonnage: 100
 height: 16.5
-heightRatio: 1.031
+heightPixelGap: 
 speed: 54
 jumpJets: 0
 armor: 304

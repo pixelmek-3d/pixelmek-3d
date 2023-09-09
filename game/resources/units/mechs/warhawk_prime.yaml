@@ -6,7 +6,7 @@ image: warhawk.png
 tech: clan
 tonnage: 85
 height: 16
-heightRatio: 1.085
+heightPixelGap: 
 speed: 64
 jumpJets: 0
 armor: 259

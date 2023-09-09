@@ -17,7 +17,7 @@ imageSheet:
 tech: clan
 tonnage: 60
 height: 6
-heightRatio: 1.29 # 63 image pixel height / 49 unit pixel height = 1.29
+heightPixelGap: 14
 speed: 54
 armor: 53
 structure: 30 # 10% of weight (rounded up) as points per location (vehicles have 5 locations, with turret): 6 * 5 = 30

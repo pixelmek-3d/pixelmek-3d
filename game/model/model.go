@@ -125,7 +125,7 @@ type ModelMechResource struct {
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=200"`
 	Height            float64                  `yaml:"height" validate:"gt=0"`
-	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
+	HeightPxGap       int                      `yaml:"heightPixelGap" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
@@ -146,7 +146,7 @@ type ModelVehicleResource struct {
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=200"`
 	Height            float64                  `yaml:"height" validate:"gt=0"`
-	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
+	HeightPxGap       int                      `yaml:"heightPixelGap" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
@@ -166,7 +166,7 @@ type ModelVTOLResource struct {
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Tonnage           float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
 	Height            float64                  `yaml:"height" validate:"gt=0"`
-	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
+	HeightPxGap       int                      `yaml:"heightPixelGap" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
@@ -185,7 +185,7 @@ type ModelInfantryResource struct {
 	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Height            float64                  `yaml:"height" validate:"gt=0"`
-	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
+	HeightPxGap       int                      `yaml:"heightPixelGap" validate:"gte=0"`
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
@@ -204,7 +204,7 @@ type ModelEmplacementResource struct {
 	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
 	Tech              ModelTech                `yaml:"tech" validate:"required"`
 	Height            float64                  `yaml:"height" validate:"gt=0"`
-	HeightPxRatio     float64                  `yaml:"heightRatio" validate:"gte=0"`
+	HeightPxGap       int                      `yaml:"heightPixelGap" validate:"gte=0"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
 	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`

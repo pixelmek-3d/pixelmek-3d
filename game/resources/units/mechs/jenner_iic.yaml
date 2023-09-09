@@ -6,7 +6,7 @@ image: jenner_iic.png
 tech: clan
 tonnage: 35
 height: 10.5
-heightRatio: 1.077
+heightPixelGap: 
 speed: 151
 jumpJets: 7
 armor: 134

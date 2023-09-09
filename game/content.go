@@ -342,7 +342,7 @@ func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := mechImg.Bounds().Dx(), mechImg.Bounds().Dy()
 	width = width / 6 // all mech images are required to be six columns of images in a sheet
-	scale := convertHeightToScale(mechResource.Height, mechResource.HeightPxRatio)
+	scale := convertHeightToScale(mechResource.Height, height, mechResource.HeightPxGap)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
 		mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, scale,
 	)
@@ -369,7 +369,7 @@ func (g *Game) createModelVehicle(unit string) *model.Vehicle {
 		height = int(float64(height) / float64(vehicleResource.ImageSheet.Rows))
 	}
 
-	scale := convertHeightToScale(vehicleResource.Height, vehicleResource.HeightPxRatio)
+	scale := convertHeightToScale(vehicleResource.Height, height, vehicleResource.HeightPxGap)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
 		vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, scale,
 	)
@@ -396,7 +396,7 @@ func (g *Game) createModelVTOL(unit string) *model.VTOL {
 		height = int(float64(height) / float64(vtolResource.ImageSheet.Rows))
 	}
 
-	scale := convertHeightToScale(vtolResource.Height, vtolResource.HeightPxRatio)
+	scale := convertHeightToScale(vtolResource.Height, height, vtolResource.HeightPxGap)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
 		vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, scale,
 	)
@@ -423,7 +423,7 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 		height = int(float64(height) / float64(infantryResource.ImageSheet.Rows))
 	}
 
-	scale := convertHeightToScale(infantryResource.Height, infantryResource.HeightPxRatio)
+	scale := convertHeightToScale(infantryResource.Height, height, infantryResource.HeightPxGap)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
 		infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, scale,
 	)
@@ -450,7 +450,7 @@ func (g *Game) createModelEmplacement(unit string) *model.Emplacement {
 		height = int(float64(height) / float64(emplacementResource.ImageSheet.Rows))
 	}
 
-	scale := convertHeightToScale(emplacementResource.Height, emplacementResource.HeightPxRatio)
+	scale := convertHeightToScale(emplacementResource.Height, height, emplacementResource.HeightPxGap)
 	collisionRadius, collisionHeight := convertOffsetFromPx(
 		emplacementResource.CollisionPxRadius, emplacementResource.CollisionPxHeight, width, height, scale,
 	)
@@ -671,12 +671,9 @@ func setProjectileSpriteForWeapon(w model.Weapon, p *render.ProjectileSprite) {
 	projectileSpriteByWeapon[wKey] = p
 }
 
-func convertHeightToScale(height, pxRatio float64) float64 {
-	if pxRatio == 0 {
-		// if unset, default to 1.0
-		pxRatio = 1
-	}
-	return pxRatio * height / model.METERS_PER_UNIT
+func convertHeightToScale(unitHeight float64, imageHeight, heightPxGap int) float64 {
+	pxRatio := float64(imageHeight) / float64(imageHeight-heightPxGap)
+	return pxRatio * unitHeight / model.METERS_PER_UNIT
 }
 
 func convertOffsetFromPx(xPx, yPx float64, width, height int, scale float64) (offX float64, offY float64) {
