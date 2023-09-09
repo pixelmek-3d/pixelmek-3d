@@ -1,0 +1,64 @@
+---
+# https://www.sarna.net/wiki/Dire_Wolf_(Daishi)
+name: Dire Wolf
+variant: DWF-Prime
+image: dire_wolf.png
+tech: clan
+tonnage: 100
+height: 16.5
+heightRatio: 1.031
+speed: 54
+jumpJets: 0
+armor: 304
+structure: 152
+collisionRadius: 23
+collisionHeight: 61
+cockpitOffset: [0, 49]
+heatSinks:
+  quantity: 22
+  type: double
+armament:
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: la
+  offset: [18, 37]
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-18, 37]
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: la
+  offset: [22, 41]
+- weapon: "cl_er_large_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-22, 41]
+- weapon: "cl_medium_pulse_laser.yaml"
+  type: energy
+  location: la
+  offset: [22, 37]
+- weapon: "cl_medium_pulse_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-22, 37]
+- weapon: "cl_medium_pulse_laser.yaml"
+  type: energy
+  location: la
+  offset: [18, 41]
+- weapon: "cl_medium_pulse_laser.yaml"
+  type: energy
+  location: ra
+  offset: [-18, 41]
+- weapon: "cl_ultra_ac_5.yaml"
+  type: ballistic
+  location: la
+  offset: [20, 39]
+- weapon: "cl_ultra_ac_5.yaml"
+  type: ballistic
+  location: ra
+  offset: [-20, 39]
+- weapon: "cl_lrm_10.yaml"
+  type: missile
+  location: lt
+  offset: [10, 62]
