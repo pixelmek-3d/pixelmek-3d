@@ -491,15 +491,16 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	// reset player moved flag to only update camera when necessary
 	g.player.moved = false
 
-	g.camera.SetPosition(g.player.Pos().Copy())
-	g.camera.SetPositionZ(g.player.cameraZ)
+	camPos, camPosZ := g.player.CameraPosition()
+	g.camera.SetPosition(camPos)
+	g.camera.SetPositionZ(camPosZ)
 	g.camera.SetPitchAngle(g.player.Pitch())
 
+	cameraHeadingAngle := g.player.Heading()
 	if g.player.HasTurret() {
-		g.camera.SetHeadingAngle(g.player.Heading() + g.player.TurretAngle())
-	} else {
-		g.camera.SetHeadingAngle(g.player.Heading())
+		cameraHeadingAngle += g.player.TurretAngle()
 	}
+	g.camera.SetHeadingAngle(cameraHeadingAngle)
 }
 
 func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {

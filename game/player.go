@@ -73,8 +73,25 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 }
 
 func (p *Player) SetPosZ(z float64) {
-	p.cameraZ = z + p.strideZ + p.Unit.CockpitOffset().Y // TODO: support cockpit offset in sprite X direction
+	p.cameraZ = z + p.strideZ + p.Unit.CockpitOffset().Y
 	p.Unit.SetPosZ(z)
+}
+
+func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
+	pos, posZ = p.Pos().Copy(), p.cameraZ
+	cockpitOffset := p.Unit.CockpitOffset()
+	if cockpitOffset.X == 0 {
+		return
+	}
+
+	// adjust camera position to account for perpendicular horizontal cockpit offset
+	cameraHeadingAngle := p.Heading() + geom.HalfPi
+	if p.HasTurret() {
+		cameraHeadingAngle += p.TurretAngle()
+	}
+	cockpitLine := geom.LineFromAngle(pos.X, pos.Y, cameraHeadingAngle, cockpitOffset.X)
+	pos = &geom.Vector2{X: cockpitLine.X2, Y: cockpitLine.Y2}
+	return
 }
 
 func (g *Game) SetPlayerUnit(unit model.Unit) {
