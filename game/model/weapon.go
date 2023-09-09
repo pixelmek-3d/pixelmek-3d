@@ -22,6 +22,7 @@ const (
 	ENERGY_FLAMER
 	BALLISTIC_MACHINEGUN
 	BALLISTIC_AUTOCANNON
+	BALLISTIC_LBX_AC
 	BALLISTIC_GAUSS
 	MISSILE_LRM
 	MISSILE_SRM
@@ -53,6 +54,7 @@ type Weapon interface {
 	Offset() *geom.Vector2
 	ProjectileCount() int
 	ProjectileDelay() float64
+	ProjectileSpread() float64
 	SpawnProjectile(angle, pitch float64, spawnedBy Unit) *Projectile
 	SpawnProjectileToward(convergencePoint *geom3d.Vector3, spawnedBy Unit) *Projectile
 

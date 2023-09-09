@@ -179,6 +179,11 @@ func (w *MissileWeapon) ProjectileDelay() float64 {
 	return w.Resource.ProjectileDelay
 }
 
+func (w *MissileWeapon) ProjectileSpread() float64 {
+	// TODO: try some projectile spread for missiles?
+	return 0
+}
+
 func (w *MissileWeapon) SpawnProjectileToward(target *geom3d.Vector3, spawnedBy Unit) *Projectile {
 	wPos := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
 	angle, pitch := HeadingPitchTowardPoint3D(wPos, target)

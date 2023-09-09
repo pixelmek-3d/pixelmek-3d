@@ -93,6 +93,11 @@ func (w *EnergyWeapon) ProjectileDelay() float64 {
 	return w.Resource.ProjectileDelay
 }
 
+func (w *EnergyWeapon) ProjectileSpread() float64 {
+	// no spread for energy weapons
+	return 0
+}
+
 func (w *EnergyWeapon) SpawnProjectileToward(target *geom3d.Vector3, spawnedBy Unit) *Projectile {
 	wPos := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
 	angle, pitch := HeadingPitchTowardPoint3D(wPos, target)

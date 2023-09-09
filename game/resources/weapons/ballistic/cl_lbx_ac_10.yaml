@@ -1,0 +1,43 @@
+---
+# https://www.sarna.net/wiki/LB_10-X_AC
+name: LB 10-X AC
+short: LBxAC10
+tech: clan
+tonnage: 10
+damage: 10
+heat: 2
+# max distance in meters: 18 (hexes) * 30 (meters/hex) = 540 (meters)
+distance: 540
+# velocity in meters/second
+velocity: 375
+# cooldown in seconds
+cooldown: 1.5
+audio: autocannon.ogg
+projectileCount: 10
+projectileSpread: 0.02
+projectile:
+  collisionRadius: 6
+  collisionHeight: 12
+  scale: 0.125
+  image: bullet_tracer.png
+  imageSheet:
+    columns: 1
+    rows: 3
+    animationRate: 1
+    angleFacingRow:
+      0:   0
+      30:  1
+      90:  2
+      150: 1
+      180: 0
+      210: 1
+      270: 2
+      330: 1
+  impactEffect:
+    audio: explosion.ogg
+    scale: 0.3
+    image: autocannon_large_impact.png
+    imageSheet:
+      columns: 5
+      rows: 3
+      animationRate: 2

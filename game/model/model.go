@@ -249,20 +249,21 @@ type ModelMissileWeaponResource struct {
 }
 
 type ModelBallisticWeaponResource struct {
-	Name            string                   `yaml:"name" validate:"required"`
-	ShortName       string                   `yaml:"short" validate:"required"`
-	Tech            ModelTech                `yaml:"tech" validate:"required"`
-	Tonnage         float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
-	Damage          float64                  `yaml:"damage" validate:"gt=0"`
-	Heat            float64                  `yaml:"heat" validate:"gte=0"`
-	Distance        float64                  `yaml:"distance" validate:"gt=0"`
-	ExtremeDistance float64                  `yaml:"extremeDistance" validate:"gte=0"`
-	Velocity        float64                  `yaml:"velocity" validate:"gt=0"`
-	Cooldown        float64                  `yaml:"cooldown" validate:"gt=0"`
-	ProjectileCount int                      `yaml:"projectileCount" validate:"gt=0"`
-	ProjectileDelay float64                  `yaml:"projectileDelay" validate:"gte=0"`
-	Projectile      *ModelProjectileResource `yaml:"projectile"`
-	Audio           string                   `yaml:"audio" validate:"required"`
+	Name             string                   `yaml:"name" validate:"required"`
+	ShortName        string                   `yaml:"short" validate:"required"`
+	Tech             ModelTech                `yaml:"tech" validate:"required"`
+	Tonnage          float64                  `yaml:"tonnage" validate:"gt=0,lte=100"`
+	Damage           float64                  `yaml:"damage" validate:"gt=0"`
+	Heat             float64                  `yaml:"heat" validate:"gte=0"`
+	Distance         float64                  `yaml:"distance" validate:"gt=0"`
+	ExtremeDistance  float64                  `yaml:"extremeDistance" validate:"gte=0"`
+	Velocity         float64                  `yaml:"velocity" validate:"gt=0"`
+	Cooldown         float64                  `yaml:"cooldown" validate:"gt=0"`
+	ProjectileCount  int                      `yaml:"projectileCount" validate:"gt=0"`
+	ProjectileDelay  float64                  `yaml:"projectileDelay" validate:"gte=0"`
+	ProjectileSpread float64                  `yaml:"projectileSpread" validate:"gte=0"`
+	Projectile       *ModelProjectileResource `yaml:"projectile"`
+	Audio            string                   `yaml:"audio" validate:"required"`
 }
 
 type ModelProjectileResource struct {

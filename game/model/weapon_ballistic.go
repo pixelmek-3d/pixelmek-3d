@@ -93,6 +93,10 @@ func (w *BallisticWeapon) ProjectileDelay() float64 {
 	return w.Resource.ProjectileDelay
 }
 
+func (w *BallisticWeapon) ProjectileSpread() float64 {
+	return w.Resource.ProjectileSpread
+}
+
 func (w *BallisticWeapon) SpawnProjectileToward(target *geom3d.Vector3, spawnedBy Unit) *Projectile {
 	wPos := WeaponPosition3D(spawnedBy, w.offset.X, w.offset.Y)
 	angle, pitch := HeadingPitchTowardPoint3D(wPos, target)
@@ -136,6 +140,8 @@ func (w *BallisticWeapon) Classification() WeaponClassification {
 func (w *BallisticWeapon) loadClassification() {
 	s := strings.ToLower(w.short)
 	switch {
+	case strings.Contains(s, "lbx"):
+		w.classification = BALLISTIC_LBX_AC
 	case strings.Contains(s, "ac"):
 		w.classification = BALLISTIC_AUTOCANNON
 	case strings.Contains(s, "gauss"):

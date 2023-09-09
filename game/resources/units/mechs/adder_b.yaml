@@ -1,7 +1,7 @@
 ---
 # https://www.sarna.net/wiki/Adder_(Puma)
 name: Adder
-variant: ADR-Prime
+variant: ADR-B
 image: adder.png
 tech: clan
 tonnage: 35
@@ -15,14 +15,22 @@ collisionRadius: 19
 collisionHeight: 39
 cockpitOffset: [0, 34]
 heatSinks:
-  quantity: 11
+  quantity: 10
   type: double
 armament:
-- weapon: "cl_er_ppc.yaml"
-  type: energy
+- weapon: "cl_lbx_ac_5.yaml"
+  type: ballistic
   location: la
   offset: [17, 24]
-- weapon: "cl_er_ppc.yaml"
+- weapon: "cl_large_pulse_laser.yaml"
   type: energy
   location: ra
   offset: [-17, 24]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: lt
+  offset: [4, 30]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: rt
+  offset: [-4, 30]

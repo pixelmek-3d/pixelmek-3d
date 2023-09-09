@@ -14,6 +14,7 @@ import (
 
 type DelayedProjectileSpawn struct {
 	delay      float64
+	spread     float64
 	weapon     model.Weapon
 	parent     model.Entity
 	sfxEnabled bool
@@ -342,12 +343,16 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 // queueDelayedProjectile queues a projectile on a timed delay (seconds) between shots
 func (g *Game) queueDelayedProjectile(pIndex int, w model.Weapon, e model.Entity) {
 	delay := float64(pIndex) * w.ProjectileDelay()
+	spread := w.ProjectileSpread()
+
 	playSFX := false
 	switch w.Type() {
 	case model.BALLISTIC:
 		// most ballistics play the sound effect every shot
 		switch w.Classification() {
 		case model.BALLISTIC_MACHINEGUN:
+			playSFX = false
+		case model.BALLISTIC_LBX_AC:
 			playSFX = false
 		default:
 			playSFX = true
@@ -371,6 +376,7 @@ func (g *Game) queueDelayedProjectile(pIndex int, w model.Weapon, e model.Entity
 
 	p := &DelayedProjectileSpawn{
 		delay:      delay,
+		spread:     spread,
 		weapon:     w,
 		parent:     e,
 		sfxEnabled: playSFX,
@@ -399,11 +405,22 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 
 	var projectile *model.Projectile
 
+	var spreadAngle, spreadPitch float64
+	if p.spread > 0 {
+		// randomly generate spread for this projectile
+		spreadAngle = randFloat(-p.spread, p.spread)
+		spreadPitch = randFloat(-p.spread, p.spread)
+	}
+
 	convergencePoint := g.player.convergencePoint
 	if e != g.player.Unit || convergencePoint == nil {
-		projectile = w.SpawnProjectile(e.Heading()+e.TurretAngle(), e.Pitch(), e)
+		projectile = w.SpawnProjectile(e.Heading()+e.TurretAngle()+spreadAngle, e.Pitch()+spreadPitch, e)
 	} else {
 		projectile = w.SpawnProjectileToward(convergencePoint, e)
+		if p.spread > 0 {
+			projectile.SetHeading(projectile.Heading() + spreadAngle)
+			projectile.SetPitch(projectile.Pitch() + spreadPitch)
+		}
 	}
 
 	if projectile != nil {
