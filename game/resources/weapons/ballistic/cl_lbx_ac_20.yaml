@@ -18,7 +18,7 @@ projectileSpread: 0.025
 projectile:
   collisionRadius: 6
   collisionHeight: 12
-  scale: 0.15
+  scale: 0.075
   image: bullet_tracer.png
   imageSheet:
     columns: 1
@@ -35,7 +35,7 @@ projectile:
       330: 1
   impactEffect:
     audio: explosion.ogg
-    scale: 0.4
+    scale: 0.15
     image: autocannon_large_impact.png
     imageSheet:
       columns: 5
