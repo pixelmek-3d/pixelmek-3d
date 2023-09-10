@@ -17,8 +17,9 @@ func NewMissionScene(g *Game) *MissionScene {
 	g.menu = gameMenu
 	g.closeMenu()
 
-	// stop menu music
+	// stop menu music and sound effects
 	g.audio.StopMusic()
+	g.audio.StopSFX()
 
 	// start mission music
 	if len(g.mission.MusicPath) > 0 {

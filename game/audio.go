@@ -155,6 +155,14 @@ func (s *SFXSource) SetPan(panPercent float64) {
 	}
 }
 
+// IsPlaying returns true if the sound effect is currently playing
+func (s *SFXSource) IsPlaying() bool {
+	if s.player != nil {
+		return s.player.IsPlaying()
+	}
+	return false
+}
+
 // Play starts playing the sound effect player from the beginning of the effect
 func (s *SFXSource) Play() {
 	if s.player != nil {
@@ -286,7 +294,7 @@ func (a *AudioHandler) sfxSourcePriorityCompare(elem, other *SFXSource) bool {
 		otherRating = other.player.Volume()
 	}
 
-	// give lower priority rating to sources that have multiple sources already playing
+	// give lower priority rating to sources that have multiple of the same sound effect currently playing
 	if elemRating > 0 {
 		if value, ok := a.sfx._extSFXCount.Load(elem._sfxFile); ok {
 			elemCount, ok := value.(float64)
@@ -342,7 +350,10 @@ func (a *AudioHandler) StopSFX() {
 			//s.player = nil // do not want to have to reinitialize main sources
 		}
 	}
-	// TODO: stop extSources
+	for s := range a.sfx.extSources.Iterator() {
+		s.Close()
+		a.sfx.extSources.Offer(s)
+	}
 }
 
 // PauseSFX pauses all sound effect sources
@@ -352,7 +363,10 @@ func (a *AudioHandler) PauseSFX() {
 			s.player.Pause()
 		}
 	}
-	// TODO: pause extSources
+	for s := range a.sfx.extSources.Iterator() {
+		s.Pause()
+		a.sfx.extSources.Offer(s)
+	}
 }
 
 // ResumeSFX resumes play of all sound effect sources
@@ -362,7 +376,10 @@ func (a *AudioHandler) ResumeSFX() {
 			s.player.Play()
 		}
 	}
-	// TODO: resume extSources
+	for s := range a.sfx.extSources.Iterator() {
+		s.Play()
+		a.sfx.extSources.Offer(s)
+	}
 }
 
 // StartMenuMusic starts main menu background music audio loop
