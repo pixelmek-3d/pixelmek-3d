@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/adrianbrad/queue"
@@ -36,7 +37,7 @@ var (
 type AudioHandler struct {
 	bgm    *BGMHandler
 	sfx    *SFXHandler
-	sfxMap map[string][]byte
+	sfxMap *sync.Map // map[string][]byte
 }
 
 type BGMHandler struct {
@@ -68,7 +69,7 @@ func NewAudioHandler() *AudioHandler {
 	a.bgm.channel.Add("volume", resound.NewVolume(nil))
 	a.SetMusicVolume(bgmVolume)
 
-	a.sfxMap = make(map[string][]byte, 64)
+	a.sfxMap = &sync.Map{}
 	a.sfx = &SFXHandler{}
 	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
 	// engine audio source file setup later since it is a looping ambient source
@@ -104,15 +105,18 @@ func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 	s.Close()
 
 	// use cache of audio if possible
-	audioBytes, found := a.sfxMap[sfxFile]
-	if !found {
+	var audioBytes []byte
+	iAudioBytes, found := a.sfxMap.Load(sfxFile)
+	if audioBytesCheck, ok := iAudioBytes.([]byte); found && ok {
+		audioBytes = audioBytesCheck
+	} else {
 		var err error
 		audioBytes, err = resources.ReadFile(sfxFile)
 		if err != nil {
 			log.Error("Error reading sound effect file: " + sfxFile)
 			return err
 		}
-		a.sfxMap[sfxFile] = audioBytes
+		a.sfxMap.Store(sfxFile, audioBytes)
 	}
 
 	stream, _, err := resources.NewAudioStream(audioBytes, sfxFile)
