@@ -46,14 +46,16 @@ type BGMHandler struct {
 }
 
 type SFXHandler struct {
-	mainSources []*SFXSource
-	extSources  *queue.Priority[*SFXSource]
+	mainSources  []*SFXSource
+	extSources   *queue.Priority[*SFXSource]
+	_extSFXCount *sync.Map // map[string]float64
 }
 
 type SFXSource struct {
-	channel *resound.DSPChannel
-	player  *resound.DSPPlayer
-	volume  float64
+	channel  *resound.DSPChannel
+	player   *resound.DSPPlayer
+	volume   float64
+	_sfxFile string
 }
 
 func init() {
@@ -127,6 +129,7 @@ func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 
 	s.player = s.channel.CreatePlayer(stream)
 	s.player.SetBufferSize(time.Millisecond * 100)
+	s._sfxFile = sfxFile
 
 	return nil
 }
@@ -186,6 +189,8 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	if source == nil {
 		source = NewSoundEffectSource(0.0)
 	} else {
+		// decrement count of the previous sound effect
+		a.sfx._updateExtSFXCount(source._sfxFile, -1)
 		source.Close()
 	}
 
@@ -195,7 +200,24 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	source.LoadSFX(a, sfxFile)
 	source.Play()
 
+	// increment count of this sound effect
+	a.sfx._updateExtSFXCount(sfxFile, 1)
 	a.sfx.extSources.Offer(source)
+}
+
+// _updateExtSFXCount is used to keep track of duplicate sound effects being played to prioritize channel reuse
+func (s *SFXHandler) _updateExtSFXCount(sfxFile string, countDiff int) {
+	var newCount float64
+	if value, ok := s._extSFXCount.Load(sfxFile); ok {
+		if count, ok := value.(float64); ok {
+			newCount = count
+		}
+	}
+	newCount += float64(countDiff)
+	if newCount < 0 {
+		newCount = 0
+	}
+	s._extSFXCount.Store(sfxFile, newCount)
 }
 
 // SetMusicVolume sets volume of background music
@@ -248,20 +270,41 @@ func (a *AudioHandler) SetSFXChannels(numChannels int) {
 
 	a.sfx.extSources = queue.NewPriority(
 		extInit,
-		func(elem, other *SFXSource) bool {
-			// give higher priority rating to sources that are still playing and with higher volume
-			var elemRating, otherRating float64
-			if elem.player != nil && elem.player.IsPlaying() {
-				elemRating = elem.player.Volume()
-			}
-			if other.player != nil && other.player.IsPlaying() {
-				otherRating = other.player.Volume()
-			}
-
-			return elemRating < otherRating
-		},
+		a.sfxSourcePriorityCompare,
 		queue.WithCapacity(sfxChannels),
 	)
+	a.sfx._extSFXCount = &sync.Map{}
+}
+
+func (a *AudioHandler) sfxSourcePriorityCompare(elem, other *SFXSource) bool {
+	// give higher priority rating to sources that are still playing and with higher volume
+	var elemRating, otherRating float64
+	if elem.player != nil && elem.player.IsPlaying() {
+		elemRating = elem.player.Volume()
+	}
+	if other.player != nil && other.player.IsPlaying() {
+		otherRating = other.player.Volume()
+	}
+
+	// give lower priority rating to sources that have multiple sources already playing
+	if elemRating > 0 {
+		if value, ok := a.sfx._extSFXCount.Load(elem._sfxFile); ok {
+			elemCount, ok := value.(float64)
+			if ok {
+				elemRating *= 1 / (elemCount + 1)
+			}
+		}
+	}
+	if otherRating > 0 {
+		if value, ok := a.sfx._extSFXCount.Load(other._sfxFile); ok {
+			otherCount, ok := value.(float64)
+			if ok {
+				otherRating *= 1 / (otherCount + 1)
+			}
+		}
+	}
+
+	return elemRating < otherRating
 }
 
 // IsMusicPlaying return true if background music is currently playing
