@@ -60,7 +60,7 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	p.SetVelocity(0)
 
 	p.selectedWeapon = 0
-	p.weaponGroups = make([][]model.Weapon, 3)
+	p.weaponGroups = make([][]model.Weapon, 5)
 	for i := 0; i < cap(p.weaponGroups); i++ {
 		p.weaponGroups[i] = make([]model.Weapon, 0, len(unit.Armament()))
 	}

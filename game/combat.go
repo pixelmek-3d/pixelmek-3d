@@ -24,8 +24,8 @@ func (g *Game) initCombatVariables() {
 	g.delayedProjectiles = make(map[*DelayedProjectileSpawn]struct{}, 256)
 }
 
-// fireWeapon fires the currently selected player weapon/weapon group
-func (g *Game) fireWeapon() {
+// fireCurrentWeapon fires the currently selected player weapon/weapon group
+func (g *Game) fireCurrentWeapon() {
 	// weapons test from model
 	armament := g.player.Armament()
 	if len(armament) == 0 {

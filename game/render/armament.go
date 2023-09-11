@@ -17,6 +17,8 @@ var (
 	_colorWeaponGroup1 = _colorDefaultGreen
 	_colorWeaponGroup2 = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
 	_colorWeaponGroup3 = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
+	_colorWeaponGroup4 = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
+	_colorWeaponGroup5 = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
 )
 
 type Armament struct {
@@ -81,6 +83,10 @@ func (a *Armament) SetWeaponGroups(weaponGroups [][]model.Weapon) {
 			w.weaponColor = _colorWeaponGroup2
 		case 2:
 			w.weaponColor = _colorWeaponGroup3
+		case 3:
+			w.weaponColor = _colorWeaponGroup4
+		case 4:
+			w.weaponColor = _colorWeaponGroup5
 		}
 	}
 }

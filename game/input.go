@@ -50,6 +50,8 @@ const (
 	ActionWeaponGroup1
 	ActionWeaponGroup2
 	ActionWeaponGroup3
+	ActionWeaponGroup4
+	ActionWeaponGroup5
 	ActionNavCycle
 	ActionTargetCrosshairs
 	ActionTargetNearest
@@ -119,6 +121,10 @@ func actionString(a input.Action) string {
 		return "weapon_group_2"
 	case ActionWeaponGroup3:
 		return "weapon_group_3"
+	case ActionWeaponGroup4:
+		return "weapon_group_4"
+	case ActionWeaponGroup5:
+		return "weapon_group_5"
 	case ActionNavCycle:
 		return "nav_cycle"
 	case ActionTargetCrosshairs:
@@ -191,6 +197,8 @@ func (g *Game) setDefaultControls() {
 		ActionWeaponGroup1:           {input.Key1},
 		ActionWeaponGroup2:           {input.Key2},
 		ActionWeaponGroup3:           {input.Key3},
+		ActionWeaponGroup4:           {input.Key4},
+		ActionWeaponGroup5:           {input.Key5},
 
 		ActionNavCycle:         {input.KeyN, input.KeyGamepadDown},
 		ActionTargetCrosshairs: {input.KeyQ, input.KeyGamepadL2},
@@ -467,7 +475,7 @@ func (g *Game) handleInput() {
 
 	if g.input.ActionIsPressed(ActionWeaponFire) {
 		g.holdInputAction(ActionWeaponFire)
-		g.fireWeapon()
+		g.fireCurrentWeapon()
 	} else {
 		g.releaseInputAction(ActionWeaponFire)
 	}
@@ -550,6 +558,10 @@ func (g *Game) handleInput() {
 				setGroupIndex = 1
 			case g.input.ActionIsJustPressed(ActionWeaponGroup3):
 				setGroupIndex = 2
+			case g.input.ActionIsJustPressed(ActionWeaponGroup4):
+				setGroupIndex = 3
+			case g.input.ActionIsJustPressed(ActionWeaponGroup5):
+				setGroupIndex = 4
 			}
 
 			if setGroupIndex >= 0 {
@@ -586,6 +598,10 @@ func (g *Game) handleInput() {
 			selectGroupIndex = 1
 		case g.input.ActionIsJustPressed(ActionWeaponGroup3):
 			selectGroupIndex = 2
+		case g.input.ActionIsJustPressed(ActionWeaponGroup4):
+			selectGroupIndex = 3
+		case g.input.ActionIsJustPressed(ActionWeaponGroup5):
+			selectGroupIndex = 4
 		}
 
 		if selectGroupIndex >= 0 {
