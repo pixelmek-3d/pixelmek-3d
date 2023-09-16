@@ -9,7 +9,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.5.6
 	github.com/harbdog/raycaster-go v1.9.0
 	github.com/jinzhu/copier v0.3.5
-	github.com/quasilyte/ebitengine-input v0.8.1-0.20230613094547-2655c8a1956c
+	github.com/quasilyte/ebitengine-input v0.8.1-0.20230729185547-f2e656e0f63f
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
 	github.com/tinne26/etxt v0.0.8
