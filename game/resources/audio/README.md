@@ -24,6 +24,9 @@
 - `ambience-engine`: "Tim Verberne"
   - https://freesound.org/people/Tim_Verberne/sounds/487416/
 
+- `button-aff`, `button-neg`, `button-over`: "Circlerun"
+  - https://opengameart.org/content/hi-tech-button-sound-pack-i-non-themed
+
 - `jet-thrust`: "Maxx222"
   - https://freesound.org/people/Maxx222/sounds/446764/
 

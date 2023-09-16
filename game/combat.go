@@ -25,17 +25,21 @@ func (g *Game) initCombatVariables() {
 }
 
 // fireCurrentWeapon fires the currently selected player weapon/weapon group
-func (g *Game) fireCurrentWeapon() {
+func (g *Game) fireCurrentWeapon() bool {
 	// weapons test from model
+	weaponFired := false
 	armament := g.player.Armament()
 	if len(armament) == 0 {
-		return
+		return weaponFired
 	}
 
 	// in case convergence point not set, use player heading and pitch
 	pAngle, pPitch := g.player.Heading()+g.player.TurretAngle(), g.player.Pitch()
 	convergencePoint := g.player.convergencePoint
 	// convergenceDistance := g.player.ConvergenceDistance
+
+	// if a weapon with lock required tries but cannot fire make a sound
+	isWeaponWithLockRequiredNotFired := false
 
 	for i, weapon := range armament {
 		if weapon.Cooldown() > 0 {
@@ -49,13 +53,14 @@ func (g *Game) fireCurrentWeapon() {
 		}
 
 		if g.player.TriggerWeapon(weapon) {
+			weaponFired = true
+
 			var projectile *model.Projectile
 			if convergencePoint == nil {
 				projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Unit)
 			} else {
 				projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Unit)
 			}
-
 			if projectile != nil {
 				pTemplate := projectileSpriteForWeapon(weapon)
 				pSprite := pTemplate.Clone()
@@ -72,8 +77,19 @@ func (g *Game) fireCurrentWeapon() {
 			}
 
 			g.audio.PlayLocalWeaponFireAudio(weapon)
+		} else {
+			missileWeapon, isMissile := weapon.(*model.MissileWeapon)
+			if isMissile && missileWeapon.IsLockOnLockRequired() {
+				isWeaponWithLockRequiredNotFired = true
+			}
 		}
 	}
+
+	if !weaponFired && isWeaponWithLockRequiredNotFired && !g.audio.IsButtonAudioPlaying() {
+		g.audio.PlayButtonAudio(AUDIO_BUTTON_NEG)
+	}
+
+	return weaponFired
 }
 
 func (g *Game) fireTestWeaponAtPlayer() {

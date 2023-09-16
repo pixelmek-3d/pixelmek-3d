@@ -21,11 +21,20 @@ import (
 type AudioMainSource int
 
 const (
-	AUDIO_ENGINE AudioMainSource = iota
+	AUDIO_INTERFACE AudioMainSource = iota
+	AUDIO_ENGINE
 	AUDIO_STOMP_LEFT
 	AUDIO_STOMP_RIGHT
 	AUDIO_JUMP_JET
 	_AUDIO_MAIN_SOURCE_COUNT
+)
+
+type AudioInterfaceResource string
+
+const (
+	AUDIO_BUTTON_AFF  AudioInterfaceResource = "audio/sfx/button-aff.ogg"
+	AUDIO_BUTTON_NEG  AudioInterfaceResource = "audio/sfx/button-neg.ogg"
+	AUDIO_BUTTON_OVER AudioInterfaceResource = "audio/sfx/button-over.ogg"
 )
 
 var (
@@ -74,6 +83,7 @@ func NewAudioHandler() *AudioHandler {
 	a.sfxMap = &sync.Map{}
 	a.sfx = &SFXHandler{}
 	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
+	a.sfx.mainSources[AUDIO_INTERFACE] = NewSoundEffectSource(0.8)
 	// engine audio source file setup later since it is a looping ambient source
 	// TODO: increase engine noise level a bit when running or at high heat levels
 	a.sfx.mainSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
@@ -442,6 +452,19 @@ func StompSFXForMech(m *model.Mech) (string, error) {
 	mechClass := m.Class()
 	mechStompFile := fmt.Sprintf("audio/sfx/stomp-%d.ogg", mechClass)
 	return mechStompFile, nil
+}
+
+// PlayButtonAudio plays the indicated button audio channel resource
+func (a *AudioHandler) PlayButtonAudio(buttonResource AudioInterfaceResource) {
+	sfxSource := a.sfx.mainSources[AUDIO_INTERFACE]
+	sfxSource.LoadSFX(a, string(buttonResource))
+	sfxSource.Play()
+}
+
+// IsButtonAudioPlaying returns true if the button audio channel is still playing
+func (a *AudioHandler) IsButtonAudioPlaying() bool {
+	sfxSource := a.sfx.mainSources[AUDIO_INTERFACE]
+	return sfxSource.player != nil && sfxSource.player.IsPlaying()
 }
 
 // PlayLocalWeaponFireAudio plays weapon fire audio intended only if fired by the player unit

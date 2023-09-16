@@ -315,6 +315,14 @@ func (g *Game) holdInputAction(a input.Action) {
 	g.inputHeld[a] = true
 }
 
+func (g *Game) isHeldInputAction(a input.Action) bool {
+	held, ok := g.inputHeld[a]
+	if ok {
+		return held
+	}
+	return false
+}
+
 func (g *Game) releaseInputAction(a input.Action) {
 	_, ok := g.inputHeld[a]
 	if ok {
@@ -514,6 +522,9 @@ func (g *Game) handleInput() {
 	}
 
 	if g.input.ActionIsJustPressed(ActionWeaponCycle) {
+		playerPrevGroup := g.player.selectedGroup
+		playerPrevWeapon := g.player.selectedWeapon
+
 		if g.player.fireMode == model.GROUP_FIRE {
 			g.player.selectedGroup++
 			if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
@@ -545,6 +556,11 @@ func (g *Game) handleInput() {
 				g.player.selectedGroup = groups[0]
 			}
 		}
+
+		if playerPrevGroup != g.player.selectedGroup || playerPrevWeapon != g.player.selectedWeapon {
+			// play interface sound on weapon/group cycle
+			go g.audio.PlayButtonAudio(AUDIO_BUTTON_AFF)
+		}
 	}
 
 	if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
@@ -565,12 +581,13 @@ func (g *Game) handleInput() {
 			}
 
 			if setGroupIndex >= 0 {
+				addToGroup := true
 				weapon := g.player.Armament()[g.player.selectedWeapon]
 				groups := model.GetGroupsForWeapon(weapon, g.player.weaponGroups)
 				for _, gIndex := range groups {
 					if int(gIndex) == setGroupIndex {
 						// already in group
-						return
+						addToGroup = false
 					} else {
 						// remove from current group
 						weaponsInGroup := g.player.weaponGroups[gIndex]
@@ -583,9 +600,13 @@ func (g *Game) handleInput() {
 					}
 				}
 
-				// add to selected group
-				g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
+				if addToGroup {
+					// add to selected group
+					g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
+				}
 				g.player.selectedGroup = uint(setGroupIndex)
+
+				go g.audio.PlayButtonAudio(AUDIO_BUTTON_OVER)
 			}
 		}
 	} else {
@@ -617,6 +638,8 @@ func (g *Game) handleInput() {
 					}
 				}
 			}
+
+			go g.audio.PlayButtonAudio(AUDIO_BUTTON_AFF)
 		}
 	}
 
