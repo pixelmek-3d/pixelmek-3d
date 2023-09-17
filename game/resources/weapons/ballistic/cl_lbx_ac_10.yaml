@@ -3,6 +3,7 @@
 name: LB 10-X AC
 short: LBxAC10
 tech: clan
+audio: autocannon.ogg
 tonnage: 10
 damage: 10
 heat: 2
@@ -12,7 +13,7 @@ distance: 540
 velocity: 375
 # cooldown in seconds
 cooldown: 1.5
-audio: autocannon.ogg
+ammoPerTon: 10
 projectileCount: 10
 projectileSpread: 0.02
 projectile:

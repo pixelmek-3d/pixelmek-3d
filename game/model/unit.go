@@ -80,6 +80,7 @@ type UnitModel struct {
 	heatSinks          int
 	heatSinkType       HeatSinkType
 	armament           []Weapon
+	ammo               *Ammo
 	jumpJets           int
 	jumpJetsActive     bool
 	jumpJetHeading     float64

@@ -3,6 +3,7 @@
 name: Ultra AC/10
 short: uAC10
 tech: clan
+audio: autocannon.ogg
 tonnage: 10
 damage: 10
 heat: 3
@@ -12,7 +13,7 @@ distance: 540
 velocity: 550
 # cooldown in seconds
 cooldown: 1.5
-audio: autocannon.ogg
+ammoPerTon: 10
 projectileCount: 3
 projectileDelay: 0.15
 projectile:

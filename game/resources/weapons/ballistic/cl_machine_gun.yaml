@@ -3,6 +3,7 @@
 name: Machine Gun
 short: MGUN
 tech: clan
+audio: machine-gun.ogg
 tonnage: 0.25
 # DPS=2.0 (0.2 dmg * 10 rounds/s)
 damage: 0.2
@@ -13,7 +14,7 @@ heat: 0
 distance: 90
 # velocity in meters/second
 velocity: 250
-audio: machine-gun.ogg
+ammoPerTon: 200
 projectileCount: 1
 projectile:
   collisionRadius: 6

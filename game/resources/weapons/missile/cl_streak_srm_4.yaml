@@ -3,6 +3,7 @@
 name: Streak Short Range Missile 4
 short: SSRM4
 tech: clan
+audio: missile-1.ogg
 tonnage: 2
 damage: 8
 heat: 3
@@ -12,7 +13,7 @@ distance: 360
 velocity: 200
 # cooldown in seconds
 cooldown: 4
-audio: missile-1.ogg
+ammoPerTon: 100
 lockOn:
   lockRequired: true
   turnRate: 120

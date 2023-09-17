@@ -171,6 +171,10 @@ func (w *MissileWeapon) Clone() Weapon {
 	return wClone
 }
 
+func (w *MissileWeapon) AmmoPerTon() int {
+	return w.Resource.AmmoPerTon
+}
+
 func (w *MissileWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }

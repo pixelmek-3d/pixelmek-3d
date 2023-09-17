@@ -3,6 +3,7 @@
 name: LB 2-X AC
 short: LBxAC2
 tech: clan
+audio: autocannon.ogg
 tonnage: 5
 damage: 2
 heat: 1
@@ -12,7 +13,7 @@ distance: 900
 velocity: 425
 # cooldown in seconds
 cooldown: 1
-audio: autocannon.ogg
+ammoPerTon: 45
 projectileCount: 2
 projectileSpread: 0.01
 projectile:

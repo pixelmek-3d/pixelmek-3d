@@ -3,6 +3,7 @@
 name: Gauss Rifle
 short: GAUSS
 tech: clan
+audio: gauss.ogg
 tonnage: 12
 damage: 15
 heat: 1
@@ -12,7 +13,7 @@ distance: 660
 velocity: 800
 # cooldown in seconds
 cooldown: 4
-audio: gauss.ogg
+ammoPerTon: 8
 projectileCount: 1
 projectile:
   collisionRadius: 2

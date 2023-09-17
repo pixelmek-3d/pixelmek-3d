@@ -3,6 +3,7 @@
 name: Short Range Missile 2
 short: SRM2
 tech: clan
+audio: missile-1.ogg
 tonnage: 0.5
 damage: 4
 heat: 2
@@ -12,7 +13,7 @@ distance: 270
 velocity: 200
 # cooldown in seconds
 cooldown: 2
-audio: missile-1.ogg
+ammoPerTon: 100
 projectileCount: 2
 projectileDelay: 0.15
 projectile:

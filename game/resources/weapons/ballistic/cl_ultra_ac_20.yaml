@@ -3,6 +3,7 @@
 name: Ultra AC/20
 short: uAC20
 tech: clan
+audio: autocannon.ogg
 tonnage: 12
 damage: 20
 heat: 7
@@ -12,7 +13,7 @@ distance: 360
 velocity: 500
 # cooldown in seconds
 cooldown: 1.75
-audio: autocannon.ogg
+ammoPerTon: 5
 projectileCount: 3
 projectileDelay: 0.2
 projectile:

@@ -3,6 +3,7 @@
 name: Ultra AC/2
 short: uAC2
 tech: clan
+audio: autocannon.ogg
 tonnage: 5
 damage: 2
 heat: 1
@@ -12,7 +13,7 @@ distance: 810
 velocity: 625
 # cooldown in seconds
 cooldown: 1
-audio: autocannon.ogg
+ammoPerTon: 45
 projectileCount: 3
 projectileDelay: 0.1
 projectile:

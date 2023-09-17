@@ -3,6 +3,7 @@
 name: Long Range Missile 15
 short: LRM15
 tech: clan
+audio: missile-0.ogg
 tonnage: 3.5
 damage: 15
 heat: 5
@@ -12,7 +13,7 @@ distance: 630
 velocity: 150
 # cooldown in seconds
 cooldown: 4.5
-audio: missile-0.ogg
+ammoPerTon: 120
 lockOn:
   turnRate: 7.5
   groupRadius: 0.175

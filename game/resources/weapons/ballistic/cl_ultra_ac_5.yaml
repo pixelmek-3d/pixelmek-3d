@@ -3,6 +3,7 @@
 name: Ultra AC/5
 short: uAC5
 tech: clan
+audio: autocannon.ogg
 tonnage: 7
 damage: 5
 heat: 1
@@ -12,7 +13,7 @@ distance: 600
 velocity: 600
 # cooldown in seconds
 cooldown: 1.25
-audio: autocannon.ogg
+ammoPerTon: 20
 projectileCount: 3
 projectileDelay: 0.12
 projectile:

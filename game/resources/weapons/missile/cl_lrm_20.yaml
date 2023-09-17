@@ -3,6 +3,7 @@
 name: Long Range Missile 20
 short: LRM20
 tech: clan
+audio: missile-0.ogg
 tonnage: 5
 damage: 20
 heat: 6
@@ -12,7 +13,7 @@ distance: 630
 velocity: 150
 # cooldown in seconds
 cooldown: 5
-audio: missile-0.ogg
+ammoPerTon: 120
 lockOn:
   turnRate: 7.5
   groupRadius: 0.2

@@ -85,6 +85,10 @@ func (w *BallisticWeapon) Clone() Weapon {
 	return wClone
 }
 
+func (w *BallisticWeapon) AmmoPerTon() int {
+	return w.Resource.AmmoPerTon
+}
+
 func (w *BallisticWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }

@@ -3,6 +3,7 @@
 name: LB 5-X AC
 short: LBxAC5
 tech: clan
+audio: autocannon.ogg
 tonnage: 7
 damage: 5
 heat: 1
@@ -12,7 +13,7 @@ distance: 360
 velocity: 400
 # cooldown in seconds
 cooldown: 1.25
-audio: autocannon.ogg
+ammoPerTon: 20
 projectileCount: 5
 projectileSpread: 0.015
 projectile:

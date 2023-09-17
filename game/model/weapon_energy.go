@@ -85,6 +85,11 @@ func (w *EnergyWeapon) Clone() Weapon {
 	return wClone
 }
 
+func (w *EnergyWeapon) AmmoPerTon() int {
+	// no ammo needed for energy weapons
+	return 0
+}
+
 func (w *EnergyWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }

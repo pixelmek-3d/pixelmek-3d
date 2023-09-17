@@ -52,6 +52,7 @@ type Weapon interface {
 	TriggerCooldown()
 
 	Offset() *geom.Vector2
+	AmmoPerTon() int
 	ProjectileCount() int
 	ProjectileDelay() float64
 	ProjectileSpread() float64
