@@ -38,6 +38,7 @@ type Unit interface {
 	SetTurretAngle(float64)
 
 	CockpitOffset() *geom.Vector2
+	Ammo() *Ammo
 	Armament() []Weapon
 	AddArmament(Weapon)
 
@@ -193,6 +194,10 @@ func (e *UnitModel) SetTurretAngle(angle float64) {
 	} else {
 		e.SetHeading(angle)
 	}
+}
+
+func (e *UnitModel) Ammo() *Ammo {
+	return e.ammo
 }
 
 func (e *UnitModel) Armament() []Weapon {

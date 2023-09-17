@@ -64,7 +64,7 @@ armament:
   offset: [10, 62]
 ammo:
 - type: ballistic
-  forWeapon: cl_ultra_ac_5
+  forWeapon: cl_ultra_ac_5.yaml
   tons: 2
 - type: lrm
   tons: 1

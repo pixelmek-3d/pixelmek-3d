@@ -134,6 +134,7 @@ type ModelEmplacementResource struct {
 }
 
 type ModelEnergyWeaponResource struct {
+	File            string                   `yaml:"-"`
 	Name            string                   `yaml:"name" validate:"required"`
 	ShortName       string                   `yaml:"short" validate:"required"`
 	Tech            ModelTech                `yaml:"tech" validate:"required"`
@@ -151,6 +152,7 @@ type ModelEnergyWeaponResource struct {
 }
 
 type ModelMissileWeaponResource struct {
+	File            string                    `yaml:"-"`
 	Name            string                    `yaml:"name" validate:"required"`
 	ShortName       string                    `yaml:"short" validate:"required"`
 	Tech            ModelTech                 `yaml:"tech" validate:"required"`
@@ -170,6 +172,7 @@ type ModelMissileWeaponResource struct {
 }
 
 type ModelBallisticWeaponResource struct {
+	File             string                   `yaml:"-"`
 	Name             string                   `yaml:"name" validate:"required"`
 	ShortName        string                   `yaml:"short" validate:"required"`
 	Tech             ModelTech                `yaml:"tech" validate:"required"`
@@ -569,6 +572,7 @@ func (r *ModelResources) loadWeaponResources() error {
 					return fmt.Errorf("[%s] %s", weaponFilePath, err.Error())
 				}
 
+				m.File = fileName
 				r.EnergyWeapons[fileName] = m
 
 			case MissileResourceType:
@@ -583,6 +587,7 @@ func (r *ModelResources) loadWeaponResources() error {
 					return fmt.Errorf("[%s] %s", weaponFilePath, err.Error())
 				}
 
+				m.File = fileName
 				r.MissileWeapons[fileName] = m
 
 			case BallisticResourceType:
@@ -597,6 +602,7 @@ func (r *ModelResources) loadWeaponResources() error {
 					return fmt.Errorf("[%s] %s", weaponFilePath, err.Error())
 				}
 
+				m.File = fileName
 				r.BallisticWeapons[fileName] = m
 
 			}

@@ -40,8 +40,8 @@ armament:
   offset: [-8, 48]
 ammo:
 - type: ballistic
-  forWeapon: cl_gauss_rifle
+  forWeapon: cl_gauss_rifle.yaml
   tons: 2
 - type: ballistic
-  forWeapon: cl_machine_gun
+  forWeapon: cl_machine_gun.yaml
   tons: 1

@@ -352,6 +352,7 @@ func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource
 
 	modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelMech, mechResource.Armament, width, height, scale)
+	g.loadUnitAmmo(modelMech, mechResource.Ammo)
 
 	return modelMech
 }
@@ -379,6 +380,7 @@ func (g *Game) createModelVehicle(unit string) *model.Vehicle {
 
 	modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, scale)
+	//TODO: g.loadUnitAmmo(modelVehicle, vehicleResource.Ammo)
 
 	return modelVehicle
 }
@@ -406,6 +408,7 @@ func (g *Game) createModelVTOL(unit string) *model.VTOL {
 
 	modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, scale)
+	//TODO: g.loadUnitAmmo(modelVTOL, vtolResource.Ammo)
 
 	return modelVTOL
 }
@@ -433,6 +436,7 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 
 	modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, scale)
+	//TODO: g.loadUnitAmmo(modelInfantry, infantryResource.Ammo)
 
 	return modelInfantry
 }
@@ -460,6 +464,7 @@ func (g *Game) createModelEmplacement(unit string) *model.Emplacement {
 
 	modelEmplacement := model.NewEmplacement(emplacementResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelEmplacement, emplacementResource.Armament, width, height, scale)
+	//TODO: g.loadUnitAmmo(modelEmplacement, emplacementResource.Ammo)
 
 	return modelEmplacement
 }
@@ -657,6 +662,107 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 		if weapon != nil {
 			unit.AddArmament(weapon)
+		}
+	}
+}
+
+func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo) {
+	// load stock ammo
+	ammo := unit.Ammo()
+	for _, ammoResource := range ammoList {
+		ammoType := ammoResource.Type.AmmoType
+		switch ammoType {
+		case model.AMMO_BALLISTIC:
+			weaponFound := false
+			for _, w := range unit.Armament() {
+				if ballisticWeapon, ok := w.(*model.BallisticWeapon); ok {
+					// ballistic ammo is specific for weapons of specified caliber
+					if ammoResource.ForWeapon != ballisticWeapon.File() {
+						continue
+					}
+					weaponFound = true
+					ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+					break
+				}
+			}
+			if !weaponFound {
+				log.Errorf(
+					"no ballistic weapons (%s) found for ballistic ammo while initializing unit %s [%s]",
+					ammoResource.ForWeapon,
+					unit.Name(),
+					unit.Variant(),
+				)
+			}
+		case model.AMMO_LRM:
+			// ammo is a pool for all LRM weapons, find a representative weapon for
+			weaponFound := false
+			for _, w := range unit.Armament() {
+				if w.Classification() == model.MISSILE_LRM {
+					weaponFound = true
+					ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+					break
+				}
+			}
+			if !weaponFound {
+				log.Errorf(
+					"no LRM weapons found for LRM ammo while initializing unit %s [%s]",
+					unit.Name(),
+					unit.Variant(),
+				)
+			}
+		case model.AMMO_SRM:
+			// ammo is a pool for all SRM weapons
+			weaponFound := false
+			for _, w := range unit.Armament() {
+				if w.Classification() == model.MISSILE_SRM {
+					if missileWeapon, ok := w.(*model.MissileWeapon); ok {
+						// make sure it is not Streak SRM
+						if missileWeapon.IsLockOnLockRequired() {
+							continue
+						}
+						weaponFound = true
+						ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+						break
+					}
+				}
+			}
+			if !weaponFound {
+				log.Errorf(
+					"no SRM weapons found for SRM ammo while initializing unit %s [%s]",
+					unit.Name(),
+					unit.Variant(),
+				)
+			}
+		case model.AMMO_STREAK_SRM:
+			// ammo is a pool for all Streak SRM weapons
+			weaponFound := false
+			for _, w := range unit.Armament() {
+				if w.Classification() == model.MISSILE_SRM {
+					if missileWeapon, ok := w.(*model.MissileWeapon); ok {
+						// make sure it is Streak SRM
+						if !missileWeapon.IsLockOnLockRequired() {
+							continue
+						}
+						weaponFound = true
+						ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+						break
+					}
+				}
+			}
+			if !weaponFound {
+				log.Errorf(
+					"no Streak SRM weapons found for Streak SRM ammo while initializing unit %s [%s]",
+					unit.Name(),
+					unit.Variant(),
+				)
+			}
+		default:
+			log.Errorf(
+				"unhandled ammo type value '%v' while initializing unit %s [%s]",
+				ammoResource.Type.AmmoType,
+				unit.Name(),
+				unit.Variant(),
+			)
 		}
 	}
 }

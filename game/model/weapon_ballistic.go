@@ -125,6 +125,10 @@ func (w *BallisticWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) 
 	return pSpawn
 }
 
+func (w *BallisticWeapon) File() string {
+	return w.Resource.File
+}
+
 func (w *BallisticWeapon) Name() string {
 	return w.name
 }

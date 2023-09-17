@@ -35,6 +35,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 			heatSinks:          r.HeatSinks.Quantity,
 			heatSinkType:       r.HeatSinks.Type.HeatSinkType,
 			armament:           make([]Weapon, 0),
+			ammo:               NewAmmoStock(),
 			hasTurret:          true,
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:        100 / r.Tonnage * 0.02, // FIXME: testing

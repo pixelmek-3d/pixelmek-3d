@@ -36,5 +36,5 @@ armament:
   offset: [-4, 30]
 ammo:
 - type: ballistic
-  forWeapon: cl_lbx_ac_5
+  forWeapon: cl_lbx_ac_5.yaml
   tons: 1

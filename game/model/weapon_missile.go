@@ -215,6 +215,10 @@ func (w *MissileWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) *P
 	return pSpawn
 }
 
+func (w *MissileWeapon) File() string {
+	return w.Resource.File
+}
+
 func (w *MissileWeapon) Name() string {
 	return w.name
 }

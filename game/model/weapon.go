@@ -36,6 +36,7 @@ const (
 )
 
 type Weapon interface {
+	File() string
 	Name() string
 	ShortName() string
 	Tech() TechBase

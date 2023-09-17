@@ -127,6 +127,10 @@ func (w *EnergyWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) *Pr
 	return pSpawn
 }
 
+func (w *EnergyWeapon) File() string {
+	return w.Resource.File
+}
+
 func (w *EnergyWeapon) Name() string {
 	return w.name
 }

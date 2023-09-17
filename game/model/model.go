@@ -1,8 +1,11 @@
 package model
 
 import (
+	"math"
 	"math/rand"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -85,7 +88,8 @@ type ModelLocation struct {
 type AmmoType int
 
 const (
-	AMMO_BALLISTIC = iota
+	AMMO_NOT_APPLICABLE = iota
+	AMMO_BALLISTIC
 	AMMO_LRM
 	AMMO_SRM
 	AMMO_STREAK_SRM
@@ -95,15 +99,97 @@ type ModelAmmoType struct {
 	AmmoType
 }
 
+type ModelWeaponType struct {
+	WeaponType
+}
+
 type Ammo struct {
-	AmmoBins map[AmmoType]*AmmoBin
+	ammoBins []*AmmoBin
 }
 
 type AmmoBin struct {
-	AmmoCount int
-	AmmoMax   int
+	ammoType  AmmoType
+	forWeapon Weapon
+	ammoCount int
+	ammoMax   int
 }
 
-type ModelWeaponType struct {
-	WeaponType
+func AmmoTypeForWeapon(forWeapon Weapon) AmmoType {
+	switch w := forWeapon.(type) {
+	case *EnergyWeapon:
+		// energy weapons consume no ammo
+		return AMMO_NOT_APPLICABLE
+	case *MissileWeapon:
+		// missile weapons use ammo pools based on missile class
+		switch w.Classification() {
+		case MISSILE_LRM:
+			return AMMO_LRM
+		case MISSILE_SRM:
+			// determine if Streak SRM vs. SRM
+			if w.IsLockOnLockRequired() {
+				return AMMO_STREAK_SRM
+			} else {
+				return AMMO_SRM
+			}
+		default:
+			log.Errorf("unhandled ammo type for missile class weapon '%s'", forWeapon.File())
+		}
+	case *BallisticWeapon:
+		// ballistic weapons use same ammo type (just weapon specific ammo bins)
+		return AMMO_BALLISTIC
+	default:
+		log.Errorf("unhandled ammo type for weapon '%s'", forWeapon.File())
+	}
+	return AMMO_NOT_APPLICABLE
+}
+
+func NewAmmoStock() *Ammo {
+	return &Ammo{ammoBins: make([]*AmmoBin, 0)}
+}
+
+// AddAmmoBin creates ammo bin or updates existing one for the same ammo type/weapon
+func (a *Ammo) AddAmmoBin(ammoType AmmoType, ammoTons float64, forWeapon Weapon) {
+	if forWeapon == nil {
+		log.Errorf("forWeapon parameter is required to add ammo bin for ammo type '%v'", ammoType)
+		return
+	}
+
+	// find existing ammo bin if present and update it, otherwise create new one
+	ammoBin := a.GetAmmoBin(ammoType, forWeapon)
+	if ammoBin == nil {
+		ammoBin = &AmmoBin{
+			ammoType:  ammoType,
+			forWeapon: forWeapon,
+		}
+		a.ammoBins = append(a.ammoBins, ammoBin)
+	}
+
+	// use weapon to determine ammo count based on ammo per ton
+	ammoPerTon := float64(forWeapon.AmmoPerTon())
+	addAmmoCount := int(math.Ceil(ammoPerTon * ammoTons))
+	ammoBin.ammoCount += addAmmoCount
+	ammoBin.ammoMax += addAmmoCount
+}
+
+// GetAmmoBin finds existing ammo bin, if present, for given weapon
+func (a *Ammo) GetAmmoBin(ammoType AmmoType, forWeapon Weapon) *AmmoBin {
+	if ammoType == AMMO_NOT_APPLICABLE {
+		return nil
+	}
+
+	forWeaponFile := forWeapon.File()
+	for _, ammoBin := range a.ammoBins {
+		switch ammoType {
+		case AMMO_BALLISTIC:
+			// ballistic ammo weapons only share ammo bins with same caliber weapon
+			if ammoType == ammoBin.ammoType && forWeaponFile == ammoBin.forWeapon.File() {
+				return ammoBin
+			}
+		default:
+			if ammoType == ammoBin.ammoType {
+				return ammoBin
+			}
+		}
+	}
+	return nil
 }

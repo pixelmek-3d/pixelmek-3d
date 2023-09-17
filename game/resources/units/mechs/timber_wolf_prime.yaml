@@ -58,5 +58,5 @@ ammo:
 - type: lrm
   tons: 2
 - type: ballistic
-  forWeapon: cl_machine_gun
+  forWeapon: cl_machine_gun.yaml
   tons: 1
