@@ -38,3 +38,6 @@ armament:
   type: missile
   location: la
   offset: [18, 30]
+ammo:
+- type: lrm
+  tons: 1

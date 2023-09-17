@@ -30,3 +30,9 @@ armament:
   type: missile
   location: lt
   offset: [6, 60]
+ammo:
+- type: ballistic
+  forWeapon: cl_lbx_ac_10
+  tons: 1
+- type: lrm
+  tons: 2

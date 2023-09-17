@@ -42,3 +42,10 @@ armament:
   type: missile
   location: rt
   offset: [-11, 56]
+- weapon: "cl_er_small_laser.yaml"
+  type: energy
+  location: ct
+  offset: [0, 39]
+ammo:
+- type: streak_srm
+  tons: 3

@@ -38,3 +38,10 @@ armament:
   type: ballistic
   location: rt
   offset: [-8, 48]
+ammo:
+- type: ballistic
+  forWeapon: cl_gauss_rifle
+  tons: 2
+- type: ballistic
+  forWeapon: cl_machine_gun
+  tons: 1

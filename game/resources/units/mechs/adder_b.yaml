@@ -34,3 +34,7 @@ armament:
   type: energy
   location: rt
   offset: [-4, 30]
+ammo:
+- type: ballistic
+  forWeapon: cl_lbx_ac_5
+  tons: 1

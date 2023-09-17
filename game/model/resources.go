@@ -12,17 +12,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ModelResources struct {
-	Mechs            map[string]*ModelMechResource
-	Vehicles         map[string]*ModelVehicleResource
-	VTOLs            map[string]*ModelVTOLResource
-	Infantry         map[string]*ModelInfantryResource
-	Emplacements     map[string]*ModelEmplacementResource
-	EnergyWeapons    map[string]*ModelEnergyWeaponResource
-	MissileWeapons   map[string]*ModelMissileWeaponResource
-	BallisticWeapons map[string]*ModelBallisticWeaponResource
-}
-
 const (
 	MechResourceType        string = "mechs"
 	VehicleResourceType     string = "vehicles"
@@ -35,6 +24,17 @@ const (
 	MissileResourceType     string = "missile"
 	BallisticResourceType   string = "ballistic"
 )
+
+type ModelResources struct {
+	Mechs            map[string]*ModelMechResource
+	Vehicles         map[string]*ModelVehicleResource
+	VTOLs            map[string]*ModelVTOLResource
+	Infantry         map[string]*ModelInfantryResource
+	Emplacements     map[string]*ModelEmplacementResource
+	EnergyWeapons    map[string]*ModelEnergyWeaponResource
+	MissileWeapons   map[string]*ModelMissileWeaponResource
+	BallisticWeapons map[string]*ModelBallisticWeaponResource
+}
 
 type ModelMechResource struct {
 	File              string                   `yaml:"-"`
@@ -54,6 +54,7 @@ type ModelMechResource struct {
 	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
+	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
 }
 
 type ModelVehicleResource struct {
@@ -229,6 +230,12 @@ type ModelResourceArmament struct {
 	Offset   [2]float64      `yaml:"offset" validate:"required"`
 }
 
+type ModelResourceAmmo struct {
+	Type      ModelAmmoType `yaml:"type" validate:"required"`
+	ForWeapon string        `yaml:"forWeapon"`
+	Tons      float64       `yaml:"tons" validate:"gt=0"`
+}
+
 // Unmarshals into TechBase
 func (t *ModelTech) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
@@ -321,6 +328,30 @@ func (t *ModelLocation) UnmarshalText(b []byte) error {
 		t.Location = TURRET
 	default:
 		return fmt.Errorf("unknown location value '%s'", str)
+	}
+
+	return nil
+}
+
+// Unmarshals into AmmoType
+func (t *ModelAmmoType) UnmarshalText(b []byte) error {
+	str := strings.Trim(string(b), `"`)
+
+	ballistic, lrm, srm, ssrm := "ballistic", "lrm", "srm", "streak_srm"
+
+	switch str {
+	case ballistic:
+		t.AmmoType = AMMO_BALLISTIC
+	case lrm:
+		t.AmmoType = AMMO_LRM
+	case srm:
+		t.AmmoType = AMMO_SRM
+	case ssrm:
+		t.AmmoType = AMMO_STREAK_SRM
+	default:
+		return fmt.Errorf(
+			"unknown ammo type value '%s', must be one of: [%s, %s, %s, %s]", str, ballistic, lrm, srm, ssrm,
+		)
 	}
 
 	return nil

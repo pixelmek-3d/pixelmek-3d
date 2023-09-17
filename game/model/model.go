@@ -91,6 +91,10 @@ const (
 	AMMO_STREAK_SRM
 )
 
+type ModelAmmoType struct {
+	AmmoType
+}
+
 type Ammo struct {
 	AmmoBins map[AmmoType]*AmmoBin
 }

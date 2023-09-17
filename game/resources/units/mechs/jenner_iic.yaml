@@ -30,3 +30,8 @@ armament:
   type: missile
   location: ct
   offset: [0, 37]
+ammo:
+- type: srm
+  tons: 2
+- type: streak_srm
+  tons: 1

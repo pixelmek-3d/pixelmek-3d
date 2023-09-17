@@ -62,3 +62,9 @@ armament:
   type: missile
   location: lt
   offset: [10, 62]
+ammo:
+- type: ballistic
+  forWeapon: cl_ultra_ac_5
+  tons: 2
+- type: lrm
+  tons: 1

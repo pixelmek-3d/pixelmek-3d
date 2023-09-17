@@ -54,3 +54,9 @@ armament:
   type: ballistic
   location: ct
   offset: [0, 39]
+ammo:
+- type: lrm
+  tons: 2
+- type: ballistic
+  forWeapon: cl_machine_gun
+  tons: 1
