@@ -27,6 +27,9 @@
 - `button-aff`, `button-neg`, `button-over`: "Circlerun"
   - https://opengameart.org/content/hi-tech-button-sound-pack-i-non-themed
 
+ - `click-neg`: "qubodup"
+  - https://opengameart.org/content/click-ui-menu-sfx-yesnoselect
+
 - `jet-thrust`: "Maxx222"
   - https://freesound.org/people/Maxx222/sounds/446764/
 
