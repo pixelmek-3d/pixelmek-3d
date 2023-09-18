@@ -380,7 +380,7 @@ func (g *Game) createModelVehicle(unit string) *model.Vehicle {
 
 	modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, scale)
-	//TODO: g.loadUnitAmmo(modelVehicle, vehicleResource.Ammo)
+	g.loadUnitAmmo(modelVehicle, vehicleResource.Ammo)
 
 	return modelVehicle
 }
@@ -408,7 +408,7 @@ func (g *Game) createModelVTOL(unit string) *model.VTOL {
 
 	modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, scale)
-	//TODO: g.loadUnitAmmo(modelVTOL, vtolResource.Ammo)
+	g.loadUnitAmmo(modelVTOL, vtolResource.Ammo)
 
 	return modelVTOL
 }
@@ -436,7 +436,7 @@ func (g *Game) createModelInfantry(unit string) *model.Infantry {
 
 	modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, scale)
-	//TODO: g.loadUnitAmmo(modelInfantry, infantryResource.Ammo)
+	g.loadUnitAmmo(modelInfantry, infantryResource.Ammo)
 
 	return modelInfantry
 }
@@ -464,7 +464,7 @@ func (g *Game) createModelEmplacement(unit string) *model.Emplacement {
 
 	modelEmplacement := model.NewEmplacement(emplacementResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
 	g.loadUnitWeapons(modelEmplacement, emplacementResource.Armament, width, height, scale)
-	//TODO: g.loadUnitAmmo(modelEmplacement, emplacementResource.Ammo)
+	g.loadUnitAmmo(modelEmplacement, emplacementResource.Ammo)
 
 	return modelEmplacement
 }
@@ -668,7 +668,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo) {
 	// load stock ammo
-	ammo := unit.Ammo()
+	ammo := unit.Ammunition()
 	for _, ammoResource := range ammoList {
 		ammoType := ammoResource.Type.AmmoType
 		switch ammoType {

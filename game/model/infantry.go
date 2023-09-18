@@ -22,6 +22,7 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 			armor:              r.Armor,
 			structure:          r.Structure,
 			armament:           make([]Weapon, 0),
+			ammunition:         NewAmmoStock(),
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:        0.05, // FIXME: testing
 			jumpJets:           r.JumpJets,

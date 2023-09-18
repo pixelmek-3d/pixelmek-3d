@@ -33,3 +33,6 @@ armament:
   type: missile
   location: turret
   offset: [6, 84]
+ammo:
+- type: lrm
+  tons: 10

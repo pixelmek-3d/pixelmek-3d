@@ -33,3 +33,7 @@ armament:
   type: ballistic
   location: turret
   offset: [6, 80]
+ammo:
+- type: ballistic
+  forWeapon: cl_ultra_ac_2.yaml
+  tons: 10

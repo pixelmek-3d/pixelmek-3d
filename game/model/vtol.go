@@ -24,6 +24,7 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 			heatSinks:       r.HeatSinks.Quantity,
 			heatSinkType:    r.HeatSinks.Type.HeatSinkType,
 			armament:        make([]Weapon, 0),
+			ammunition:      NewAmmoStock(),
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
 			jumpJets:        0,

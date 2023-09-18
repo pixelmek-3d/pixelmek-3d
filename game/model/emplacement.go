@@ -22,6 +22,7 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 			armor:           r.Armor,
 			structure:       r.Structure,
 			armament:        make([]Weapon, 0),
+			ammunition:      NewAmmoStock(),
 			maxVelocity:     0,
 			maxTurnRate:     0.05, // FIXME: testing
 		},

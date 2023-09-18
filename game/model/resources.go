@@ -75,6 +75,7 @@ type ModelVehicleResource struct {
 	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
+	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
 }
 
 type ModelVTOLResource struct {
@@ -95,6 +96,7 @@ type ModelVTOLResource struct {
 	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
+	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
 }
 
 type ModelInfantryResource struct {
@@ -114,6 +116,7 @@ type ModelInfantryResource struct {
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
 	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
+	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
 }
 
 type ModelEmplacementResource struct {
@@ -131,6 +134,7 @@ type ModelEmplacementResource struct {
 	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
 	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
+	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
 }
 
 type ModelEnergyWeaponResource struct {

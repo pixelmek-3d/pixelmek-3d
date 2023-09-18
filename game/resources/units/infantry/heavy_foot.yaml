@@ -27,3 +27,6 @@ armament:
   type: ballistic
   location: ra
   offset: [-5, 12]
+- type: ballistic
+  forWeapon: cl_machine_gun.yaml
+  tons: 0.5

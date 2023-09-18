@@ -38,7 +38,7 @@ type Unit interface {
 	SetTurretAngle(float64)
 
 	CockpitOffset() *geom.Vector2
-	Ammo() *Ammo
+	Ammunition() *Ammo
 	Armament() []Weapon
 	AddArmament(Weapon)
 
@@ -81,7 +81,7 @@ type UnitModel struct {
 	heatSinks          int
 	heatSinkType       HeatSinkType
 	armament           []Weapon
-	ammo               *Ammo
+	ammunition         *Ammo
 	jumpJets           int
 	jumpJetsActive     bool
 	jumpJetHeading     float64
@@ -196,8 +196,8 @@ func (e *UnitModel) SetTurretAngle(angle float64) {
 	}
 }
 
-func (e *UnitModel) Ammo() *Ammo {
-	return e.ammo
+func (e *UnitModel) Ammunition() *Ammo {
+	return e.ammunition
 }
 
 func (e *UnitModel) Armament() []Weapon {

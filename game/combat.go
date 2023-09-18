@@ -27,10 +27,10 @@ func (g *Game) initCombatVariables() {
 // fireCurrentWeapon fires the currently selected player weapon/weapon group
 func (g *Game) fireCurrentWeapon() bool {
 	// weapons test from model
-	weaponFired := false
+	weaponsFired := false
 	armament := g.player.Armament()
 	if len(armament) == 0 {
-		return weaponFired
+		return weaponsFired
 	}
 
 	// in case convergence point not set, use player heading and pitch
@@ -40,6 +40,8 @@ func (g *Game) fireCurrentWeapon() bool {
 
 	// if a weapon with lock required tries but cannot fire make a sound
 	isWeaponWithLockRequiredNotFired := false
+	// if a weapon with no ammo tries to fire make an empty click sound
+	isWeaponWithNoAmmoNotFired := false
 
 	for i, weapon := range armament {
 		if weapon.Cooldown() > 0 {
@@ -52,8 +54,19 @@ func (g *Game) fireCurrentWeapon() bool {
 			continue
 		}
 
+		ammo := g.player.Ammunition()
+		ammoType := model.AmmoTypeForWeapon(weapon)
+		if ammoType != model.AMMO_NOT_APPLICABLE {
+			// perform ammo check
+			ammoCount := ammo.CheckAmmo(weapon)
+			if ammoCount == 0 {
+				isWeaponWithNoAmmoNotFired = true
+				continue
+			}
+		}
+
 		if g.player.TriggerWeapon(weapon) {
-			weaponFired = true
+			weaponsFired = true
 
 			var projectile *model.Projectile
 			if convergencePoint == nil {
@@ -76,6 +89,14 @@ func (g *Game) fireCurrentWeapon() bool {
 				}
 			}
 
+			// consume ammo
+			ammoType := model.AmmoTypeForWeapon(weapon)
+			if ammoType != model.AMMO_NOT_APPLICABLE {
+				ammoBin := ammo.ConsumeAmmo(weapon)
+				log.Debugf("[player] %s: %d", weapon.ShortName(), ammoBin.AmmoCount())
+			}
+
+			// play sound effect
 			g.audio.PlayLocalWeaponFireAudio(weapon)
 		} else {
 			missileWeapon, isMissile := weapon.(*model.MissileWeapon)
@@ -85,11 +106,15 @@ func (g *Game) fireCurrentWeapon() bool {
 		}
 	}
 
-	if !weaponFired && isWeaponWithLockRequiredNotFired && !g.audio.IsButtonAudioPlaying() {
+	if !weaponsFired && isWeaponWithLockRequiredNotFired && !g.audio.IsButtonAudioPlaying() {
 		g.audio.PlayButtonAudio(AUDIO_BUTTON_NEG)
 	}
 
-	return weaponFired
+	if !weaponsFired && isWeaponWithNoAmmoNotFired && !g.audio.IsButtonAudioPlaying() {
+		g.audio.PlayButtonAudio(AUDIO_CLICK_NEG)
+	}
+
+	return weaponsFired
 }
 
 func (g *Game) fireTestWeaponAtPlayer() {
@@ -152,6 +177,16 @@ func (g *Game) fireTestWeaponAtPlayer() {
 					continue
 				}
 
+				ammo := unit.Ammunition()
+				ammoType := model.AmmoTypeForWeapon(weapon)
+				if ammoType != model.AMMO_NOT_APPLICABLE {
+					// perform ammo check
+					ammoCount := ammo.CheckAmmo(weapon)
+					if ammoCount == 0 {
+						continue
+					}
+				}
+
 				if unit.TriggerWeapon(weapon) {
 					projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
 					if projectile != nil {
@@ -169,6 +204,13 @@ func (g *Game) fireTestWeaponAtPlayer() {
 								g.queueDelayedProjectile(i, weapon, unit)
 							}
 						}
+					}
+
+					// consume ammo
+					ammoType := model.AmmoTypeForWeapon(weapon)
+					if ammoType != model.AMMO_NOT_APPLICABLE {
+						ammoBin := ammo.ConsumeAmmo(weapon)
+						log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
 					}
 				}
 			}

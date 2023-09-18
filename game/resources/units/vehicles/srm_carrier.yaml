@@ -52,3 +52,6 @@ armament:
   type: missile
   location: left
   offset: [9, 40]
+ammo:
+- type: srm
+  tons: 4
