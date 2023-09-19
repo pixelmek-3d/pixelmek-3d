@@ -90,6 +90,12 @@ func (w *EnergyWeapon) AmmoPerTon() int {
 	return 0
 }
 
+func (w *EnergyWeapon) AmmoBin() *AmmoBin {
+	return nil
+}
+
+func (w *EnergyWeapon) SetAmmoBin(ammoBin *AmmoBin) {}
+
 func (w *EnergyWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }

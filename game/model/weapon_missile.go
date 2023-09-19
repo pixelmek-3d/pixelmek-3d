@@ -24,6 +24,7 @@ type MissileWeapon struct {
 	velocity        float64
 	cooldown        float64
 	offset          *geom.Vector2
+	ammoBin         *AmmoBin
 	projectile      Projectile
 	audio           string
 	parent          Entity
@@ -173,6 +174,14 @@ func (w *MissileWeapon) Clone() Weapon {
 
 func (w *MissileWeapon) AmmoPerTon() int {
 	return w.Resource.AmmoPerTon
+}
+
+func (w *MissileWeapon) AmmoBin() *AmmoBin {
+	return w.ammoBin
+}
+
+func (w *MissileWeapon) SetAmmoBin(ammoBin *AmmoBin) {
+	w.ammoBin = ammoBin
 }
 
 func (w *MissileWeapon) ProjectileCount() int {

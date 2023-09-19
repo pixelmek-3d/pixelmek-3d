@@ -54,11 +54,10 @@ func (g *Game) fireCurrentWeapon() bool {
 			continue
 		}
 
-		ammo := g.player.Ammunition()
-		ammoType := model.AmmoTypeForWeapon(weapon)
-		if ammoType != model.AMMO_NOT_APPLICABLE {
+		ammoBin := weapon.AmmoBin()
+		if ammoBin != nil {
 			// perform ammo check
-			ammoCount := ammo.CheckAmmo(weapon)
+			ammoCount := ammoBin.AmmoCount()
 			if ammoCount == 0 {
 				isWeaponWithNoAmmoNotFired = true
 				continue
@@ -90,9 +89,8 @@ func (g *Game) fireCurrentWeapon() bool {
 			}
 
 			// consume ammo
-			ammoType := model.AmmoTypeForWeapon(weapon)
-			if ammoType != model.AMMO_NOT_APPLICABLE {
-				ammoBin := ammo.ConsumeAmmo(weapon)
+			if ammoBin != nil {
+				ammoBin.ConsumeAmmo(weapon, 1)
 				log.Debugf("[player] %s: %d", weapon.ShortName(), ammoBin.AmmoCount())
 			}
 
@@ -177,11 +175,10 @@ func (g *Game) fireTestWeaponAtPlayer() {
 					continue
 				}
 
-				ammo := unit.Ammunition()
-				ammoType := model.AmmoTypeForWeapon(weapon)
-				if ammoType != model.AMMO_NOT_APPLICABLE {
+				ammoBin := weapon.AmmoBin()
+				if ammoBin != nil {
 					// perform ammo check
-					ammoCount := ammo.CheckAmmo(weapon)
+					ammoCount := ammoBin.AmmoCount()
 					if ammoCount == 0 {
 						continue
 					}
@@ -207,9 +204,8 @@ func (g *Game) fireTestWeaponAtPlayer() {
 					}
 
 					// consume ammo
-					ammoType := model.AmmoTypeForWeapon(weapon)
-					if ammoType != model.AMMO_NOT_APPLICABLE {
-						ammoBin := ammo.ConsumeAmmo(weapon)
+					if ammoBin != nil {
+						ammoBin.ConsumeAmmo(weapon, 1)
 						log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
 					}
 				}

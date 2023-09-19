@@ -25,6 +25,7 @@ type Armament struct {
 	HUDSprite
 	fontRenderer    *etxt.Renderer
 	fontSizeWeapons fixed.Int26_6
+	fontSizeAmmo    fixed.Int26_6
 	fontSizeGroups  fixed.Int26_6
 	weapons         []*Weapon
 	weaponGroups    [][]model.Weapon
@@ -110,6 +111,7 @@ func (a *Armament) updateFontSize(width, height int) {
 
 	fractSize, _ := efixed.FromFloat64(pxSize)
 	a.fontSizeWeapons = fractSize
+	a.fontSizeAmmo = 3 * fractSize / 5
 	a.fontSizeGroups = fractSize / 2
 }
 
@@ -176,14 +178,31 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 
 	// render weapon name and status indicator
 	weapon := w.weapon
-	if weapon.Cooldown() > 0 {
+	wAmmoBin := weapon.AmmoBin()
+	isAmmoEmpty := wAmmoBin != nil && wAmmoBin.AmmoCount() == 0
+
+	if weapon.Cooldown() > 0 || isAmmoEmpty {
 		wColor.A = uint8(2 * (int(wColor.A) / 5))
 	}
 	a.fontRenderer.SetColor(color.RGBA(wColor))
 
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing
 
-	a.fontRenderer.Draw(weapon.ShortName(), wX, wY)
+	weaponDisplayTxt := weapon.ShortName()
+	a.fontRenderer.Draw(weaponDisplayTxt, wX, wY)
+
+	// render ammo indicator
+	if wAmmoBin != nil {
+		a.fontRenderer.SetAlign(etxt.Bottom, etxt.Right)
+		a.fontRenderer.SetSizePxFract(a.fontSizeAmmo)
+
+		// just picked a character to indicate as empty
+		ammoDisplayTxt := "/ "
+		if !isAmmoEmpty {
+			ammoDisplayTxt = fmt.Sprintf("_%d ", wAmmoBin.AmmoCount())
+		}
+		a.fontRenderer.Draw(ammoDisplayTxt, bX+bW, bY+bH-2) // TODO: calculate better margin spacing
+	}
 
 	// render weapon group indicator
 	if len(a.weaponGroups) > 0 {

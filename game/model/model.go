@@ -114,14 +114,6 @@ type AmmoBin struct {
 	ammoMax   int
 }
 
-func (a *AmmoBin) AmmoCount() int {
-	return a.ammoCount
-}
-
-func (a *AmmoBin) AmmoMax() int {
-	return a.ammoMax
-}
-
 func AmmoTypeForWeapon(forWeapon Weapon) AmmoType {
 	switch w := forWeapon.(type) {
 	case *EnergyWeapon:
@@ -156,10 +148,10 @@ func NewAmmoStock() *Ammo {
 }
 
 // AddAmmoBin creates ammo bin or updates existing one for the same ammo type/weapon
-func (a *Ammo) AddAmmoBin(ammoType AmmoType, ammoTons float64, forWeapon Weapon) {
+func (a *Ammo) AddAmmoBin(ammoType AmmoType, ammoTons float64, forWeapon Weapon) *AmmoBin {
 	if forWeapon == nil {
 		log.Errorf("forWeapon parameter is required to add ammo bin for ammo type '%v'", ammoType)
-		return
+		return nil
 	}
 
 	// find existing ammo bin if present and update it, otherwise create new one
@@ -177,6 +169,7 @@ func (a *Ammo) AddAmmoBin(ammoType AmmoType, ammoTons float64, forWeapon Weapon)
 	addAmmoCount := int(math.Ceil(ammoPerTon * ammoTons))
 	ammoBin.ammoCount += addAmmoCount
 	ammoBin.ammoMax += addAmmoCount
+	return ammoBin
 }
 
 // GetAmmoBin finds existing ammo bin, if present, for given weapon
@@ -216,8 +209,8 @@ func (a *Ammo) CheckAmmo(forWeapon Weapon) int {
 	return 0
 }
 
-// ConsumeAmmo consumes the ammount count of a single weapon fired
-func (a *Ammo) ConsumeAmmo(forWeapon Weapon) *AmmoBin {
+// ConsumeAmmo consumes the ammo count of weapon fired N times
+func (a *Ammo) ConsumeAmmo(forWeapon Weapon, consumeN int) *AmmoBin {
 	ammoType := AmmoTypeForWeapon(forWeapon)
 	if forWeapon == nil || ammoType == AMMO_NOT_APPLICABLE {
 		return nil
@@ -225,20 +218,39 @@ func (a *Ammo) ConsumeAmmo(forWeapon Weapon) *AmmoBin {
 
 	ammoBin := a.GetAmmoBin(ammoType, forWeapon)
 	if ammoBin != nil && ammoBin.ammoCount > 0 {
-		// consume ammo amount based on weapon and projectile count
-		ammoConsumed := 1
-		switch ammoType {
-		case AMMO_BALLISTIC:
-			// ballistic are burst fire but still only consume one ammo count
-			ammoConsumed = 1
-		default:
-			ammoConsumed = forWeapon.ProjectileCount()
-		}
-
-		ammoBin.ammoCount -= ammoConsumed
-		if ammoBin.ammoCount < 0 {
-			ammoBin.ammoCount = 0
-		}
+		ammoBin.ConsumeAmmo(forWeapon, consumeN)
 	}
 	return ammoBin
+}
+
+func (a *AmmoBin) AmmoCount() int {
+	return a.ammoCount
+}
+
+func (a *AmmoBin) AmmoMax() int {
+	return a.ammoMax
+}
+
+// ConsumeAmmo consumes the ammo count of weapon fired N times
+func (a *AmmoBin) ConsumeAmmo(forWeapon Weapon, consumeN int) {
+	if forWeapon == nil {
+		return
+	}
+
+	if a.ammoCount > 0 {
+		// consume ammo amount based on weapon and projectile count
+		ammoConsumed := consumeN
+		switch a.ammoType {
+		case AMMO_BALLISTIC:
+			// ballistic are burst fire but still only consume one ammo count
+			ammoConsumed = consumeN
+		default:
+			ammoConsumed = consumeN * forWeapon.ProjectileCount()
+		}
+
+		a.ammoCount -= ammoConsumed
+		if a.ammoCount < 0 {
+			a.ammoCount = 0
+		}
+	}
 }

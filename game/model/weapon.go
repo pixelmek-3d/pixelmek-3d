@@ -54,6 +54,8 @@ type Weapon interface {
 
 	Offset() *geom.Vector2
 	AmmoPerTon() int
+	AmmoBin() *AmmoBin
+	SetAmmoBin(ammoBin *AmmoBin)
 	ProjectileCount() int
 	ProjectileDelay() float64
 	ProjectileSpread() float64

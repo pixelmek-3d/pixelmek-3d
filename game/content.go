@@ -673,19 +673,20 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 		ammoType := ammoResource.Type.AmmoType
 		switch ammoType {
 		case model.AMMO_BALLISTIC:
-			weaponFound := false
+			var ammoBin *model.AmmoBin
 			for _, w := range unit.Armament() {
 				if ballisticWeapon, ok := w.(*model.BallisticWeapon); ok {
 					// ballistic ammo is specific for weapons of specified caliber
 					if ammoResource.ForWeapon != ballisticWeapon.File() {
 						continue
 					}
-					weaponFound = true
-					ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
-					break
+					if ammoBin == nil {
+						ammoBin = ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+					}
+					w.SetAmmoBin(ammoBin)
 				}
 			}
-			if !weaponFound {
+			if ammoBin == nil {
 				log.Errorf(
 					"no ballistic weapons (%s) found for ballistic ammo while initializing unit %s [%s]",
 					ammoResource.ForWeapon,
@@ -695,15 +696,16 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 			}
 		case model.AMMO_LRM:
 			// ammo is a pool for all LRM weapons, find a representative weapon for
-			weaponFound := false
+			var ammoBin *model.AmmoBin
 			for _, w := range unit.Armament() {
 				if w.Classification() == model.MISSILE_LRM {
-					weaponFound = true
-					ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
-					break
+					if ammoBin == nil {
+						ammoBin = ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+					}
+					w.SetAmmoBin(ammoBin)
 				}
 			}
-			if !weaponFound {
+			if ammoBin == nil {
 				log.Errorf(
 					"no LRM weapons found for LRM ammo while initializing unit %s [%s]",
 					unit.Name(),
@@ -712,7 +714,7 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 			}
 		case model.AMMO_SRM:
 			// ammo is a pool for all SRM weapons
-			weaponFound := false
+			var ammoBin *model.AmmoBin
 			for _, w := range unit.Armament() {
 				if w.Classification() == model.MISSILE_SRM {
 					if missileWeapon, ok := w.(*model.MissileWeapon); ok {
@@ -720,13 +722,14 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 						if missileWeapon.IsLockOnLockRequired() {
 							continue
 						}
-						weaponFound = true
-						ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
-						break
+						if ammoBin == nil {
+							ammoBin = ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+						}
+						w.SetAmmoBin(ammoBin)
 					}
 				}
 			}
-			if !weaponFound {
+			if ammoBin == nil {
 				log.Errorf(
 					"no SRM weapons found for SRM ammo while initializing unit %s [%s]",
 					unit.Name(),
@@ -735,7 +738,7 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 			}
 		case model.AMMO_STREAK_SRM:
 			// ammo is a pool for all Streak SRM weapons
-			weaponFound := false
+			var ammoBin *model.AmmoBin
 			for _, w := range unit.Armament() {
 				if w.Classification() == model.MISSILE_SRM {
 					if missileWeapon, ok := w.(*model.MissileWeapon); ok {
@@ -743,13 +746,14 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 						if !missileWeapon.IsLockOnLockRequired() {
 							continue
 						}
-						weaponFound = true
-						ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
-						break
+						if ammoBin == nil {
+							ammoBin = ammo.AddAmmoBin(ammoType, ammoResource.Tons, w)
+						}
+						w.SetAmmoBin(ammoBin)
 					}
 				}
 			}
-			if !weaponFound {
+			if ammoBin == nil {
 				log.Errorf(
 					"no Streak SRM weapons found for Streak SRM ammo while initializing unit %s [%s]",
 					unit.Name(),
