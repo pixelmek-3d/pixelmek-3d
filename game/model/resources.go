@@ -215,6 +215,7 @@ type ModelEffectResource struct {
 	ImageSheet *ModelResourceImageSheet `yaml:"imageSheet"`
 	Scale      float64                  `yaml:"scale" validate:"gt=0"`
 	Audio      string                   `yaml:"audio" validate:"required"`
+	RandAudio  []string                 `yaml:"randAudio"`
 }
 
 type ModelResourceImageSheet struct {

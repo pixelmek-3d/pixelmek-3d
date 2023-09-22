@@ -13,13 +13,13 @@ import (
 
 type ProjectileSprite struct {
 	*Sprite
-	ImpactAudio  string
-	ImpactEffect EffectSprite
-	Projectile   *model.Projectile
+	ImpactAudioFiles []string
+	ImpactEffect     EffectSprite
+	Projectile       *model.Projectile
 }
 
 func NewAnimatedProjectile(
-	projectile *model.Projectile, scale float64, img *ebiten.Image, impactEffect EffectSprite, impactAudio string,
+	projectile *model.Projectile, scale float64, img *ebiten.Image, impactEffect EffectSprite, impactAudioFiles []string,
 ) *ProjectileSprite {
 	var p *Sprite
 	sheet := projectile.Resource.ImageSheet
@@ -46,15 +46,18 @@ func NewAnimatedProjectile(
 	// projectiles self illuminate so they do not get dimmed in night conditions
 	p.illumination = 5000
 
-	if len(impactAudio) > 0 {
-		impactAudio = filepath.Join("audio/sfx/impacts", impactAudio)
+	s := &ProjectileSprite{
+		Sprite:           p,
+		ImpactAudioFiles: make([]string, len(impactAudioFiles)),
+		ImpactEffect:     impactEffect,
+		Projectile:       projectile,
 	}
 
-	s := &ProjectileSprite{
-		Sprite:       p,
-		ImpactAudio:  impactAudio,
-		ImpactEffect: impactEffect,
-		Projectile:   projectile,
+	for _, audioFile := range impactAudioFiles {
+		if len(audioFile) > 0 {
+			audioFile = filepath.Join("audio/sfx/impacts", audioFile)
+			s.ImpactAudioFiles = append(s.ImpactAudioFiles, audioFile)
+		}
 	}
 
 	return s
@@ -72,6 +75,16 @@ func (p *ProjectileSprite) Clone() *ProjectileSprite {
 	pClone.Sprite.Entity = eClone
 
 	return pClone
+}
+
+func (p *ProjectileSprite) ImpactAudio() string {
+	numAudioFiles := len(p.ImpactAudioFiles)
+	if numAudioFiles == 1 {
+		return p.ImpactAudioFiles[0]
+	} else if numAudioFiles > 1 {
+		return p.ImpactAudioFiles[model.Randish.Intn(numAudioFiles)]
+	}
+	return ""
 }
 
 func (p *ProjectileSprite) Damage() float64 {

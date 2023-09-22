@@ -496,10 +496,11 @@ func (a *AudioHandler) PlayExternalWeaponFireAudio(g *Game, weapon model.Weapon,
 
 // PlayProjectileImpactAudio plays projectile impact audio near the player
 func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSprite) {
-	if len(p.ImpactAudio) > 0 {
+	impactAudio := p.ImpactAudio()
+	if len(impactAudio) > 0 {
 		// TODO: introduce volume modifier based on projectile's weapon type, classification, and size
 		extPos, extPosZ := p.Pos(), p.PosZ()
-		a.PlayExternalAudio(g, p.ImpactAudio, extPos.X, extPos.Y, extPosZ, 10, 1.0)
+		a.PlayExternalAudio(g, impactAudio, extPos.X, extPos.Y, extPosZ, 10, 1.0)
 	}
 }
 

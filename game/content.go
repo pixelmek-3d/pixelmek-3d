@@ -522,9 +522,13 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 					eAnimationRate = eResource.ImageSheet.AnimationRate
 				}
 
+				projectileImpactAudioFiles := make([]string, 1)
+				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
+				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
+
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, eResource.Audio,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -588,9 +592,13 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 					eAnimationRate = eResource.ImageSheet.AnimationRate
 				}
 
+				projectileImpactAudioFiles := make([]string, 1)
+				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
+				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
+
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, eResource.Audio,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -646,9 +654,13 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 					eAnimationRate = eResource.ImageSheet.AnimationRate
 				}
 
+				projectileImpactAudioFiles := make([]string, 1)
+				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
+				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
+
 				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, eResource.Audio,
+					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate

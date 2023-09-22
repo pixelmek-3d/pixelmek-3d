@@ -33,6 +33,9 @@
 - `jet-thrust`: "Maxx222"
   - https://freesound.org/people/Maxx222/sounds/446764/
 
+- `ricochet-N`: "rakurka"
+  - https://freesound.org/people/rakurka/sounds/109957/
+
 - `stomp-N`: "Renovatio871"
   - https://freesound.org/people/Renovatio871/sounds/324450/
 

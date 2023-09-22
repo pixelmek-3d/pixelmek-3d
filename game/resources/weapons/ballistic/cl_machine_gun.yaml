@@ -36,7 +36,11 @@ projectile:
       270: 2
       330: 1
   impactEffect:
-    audio: sparks.ogg
+    audio: ricochet-0.ogg
+    randAudio:
+    - ricochet-1.ogg
+    - ricochet-2.ogg
+    - ricochet-3.ogg
     scale: 0.08
     image: bullet_impact.png
     imageSheet:
