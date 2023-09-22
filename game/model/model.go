@@ -114,6 +114,37 @@ type AmmoBin struct {
 	ammoMax   int
 }
 
+func (t AmmoType) Name() string {
+	switch t {
+	case AMMO_LRM:
+		return "Long Range Missile"
+	case AMMO_SRM:
+		return "Short Range Missile"
+	case AMMO_STREAK_SRM:
+		return "Streak Short Range Missile"
+	case AMMO_BALLISTIC:
+		return "Ballistic Weapon"
+	default:
+		return ""
+	}
+}
+
+func (t AmmoType) ShortName() string {
+	switch t {
+	case AMMO_LRM:
+		return "LRM"
+	case AMMO_SRM:
+		return "SRM"
+	case AMMO_STREAK_SRM:
+		return "SSRM"
+	case AMMO_BALLISTIC:
+		return "BALLISTIC"
+	default:
+		return ""
+
+	}
+}
+
 func AmmoTypeForWeapon(forWeapon Weapon) AmmoType {
 	switch w := forWeapon.(type) {
 	case *EnergyWeapon:
@@ -145,6 +176,11 @@ func AmmoTypeForWeapon(forWeapon Weapon) AmmoType {
 
 func NewAmmoStock() *Ammo {
 	return &Ammo{ammoBins: make([]*AmmoBin, 0)}
+}
+
+// AmmoBinList returns the list of ammo bins
+func (a *Ammo) AmmoBinList() []*AmmoBin {
+	return a.ammoBins
 }
 
 // AddAmmoBin creates ammo bin or updates existing one for the same ammo type/weapon
@@ -229,6 +265,14 @@ func (a *AmmoBin) AmmoCount() int {
 
 func (a *AmmoBin) AmmoMax() int {
 	return a.ammoMax
+}
+
+func (a *AmmoBin) AmmoType() AmmoType {
+	return a.ammoType
+}
+
+func (a *AmmoBin) ForWeapon() Weapon {
+	return a.forWeapon
 }
 
 // ConsumeAmmo consumes the ammo count of weapon fired N times

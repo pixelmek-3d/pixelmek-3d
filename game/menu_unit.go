@@ -539,6 +539,48 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 		armsContent.AddChild(weaponText)
 	}
 
+	ammo := unit.Ammunition()
+	var ammoBins []*model.AmmoBin
+	if ammo != nil {
+		ammoBins = ammo.AmmoBinList()
+	}
+	for _, ammoBin := range ammoBins {
+		forWeapon := ammoBin.ForWeapon()
+		ammoCount := ammoBin.AmmoCount()
+
+		ammoShort := ammoBin.AmmoType().ShortName()
+		ammoFull := ammoBin.AmmoType().Name()
+		if model.AMMO_BALLISTIC == ammoBin.AmmoType() {
+			// ballistic ammo needs to show for weapon specific name
+			ammoShort = forWeapon.ShortName()
+			ammoFull = forWeapon.Name()
+		}
+
+		// TODO: add more ammo data in tooltip
+		toolTipString := fmt.Sprintf("Ammo for %s (%d)", ammoFull, ammoCount)
+		toolTip := widget.NewContainer(
+			widget.ContainerOpts.BackgroundImage(res.toolTip.background),
+			widget.ContainerOpts.Layout(widget.NewRowLayout(
+				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+				widget.RowLayoutOpts.Padding(res.toolTip.padding),
+				widget.RowLayoutOpts.Spacing(2),
+			)))
+		toolTipText := widget.NewText(
+			widget.TextOpts.Text(toolTipString, res.toolTip.face, res.toolTip.color),
+		)
+		toolTip.AddChild(toolTipText)
+
+		ammoString := fmt.Sprintf("%s Ammo (%d)", ammoShort, ammoCount)
+		ammoText := widget.NewText(
+			widget.TextOpts.Text(ammoString, res.text.smallFace, res.text.idleColor),
+			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+			widget.TextOpts.WidgetOpts(widget.WidgetOpts.ToolTip(widget.NewToolTip(
+				widget.ToolTipOpts.Content(toolTip),
+			))),
+		)
+		armsContent.AddChild(ammoText)
+	}
+
 	// TODO: add more content
 
 	return unitCard
