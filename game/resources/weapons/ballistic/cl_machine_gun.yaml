@@ -14,7 +14,8 @@ heat: 0
 distance: 90
 # velocity in meters/second
 velocity: 250
-ammoPerTon: 200
+# normalize MG ammo as DPS weapon using rounds/second (2000 = 200 ammo/ton * 10 rounds/s)
+ammoPerTon: 2000
 projectileCount: 1
 projectile:
   collisionRadius: 6
