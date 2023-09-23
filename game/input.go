@@ -686,21 +686,25 @@ func (g *Game) handleInput() {
 	if g.input.ActionIsJustPressed(ActionTargetCrosshairs) {
 		// target on crosshairs
 		g.targetCrosshairs()
+		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetNearest) {
 		// target nearest to player
 		g.targetCycle(TARGET_NEAREST)
+		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetNext) {
 		// cycle player targets
 		g.targetCycle(TARGET_NEXT)
+		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetPrevious) {
 		// cycle player targets in reverse order
 		g.targetCycle(TARGET_PREVIOUS)
+		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
 	}
 
 	if g.input.ActionIsJustPressed(ActionZoomToggle) {

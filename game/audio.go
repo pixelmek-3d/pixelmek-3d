@@ -32,10 +32,11 @@ const (
 type AudioInterfaceResource string
 
 const (
-	AUDIO_BUTTON_AFF  AudioInterfaceResource = "audio/sfx/button-aff.ogg"
-	AUDIO_BUTTON_NEG  AudioInterfaceResource = "audio/sfx/button-neg.ogg"
-	AUDIO_BUTTON_OVER AudioInterfaceResource = "audio/sfx/button-over.ogg"
-	AUDIO_CLICK_NEG   AudioInterfaceResource = "audio/sfx/click-neg.ogg"
+	AUDIO_BUTTON_AFF    AudioInterfaceResource = "audio/sfx/button-aff.ogg"
+	AUDIO_BUTTON_NEG    AudioInterfaceResource = "audio/sfx/button-neg.ogg"
+	AUDIO_BUTTON_OVER   AudioInterfaceResource = "audio/sfx/button-over.ogg"
+	AUDIO_CLICK_NEG     AudioInterfaceResource = "audio/sfx/click-neg.ogg"
+	AUDIO_SELECT_TARGET AudioInterfaceResource = "audio/sfx/select-target.ogg"
 )
 
 var (

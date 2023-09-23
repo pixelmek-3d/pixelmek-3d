@@ -24,7 +24,7 @@
 - `ambience-engine`: "Tim Verberne"
   - https://freesound.org/people/Tim_Verberne/sounds/487416/
 
-- `button-aff`, `button-neg`, `button-over`: "Circlerun"
+- `button-aff`, `button-neg`, `button-over`, `select-target`: "Circlerun"
   - https://opengameart.org/content/hi-tech-button-sound-pack-i-non-themed
 
  - `click-neg`: "qubodup"
