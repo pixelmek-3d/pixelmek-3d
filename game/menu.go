@@ -185,7 +185,9 @@ func (g *Game) openMenu() {
 		g.audio.PauseSFX()
 		g.mouseMode = MouseModeCursor
 		ebiten.SetCursorMode(ebiten.CursorModeVisible)
-		gameMenu.initMenu()
+		if gameMenu.root == nil {
+			gameMenu.initMenu()
+		}
 		gameMenu.active = true
 	}
 }
