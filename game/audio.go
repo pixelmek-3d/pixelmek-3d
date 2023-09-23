@@ -62,10 +62,12 @@ type SFXHandler struct {
 }
 
 type SFXSource struct {
-	channel  *resound.DSPChannel
-	player   *resound.DSPPlayer
-	volume   float64
-	_sfxFile string
+	channel *resound.DSPChannel
+	player  *resound.DSPPlayer
+	volume  float64
+
+	_sfxFile            string
+	_pausedWhilePlaying bool
 }
 
 func init() {
@@ -176,6 +178,7 @@ func (s *SFXSource) IsPlaying() bool {
 
 // Play starts playing the sound effect player from the beginning of the effect
 func (s *SFXSource) Play() {
+	s._pausedWhilePlaying = false
 	if s.player != nil {
 		s.player.Rewind()
 		s.player.Play()
@@ -185,7 +188,16 @@ func (s *SFXSource) Play() {
 // Pause pauses the sound effect player
 func (s *SFXSource) Pause() {
 	if s.player != nil {
+		s._pausedWhilePlaying = s.player.IsPlaying()
 		s.player.Pause()
+	}
+}
+
+// Resume resumes the sound effect player without rewinding
+func (s *SFXSource) Resume() {
+	s._pausedWhilePlaying = false
+	if s.player != nil {
+		s.player.Play()
 	}
 }
 
@@ -370,9 +382,7 @@ func (a *AudioHandler) StopSFX() {
 // PauseSFX pauses all sound effect sources
 func (a *AudioHandler) PauseSFX() {
 	for _, s := range a.sfx.mainSources {
-		if s.player != nil {
-			s.player.Pause()
-		}
+		s.Pause()
 	}
 	for s := range a.sfx.extSources.Iterator() {
 		s.Pause()
@@ -383,12 +393,10 @@ func (a *AudioHandler) PauseSFX() {
 // ResumeSFX resumes play of all sound effect sources
 func (a *AudioHandler) ResumeSFX() {
 	for _, s := range a.sfx.mainSources {
-		if s.player != nil {
-			s.player.Play()
-		}
+		s.Resume()
 	}
 	for s := range a.sfx.extSources.Iterator() {
-		s.Play()
+		s.Resume()
 		a.sfx.extSources.Offer(s)
 	}
 }
