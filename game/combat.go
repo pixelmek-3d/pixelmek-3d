@@ -24,13 +24,18 @@ func (g *Game) initCombatVariables() {
 	g.delayedProjectiles = make(map[*DelayedProjectileSpawn]struct{}, 256)
 }
 
-// fireCurrentWeapon fires the currently selected player weapon/weapon group
-func (g *Game) fireCurrentWeapon() bool {
+// firePlayerWeapon fires currently selected player weapon/weapon group or input weapon group
+func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 	// weapons test from model
 	weaponsFired := false
 	armament := g.player.Armament()
 	if len(armament) == 0 {
 		return weaponsFired
+	}
+
+	if weaponGroupFire < 0 && g.player.fireMode == model.GROUP_FIRE {
+		// indicate firing current selected weapon group
+		weaponGroupFire = int(g.player.selectedGroup)
 	}
 
 	// in case convergence point not set, use player heading and pitch
@@ -48,8 +53,8 @@ func (g *Game) fireCurrentWeapon() bool {
 			continue
 		}
 
-		isWeaponSelected := (g.player.fireMode == model.CHAIN_FIRE && i == int(g.player.selectedWeapon)) ||
-			(g.player.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(weapon, g.player.selectedGroup, g.player.weaponGroups))
+		isWeaponSelected := (weaponGroupFire < 0 && g.player.fireMode == model.CHAIN_FIRE && i == int(g.player.selectedWeapon)) ||
+			(weaponGroupFire >= 0 && model.IsWeaponInGroup(weapon, uint(weaponGroupFire), g.player.weaponGroups))
 		if !isWeaponSelected {
 			continue
 		}

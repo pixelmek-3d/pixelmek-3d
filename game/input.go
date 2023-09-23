@@ -52,6 +52,11 @@ const (
 	ActionWeaponGroup3
 	ActionWeaponGroup4
 	ActionWeaponGroup5
+	ActionWeaponFireGroup1
+	ActionWeaponFireGroup2
+	ActionWeaponFireGroup3
+	ActionWeaponFireGroup4
+	ActionWeaponFireGroup5
 	ActionNavCycle
 	ActionTargetCrosshairs
 	ActionTargetNearest
@@ -125,6 +130,16 @@ func actionString(a input.Action) string {
 		return "weapon_group_4"
 	case ActionWeaponGroup5:
 		return "weapon_group_5"
+	case ActionWeaponFireGroup1:
+		return "weapon_fire_group_1"
+	case ActionWeaponFireGroup2:
+		return "weapon_fire_group_2"
+	case ActionWeaponFireGroup3:
+		return "weapon_fire_group_3"
+	case ActionWeaponFireGroup4:
+		return "weapon_fire_group_4"
+	case ActionWeaponFireGroup5:
+		return "weapon_fire_group_5"
 	case ActionNavCycle:
 		return "nav_cycle"
 	case ActionTargetCrosshairs:
@@ -199,6 +214,8 @@ func (g *Game) setDefaultControls() {
 		ActionWeaponGroup3:           {input.Key3},
 		ActionWeaponGroup4:           {input.Key4},
 		ActionWeaponGroup5:           {input.Key5},
+		ActionWeaponFireGroup1:       {input.KeyMouseBack},
+		ActionWeaponFireGroup2:       {input.KeyMouseForward},
 
 		ActionNavCycle:         {input.KeyN, input.KeyGamepadDown},
 		ActionTargetCrosshairs: {input.KeyQ, input.KeyGamepadL2},
@@ -368,43 +385,6 @@ func (g *Game) handleInput() {
 		g.fireTestWeaponAtPlayer()
 	}
 
-	// TODO: change to toggle mode
-	// if ebiten.IsKeyPressed(ebiten.KeyAlt) {
-	// 	if g.mouseMode != MouseModeBody {
-	// 		g.mouseMode = MouseModeBody
-	// 	}
-	// } else if inpututil.IsKeyJustReleased(ebiten.KeyAlt) {
-	// 	if g.mouseMode == MouseModeBody {
-	// 		g.mouseMode = MouseModeTurret
-	// 		// reset relative heading target when no longer using mouse turn
-	// 		g.player.SetTargetRelativeHeading(0)
-	// 	}
-	// }
-	// switch g.mouseMode {
-	// case MouseModeBody:
-	// 	x, y := ebiten.CursorPosition()
-	// 	switch {
-	// 	case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
-	// 		// initialize first position to establish delta
-	// 		if x != 0 && y != 0 {
-	// 			g.mouseX, g.mouseY = x, y
-	// 		}
-	// 	default:
-	// 		dx, dy := g.mouseX-x, g.mouseY-y
-	// 		g.mouseX, g.mouseY = x, y
-	// 		if dx != 0 {
-	// 			turnAmount := 0.01 * float64(dx) / g.zoomFovDepth
-	// 			g.player.SetTargetRelativeHeading(turnAmount)
-	// 		} else {
-	// 			// reset relative heading target when mouse stops
-	// 			g.player.SetTargetRelativeHeading(0)
-	// 		}
-	// 		if dy != 0 {
-	// 			g.Pitch(0.005 * float64(dy) / g.zoomFovDepth)
-	// 		}
-	// 	}
-	// case MouseModeTurret:
-
 	if (g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody) && ebiten.CursorMode() != ebiten.CursorModeCaptured {
 		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
 
@@ -481,9 +461,22 @@ func (g *Game) handleInput() {
 		g.Pitch(0.005 * turretDy)
 	}
 
+	weaponFireGroups := [5]input.Action{
+		ActionWeaponFireGroup1,
+		ActionWeaponFireGroup2,
+		ActionWeaponFireGroup3,
+		ActionWeaponFireGroup4,
+		ActionWeaponFireGroup5,
+	}
+	for weaponGroup, actionGroup := range weaponFireGroups {
+		if g.input.ActionIsPressed(actionGroup) {
+			g.firePlayerWeapon(weaponGroup)
+		}
+	}
+
 	if g.input.ActionIsPressed(ActionWeaponFire) {
 		g.holdInputAction(ActionWeaponFire)
-		g.fireCurrentWeapon()
+		g.firePlayerWeapon(-1)
 	} else {
 		g.releaseInputAction(ActionWeaponFire)
 	}
