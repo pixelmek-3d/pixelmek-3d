@@ -9,7 +9,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.5.9
 	github.com/harbdog/raycaster-go v1.9.0
 	github.com/jinzhu/copier v0.3.5
-	github.com/quasilyte/ebitengine-input v0.8.1-0.20230729185547-f2e656e0f63f
+	github.com/quasilyte/ebitengine-input v0.8.1-0.20230923205435-c06ade682227
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
 	github.com/tinne26/etxt v0.0.8
@@ -54,5 +54,3 @@ require (
 	golang.org/x/text v0.11.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
-
-replace github.com/quasilyte/ebitengine-input => ../ebitengine-input
