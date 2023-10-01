@@ -6,7 +6,7 @@ image: summoner.png
 tech: clan
 tonnage: 70
 height: 15
-heightPixelGap: 
+heightPixelGap: 3
 speed: 86
 jumpJets: 5
 armor: 182

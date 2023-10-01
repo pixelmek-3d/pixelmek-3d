@@ -6,7 +6,7 @@ image: timber_wolf.png
 tech: clan
 tonnage: 75
 height: 15
-heightPixelGap: 
+heightPixelGap: 4
 speed: 86
 jumpJets: 0
 armor: 230
