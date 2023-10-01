@@ -104,6 +104,8 @@ type Game struct {
 	minLightRGB        *color.NRGBA
 	maxLightRGB        *color.NRGBA
 
+	lightAmpEngaged bool
+
 	// Mission and map
 	mission      *model.Mission
 	collisionMap []*geom.Line
@@ -564,14 +566,16 @@ func (g *Game) navPointCycle() {
 	g.player.navPoint = render.NewNavSprite(newNav, 1.0)
 }
 
-func (g *Game) targetCrosshairs() {
+func (g *Game) targetCrosshairs() model.Entity {
 	newTarget := g.player.convergenceSprite
 	if newTarget != nil {
 		g.player.SetTarget(newTarget.Entity)
+		return newTarget.Entity
 	}
+	return nil
 }
 
-func (g *Game) targetCycle(cycleType TargetCycleType) {
+func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 	targetables := make([]*render.Sprite, 0, 64)
 
 	for spriteType := range g.sprites.sprites {
@@ -590,7 +594,7 @@ func (g *Game) targetCycle(cycleType TargetCycleType) {
 
 	if len(targetables) == 0 {
 		g.player.SetTarget(nil)
-		return
+		return nil
 	}
 
 	// sort by distance to player
@@ -635,6 +639,7 @@ func (g *Game) targetCycle(cycleType TargetCycleType) {
 	}
 
 	g.player.SetTarget(newTarget.Entity)
+	return newTarget.Entity
 }
 
 func (g *Game) updateSprites() {

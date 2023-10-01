@@ -128,34 +128,40 @@ func (g *Game) fireTestWeaponAtPlayer() {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 			var pX, pY, pZ float64
 			var unit model.Unit
+			var sprite *render.Sprite
 
 			switch spriteType {
 			case MechSpriteType:
 				s := k.(*render.MechSprite)
+				sprite = s.Sprite
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
 				unit = model.EntityUnit(s.Entity)
 
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
+				sprite = s.Sprite
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.2
 				unit = model.EntityUnit(s.Entity)
 
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
+				sprite = s.Sprite
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()
 				unit = model.EntityUnit(s.Entity)
 
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
+				sprite = s.Sprite
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
 				unit = model.EntityUnit(s.Entity)
 
 			case EmplacementSpriteType:
 				s := k.(*render.EmplacementSprite)
+				sprite = s.Sprite
 				sPosition := s.Pos()
 				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
 				unit = model.EntityUnit(s.Entity)
@@ -175,6 +181,7 @@ func (g *Game) fireTestWeaponAtPlayer() {
 			}
 			unit.SetPitch(pPitch)
 
+			weaponFired := false
 			for _, weapon := range unit.Armament() {
 				if weapon.Cooldown() > 0 {
 					continue
@@ -190,10 +197,9 @@ func (g *Game) fireTestWeaponAtPlayer() {
 				}
 
 				if unit.TriggerWeapon(weapon) {
+					weaponFired = true
 					projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
 					if projectile != nil {
-						// TODO: add muzzle flash effect on being fired at
-
 						pTemplate := projectileSpriteForWeapon(weapon)
 						pSprite := pTemplate.Clone()
 						pSprite.Projectile = projectile
@@ -214,6 +220,11 @@ func (g *Game) fireTestWeaponAtPlayer() {
 						log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
 					}
 				}
+			}
+
+			if weaponFired {
+				// illuminate source sprite unit firing the weapon
+				sprite.SetIlluminationPeriod(5000, 0.35)
 			}
 
 			return true
@@ -364,8 +375,14 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 						// TODO: visual response to player being hit
 						log.Debugf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
 					} else {
-						// TODO: visual method for showing damage was done
+						// TODO: ui indicator for showing damage was done
 						log.Debugf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
+
+						// illuminate sprite being hit by projectile weapon
+						sprite := g.getSpriteFromEntity(entity)
+						if sprite != nil {
+							sprite.SetIlluminationPeriod(5000, 0.35)
+						}
 					}
 				}
 			}
@@ -382,7 +399,6 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 					newPos = collisionEntity.collision
 				}
 
-				// TODO: give impact effect optional ability to have some velocity based on the projectile movement upon impact if it didn't hit a wall
 				effect := p.SpawnEffect(newPos.X, newPos.Y, newPosZ, p.Heading(), p.Pitch())
 
 				g.sprites.addEffect(effect)
@@ -495,6 +511,12 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 			} else {
 				g.audio.PlayExternalWeaponFireAudio(g, w, e)
 			}
+		}
+
+		s := g.getSpriteFromEntity(p.parent)
+		if s != nil {
+			// illuminate source sprite unit firing the projectile
+			s.SetIlluminationPeriod(5000, 0.35)
 		}
 	}
 }

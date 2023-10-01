@@ -6,12 +6,12 @@ briefing: |
 map: "testing_grounds.yaml"
 music: "scanner_tek.mp3"
 dropZone:
-  position: [100, 100]
+  position: [60, 60]
   heading: 180
 lighting:
   falloff: -500
-  illumination: 350
-  minLightRGB: [70, 80, 90]
+  illumination: 0
+  minLightRGB: [32, 42, 52]
   maxLightRGB: [255, 255, 255]
 floorBox:
   image: "floors/floor_green_evening.png"

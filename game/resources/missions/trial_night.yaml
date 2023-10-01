@@ -6,12 +6,12 @@ briefing: |
 map: "testing_grounds.yaml"
 music: "gi_i_dark_ambient.mp3"
 dropZone:
-  position: [100, 100]
+  position: [60, 60]
   heading: 180
 lighting:
   falloff: -500
-  illumination: 350
-  minLightRGB: [40, 50, 60]
+  illumination: 0
+  minLightRGB: [16, 24, 30]
   maxLightRGB: [255, 255, 255]
 floorBox:
   image: "floors/floor_green_night.png"

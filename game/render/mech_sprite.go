@@ -98,6 +98,8 @@ func (s *MechSprite) ResetStrideStomp() {
 }
 
 func (s *MechSprite) Update(camPos *geom.Vector2) {
+	s.updateIllumination()
+
 	if s.AnimationRate <= 0 {
 		return
 	}

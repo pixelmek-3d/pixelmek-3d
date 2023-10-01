@@ -19,6 +19,7 @@ type Sprite struct {
 	w, h              int
 	scale             float64
 	illumination      float64
+	dimmingPerTick    float64
 	AnimationRate     int
 	Focusable         bool
 	animReversed      bool
@@ -185,6 +186,23 @@ func (s *Sprite) Clone() *Sprite {
 	return sClone
 }
 
+func (s *Sprite) SetIlluminationPeriod(illumination float64, periodSeconds float64) {
+	s.illumination = illumination
+
+	// determine the amount of illumination to dim by per tick
+	s.dimmingPerTick = illumination * model.SECONDS_PER_TICK / periodSeconds
+}
+
+func (s *Sprite) updateIllumination() {
+	if s.dimmingPerTick > 0 && s.illumination > 0 {
+		s.illumination -= s.dimmingPerTick
+		if s.illumination <= 0 {
+			s.illumination = 0
+			s.dimmingPerTick = 0
+		}
+	}
+}
+
 func (s *Sprite) SetTextureFacingMap(texFacingMap map[float64]int) {
 	s.texFacingMap = texFacingMap
 
@@ -252,6 +270,8 @@ func (s *Sprite) ScreenRect(renderScale float64) *image.Rectangle {
 }
 
 func (s *Sprite) Update(camPos *geom.Vector2) {
+	s.updateIllumination()
+
 	if s.AnimationRate <= 0 {
 		return
 	}

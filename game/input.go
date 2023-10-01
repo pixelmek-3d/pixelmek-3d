@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"io"
 	"math"
 	"os"
@@ -63,6 +64,7 @@ const (
 	ActionTargetNext
 	ActionTargetPrevious
 	ActionZoomToggle
+	ActionLightAmpToggle
 	actionCount
 )
 
@@ -152,6 +154,8 @@ func actionString(a input.Action) string {
 		return "target_prev"
 	case ActionZoomToggle:
 		return "zoom_toggle"
+	case ActionLightAmpToggle:
+		return "light_amplification"
 	default:
 		panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
 	}
@@ -222,7 +226,9 @@ func (g *Game) setDefaultControls() {
 		ActionTargetNearest:    {input.KeyE, input.KeyGamepadUp},
 		ActionTargetNext:       {input.KeyT, input.KeyGamepadRight},
 		ActionTargetPrevious:   {input.KeyR, input.KeyGamepadLeft},
-		ActionZoomToggle:       {input.KeyZ, input.KeyGamepadRStick},
+
+		ActionZoomToggle:     {input.KeyZ, input.KeyGamepadRStick},
+		ActionLightAmpToggle: {input.KeyL, input.KeyGamepadDown},
 	}
 
 	g.inputSystem.Init(input.SystemConfig{
@@ -678,26 +684,34 @@ func (g *Game) handleInput() {
 
 	if g.input.ActionIsJustPressed(ActionTargetCrosshairs) {
 		// target on crosshairs
-		g.targetCrosshairs()
-		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		targetEntity := g.targetCrosshairs()
+		if targetEntity != nil {
+			go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		}
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetNearest) {
 		// target nearest to player
-		g.targetCycle(TARGET_NEAREST)
-		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		targetEntity := g.targetCycle(TARGET_NEAREST)
+		if targetEntity != nil {
+			go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		}
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetNext) {
 		// cycle player targets
-		g.targetCycle(TARGET_NEXT)
-		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		targetEntity := g.targetCycle(TARGET_NEXT)
+		if targetEntity != nil {
+			go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		}
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetPrevious) {
 		// cycle player targets in reverse order
-		g.targetCycle(TARGET_PREVIOUS)
-		go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		targetEntity := g.targetCycle(TARGET_PREVIOUS)
+		if targetEntity != nil {
+			go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+		}
 	}
 
 	if g.input.ActionIsJustPressed(ActionZoomToggle) {
@@ -712,6 +726,28 @@ func (g *Game) handleInput() {
 			g.camera.SetFovAngle(g.fovDegrees, 1.0)
 			g.camera.SetPitchAngle(g.player.Pitch())
 		}
+	}
+
+	if g.input.ActionIsJustPressed(ActionLightAmpToggle) {
+		// toggle light amplification
+		if g.lightAmpEngaged {
+			// disable light amplification
+			g.lightAmpEngaged = false
+			g.camera.SetLightFalloff(g.lightFalloff)
+			g.camera.SetGlobalIllumination(g.globalIllumination)
+			g.camera.SetLightRGB(*g.minLightRGB, *g.maxLightRGB)
+		} else {
+			// enable light amplification
+			g.lightAmpEngaged = true
+			g.camera.SetLightFalloff(-128)
+			g.camera.SetGlobalIllumination(300)
+			g.camera.SetLightRGB(
+				color.NRGBA{R: 0, G: 24, B: 0},
+				color.NRGBA{R: 16, G: 128, B: 16},
+			)
+		}
+
+		g.audio.PlayButtonAudio(AUDIO_CLICK_AFF)
 	}
 
 	if g.input.ActionIsJustPressed(ActionThrottleReverse) {
