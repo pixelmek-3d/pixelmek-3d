@@ -197,14 +197,14 @@ func (s *SFXSource) Pause() {
 
 // Resume resumes the sound effect player without rewinding
 func (s *SFXSource) Resume() {
-	s._pausedWhilePlaying = false
-	if s.player != nil {
+	if s.player != nil && s._pausedWhilePlaying {
 		s.player.Play()
 	}
 }
 
 // Close stops and closes the sound effect player
 func (s *SFXSource) Close() {
+	s._pausedWhilePlaying = false
 	if s.player != nil {
 		s.player.Close()
 		s.player = nil
