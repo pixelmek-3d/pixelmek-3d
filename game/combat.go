@@ -370,20 +370,12 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
 				percentHP := 100 * (hp / maxHP)
 
-				if g.debug {
-					if entity == g.player.Unit {
-						// TODO: visual response to player being hit
-						log.Debugf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
-					} else {
-						// TODO: ui indicator for showing damage was done
-						log.Debugf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
-
-						// illuminate sprite being hit by projectile weapon
-						sprite := g.getSpriteFromEntity(entity)
-						if sprite != nil {
-							sprite.SetIlluminationPeriod(5000, 0.35)
-						}
-					}
+				if entity == g.player.Unit {
+					// TODO: visual response to player being hit
+					log.Debugf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
+				} else {
+					// TODO: ui indicator for showing damage was done
+					log.Debugf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
 				}
 			}
 
