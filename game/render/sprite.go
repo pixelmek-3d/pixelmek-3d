@@ -20,11 +20,12 @@ type Sprite struct {
 	scale             float64
 	illumination      float64
 	dimmingPerTick    float64
-	AnimationRate     int
-	Focusable         bool
+	animationRate     int
+	focusable         bool
 	animReversed      bool
 	animCounter       int
 	loopCounter       int
+	maxLoops          int
 	columns, rows     int
 	texNum, lenTex    int
 	staticTexNum      int
@@ -77,7 +78,7 @@ func (s *Sprite) SetScreenRect(rect *image.Rectangle) {
 }
 
 func (s *Sprite) IsFocusable() bool {
-	return s.Focusable
+	return s.focusable
 }
 
 func NewSprite(
@@ -85,7 +86,7 @@ func NewSprite(
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
-		Focusable: true,
+		focusable: true,
 		scale:     scale,
 	}
 
@@ -102,7 +103,7 @@ func NewSpriteFromSheet(
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
-		Focusable: true,
+		focusable: true,
 		scale:     scale,
 	}
 
@@ -126,11 +127,11 @@ func NewAnimatedSprite(
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
-		Focusable: true,
+		focusable: true,
 		scale:     scale,
 	}
 
-	s.AnimationRate = animationRate
+	s.animationRate = animationRate
 	s.animCounter = 0
 	s.loopCounter = 0
 
@@ -272,11 +273,11 @@ func (s *Sprite) ScreenRect(renderScale float64) *image.Rectangle {
 func (s *Sprite) Update(camPos *geom.Vector2) {
 	s.updateIllumination()
 
-	if s.AnimationRate <= 0 {
+	if s.animationRate <= 0 {
 		return
 	}
 
-	if s.animCounter >= s.AnimationRate {
+	if s.animCounter >= s.animationRate {
 		minTexNum := 0
 		maxTexNum := s.lenTex - 1
 

@@ -267,10 +267,8 @@ func (g *Game) loadMissionSprites() {
 		if len(missionMech.PatrolPath) > 0 {
 			mech.PatrolPath = missionMech.PatrolPath
 			mech.SetMechAnimation(render.ANIMATE_STRUT)
-			mech.AnimationRate = 3
 		} else {
 			mech.SetMechAnimation(render.ANIMATE_IDLE)
-			mech.AnimationRate = 7
 		}
 
 		g.sprites.addMechSprite(mech)

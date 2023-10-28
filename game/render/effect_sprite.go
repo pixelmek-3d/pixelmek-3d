@@ -25,7 +25,7 @@ func NewAnimatedEffect(
 	}
 
 	// effects cannot be focused upon by player reticle
-	e.Sprite.Focusable = false
+	e.Sprite.focusable = false
 
 	// effects self illuminate so they do not get dimmed in night conditions
 	e.illumination = 5000

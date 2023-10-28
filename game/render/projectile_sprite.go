@@ -41,7 +41,7 @@ func NewAnimatedProjectile(
 	}
 
 	// projectiles cannot be focused upon by player reticle
-	p.Focusable = false
+	p.focusable = false
 
 	// projectiles self illuminate so they do not get dimmed in night conditions
 	p.illumination = 5000

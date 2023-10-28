@@ -28,7 +28,7 @@ func NewNavSprite(
 	}
 
 	// nav points cannot be focused upon by player reticle
-	n.Focusable = false
+	n.focusable = false
 
 	// nav points self illuminate so they do not get dimmed in night conditions
 	n.illumination = 5000

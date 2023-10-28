@@ -662,8 +662,13 @@ func (g *Game) updateSprites() {
 				s := k.(*render.MechSprite)
 				sUnit := model.EntityUnit(s.Entity)
 				if s.IsDestroyed() {
-					// TODO: implement unit destruction animation
-					g.sprites.deleteMechSprite(s)
+					if s.GetMechAnimation() != render.ANIMATE_DESTRUCT {
+						// play unit destruction animation
+						s.SetMechAnimation(render.ANIMATE_DESTRUCT)
+					} else if s.LoopCounter() >= 1 {
+						// delete when animation is over
+						g.sprites.deleteMechSprite(s)
+					}
 				}
 
 				g.updateMechPosition(s)

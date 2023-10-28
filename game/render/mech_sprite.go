@@ -74,6 +74,25 @@ func (m *MechSprite) Clone(asUnit model.Unit) *MechSprite {
 func (s *MechSprite) SetMechAnimation(animateIndex MechAnimationIndex) {
 	s.animateIndex = animateIndex
 	s.ResetAnimation()
+
+	switch animateIndex {
+	case ANIMATE_IDLE:
+		s.animationRate = 7
+		s.maxLoops = 0
+	case ANIMATE_STRUT:
+		s.animationRate = 3
+		s.maxLoops = 0
+	case ANIMATE_DESTRUCT:
+		s.animationRate = 2
+		s.maxLoops = 1
+	default:
+		s.animationRate = 1
+		s.maxLoops = 0
+	}
+}
+
+func (s *MechSprite) GetMechAnimation() MechAnimationIndex {
+	return s.animateIndex
 }
 
 func (s *MechSprite) ResetAnimation() {
@@ -100,14 +119,18 @@ func (s *MechSprite) ResetStrideStomp() {
 func (s *MechSprite) Update(camPos *geom.Vector2) {
 	s.updateIllumination()
 
-	if s.AnimationRate <= 0 {
+	if s.animationRate <= 0 {
 		return
 	}
 	if s.animateIndex <= ANIMATE_STATIC {
 		s.texNum = 0
 		return
 	}
-	if s.animCounter >= s.AnimationRate {
+	if s.maxLoops > 0 && s.loopCounter >= s.maxLoops {
+		return
+	}
+	if s.animCounter >= s.animationRate {
+		// move to the next animation frame image
 		animRow := int(s.animateIndex)
 
 		minTexNum := animRow * s.mechAnimate.maxCols
@@ -129,6 +152,15 @@ func (s *MechSprite) Update(camPos *geom.Vector2) {
 			}
 		}
 
+		if s.maxLoops > 0 && s.loopCounter >= s.maxLoops {
+			// go back and stay on the last frame image for the animation
+			if s.animReversed {
+				s.texNum = minTexNum
+			} else {
+				s.texNum = maxTexNum
+			}
+		}
+
 		if s.animateIndex == ANIMATE_STRUT {
 			// use texture index for when the stomp audio occurs
 			if s.texNum == minTexNum || s.texNum == minTexNum+(maxTexNum-minTexNum)/2 {
@@ -136,6 +168,7 @@ func (s *MechSprite) Update(camPos *geom.Vector2) {
 			}
 		}
 	} else {
+		// stay on the current animation frame image
 		s.animCounter++
 	}
 }
