@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/harbdog/raycaster-go/geom"
 )
 
 type MechAnimationIndex int
@@ -13,7 +14,8 @@ const (
 	ANIMATE_IDLE   MechAnimationIndex = 0
 	ANIMATE_STRUT  MechAnimationIndex = 1
 	// TODO: ANIMATE_SHUTDOWN, ANIMATE_JUMP?
-	NUM_ANIMATIONS MechAnimationIndex = 2
+	ANIMATE_DESTRUCT MechAnimationIndex = 2
+	NUM_ANIMATIONS   MechAnimationIndex = 3
 )
 
 type MechSpriteAnimate struct {
@@ -72,6 +74,13 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 		maxCols = numColsAtRow[ANIMATE_STRUT]
 	}
 
+	// destruction animation: for now arms and torso drop towards the ground 40% of the pixel height
+	destructPxPerLimb := 0.4 * float64(uHeight)
+	numColsAtRow[ANIMATE_DESTRUCT] = 16
+	if numColsAtRow[ANIMATE_DESTRUCT] > maxCols {
+		maxCols = numColsAtRow[ANIMATE_DESTRUCT]
+	}
+
 	mechSheet := ebiten.NewImage(maxCols*uSize, maxRows*uSize)
 
 	m := &MechSpriteAnimate{
@@ -86,6 +95,9 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 
 	// draw strut animation
 	m.drawMechStrut(uSize, centerX, bottomY, strutPxPerArm, strutPxPerLeg, srcParts)
+
+	// draw destruction animation
+	m.drawMechDestruction(uSize, centerX, bottomY, destructPxPerLimb, srcParts)
 
 	return m
 }
@@ -102,26 +114,30 @@ func (m *MechSpriteAnimate) drawMechIdle(uSize int, adjustX, adjustY, pxPerLimb 
 	rl := parts[PART_RL]
 
 	// first frame of idle animation is static image
-	m.drawMechAnimationParts(row, col, 1, uSize, adjustX, adjustY, ct, 0, la, 0, ra, 0, ll, 0, rl, 0)
+	m.drawMechAnimationParts(row, col, 1, uSize, adjustX, adjustY, ct, 0, la, 0, 0, ra, 0, 0, ll, 0, 0, rl, 0, 0)
 	col++
 
 	// 2x arms up
-	m.drawMechAnimationParts(row, col, 2, uSize, adjustX, adjustY, ct, 0, la, -pxPerLimb, ra, -pxPerLimb, ll, 0, rl, 0)
+	m.drawMechAnimationParts(
+		row, col, 2, uSize, adjustX, adjustY, ct, 0, la, -pxPerLimb, 0, ra, -pxPerLimb, 0, ll, 0, 0, rl, 0, 0,
+	)
 	col += 2
 
 	// 2x arms down
-	m.drawMechAnimationParts(row, col, 2, uSize, adjustX, adjustY, ct, 0, la, pxPerLimb, ra, pxPerLimb, ll, 0, rl, 0)
+	m.drawMechAnimationParts(
+		row, col, 2, uSize, adjustX, adjustY, ct, 0, la, pxPerLimb, 0, ra, pxPerLimb, 0, ll, 0, 0, rl, 0, 0,
+	)
 	col += 2
 
 	// 2x arms down + 2x ct down
 	m.drawMechAnimationParts(
-		row, col, 2, uSize, adjustX, adjustY, ct, pxPerLimb, la, pxPerLimb, ra, pxPerLimb, ll, 0, rl, 0,
+		row, col, 2, uSize, adjustX, adjustY, ct, pxPerLimb, la, pxPerLimb, 0, ra, pxPerLimb, 0, ll, 0, 0, rl, 0, 0,
 	)
 	col += 2
 
 	// 1x arms and ct back up again
 	m.drawMechAnimationParts(
-		row, col, 1, uSize, adjustX, adjustY, ct, -pxPerLimb/2, la, -pxPerLimb/2, ra, -pxPerLimb/2, ll, 0, rl, 0,
+		row, col, 1, uSize, adjustX, adjustY, ct, -pxPerLimb/2, la, -pxPerLimb/2, 0, ra, -pxPerLimb/2, 0, ll, 0, 0, rl, 0, 0,
 	)
 }
 
@@ -141,25 +157,43 @@ func (m *MechSpriteAnimate) drawMechStrut(uSize int, adjustX, adjustY, pxPerArm,
 
 	// 4x rl/la up + ra down
 	m.drawMechAnimationParts(
-		row, col, 4, uSize, adjustX, adjustY, ct, -pxPerTorso, la, -pxPerArm, ra, pxPerArm, ll, 0, rl, -pxPerLeg,
+		row, col, 4, uSize, adjustX, adjustY, ct, -pxPerTorso, la, -pxPerArm, 0, ra, pxPerArm, 0, ll, 0, 0, rl, -pxPerLeg, 0,
 	)
 	col += 4
 
 	// 4x rl/la down + ra up
 	m.drawMechAnimationParts(
-		row, col, 4, uSize, adjustX, adjustY, ct, pxPerTorso, la, pxPerArm, ra, -pxPerArm, ll, 0, rl, pxPerLeg,
+		row, col, 4, uSize, adjustX, adjustY, ct, pxPerTorso, la, pxPerArm, 0, ra, -pxPerArm, 0, ll, 0, 0, rl, pxPerLeg, 0,
 	)
 	col += 4
 
 	// 4x ll/ra up + la down
 	m.drawMechAnimationParts(
-		row, col, 4, uSize, adjustX, adjustY, ct, -pxPerTorso, la, pxPerArm, ra, -pxPerArm, ll, -pxPerLeg, rl, 0,
+		row, col, 4, uSize, adjustX, adjustY, ct, -pxPerTorso, la, pxPerArm, 0, ra, -pxPerArm, 0, ll, -pxPerLeg, 0, rl, 0, 0,
 	)
 	col += 4
 
 	// 4x ll/ra down + la up
 	m.drawMechAnimationParts(
-		row, col, 4, uSize, adjustX, adjustY, ct, pxPerTorso, la, -pxPerArm, ra, pxPerArm, ll, pxPerLeg, rl, 0,
+		row, col, 4, uSize, adjustX, adjustY, ct, pxPerTorso, la, -pxPerArm, 0, ra, pxPerArm, 0, ll, pxPerLeg, 0, rl, 0, 0,
+	)
+}
+
+// drawMechDestruction draws onto the sheet the destruct animation in its assigned row in the sheet
+func (m *MechSpriteAnimate) drawMechDestruction(uSize int, adjustX, adjustY, pxPerLimb float64, parts []*mechAnimatePart) {
+	row, col := int(ANIMATE_DESTRUCT), 0
+
+	resetMechAnimationParts(parts)
+	ct := parts[PART_CT]
+	la := parts[PART_LA]
+	ra := parts[PART_RA]
+	ll := parts[PART_LL]
+	rl := parts[PART_RL]
+
+	// arms and ct drop all the way down with limb rotation for arms and legs falling off
+	rotPerLeft, rotPerRight := -geom.HalfPi, geom.HalfPi
+	m.drawMechAnimationParts(
+		row, col, 16, uSize, adjustX, adjustY, ct, pxPerLimb, la, pxPerLimb/2, rotPerLeft, ra, pxPerLimb/2, rotPerRight, ll, pxPerLimb/2, rotPerLeft, rl, pxPerLimb/2, rotPerRight,
 	)
 }
 
@@ -169,12 +203,12 @@ func resetMechAnimationParts(parts []*mechAnimatePart) {
 	}
 }
 
-// drawMechAnimationParts draws onto the sheet each mech part with total pixel travel over a number of given frames
-// starting at the given column within the given row in the sheet of frames
+// drawMechAnimationParts draws onto the sheet each mech part with total pixel travel and rotation (radians)
+// over a number of given frames starting at the given column within the given row in the sheet of frames
 func (m *MechSpriteAnimate) drawMechAnimationParts(
 	row, col, frames, uSize int, adjustX, adjustY float64, ct *mechAnimatePart, pxCT float64,
-	la *mechAnimatePart, pxLA float64, ra *mechAnimatePart, pxRA float64,
-	ll *mechAnimatePart, pxLL float64, rl *mechAnimatePart, pxRL float64,
+	la *mechAnimatePart, pxLA, rotLA float64, ra *mechAnimatePart, pxRA, rotRA float64,
+	ll *mechAnimatePart, pxLL, rotLL float64, rl *mechAnimatePart, pxRL, rotRL float64,
 ) {
 	offsetY := float64(row*uSize) + adjustY
 
@@ -185,6 +219,9 @@ func (m *MechSpriteAnimate) drawMechAnimationParts(
 	pxPerLL := ll.travelY
 	pxPerRL := rl.travelY
 
+	// rotPerCT not necessary, limb rotation only for destruct animation
+	var rotPerLA, rotPerRA, rotPerLL, rotPerRL float64
+
 	for c := col; c < col+frames; c++ {
 		offsetX := float64(c*uSize) + adjustX
 		pxPerCT += pxCT / float64(frames)
@@ -193,9 +230,17 @@ func (m *MechSpriteAnimate) drawMechAnimationParts(
 		pxPerLL += pxLL / float64(frames)
 		pxPerRL += pxRL / float64(frames)
 
+		rotPerLA += rotLA / float64(frames)
+		rotPerRA += rotRA / float64(frames)
+		rotPerLL += rotLL / float64(frames)
+		rotPerRL += rotRL / float64(frames)
+
 		m.drawMechAnimFrame(
-			offsetX, offsetY, ct.image, pxPerCT, la.image, pxPerLA,
-			ra.image, pxPerRA, ll.image, pxPerLL, rl.image, pxPerRL,
+			offsetX, offsetY, ct.image, pxPerCT,
+			la.image, pxPerLA, rotPerLA,
+			ra.image, pxPerRA, rotPerRA,
+			ll.image, pxPerLL, rotPerLL,
+			rl.image, pxPerRL, rotPerRL,
 		)
 	}
 
@@ -208,31 +253,53 @@ func (m *MechSpriteAnimate) drawMechAnimationParts(
 }
 
 // drawMechAnimFrame draws onto the sheet each mech part each with given offet for the frame (offX, offY),
-// and individual offsets specific for each part
+// and individual offsets and rotations specific for each part
 func (m *MechSpriteAnimate) drawMechAnimFrame(
-	offX, offY float64, ct *ebiten.Image, offCT float64, la *ebiten.Image, offLA float64,
-	ra *ebiten.Image, offRA float64, ll *ebiten.Image, offLL float64, rl *ebiten.Image, offRL float64,
+	offX, offY float64, ct *ebiten.Image, offCT float64,
+	la *ebiten.Image, offLA, rotLA float64,
+	ra *ebiten.Image, offRA, rotRA float64,
+	ll *ebiten.Image, offLL, rotLL float64,
+	rl *ebiten.Image, offRL, rotRL float64,
 ) {
-	offset := ebiten.GeoM{}
-	offset.Translate(offX, offY)
+	w, h := ct.Bounds().Dx(), ct.Bounds().Dy()
 
-	op_ct := &ebiten.DrawImageOptions{GeoM: offset}
-	op_ct.GeoM.Translate(0, offCT)
+	op_ct := &ebiten.DrawImageOptions{}
+	op_ct.GeoM.Translate(offX, offY+offCT)
 	m.sheet.DrawImage(ct, op_ct)
 
-	op_ll := &ebiten.DrawImageOptions{GeoM: offset}
-	op_ll.GeoM.Translate(0, offLL)
+	op_ll := &ebiten.DrawImageOptions{}
+	if rotLL != 0 {
+		op_ll.GeoM.Translate(-float64(w)/2, -float64(h/2))
+		op_ll.GeoM.Rotate(rotLL)
+		op_ll.GeoM.Translate(float64(w)/2, float64(h/2))
+	}
+	op_ll.GeoM.Translate(offX, offY+offLL)
 	m.sheet.DrawImage(ll, op_ll)
 
-	op_rl := &ebiten.DrawImageOptions{GeoM: offset}
-	op_rl.GeoM.Translate(0, offRL)
+	op_rl := &ebiten.DrawImageOptions{}
+	if rotRL != 0 {
+		op_rl.GeoM.Translate(-float64(w)/2, -float64(h/2))
+		op_rl.GeoM.Rotate(rotRL)
+		op_rl.GeoM.Translate(float64(w)/2, float64(h/2))
+	}
+	op_rl.GeoM.Translate(offX, offY+offRL)
 	m.sheet.DrawImage(rl, op_rl)
 
-	op_la := &ebiten.DrawImageOptions{GeoM: offset}
-	op_la.GeoM.Translate(0, offLA)
+	op_la := &ebiten.DrawImageOptions{}
+	if rotLA != 0 {
+		op_la.GeoM.Translate(-float64(w)/2, -float64(h/2))
+		op_la.GeoM.Rotate(rotLA)
+		op_la.GeoM.Translate(float64(w)/2, float64(h/2))
+	}
+	op_la.GeoM.Translate(offX, offY+offLA)
 	m.sheet.DrawImage(la, op_la)
 
-	op_ra := &ebiten.DrawImageOptions{GeoM: offset}
-	op_ra.GeoM.Translate(0, offRA)
+	op_ra := &ebiten.DrawImageOptions{}
+	if rotRA != 0 {
+		op_ra.GeoM.Translate(-float64(w)/2, -float64(h/2))
+		op_ra.GeoM.Rotate(rotRA)
+		op_ra.GeoM.Translate(float64(w)/2, float64(h/2))
+	}
+	op_ra.GeoM.Translate(offX, offY+offRA)
 	m.sheet.DrawImage(ra, op_ra)
 }
