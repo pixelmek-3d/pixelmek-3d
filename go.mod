@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/adrianbrad/queue v1.2.1
-	github.com/ebitenui/ebitenui v0.5.4
+	github.com/ebitenui/ebitenui v0.5.5
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/hajimehoshi/ebiten/v2 v2.5.9
 	github.com/harbdog/raycaster-go v1.9.0
@@ -17,6 +17,8 @@ require (
 	golang.org/x/image v0.10.0
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+require golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
@@ -48,9 +50,9 @@ require (
 	github.com/tanema/gween v0.0.0-20220318192052-2db1c2d931bd // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	golang.org/x/mobile v0.0.0-20230427221453-e8d11dd0ba41 // indirect
-	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/mobile v0.0.0-20230531173138-3c911d8e3eda // indirect
+	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )

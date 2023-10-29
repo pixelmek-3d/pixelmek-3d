@@ -207,7 +207,7 @@ func missionMenuSelectionContainer(m *MissionMenu) widget.PreferredSizeLocateabl
 		widget.ListOpts.EntryFontFace(res.list.face),
 		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
 		widget.ListOpts.HideHorizontalSlider(),
-
+		widget.ListOpts.EntryTextPosition(widget.TextPositionStart, widget.TextPositionCenter),
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			nextPage := args.Entry.(*missionMenuPage)
 			pageContainer.setPage(nextPage)
