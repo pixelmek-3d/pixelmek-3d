@@ -392,8 +392,11 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				}
 
 				effect := p.SpawnEffect(newPos.X, newPos.Y, newPosZ, p.Heading(), p.Pitch())
-
 				g.sprites.addEffect(effect)
+
+				// TESTING FX!
+				fx := g.smokeEffect(newPos.X, newPos.Y, newPosZ, p.Heading(), p.Pitch())
+				g.sprites.addEffect(fx)
 			}
 
 			// play impact effect audio

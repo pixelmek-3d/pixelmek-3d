@@ -228,6 +228,9 @@ func (g *Game) loadContent() {
 	// load non-static mission sprites
 	g.loadMissionSprites()
 
+	// load special effects
+	g.loadSpecialEffects()
+
 	// load HUD display elements
 	g.loadHUD()
 }

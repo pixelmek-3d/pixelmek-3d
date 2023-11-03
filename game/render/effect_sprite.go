@@ -2,6 +2,8 @@ package render
 
 import (
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -46,4 +48,19 @@ func (e *EffectSprite) Clone() *EffectSprite {
 	fClone.Sprite.Entity = eClone
 
 	return fClone
+}
+
+func (e *EffectSprite) Update(camPos *geom.Vector2) {
+	e.Sprite.Update(camPos)
+
+	if e.Velocity() != 0 {
+		ePos := e.Pos()
+		trajectory := geom3d.Line3dFromAngle(ePos.X, ePos.Y, e.PosZ(), e.Heading(), e.Pitch(), e.Velocity())
+		e.SetPos(&geom.Vector2{X: trajectory.X2, Y: trajectory.Y2})
+		e.SetPosZ(trajectory.Z2)
+	}
+
+	if e.VelocityZ() != 0 {
+		e.SetPosZ(e.PosZ() + e.VelocityZ())
+	}
 }
