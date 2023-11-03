@@ -47,4 +47,24 @@ func init() {
 			AnimationRate: 5,
 		},
 	}
+
+	Smokes["01.5"] = &model.ModelEffectResource{
+		Scale: 0.5,
+		Image: "smoke_01.5.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       8,
+			Rows:          4,
+			AnimationRate: 5,
+		},
+	}
+
+	Smokes["01.75"] = &model.ModelEffectResource{
+		Scale: 0.5,
+		Image: "smoke_01.75.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       8,
+			Rows:          4,
+			AnimationRate: 5,
+		},
+	}
 }
