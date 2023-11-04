@@ -7,6 +7,8 @@ import (
 var (
 	Explosions map[string]*model.ModelEffectResource
 	Smokes     map[string]*model.ModelEffectResource
+	_exploKeys []string
+	_smokeKeys []string
 )
 
 func init() {
@@ -18,8 +20,41 @@ func init() {
 		Scale: 0.25,
 		Image: "explosion_01.png",
 		ImageSheet: &model.ModelResourceImageSheet{
-			Columns:       8,
-			Rows:          3,
+			Columns:       6,
+			Rows:          4,
+			AnimationRate: 4,
+		},
+	}
+
+	Explosions["02"] = &model.ModelEffectResource{
+		Audio: "explosion.ogg",
+		Scale: 0.25,
+		Image: "explosion_02.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       6,
+			Rows:          4,
+			AnimationRate: 4,
+		},
+	}
+
+	Explosions["03"] = &model.ModelEffectResource{
+		Audio: "explosion.ogg",
+		Scale: 0.25,
+		Image: "explosion_03.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       6,
+			Rows:          4,
+			AnimationRate: 4,
+		},
+	}
+
+	Explosions["04"] = &model.ModelEffectResource{
+		Audio: "explosion.ogg",
+		Scale: 0.25,
+		Image: "explosion_04.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       6,
+			Rows:          4,
 			AnimationRate: 4,
 		},
 	}
@@ -29,8 +64,41 @@ func init() {
 		Scale: 0.35,
 		Image: "explosion_07.png",
 		ImageSheet: &model.ModelResourceImageSheet{
-			Columns:       13,
-			Rows:          2,
+			Columns:       8,
+			Rows:          4,
+			AnimationRate: 4,
+		},
+	}
+
+	Explosions["09"] = &model.ModelEffectResource{
+		Audio: "explosion.ogg",
+		Scale: 0.35,
+		Image: "explosion_07.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       8,
+			Rows:          4,
+			AnimationRate: 4,
+		},
+	}
+
+	Explosions["10"] = &model.ModelEffectResource{
+		Audio: "explosion.ogg",
+		Scale: 0.35,
+		Image: "explosion_10.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       8,
+			Rows:          4,
+			AnimationRate: 4,
+		},
+	}
+
+	Explosions["11"] = &model.ModelEffectResource{
+		Audio: "explosion.ogg",
+		Scale: 0.25,
+		Image: "explosion_11.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       6,
+			Rows:          4,
 			AnimationRate: 4,
 		},
 	}
@@ -67,4 +135,22 @@ func init() {
 			AnimationRate: 5,
 		},
 	}
+
+	// generate list of keys so rand function can be used
+	_exploKeys = make([]string, 0, len(Explosions))
+	_smokeKeys = make([]string, 0, len(Smokes))
+	for key := range Explosions {
+		_exploKeys = append(_exploKeys, key)
+	}
+	for key := range Smokes {
+		_smokeKeys = append(_smokeKeys, key)
+	}
+}
+
+func RandExplosionKey() string {
+	return _exploKeys[model.Randish.Intn(len(_exploKeys))]
+}
+
+func RandSmokeKey() string {
+	return _smokeKeys[model.Randish.Intn(len(_smokeKeys))]
 }

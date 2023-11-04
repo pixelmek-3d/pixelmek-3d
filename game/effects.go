@@ -86,8 +86,9 @@ func (g *Game) spawnMechDestructEffects(s *render.MechSprite) {
 }
 
 func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
-	// TODO: return random explosion
-	e := explosionEffects["07"].Clone()
+	// return random explosion effect
+	randKey := effects.RandExplosionKey()
+	e := explosionEffects[randKey].Clone()
 	e.SetPos(&geom.Vector2{X: x, Y: y})
 	e.SetPosZ(z)
 
@@ -96,8 +97,9 @@ func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.Effect
 }
 
 func (g *Game) randSmokeEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
-	// TODO: return random smoke
-	e := smokeEffects["01.5"].Clone()
+	// return random smoke effect
+	randKey := effects.RandSmokeKey()
+	e := smokeEffects[randKey].Clone()
 	e.SetPos(&geom.Vector2{X: x, Y: y})
 	e.SetPosZ(z)
 
