@@ -35,7 +35,7 @@ projectile:
       270: 2
       330: 1
   impactEffect:
-    audio: explosion.ogg
+    audio: explode.ogg
     scale: 0.4
     image: autocannon_large_impact.png
     imageSheet:

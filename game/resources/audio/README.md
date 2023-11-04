@@ -41,8 +41,11 @@
 
 ## ./sfx/impacts
 
-- `explosion`: "klankbeeld"
+- `explode`: "klankbeeld"
   - http://www.freesound.org/people/klankbeeld/sounds/344686/
+
+- `explosion-*`: "derplayer"
+  - https://freesound.org/people/derplayer/
 
 - `fire`: "Vosvoy"
   - http://www.freesound.org/people/Vosvoy/sounds/123632/

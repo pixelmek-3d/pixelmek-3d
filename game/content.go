@@ -516,18 +516,12 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				eResource := weaponResource.Projectile.ImpactEffect
 				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
 				effectImg := getSpriteFromFile(effectRelPath)
-				eColumns, eRows, eAnimationRate := 1, 1, 1
-				if eResource.ImageSheet != nil {
-					eColumns = eResource.ImageSheet.Columns
-					eRows = eResource.ImageSheet.Rows
-					eAnimationRate = eResource.ImageSheet.AnimationRate
-				}
 
 				projectileImpactAudioFiles := make([]string, 1)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
-				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+				eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
 					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
@@ -586,18 +580,12 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				eResource := weaponResource.Projectile.ImpactEffect
 				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
 				effectImg := getSpriteFromFile(effectRelPath)
-				eColumns, eRows, eAnimationRate := 1, 1, 1
-				if eResource.ImageSheet != nil {
-					eColumns = eResource.ImageSheet.Columns
-					eRows = eResource.ImageSheet.Rows
-					eAnimationRate = eResource.ImageSheet.AnimationRate
-				}
 
 				projectileImpactAudioFiles := make([]string, 1)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
-				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+				eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
 					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
@@ -648,18 +636,12 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				eResource := weaponResource.Projectile.ImpactEffect
 				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
 				effectImg := getSpriteFromFile(effectRelPath)
-				eColumns, eRows, eAnimationRate := 1, 1, 1
-				if eResource.ImageSheet != nil {
-					eColumns = eResource.ImageSheet.Columns
-					eRows = eResource.ImageSheet.Rows
-					eAnimationRate = eResource.ImageSheet.AnimationRate
-				}
 
 				projectileImpactAudioFiles := make([]string, 1)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
-				eSpriteTemplate := render.NewAnimatedEffect(eResource.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+				eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
 				pSpriteTemplate := render.NewAnimatedProjectile(
 					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)

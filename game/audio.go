@@ -514,6 +514,15 @@ func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSp
 	}
 }
 
+// PlayEffectAudio plays effect audio near the player
+func (a *AudioHandler) PlayEffectAudio(g *Game, p *render.EffectSprite) {
+	fxAudio := p.AudioFile
+	if len(fxAudio) > 0 {
+		extPos, extPosZ := p.Pos(), p.PosZ()
+		a.PlayExternalAudio(g, fxAudio, extPos.X, extPos.Y, extPosZ, 10, 0.7)
+	}
+}
+
 // PlayExternalAudio plays audio that may be near the player taking into account distance/direction for volume/panning
 // intensityDist - distance of 100% sound intensity before volume begins to dropoff at a rate of 1/d^2
 // maxVolume - the maximum volume percent to be perceived by the player

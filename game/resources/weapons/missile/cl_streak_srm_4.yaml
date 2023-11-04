@@ -35,7 +35,7 @@ projectile:
       180: 2
       270: 3
   impactEffect:
-    audio: explosion.ogg
+    audio: explode.ogg
     scale: 0.15
     image: missile_impact.png
     imageSheet:

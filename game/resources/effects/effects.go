@@ -16,7 +16,7 @@ func init() {
 	Explosions = make(map[string]*model.ModelEffectResource)
 
 	Explosions["01"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-1.ogg",
 		Scale: 0.25,
 		Image: "explosion_01.png",
 		ImageSheet: &model.ModelResourceImageSheet{
@@ -27,7 +27,7 @@ func init() {
 	}
 
 	Explosions["02"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-0.ogg",
 		Scale: 0.25,
 		Image: "explosion_02.png",
 		ImageSheet: &model.ModelResourceImageSheet{
@@ -38,7 +38,7 @@ func init() {
 	}
 
 	Explosions["03"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-0.ogg",
 		Scale: 0.25,
 		Image: "explosion_03.png",
 		ImageSheet: &model.ModelResourceImageSheet{
@@ -49,7 +49,7 @@ func init() {
 	}
 
 	Explosions["04"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-0.ogg",
 		Scale: 0.25,
 		Image: "explosion_04.png",
 		ImageSheet: &model.ModelResourceImageSheet{
@@ -60,40 +60,40 @@ func init() {
 	}
 
 	Explosions["07"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-4.ogg",
 		Scale: 0.35,
 		Image: "explosion_07.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
-			AnimationRate: 4,
+			AnimationRate: 3,
 		},
 	}
 
 	Explosions["09"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-3.ogg",
 		Scale: 0.35,
 		Image: "explosion_07.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
-			AnimationRate: 4,
+			AnimationRate: 3,
 		},
 	}
 
 	Explosions["10"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-3.ogg",
 		Scale: 0.35,
 		Image: "explosion_10.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
-			AnimationRate: 4,
+			AnimationRate: 3,
 		},
 	}
 
 	Explosions["11"] = &model.ModelEffectResource{
-		Audio: "explosion.ogg",
+		Audio: "explosion-2.ogg",
 		Scale: 0.25,
 		Image: "explosion_11.png",
 		ImageSheet: &model.ModelResourceImageSheet{

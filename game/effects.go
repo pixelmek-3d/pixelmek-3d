@@ -25,16 +25,10 @@ func (g *Game) loadSpecialEffects() {
 			continue
 		}
 		// load the explosion effect sprite template
-		// TODO: load sound effect audio
 		effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, fx.Image)
 		effectImg := getSpriteFromFile(effectRelPath)
-		eColumns, eRows, eAnimationRate := 1, 1, 1
-		if fx.ImageSheet != nil {
-			eColumns = fx.ImageSheet.Columns
-			eRows = fx.ImageSheet.Rows
-			eAnimationRate = fx.ImageSheet.AnimationRate
-		}
-		eSpriteTemplate := render.NewAnimatedEffect(fx.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+
+		eSpriteTemplate := render.NewAnimatedEffect(fx, effectImg, 1)
 		explosionEffects[key] = eSpriteTemplate
 	}
 
@@ -45,13 +39,8 @@ func (g *Game) loadSpecialEffects() {
 		// load the smoke effect sprite template
 		effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, fx.Image)
 		effectImg := getSpriteFromFile(effectRelPath)
-		eColumns, eRows, eAnimationRate := 1, 1, 1
-		if fx.ImageSheet != nil {
-			eColumns = fx.ImageSheet.Columns
-			eRows = fx.ImageSheet.Rows
-			eAnimationRate = fx.ImageSheet.AnimationRate
-		}
-		eSpriteTemplate := render.NewAnimatedEffect(fx.Scale, effectImg, eColumns, eRows, eAnimationRate, 1)
+
+		eSpriteTemplate := render.NewAnimatedEffect(fx, effectImg, 1)
 		smokeEffects[key] = eSpriteTemplate
 	}
 }
@@ -72,6 +61,9 @@ func (g *Game) spawnMechDestructEffects(s *render.MechSprite) {
 		numFx = 2
 	}
 
+	// only play one explosion audio track at a time
+	playedOneAudio := false
+
 	for i := 0; i < numFx; i++ {
 		xFx := x + randFloat(-r, r)
 		yFx := y + randFloat(-r, r)
@@ -82,6 +74,11 @@ func (g *Game) spawnMechDestructEffects(s *render.MechSprite) {
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(smokeFx)
+
+		if !playedOneAudio {
+			g.audio.PlayEffectAudio(g, explosionFx)
+			playedOneAudio = true
+		}
 	}
 }
 
