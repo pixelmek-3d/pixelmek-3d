@@ -75,6 +75,7 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 	}
 
 	// destruction animation: for now arms and torso drop towards the ground 40% of the pixel height
+	// TODO: make bigger mechs having longer destruction animate (more frames)
 	destructPxPerLimb := 0.4 * float64(uHeight)
 	numColsAtRow[ANIMATE_DESTRUCT] = 16
 	if numColsAtRow[ANIMATE_DESTRUCT] > maxCols {

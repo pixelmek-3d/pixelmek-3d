@@ -52,6 +52,13 @@ func NewMechSprite(
 	return s
 }
 
+func (m *MechSprite) Mech() *model.Mech {
+	if m.Entity == nil {
+		return nil
+	}
+	return m.Entity.(*model.Mech)
+}
+
 func (m *MechSprite) Clone(asUnit model.Unit) *MechSprite {
 	mClone := &MechSprite{}
 	sClone := &Sprite{}

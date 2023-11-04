@@ -51,8 +51,6 @@ func (e *EffectSprite) Clone() *EffectSprite {
 }
 
 func (e *EffectSprite) Update(camPos *geom.Vector2) {
-	e.Sprite.Update(camPos)
-
 	if e.Velocity() != 0 {
 		ePos := e.Pos()
 		trajectory := geom3d.Line3dFromAngle(ePos.X, ePos.Y, e.PosZ(), e.Heading(), e.Pitch(), e.Velocity())
@@ -63,4 +61,6 @@ func (e *EffectSprite) Update(camPos *geom.Vector2) {
 	if e.VelocityZ() != 0 {
 		e.SetPosZ(e.PosZ() + e.VelocityZ())
 	}
+
+	e.Sprite.Update(camPos)
 }

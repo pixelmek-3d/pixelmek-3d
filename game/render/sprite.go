@@ -241,6 +241,10 @@ func (s *Sprite) SetTextureFrame(texNum int) {
 	s.texNum = texNum
 }
 
+func (s *Sprite) AnimationFrameCounter() int {
+	return s.animCounter
+}
+
 func (s *Sprite) NumAnimationFrames() int {
 	return s.lenTex
 }

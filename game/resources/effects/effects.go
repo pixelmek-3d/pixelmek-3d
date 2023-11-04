@@ -15,7 +15,7 @@ func init() {
 
 	Explosions["01"] = &model.ModelEffectResource{
 		Audio: "explosion.ogg",
-		Scale: 1.0,
+		Scale: 0.25,
 		Image: "explosion_01.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
@@ -26,7 +26,7 @@ func init() {
 
 	Explosions["07"] = &model.ModelEffectResource{
 		Audio: "explosion.ogg",
-		Scale: 0.5,
+		Scale: 0.35,
 		Image: "explosion_07.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       13,
@@ -39,7 +39,7 @@ func init() {
 	Smokes = make(map[string]*model.ModelEffectResource)
 
 	Smokes["01"] = &model.ModelEffectResource{
-		Scale: 0.5,
+		Scale: 0.25,
 		Image: "smoke_01.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
@@ -49,7 +49,7 @@ func init() {
 	}
 
 	Smokes["01.5"] = &model.ModelEffectResource{
-		Scale: 0.5,
+		Scale: 0.25,
 		Image: "smoke_01.5.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,

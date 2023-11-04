@@ -653,6 +653,7 @@ func (g *Game) updateSprites() {
 				if s.IsDestroyed() {
 					// TODO: implement sprite destruction animation
 					g.sprites.deleteMapSprite(s)
+					break
 				}
 
 				g.updateSpritePosition(s)
@@ -668,7 +669,12 @@ func (g *Game) updateSprites() {
 					} else if s.LoopCounter() >= 1 {
 						// delete when animation is over
 						g.sprites.deleteMechSprite(s)
+					} else {
+						s.Update(g.player.Pos())
 					}
+
+					g.spawnMechDestructEffects(s)
+					break
 				}
 
 				g.updateMechPosition(s)
@@ -689,6 +695,7 @@ func (g *Game) updateSprites() {
 				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteVehicleSprite(s)
+					break
 				}
 
 				g.updateVehiclePosition(s)
@@ -700,6 +707,7 @@ func (g *Game) updateSprites() {
 				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteVTOLSprite(s)
+					break
 				}
 
 				g.updateVTOLPosition(s)
@@ -711,6 +719,7 @@ func (g *Game) updateSprites() {
 				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteInfantrySprite(s)
+					break
 				}
 
 				g.updateInfantryPosition(s)
@@ -722,6 +731,7 @@ func (g *Game) updateSprites() {
 				if s.IsDestroyed() {
 					// TODO: implement unit destruction animation
 					g.sprites.deleteEmplacementSprite(s)
+					break
 				}
 
 				g.updateEmplacementPosition(s)
@@ -971,7 +981,7 @@ func (g *Game) randomUnit(unitResourceType string) model.Unit {
 }
 
 func randFloat(min, max float64) float64 {
-	return min + model.Randish.Float64()*(max-min)
+	return model.RandFloat64In(min, max)
 }
 
 func exit(rc int) {

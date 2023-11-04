@@ -56,21 +56,52 @@ func (g *Game) loadSpecialEffects() {
 	}
 }
 
-func (g *Game) explosionEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+func (g *Game) spawnMechDestructEffects(s *render.MechSprite) {
+	if s.AnimationFrameCounter() != 0 {
+		// do not spawn effects every tick
+		return
+	}
+
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
+
+	// use size of mech to determine number of effects to randomly spawn each time
+	m := s.Mech()
+	numFx := 1
+	if m.Class() >= model.MECH_HEAVY {
+		numFx = 2
+	}
+
+	for i := 0; i < numFx; i++ {
+		xFx := x + randFloat(-r, r)
+		yFx := y + randFloat(-r, r)
+		zFx := z + randFloat(h/4, h)
+
+		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(explosionFx)
+
+		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(smokeFx)
+	}
+}
+
+func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
 	// TODO: return random explosion
-	e := explosionEffects["01"].Clone()
+	e := explosionEffects["07"].Clone()
 	e.SetPos(&geom.Vector2{X: x, Y: y})
 	e.SetPosZ(z)
+
+	// TODO: give small negative Z velocity so it falls with the unit being destroyed
 	return e
 }
 
-func (g *Game) smokeEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+func (g *Game) randSmokeEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
 	// TODO: return random smoke
-	e := smokeEffects["01"].Clone()
+	e := smokeEffects["01.5"].Clone()
 	e.SetPos(&geom.Vector2{X: x, Y: y})
 	e.SetPosZ(z)
 
-	// TODO: give Z velocity so it rises
+	// give Z velocity so it rises
 	e.SetVelocityZ(0.003) // TODO: define velocity of rise in resource model
 
 	// TODO: give some small angle/pitch so it won't rise perfectly vertically (fake wind)
