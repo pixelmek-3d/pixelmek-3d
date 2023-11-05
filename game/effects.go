@@ -100,7 +100,7 @@ func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
-	numFx := 7
+	numFx := 7 // TODO: alter number of effects based on sprite dimensions
 	for i := 0; i < numFx; i++ {
 		xFx := x + randFloat(-r/2, r/2)
 		yFx := y + randFloat(-r/2, r/2)

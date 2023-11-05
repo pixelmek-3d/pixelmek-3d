@@ -664,7 +664,6 @@ func (g *Game) updateSprites() {
 						s.Update(g.player.Pos())
 						s.SetDestroyCounter(destroyCounter - 1)
 					}
-
 					break
 				}
 
@@ -684,7 +683,6 @@ func (g *Game) updateSprites() {
 					} else {
 						s.Update(g.player.Pos())
 					}
-
 					g.spawnMechDestroyEffects(s)
 					break
 				}
@@ -705,8 +703,19 @@ func (g *Game) updateSprites() {
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
 				if s.IsDestroyed() {
-					// TODO: implement unit destruction animation
-					g.sprites.deleteVehicleSprite(s)
+					// TODO: Vehicle unique destroy effect
+					destroyCounter := s.DestroyCounter()
+					if destroyCounter == 0 {
+						// start the destruction process but do not remove yet
+						g.spawnGenericDestroyEffects(s.Sprite)
+						s.SetDestroyCounter(100)
+					} else if destroyCounter == 1 {
+						// delete when the counter is basically done (to differentiate with default int value 0)
+						g.sprites.deleteVehicleSprite(s)
+					} else {
+						s.Update(g.player.Pos())
+						s.SetDestroyCounter(destroyCounter - 1)
+					}
 					break
 				}
 
@@ -717,8 +726,19 @@ func (g *Game) updateSprites() {
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
 				if s.IsDestroyed() {
-					// TODO: implement unit destruction animation
-					g.sprites.deleteVTOLSprite(s)
+					// TODO: VTOL unique destroy effect
+					destroyCounter := s.DestroyCounter()
+					if destroyCounter == 0 {
+						// start the destruction process but do not remove yet
+						g.spawnGenericDestroyEffects(s.Sprite)
+						s.SetDestroyCounter(100)
+					} else if destroyCounter == 1 {
+						// delete when the counter is basically done (to differentiate with default int value 0)
+						g.sprites.deleteVTOLSprite(s)
+					} else {
+						s.Update(g.player.Pos())
+						s.SetDestroyCounter(destroyCounter - 1)
+					}
 					break
 				}
 
@@ -729,8 +749,19 @@ func (g *Game) updateSprites() {
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
 				if s.IsDestroyed() {
-					// TODO: implement unit destruction animation
-					g.sprites.deleteInfantrySprite(s)
+					// TODO: Infantry unique destroy effect
+					destroyCounter := s.DestroyCounter()
+					if destroyCounter == 0 {
+						// start the destruction process but do not remove yet
+						g.spawnGenericDestroyEffects(s.Sprite)
+						s.SetDestroyCounter(100)
+					} else if destroyCounter == 1 {
+						// delete when the counter is basically done (to differentiate with default int value 0)
+						g.sprites.deleteInfantrySprite(s)
+					} else {
+						s.Update(g.player.Pos())
+						s.SetDestroyCounter(destroyCounter - 1)
+					}
 					break
 				}
 
@@ -741,8 +772,19 @@ func (g *Game) updateSprites() {
 			case EmplacementSpriteType:
 				s := k.(*render.EmplacementSprite)
 				if s.IsDestroyed() {
-					// TODO: implement unit destruction animation
-					g.sprites.deleteEmplacementSprite(s)
+					// TODO: Emplacement unique destroy effect
+					destroyCounter := s.DestroyCounter()
+					if destroyCounter == 0 {
+						// start the destruction process but do not remove yet
+						g.spawnGenericDestroyEffects(s.Sprite)
+						s.SetDestroyCounter(100)
+					} else if destroyCounter == 1 {
+						// delete when the counter is basically done (to differentiate with default int value 0)
+						g.sprites.deleteEmplacementSprite(s)
+					} else {
+						s.Update(g.player.Pos())
+						s.SetDestroyCounter(destroyCounter - 1)
+					}
 					break
 				}
 
