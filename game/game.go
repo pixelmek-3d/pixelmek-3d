@@ -707,7 +707,7 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						fxDuration := g.spawnGenericDestroyEffects(s)
+						fxDuration := g.spawnGenericDestroyEffects(s.Sprite)
 						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
@@ -730,7 +730,7 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						fxDuration := g.spawnGenericDestroyEffects(s)
+						fxDuration := g.spawnGenericDestroyEffects(s.Sprite)
 						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
@@ -753,7 +753,7 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						fxDuration := g.spawnGenericDestroyEffects(s)
+						fxDuration := g.spawnGenericDestroyEffects(s.Sprite)
 						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
@@ -776,7 +776,7 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						fxDuration := g.spawnGenericDestroyEffects(s)
+						fxDuration := g.spawnGenericDestroyEffects(s.Sprite)
 						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
