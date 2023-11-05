@@ -147,9 +147,9 @@ func (g *Game) spawnVehicleDestroyEffects(s *render.VehicleSprite) (duration int
 
 	numFx := 5 // TODO: alter number of effects based on sprite dimensions
 	for i := 0; i < numFx; i++ {
-		xFx := x + randFloat(-r/2, r/2)
-		yFx := y + randFloat(-r/2, r/2)
-		zFx := z + randFloat(h/8, h)
+		xFx := x + randFloat(-r, r)
+		yFx := y + randFloat(-r, r)
+		zFx := z + randFloat(0, h)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(explosionFx)
@@ -167,6 +167,55 @@ func (g *Game) spawnVehicleDestroyEffects(s *render.VehicleSprite) (duration int
 			duration = fxDuration
 		}
 	}
+	return
+}
+
+func (g *Game) spawnEmplacementDestroyEffects(s *render.EmplacementSprite) (duration int) {
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
+
+	numFx := 5 // TODO: alter number of effects based on sprite dimensions
+	for i := 0; i < numFx; i++ {
+		xFx := x + randFloat(-r/2, r/2)
+		yFx := y + randFloat(-r/2, r/2)
+		zFx := z + randFloat(h/12, h)
+
+		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(explosionFx)
+
+		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(smokeFx)
+
+		if i == 0 || i == numFx/2 {
+			// only play two audio tracks for now since they are played at once
+			g.audio.PlayEffectAudio(g, explosionFx)
+		}
+
+		fxDuration := explosionFx.AnimationDuration()
+		if fxDuration > duration {
+			duration = fxDuration
+		}
+	}
+
+	numFireFx := 5
+	for i := 0; i < numFireFx; i++ {
+		// for emplacements, also add some random fires
+		xFx := x + randFloat(-r/2, r/2)
+		yFx := y + randFloat(-r/2, r/2)
+		zFx := z + randFloat(h/8, h)
+
+		fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(fireFx)
+
+		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(smokeFx)
+
+		fxDuration := fireFx.AnimationDuration()
+		if fxDuration > duration {
+			duration = fxDuration
+		}
+	}
+
 	return
 }
 
