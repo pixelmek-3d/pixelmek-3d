@@ -518,7 +518,6 @@ func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 		// apply damage to the first sprite entity that was hit
 		collisionEntity := collisions[0]
 
-		//fmt.Printf("collided with entity at %v (z: %v)\n", collisionEntity.entity.Pos(), collisionEntity.entity.PosZ())
 		collisionDamage := 0.1 // TODO: determine collision damage based on player mech and speed
 		collisionEntity.entity.ApplyDamage(collisionDamage)
 		if g.debug {
@@ -654,9 +653,9 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						// TODO: when tree is destroyed by collision instead of projectile, smoke only but no fire
-						fxDuration := g.spawnGenericDestroyEffects(s)
-						s.SetDestroyCounter(fxDuration)
+						// TODO: when tree is destroyed by projectile, add fire effect (energy and missile only)
+						fxDuration := g.spawnGenericDestroyEffects(s, false)
+						s.SetDestroyCounter(geom.ClampInt(fxDuration, 1, fxDuration))
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
 						g.sprites.deleteMapSprite(s)
@@ -774,7 +773,7 @@ func (g *Game) updateSprites() {
 				s := k.(*render.InfantrySprite)
 				if s.IsDestroyed() {
 					// infantry are destroyed immediately
-					// TODO: if an infantry unit has death animation
+					// TODO: if an infantry unit has death animation prior to deletion
 					g.spawnInfantryDestroyEffects(s)
 					g.sprites.deleteInfantrySprite(s)
 					break
@@ -787,7 +786,6 @@ func (g *Game) updateSprites() {
 			case EmplacementSpriteType:
 				s := k.(*render.EmplacementSprite)
 				if s.IsDestroyed() {
-					// TODO: Emplacement unique destroy effect
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet

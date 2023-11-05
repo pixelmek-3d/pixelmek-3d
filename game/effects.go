@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
@@ -53,26 +54,36 @@ func (g *Game) _loadEffectSpritesFromResourceList(
 	}
 }
 
-func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) (duration int) {
+func (g *Game) spawnGenericDestroyEffects(s *render.Sprite, spawnFires bool) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
 	numFx := 7 // TODO: alter number of effects based on sprite dimensions
+	if !spawnFires {
+		numFx = int(math.Ceil(float64(numFx) * 1.25))
+	}
 	for i := 0; i < numFx; i++ {
 		xFx := x + randFloat(-r/2, r/2)
 		yFx := y + randFloat(-r/2, r/2)
 		zFx := z + randFloat(h/8, h)
 
-		fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(fireFx)
+		if spawnFires {
+			fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
+			g.sprites.addEffect(fireFx)
+
+			fxDuration := fireFx.AnimationDuration()
+			if fxDuration > duration {
+				duration = fxDuration
+			}
+		}
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(smokeFx)
-
-		fxDuration := fireFx.AnimationDuration()
-		if fxDuration > duration {
-			duration = fxDuration
+		if !spawnFires {
+			// when not spawning fires, no duration implied
+			duration = 0
 		}
+
 	}
 	return
 }
