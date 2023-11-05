@@ -651,8 +651,20 @@ func (g *Game) updateSprites() {
 			case MapSpriteType:
 				s := k.(*render.Sprite)
 				if s.IsDestroyed() {
-					// TODO: implement sprite destruction animation
-					g.sprites.deleteMapSprite(s)
+					destroyCounter := s.DestroyCounter()
+					if destroyCounter == 0 {
+						// start the destruction process but do not remove yet
+						// TODO: when tree is destroyed by collision instead of projectile, smoke only but no fire
+						g.spawnGenericDestroyEffects(s)
+						s.SetDestroyCounter(100)
+					} else if destroyCounter == 1 {
+						// delete when the counter is basically done (to differentiate with default int value 0)
+						g.sprites.deleteMapSprite(s)
+					} else {
+						s.Update(g.player.Pos())
+						s.SetDestroyCounter(destroyCounter - 1)
+					}
+
 					break
 				}
 
@@ -673,7 +685,7 @@ func (g *Game) updateSprites() {
 						s.Update(g.player.Pos())
 					}
 
-					g.spawnMechDestructEffects(s)
+					g.spawnMechDestroyEffects(s)
 					break
 				}
 

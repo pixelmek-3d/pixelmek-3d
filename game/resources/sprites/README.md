@@ -5,6 +5,9 @@
 - `explosion_*`, `smoke_*`: "chabull"
   - https://opengameart.org/content/explosions-0
 
+- `fire_*`: "Retimer"
+  - https://opengameart.org/content/wgstudio-fire-animation-loop
+
 - `autocannon_*_impact`: "JoesAlotofthings"
   - https://opengameart.org/content/alotofimpacts-15-frame-impacts-wsmoke-3-variations
 

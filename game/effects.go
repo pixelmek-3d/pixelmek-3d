@@ -11,11 +11,13 @@ import (
 
 var (
 	explosionEffects map[string]*render.EffectSprite
+	fireEffects      map[string]*render.EffectSprite
 	smokeEffects     map[string]*render.EffectSprite
 )
 
 func init() {
 	explosionEffects = make(map[string]*render.EffectSprite)
+	fireEffects = make(map[string]*render.EffectSprite)
 	smokeEffects = make(map[string]*render.EffectSprite)
 }
 
@@ -32,6 +34,18 @@ func (g *Game) loadSpecialEffects() {
 		explosionEffects[key] = eSpriteTemplate
 	}
 
+	for key, fx := range effects.Fires {
+		if _, ok := fireEffects[key]; ok {
+			continue
+		}
+		// load the explosion effect sprite template
+		effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, fx.Image)
+		effectImg := getSpriteFromFile(effectRelPath)
+
+		eSpriteTemplate := render.NewAnimatedEffect(fx, effectImg, 1)
+		fireEffects[key] = eSpriteTemplate
+	}
+
 	for key, fx := range effects.Smokes {
 		if _, ok := smokeEffects[key]; ok {
 			continue
@@ -45,7 +59,7 @@ func (g *Game) loadSpecialEffects() {
 	}
 }
 
-func (g *Game) spawnMechDestructEffects(s *render.MechSprite) {
+func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) {
 	if s.AnimationFrameCounter() != 0 {
 		// do not spawn effects every tick
 		return
@@ -82,6 +96,24 @@ func (g *Game) spawnMechDestructEffects(s *render.MechSprite) {
 	}
 }
 
+func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) {
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
+
+	numFx := 7
+	for i := 0; i < numFx; i++ {
+		xFx := x + randFloat(-r/2, r/2)
+		yFx := y + randFloat(-r/2, r/2)
+		zFx := z + randFloat(h/8, h)
+
+		fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(fireFx)
+
+		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(smokeFx)
+	}
+}
+
 func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
 	// return random explosion effect
 	randKey := effects.RandExplosionKey()
@@ -89,7 +121,16 @@ func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.Effect
 	e.SetPos(&geom.Vector2{X: x, Y: y})
 	e.SetPosZ(z)
 
-	// TODO: give small negative Z velocity so it falls with the unit being destroyed
+	// TODO: give small negative Z velocity so it falls with the unit being destroyed?
+	return e
+}
+
+func (g *Game) randFireEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+	// return random fire effect
+	randKey := effects.RandFireKey()
+	e := fireEffects[randKey].Clone()
+	e.SetPos(&geom.Vector2{X: x, Y: y})
+	e.SetPosZ(z)
 	return e
 }
 

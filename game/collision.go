@@ -111,7 +111,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 		spriteMap.Range(func(k, _ interface{}) bool {
 			spriteInterface := k.(raycaster.Sprite)
 			sEntity := getEntityFromInterface(spriteInterface)
-			if entity == sEntity || entity.Parent() == sEntity || sEntity.CollisionRadius() <= 0 {
+			if entity == sEntity || entity.Parent() == sEntity || sEntity.CollisionRadius() <= 0 || sEntity.IsDestroyed() {
 				return true
 			}
 

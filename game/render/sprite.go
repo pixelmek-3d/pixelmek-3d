@@ -26,6 +26,7 @@ type Sprite struct {
 	animCounter       int
 	loopCounter       int
 	maxLoops          int
+	destroyCounter    int
 	columns, rows     int
 	texNum, lenTex    int
 	staticTexNum      int
@@ -257,6 +258,16 @@ func (s *Sprite) ResetAnimation() {
 
 func (s *Sprite) LoopCounter() int {
 	return s.loopCounter
+}
+
+// DestroyCounter used only when destroyed to remain visible until ready to be removed
+func (s *Sprite) DestroyCounter() int {
+	return s.destroyCounter
+}
+
+// SetDestroyCounter to set how many ticks to remain visible after destroyed before removal
+func (s *Sprite) SetDestroyCounter(counter int) {
+	s.destroyCounter = counter
 }
 
 func (s *Sprite) ScreenRect(renderScale float64) *image.Rectangle {

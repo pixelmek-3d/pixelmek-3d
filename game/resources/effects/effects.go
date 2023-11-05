@@ -6,13 +6,15 @@ import (
 
 var (
 	Explosions map[string]*model.ModelEffectResource
+	Fires      map[string]*model.ModelEffectResource
 	Smokes     map[string]*model.ModelEffectResource
 	_exploKeys []string
+	_fireKeys  []string
 	_smokeKeys []string
 )
 
 func init() {
-	// init known explosion animations
+	// init explosion animations
 	Explosions = make(map[string]*model.ModelEffectResource)
 
 	Explosions["01"] = &model.ModelEffectResource{
@@ -103,7 +105,20 @@ func init() {
 		},
 	}
 
-	// init known smoke animations
+	// init fire animations
+	Fires = make(map[string]*model.ModelEffectResource)
+
+	Fires["01"] = &model.ModelEffectResource{
+		Scale: 0.3,
+		Image: "fire_01.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       5,
+			Rows:          5,
+			AnimationRate: 3,
+		},
+	}
+
+	// init smoke animations
 	Smokes = make(map[string]*model.ModelEffectResource)
 
 	Smokes["01"] = &model.ModelEffectResource{
@@ -138,9 +153,13 @@ func init() {
 
 	// generate list of keys so rand function can be used
 	_exploKeys = make([]string, 0, len(Explosions))
+	_fireKeys = make([]string, 0, len(Fires))
 	_smokeKeys = make([]string, 0, len(Smokes))
 	for key := range Explosions {
 		_exploKeys = append(_exploKeys, key)
+	}
+	for key := range Fires {
+		_fireKeys = append(_fireKeys, key)
 	}
 	for key := range Smokes {
 		_smokeKeys = append(_smokeKeys, key)
@@ -149,6 +168,10 @@ func init() {
 
 func RandExplosionKey() string {
 	return _exploKeys[model.Randish.Intn(len(_exploKeys))]
+}
+
+func RandFireKey() string {
+	return _fireKeys[model.Randish.Intn(len(_fireKeys))]
 }
 
 func RandSmokeKey() string {
