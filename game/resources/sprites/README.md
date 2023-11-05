@@ -2,6 +2,9 @@
 
 ## ./effects
 
+- `blood`: "Betson/borix134"
+  - https://opengameart.org/content/blood-effect-sprite-sheet
+
 - `explosion_*`, `smoke_*`: "chabull"
   - https://opengameart.org/content/explosions-0
 

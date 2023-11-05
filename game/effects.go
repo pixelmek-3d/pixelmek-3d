@@ -10,53 +10,71 @@ import (
 )
 
 var (
+	bloodEffects     map[string]*render.EffectSprite
 	explosionEffects map[string]*render.EffectSprite
 	fireEffects      map[string]*render.EffectSprite
 	smokeEffects     map[string]*render.EffectSprite
 )
 
 func init() {
+	bloodEffects = make(map[string]*render.EffectSprite)
 	explosionEffects = make(map[string]*render.EffectSprite)
 	fireEffects = make(map[string]*render.EffectSprite)
 	smokeEffects = make(map[string]*render.EffectSprite)
 }
 
 func (g *Game) loadSpecialEffects() {
-	for key, fx := range effects.Explosions {
-		if _, ok := explosionEffects[key]; ok {
+	// load the blood effect sprite templates
+	g._loadEffectSpritesFromResourceList(effects.Blood, bloodEffects)
+
+	// load the explosion effect sprite templates
+	g._loadEffectSpritesFromResourceList(effects.Explosions, explosionEffects)
+
+	// load the fire effect sprite templates
+	g._loadEffectSpritesFromResourceList(effects.Fires, fireEffects)
+
+	// load the smoke effect sprite templates
+	g._loadEffectSpritesFromResourceList(effects.Smokes, smokeEffects)
+}
+
+func (g *Game) _loadEffectSpritesFromResourceList(
+	resourceMap map[string]*model.ModelEffectResource, spriteMap map[string]*render.EffectSprite,
+) {
+	for key, fx := range resourceMap {
+		if _, ok := spriteMap[key]; ok {
 			continue
 		}
-		// load the explosion effect sprite template
+		// load the blood effect sprite template
 		effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, fx.Image)
 		effectImg := getSpriteFromFile(effectRelPath)
 
 		eSpriteTemplate := render.NewAnimatedEffect(fx, effectImg, 1)
-		explosionEffects[key] = eSpriteTemplate
+		spriteMap[key] = eSpriteTemplate
 	}
+}
 
-	for key, fx := range effects.Fires {
-		if _, ok := fireEffects[key]; ok {
-			continue
+func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) (duration int) {
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
+
+	numFx := 7 // TODO: alter number of effects based on sprite dimensions
+	for i := 0; i < numFx; i++ {
+		xFx := x + randFloat(-r/2, r/2)
+		yFx := y + randFloat(-r/2, r/2)
+		zFx := z + randFloat(h/8, h)
+
+		fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(fireFx)
+
+		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(smokeFx)
+
+		fxDuration := fireFx.AnimationDuration()
+		if fxDuration > duration {
+			duration = fxDuration
 		}
-		// load the explosion effect sprite template
-		effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, fx.Image)
-		effectImg := getSpriteFromFile(effectRelPath)
-
-		eSpriteTemplate := render.NewAnimatedEffect(fx, effectImg, 1)
-		fireEffects[key] = eSpriteTemplate
 	}
-
-	for key, fx := range effects.Smokes {
-		if _, ok := smokeEffects[key]; ok {
-			continue
-		}
-		// load the smoke effect sprite template
-		effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, fx.Image)
-		effectImg := getSpriteFromFile(effectRelPath)
-
-		eSpriteTemplate := render.NewAnimatedEffect(fx, effectImg, 1)
-		smokeEffects[key] = eSpriteTemplate
-	}
+	return
 }
 
 func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
@@ -102,28 +120,34 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 	return
 }
 
-func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) (duration int) {
+func (g *Game) spawnInfantryDestroyEffects(s *render.InfantrySprite) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
-	numFx := 7 // TODO: alter number of effects based on sprite dimensions
+	numFx := 4 // TODO: alter number of effects based on sprite dimensions
 	for i := 0; i < numFx; i++ {
-		xFx := x + randFloat(-r/2, r/2)
-		yFx := y + randFloat(-r/2, r/2)
-		zFx := z + randFloat(h/8, h)
+		xFx := x + randFloat(-r, r)
+		yFx := y + randFloat(-r, r)
+		zFx := z + randFloat(0, h)
 
-		fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(fireFx)
+		bloodFx := g.randBloodEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(bloodFx)
 
-		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
-
-		fxDuration := fireFx.AnimationDuration()
+		fxDuration := bloodFx.AnimationDuration()
 		if fxDuration > duration {
 			duration = fxDuration
 		}
 	}
 	return
+}
+
+func (g *Game) randBloodEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+	// return random blood effect
+	randKey := effects.RandBloodKey()
+	e := bloodEffects[randKey].Clone()
+	e.SetPos(&geom.Vector2{X: x, Y: y})
+	e.SetPosZ(z)
+	return e
 }
 
 func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.EffectSprite {

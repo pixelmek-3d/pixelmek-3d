@@ -5,15 +5,30 @@ import (
 )
 
 var (
+	Blood      map[string]*model.ModelEffectResource
 	Explosions map[string]*model.ModelEffectResource
 	Fires      map[string]*model.ModelEffectResource
 	Smokes     map[string]*model.ModelEffectResource
+	_bloodKeys []string
 	_exploKeys []string
 	_fireKeys  []string
 	_smokeKeys []string
 )
 
 func init() {
+	// init bloody animations
+	Blood = make(map[string]*model.ModelEffectResource)
+
+	Blood["00"] = &model.ModelEffectResource{
+		Scale: 0.1,
+		Image: "blood.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       3,
+			Rows:          2,
+			AnimationRate: 8,
+		},
+	}
+
 	// init explosion animations
 	Explosions = make(map[string]*model.ModelEffectResource)
 
@@ -152,9 +167,13 @@ func init() {
 	}
 
 	// generate list of keys so rand function can be used
+	_bloodKeys = make([]string, 0, len(Blood))
 	_exploKeys = make([]string, 0, len(Explosions))
 	_fireKeys = make([]string, 0, len(Fires))
 	_smokeKeys = make([]string, 0, len(Smokes))
+	for key := range Blood {
+		_bloodKeys = append(_bloodKeys, key)
+	}
 	for key := range Explosions {
 		_exploKeys = append(_exploKeys, key)
 	}
@@ -164,6 +183,10 @@ func init() {
 	for key := range Smokes {
 		_smokeKeys = append(_smokeKeys, key)
 	}
+}
+
+func RandBloodKey() string {
+	return _bloodKeys[model.Randish.Intn(len(_bloodKeys))]
 }
 
 func RandExplosionKey() string {

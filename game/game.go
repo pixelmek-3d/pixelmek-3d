@@ -749,19 +749,10 @@ func (g *Game) updateSprites() {
 			case InfantrySpriteType:
 				s := k.(*render.InfantrySprite)
 				if s.IsDestroyed() {
-					// TODO: Infantry unique destroy effect
-					destroyCounter := s.DestroyCounter()
-					if destroyCounter == 0 {
-						// start the destruction process but do not remove yet
-						fxDuration := g.spawnGenericDestroyEffects(s.Sprite)
-						s.SetDestroyCounter(fxDuration)
-					} else if destroyCounter == 1 {
-						// delete when the counter is basically done (to differentiate with default int value 0)
-						g.sprites.deleteInfantrySprite(s)
-					} else {
-						s.Update(g.player.Pos())
-						s.SetDestroyCounter(destroyCounter - 1)
-					}
+					// infantry are destroyed immediately
+					// TODO: if an infantry unit has death animation
+					g.spawnInfantryDestroyEffects(s)
+					g.sprites.deleteInfantrySprite(s)
 					break
 				}
 
