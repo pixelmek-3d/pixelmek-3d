@@ -703,7 +703,6 @@ func (g *Game) updateSprites() {
 			case VehicleSpriteType:
 				s := k.(*render.VehicleSprite)
 				if s.IsDestroyed() {
-					// TODO: Vehicle unique destroy effect
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
@@ -726,19 +725,44 @@ func (g *Game) updateSprites() {
 			case VTOLSpriteType:
 				s := k.(*render.VTOLSprite)
 				if s.IsDestroyed() {
-					// TODO: VTOL unique destroy effect
+					// unique VTOL destroy effect where it crashes towards the ground spinning
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						fxDuration := g.spawnGenericDestroyEffects(s.Sprite)
-						s.SetDestroyCounter(fxDuration)
-					} else if destroyCounter == 1 {
-						// delete when the counter is basically done (to differentiate with default int value 0)
+						g.spawnVTOLDestroyEffects(s, true)
+						s.SetVelocity(0)
+						s.SetVelocityZ(0)
+
+						// use the destroy counter to determine how often to spawn effects
+						destroyCounter = s.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
+					} else if s.PosZ() <= 0 {
+						// deleted only when it hits the ground
 						g.sprites.deleteVTOLSprite(s)
-					} else {
-						s.Update(g.player.Pos())
-						s.SetDestroyCounter(destroyCounter - 1)
+						break
+					} else if destroyCounter == 1 {
+						// reset counter and spawn only smoke effects
+						g.spawnVTOLDestroyEffects(s, false)
+						destroyCounter = s.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
 					}
+
+					// fall towards the ground
+					velocityZ := s.VelocityZ()
+					s.SetVelocityZ(velocityZ - model.GRAVITY_UNITS_PTT)
+
+					// put in a tailspin
+					heading := s.Heading()
+					s.SetHeading(model.ClampAngle(heading + (geom.Pi2 / model.TICKS_PER_SECOND)))
+
+					hasCollision := g.updateSpritePosition(s.Sprite)
+					if hasCollision {
+						// instantly remove on collision with some more explosions
+						g.spawnVTOLDestroyEffects(s, true)
+						g.sprites.deleteVTOLSprite(s)
+						break
+					}
+
+					s.Update(g.player.Pos())
+					s.SetDestroyCounter(destroyCounter - 1)
 					break
 				}
 
@@ -977,24 +1001,24 @@ func (g *Game) updateEmplacementPosition(s *render.EmplacementSprite) {
 	// TODO: give turrets a bit more of a brain than this
 }
 
-func (g *Game) updateSpritePosition(s *render.Sprite) {
-	if s.Velocity() != 0 {
+func (g *Game) updateSpritePosition(s *render.Sprite) bool {
+	if s.Velocity() != 0 || s.VelocityZ() != 0 {
 		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
+		zCheck := s.PosZ() + s.VelocityZ()
 
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
+		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, zCheck, false)
 		if isCollision {
-			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
-			s.SetVelocity(randFloat(0.005, 0.009))
+			return true
 		} else {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
 		}
 	}
+	return false
 }
 
 func (g *Game) updateWeaponCooldowns(unit model.Unit) {

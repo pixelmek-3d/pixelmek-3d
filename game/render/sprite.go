@@ -270,8 +270,9 @@ func (s *Sprite) DestroyCounter() int {
 }
 
 // SetDestroyCounter to set how many ticks to remain visible after destroyed before removal
-func (s *Sprite) SetDestroyCounter(counter int) {
+func (s *Sprite) SetDestroyCounter(counter int) int {
 	s.destroyCounter = counter
+	return s.destroyCounter
 }
 
 func (s *Sprite) ScreenRect(renderScale float64) *image.Rectangle {

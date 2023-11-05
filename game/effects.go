@@ -93,9 +93,6 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 		numFx = 2
 	}
 
-	// only play one explosion audio track at a time
-	playedOneAudio := false
-
 	for i := 0; i < numFx; i++ {
 		xFx := x + randFloat(-r, r)
 		yFx := y + randFloat(-r, r)
@@ -107,9 +104,9 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(smokeFx)
 
-		if !playedOneAudio {
+		if i == 0 {
+			// only play one audio track at a time
 			g.audio.PlayEffectAudio(g, explosionFx)
-			playedOneAudio = true
 		}
 
 		fxDuration := explosionFx.AnimationDuration()
@@ -165,6 +162,42 @@ func (g *Game) spawnVehicleDestroyEffects(s *render.VehicleSprite) (duration int
 		fxDuration := explosionFx.AnimationDuration()
 		if fxDuration > duration {
 			duration = fxDuration
+		}
+	}
+	return
+}
+
+func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions bool) (duration int) {
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
+
+	numFx := 5 // TODO: alter number of effects based on sprite dimensions
+	for i := 0; i < numFx; i++ {
+		xFx := x + randFloat(-r/2, r/2)
+		yFx := y + randFloat(-r/2, r/2)
+		zFx := z + randFloat(-h/2, h/2)
+
+		if spawnExplosions {
+			explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
+			g.sprites.addEffect(explosionFx)
+			if i == 0 || i == numFx/2 {
+				// only play two audio tracks for now since they are played at once
+				g.audio.PlayEffectAudio(g, explosionFx)
+			}
+
+			fxDuration := explosionFx.AnimationDuration()
+			if fxDuration > duration {
+				duration = fxDuration
+			}
+		}
+
+		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(smokeFx)
+		if !spawnExplosions {
+			fxDuration := smokeFx.AnimationDuration()
+			if fxDuration > duration {
+				duration = fxDuration
+			}
 		}
 	}
 	return

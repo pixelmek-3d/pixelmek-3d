@@ -73,7 +73,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 	}
 
 	// check sprite against player collision
-	if entity != g.player.Unit && entity.Parent() != g.player.Unit {
+	if entity != g.player.Unit && entity.Parent() != g.player.Unit && !entity.IsDestroyed() {
 		// only check for collision if player is somewhat nearby
 		playerPosition := g.player.Pos()
 		playerCollisionRadius := g.player.CollisionRadius()
