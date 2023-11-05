@@ -59,7 +59,7 @@ func (g *Game) loadSpecialEffects() {
 	}
 }
 
-func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) {
+func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 	if s.AnimationFrameCounter() != 0 {
 		// do not spawn effects every tick
 		return
@@ -93,10 +93,16 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) {
 			g.audio.PlayEffectAudio(g, explosionFx)
 			playedOneAudio = true
 		}
+
+		fxDuration := explosionFx.AnimationDuration()
+		if fxDuration > duration {
+			duration = fxDuration
+		}
 	}
+	return
 }
 
-func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) {
+func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
@@ -111,7 +117,13 @@ func (g *Game) spawnGenericDestroyEffects(s *render.Sprite) {
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(smokeFx)
+
+		fxDuration := fireFx.AnimationDuration()
+		if fxDuration > duration {
+			duration = fxDuration
+		}
 	}
+	return
 }
 
 func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.EffectSprite {

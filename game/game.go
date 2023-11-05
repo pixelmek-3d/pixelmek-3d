@@ -655,8 +655,8 @@ func (g *Game) updateSprites() {
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
 						// TODO: when tree is destroyed by collision instead of projectile, smoke only but no fire
-						g.spawnGenericDestroyEffects(s)
-						s.SetDestroyCounter(100)
+						fxDuration := g.spawnGenericDestroyEffects(s)
+						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
 						g.sprites.deleteMapSprite(s)
@@ -707,8 +707,8 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						g.spawnGenericDestroyEffects(s.Sprite)
-						s.SetDestroyCounter(100)
+						fxDuration := g.spawnGenericDestroyEffects(s)
+						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
 						g.sprites.deleteVehicleSprite(s)
@@ -730,8 +730,8 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						g.spawnGenericDestroyEffects(s.Sprite)
-						s.SetDestroyCounter(100)
+						fxDuration := g.spawnGenericDestroyEffects(s)
+						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
 						g.sprites.deleteVTOLSprite(s)
@@ -753,8 +753,8 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						g.spawnGenericDestroyEffects(s.Sprite)
-						s.SetDestroyCounter(100)
+						fxDuration := g.spawnGenericDestroyEffects(s)
+						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
 						g.sprites.deleteInfantrySprite(s)
@@ -776,8 +776,8 @@ func (g *Game) updateSprites() {
 					destroyCounter := s.DestroyCounter()
 					if destroyCounter == 0 {
 						// start the destruction process but do not remove yet
-						g.spawnGenericDestroyEffects(s.Sprite)
-						s.SetDestroyCounter(100)
+						fxDuration := g.spawnGenericDestroyEffects(s)
+						s.SetDestroyCounter(fxDuration)
 					} else if destroyCounter == 1 {
 						// delete when the counter is basically done (to differentiate with default int value 0)
 						g.sprites.deleteEmplacementSprite(s)

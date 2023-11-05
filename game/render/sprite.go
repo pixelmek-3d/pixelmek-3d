@@ -250,6 +250,10 @@ func (s *Sprite) NumAnimationFrames() int {
 	return s.lenTex
 }
 
+func (e *EffectSprite) AnimationDuration() int {
+	return (e.animationRate + 1) * e.NumAnimationFrames()
+}
+
 func (s *Sprite) ResetAnimation() {
 	s.animCounter = 0
 	s.loopCounter = 0
