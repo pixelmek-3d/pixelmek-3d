@@ -7,7 +7,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tinne26/etxt"
-	"github.com/tinne26/etxt/efixed"
 )
 
 var (
@@ -19,7 +18,12 @@ var (
 
 type Throttle struct {
 	HUDSprite
-	fontRenderer *etxt.Renderer
+	fontRenderer   *etxt.Renderer
+	velocity       float64
+	targetVelocity float64
+	velocityZ      float64
+	maxVelocity    float64
+	maxReverse     float64
 }
 
 // NewThrottle creates a speed indicator image to be rendered on demand
@@ -45,27 +49,34 @@ func (t *Throttle) updateFontSize(width, height int) {
 		pxSize = 1
 	}
 
-	fractSize, _ := efixed.FromFloat64(pxSize)
-	t.fontRenderer.SetSizePxFract(fractSize)
+	t.fontRenderer.SetSizePx(int(pxSize))
 }
 
-func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocity, targetVelocity, velocityZ, maxVelocity, maxReverse float64) {
+func (t *Throttle) SetValues(velocity, targetVelocity, velocityZ, maxVelocity, maxReverse float64) {
+	t.velocity = velocity
+	t.targetVelocity = targetVelocity
+	t.velocityZ = velocityZ
+	t.maxVelocity = maxVelocity
+	t.maxReverse = maxReverse
+}
+
+func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
 	t.fontRenderer.SetTarget(screen)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	t.updateFontSize(bW, bH)
 
-	maxX, zeroY := float32(bW), float32(bH)*float32(maxVelocity/(maxVelocity+maxReverse))
+	maxX, zeroY := float32(bW), float32(bH)*float32(t.maxVelocity/(t.maxVelocity+t.maxReverse))
 
 	// current throttle velocity box
 	vColor := hudOpts.HudColor(_colorThrottleForward)
-	if velocity < 0 {
+	if t.velocity < 0 {
 		vColor = hudOpts.HudColor(_colorThrottleReverse)
 	}
 	vColor.A = hudOpts.Color.A
 
-	var velocityRatio float32 = float32(velocity / (maxVelocity + maxReverse))
+	var velocityRatio float32 = float32(t.velocity / (t.maxVelocity + t.maxReverse))
 	vW, vH := float32(bW)/6, -velocityRatio*float32(bH)
 	//vAlpha := uint8(4 * int(hudOpts.Color.A) / 5)
 	vector.DrawFilledRect(screen, float32(bX)+maxX-vW, float32(bY)+zeroY, vW, vH, vColor, false)
@@ -81,11 +92,11 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 	tColor := hudOpts.HudColor(_colorThrottleText)
 	t.fontRenderer.SetColor(color.RGBA(tColor))
 
-	velocityStr := fmt.Sprintf("%0.1f kph", velocity)
-	if velocityZ != 0 {
-		velocityStr += fmt.Sprintf("\n%0.1fvert", velocityZ)
+	velocityStr := fmt.Sprintf("%0.1f kph", t.velocity)
+	if t.velocityZ != 0 {
+		velocityStr += fmt.Sprintf("\n%0.1fvert", t.velocityZ)
 	}
-	if velocity >= 0 {
+	if t.velocity >= 0 {
 		t.fontRenderer.SetAlign(etxt.Top, etxt.Right)
 	} else {
 		t.fontRenderer.SetAlign(etxt.Bottom, etxt.Right)
@@ -94,11 +105,11 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, velocit
 
 	// target velocity throttle indicator line
 	vColor = hudOpts.HudColor(_colorThrottleForward)
-	if targetVelocity < 0 {
+	if t.targetVelocity < 0 {
 		vColor = hudOpts.HudColor(_colorThrottleReverse)
 	}
 
-	var tgtVelocityRatio float32 = float32(targetVelocity / (maxVelocity + maxReverse))
+	var tgtVelocityRatio float32 = float32(t.targetVelocity / (t.maxVelocity + t.maxReverse))
 	tH := -tgtVelocityRatio * float32(bH)
 	iW, iH := vW, float32(5.0) // TODO: calculate line thickness based on image height
 	iX, iY := float32(oX), zeroY+tH-iH

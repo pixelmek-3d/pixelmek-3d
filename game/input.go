@@ -65,6 +65,7 @@ const (
 	ActionTargetPrevious
 	ActionZoomToggle
 	ActionLightAmpToggle
+	ActionPowerToggle
 	actionCount
 )
 
@@ -156,6 +157,8 @@ func actionString(a input.Action) string {
 		return "zoom_toggle"
 	case ActionLightAmpToggle:
 		return "light_amplification"
+	case ActionPowerToggle:
+		return "power_toggle"
 	default:
 		panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
 	}
@@ -229,6 +232,7 @@ func (g *Game) setDefaultControls() {
 
 		ActionZoomToggle:     {input.KeyZ, input.KeyGamepadRStick},
 		ActionLightAmpToggle: {input.KeyL, input.KeyGamepadDown},
+		ActionPowerToggle:    {input.KeyP},
 	}
 
 	g.inputSystem.Init(input.SystemConfig{
@@ -389,6 +393,15 @@ func (g *Game) handleInput() {
 	if g.debug && ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
 		// TESTING purposes only
 		g.fireTestWeaponAtPlayer()
+	}
+
+	if g.input.ActionIsJustPressed(ActionPowerToggle) {
+		switch g.player.Powered() {
+		case model.POWER_ON:
+			g.player.SetPowered(model.POWER_OFF_MANUAL)
+		case model.POWER_OFF_MANUAL:
+			g.player.SetPowered(model.POWER_ON)
+		}
 	}
 
 	if (g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody) && ebiten.CursorMode() != ebiten.CursorModeCaptured {

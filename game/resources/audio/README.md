@@ -33,6 +33,12 @@
 - `jet-thrust`: "Maxx222"
   - https://freesound.org/people/Maxx222/sounds/446764/
 
+- `power-on`: "Sojan"
+  - https://freesound.org/people/Sojan/sounds/407052/
+
+- `power-off`: "MSB099"
+  - https://freesound.org/people/MSB099/sounds/463850/
+
 - `ricochet-N`: "rakurka"
   - https://freesound.org/people/rakurka/sounds/109957/
 

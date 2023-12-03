@@ -8,6 +8,18 @@ import (
 	"github.com/harbdog/raycaster-go/geom3d"
 )
 
+const (
+	UNIT_POWER_OFF_SECONDS float64 = 1.5
+)
+
+type UnitPowerStatus int
+
+const (
+	POWER_ON         UnitPowerStatus = 1
+	POWER_OFF_MANUAL UnitPowerStatus = 0
+	POWER_OFF_HEAT   UnitPowerStatus = -1
+)
+
 type Unit interface {
 	Entity
 	Name() string
@@ -15,9 +27,13 @@ type Unit interface {
 	Tonnage() float64
 
 	Heat() float64
+	MaxHeat() float64
 	HeatDissipation() float64
-	TriggerWeapon(Weapon) bool
+	OverHeated() bool
+	Powered() UnitPowerStatus
+	SetPowered(UnitPowerStatus)
 
+	TriggerWeapon(Weapon) bool
 	Target() Entity
 	SetTarget(Entity)
 	TargetLock() float64
@@ -80,6 +96,7 @@ type UnitModel struct {
 	heatDissipation    float64
 	heatSinks          int
 	heatSinkType       HeatSinkType
+	powered            UnitPowerStatus
 	armament           []Weapon
 	ammunition         *Ammo
 	jumpJets           int
@@ -125,12 +142,29 @@ func (e *UnitModel) Heat() float64 {
 	return e.heat
 }
 
+func (e *UnitModel) MaxHeat() float64 {
+	// FIXME: determine based on # of heat sinks
+	return 100
+}
+
+func (e *UnitModel) OverHeated() bool {
+	return e.heat > e.MaxHeat()
+}
+
 func (e *UnitModel) HeatDissipation() float64 {
 	return e.heatDissipation
 }
 
+func (e *UnitModel) Powered() UnitPowerStatus {
+	return e.powered
+}
+
+func (e *UnitModel) SetPowered(powered UnitPowerStatus) {
+	e.powered = powered
+}
+
 func (e *UnitModel) TriggerWeapon(w Weapon) bool {
-	if w.Cooldown() > 0 {
+	if e.powered != POWER_ON || w.Cooldown() > 0 {
 		return false
 	}
 

@@ -10,7 +10,6 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
-	"github.com/tinne26/etxt/efixed"
 )
 
 var (
@@ -24,6 +23,8 @@ type Compass struct {
 	fontRenderer    *etxt.Renderer
 	targetIndicator *compassIndicator
 	navIndicator    *compassIndicator
+	heading         float64
+	turretAngle     float64
 }
 
 type compassIndicator struct {
@@ -57,8 +58,7 @@ func (c *Compass) updateFontSize(width, height int) {
 		pxSize = 1
 	}
 
-	fractSize, _ := efixed.FromFloat64(pxSize)
-	c.fontRenderer.SetSizePxFract(fractSize)
+	c.fontRenderer.SetSizePx(int(pxSize))
 }
 
 func (c *Compass) SetTargetEnabled(b bool) {
@@ -83,7 +83,12 @@ func (c *Compass) SetNavHeading(heading float64) {
 	c.navIndicator.heading = heading
 }
 
-func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading, turretAngle float64) {
+func (c *Compass) SetValues(heading, turretAngle float64) {
+	c.heading = heading
+	c.turretAngle = turretAngle
+}
+
+func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
 	c.fontRenderer.SetTarget(screen)
 
@@ -91,8 +96,8 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions, heading,
 	c.updateFontSize(bW, bH)
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
-	compassTurretAngle := -turretAngle
-	headingDeg := geom.Degrees(heading)
+	compassTurretAngle := -c.turretAngle
+	headingDeg := geom.Degrees(c.heading)
 	relTurretDeg := geom.Degrees(compassTurretAngle)
 
 	midX, topY := float32(bX)+float32(bW)/2, float32(bY)

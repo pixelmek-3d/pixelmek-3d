@@ -266,12 +266,8 @@ func (g *Game) loadMissionSprites() {
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
 		mech.SetPos(&geom.Vector2{X: posX, Y: posY})
 
-		// TODO: give mission units a bit more of a brain
 		if len(missionMech.PatrolPath) > 0 {
 			mech.PatrolPath = missionMech.PatrolPath
-			mech.SetMechAnimation(render.ANIMATE_STRUT)
-		} else {
-			mech.SetMechAnimation(render.ANIMATE_IDLE)
 		}
 
 		g.sprites.addMechSprite(mech)

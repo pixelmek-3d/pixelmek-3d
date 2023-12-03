@@ -24,13 +24,13 @@ type MechSprite struct {
 type MechPart int
 
 const (
-	PART_STATIC MechPart = 0
-	PART_CT     MechPart = 1
-	PART_LA     MechPart = 2
-	PART_RA     MechPart = 3
-	PART_LL     MechPart = 4
-	PART_RL     MechPart = 5
-	NUM_PARTS   MechPart = 6
+	MECH_PART_STATIC MechPart = 0
+	MECH_PART_CT     MechPart = 1
+	MECH_PART_LA     MechPart = 2
+	MECH_PART_RA     MechPart = 3
+	MECH_PART_LL     MechPart = 4
+	MECH_PART_RL     MechPart = 5
+	NUM_MECH_PARTS   MechPart = 6
 )
 
 func NewMechSprite(
@@ -46,7 +46,7 @@ func NewMechSprite(
 	s := &MechSprite{
 		Sprite:       p,
 		mechAnimate:  mechAnimate,
-		animateIndex: ANIMATE_STATIC,
+		animateIndex: MECH_ANIMATE_STATIC,
 	}
 
 	return s
@@ -78,27 +78,23 @@ func (m *MechSprite) Clone(asUnit model.Unit) *MechSprite {
 	return mClone
 }
 
-func (s *MechSprite) SetMechAnimation(animateIndex MechAnimationIndex) {
+func (s *MechSprite) SetMechAnimation(animateIndex MechAnimationIndex, reversed bool) {
 	s.animateIndex = animateIndex
+	s.animReversed = reversed
 	s.ResetAnimation()
 
-	switch animateIndex {
-	case ANIMATE_IDLE:
-		s.animationRate = 7
+	switch {
+	case s.animateIndex <= MECH_ANIMATE_STATIC:
+		s.animationRate = 0
 		s.maxLoops = 0
-	case ANIMATE_STRUT:
-		s.animationRate = 3
-		s.maxLoops = 0
-	case ANIMATE_DESTRUCT:
-		s.animationRate = 2
-		s.maxLoops = 1
-	default:
-		s.animationRate = 1
-		s.maxLoops = 0
+	case s.animateIndex > MECH_ANIMATE_STATIC:
+		animationCfg := s.mechAnimate.config[animateIndex]
+		s.animationRate = animationCfg.animationRate
+		s.maxLoops = animationCfg.maxLoops
 	}
 }
 
-func (s *MechSprite) GetMechAnimation() MechAnimationIndex {
+func (s *MechSprite) MechAnimation() MechAnimationIndex {
 	return s.animateIndex
 }
 
@@ -107,11 +103,16 @@ func (s *MechSprite) ResetAnimation() {
 	s.loopCounter = 0
 
 	switch {
-	case s.animateIndex <= ANIMATE_STATIC:
+	case s.animateIndex <= MECH_ANIMATE_STATIC:
 		s.texNum = 0
-	case s.animateIndex > ANIMATE_STATIC:
+	case s.animateIndex > MECH_ANIMATE_STATIC:
 		animRow := int(s.animateIndex)
-		s.texNum = animRow * s.mechAnimate.maxCols
+		if s.animReversed {
+			animationCfg := s.mechAnimate.config[s.animateIndex]
+			s.texNum = (animRow * s.mechAnimate.maxCols) + (animationCfg.numCols - 1)
+		} else {
+			s.texNum = animRow * s.mechAnimate.maxCols
+		}
 	}
 }
 
@@ -129,7 +130,7 @@ func (s *MechSprite) Update(camPos *geom.Vector2) {
 	if s.animationRate <= 0 {
 		return
 	}
-	if s.animateIndex <= ANIMATE_STATIC {
+	if s.animateIndex <= MECH_ANIMATE_STATIC {
 		s.texNum = 0
 		return
 	}
@@ -141,7 +142,7 @@ func (s *MechSprite) Update(camPos *geom.Vector2) {
 		animRow := int(s.animateIndex)
 
 		minTexNum := animRow * s.mechAnimate.maxCols
-		maxTexNum := minTexNum + s.mechAnimate.numColsAtRow[animRow] - 1
+		maxTexNum := minTexNum + s.mechAnimate.config[animRow].numCols - 1
 
 		s.animCounter = 0
 
@@ -168,7 +169,7 @@ func (s *MechSprite) Update(camPos *geom.Vector2) {
 			}
 		}
 
-		if s.animateIndex == ANIMATE_STRUT {
+		if s.animateIndex == MECH_ANIMATE_STRUT {
 			// use texture index for when the stomp audio occurs
 			if s.texNum == minTexNum || s.texNum == minTexNum+(maxTexNum-minTexNum)/2 {
 				s.strideStomp = true

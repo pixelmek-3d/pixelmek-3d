@@ -234,6 +234,10 @@ func (s *Sprite) getTextureFacingKeyForAngle(facingAngle float64) float64 {
 	return closestKeyAngle
 }
 
+func (s *Sprite) AnimationReversed() bool {
+	return s.animReversed
+}
+
 func (s *Sprite) SetAnimationReversed(isReverse bool) {
 	s.animReversed = isReverse
 }

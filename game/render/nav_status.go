@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
-	"github.com/tinne26/etxt/efixed"
 )
 
 var (
@@ -55,8 +54,7 @@ func (n *NavStatus) updateFontSize(width, height int) {
 		pxSize = 1
 	}
 
-	fractSize, _ := efixed.FromFloat64(pxSize)
-	n.fontRenderer.SetSizePxFract(fractSize)
+	n.fontRenderer.SetSizePx(int(pxSize))
 }
 
 func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {

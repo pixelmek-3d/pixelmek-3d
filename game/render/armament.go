@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/tinne26/etxt"
-	"github.com/tinne26/etxt/efixed"
-	"golang.org/x/image/math/fixed"
 )
 
 var (
@@ -24,9 +24,9 @@ var (
 type Armament struct {
 	HUDSprite
 	fontRenderer    *etxt.Renderer
-	fontSizeWeapons fixed.Int26_6
-	fontSizeAmmo    fixed.Int26_6
-	fontSizeGroups  fixed.Int26_6
+	fontSizeWeapons int
+	fontSizeAmmo    int
+	fontSizeGroups  int
 	weapons         []*Weapon
 	weaponGroups    [][]model.Weapon
 	selectedWeapon  uint
@@ -109,10 +109,9 @@ func (a *Armament) updateFontSize(width, height int) {
 		pxSize = 1
 	}
 
-	fractSize, _ := efixed.FromFloat64(pxSize)
-	a.fontSizeWeapons = fractSize
-	a.fontSizeAmmo = 3 * fractSize / 5
-	a.fontSizeGroups = fractSize / 2
+	a.fontSizeWeapons = geom.ClampInt(int(pxSize), 1, math.MaxInt)
+	a.fontSizeAmmo = geom.ClampInt(int(3*pxSize/5), 1, math.MaxInt)
+	a.fontSizeGroups = geom.ClampInt(int(pxSize/2), 1, math.MaxInt)
 }
 
 func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
@@ -170,7 +169,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	screen := hudOpts.Screen
 	a.fontRenderer.SetTarget(screen)
 	a.fontRenderer.SetAlign(etxt.YCenter, etxt.Left)
-	a.fontRenderer.SetSizePxFract(a.fontSizeWeapons)
+	a.fontRenderer.SetSizePx(a.fontSizeWeapons)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
@@ -194,7 +193,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	// render ammo indicator
 	if wAmmoBin != nil {
 		a.fontRenderer.SetAlign(etxt.Bottom, etxt.Right)
-		a.fontRenderer.SetSizePxFract(a.fontSizeAmmo)
+		a.fontRenderer.SetSizePx(a.fontSizeAmmo)
 
 		// just picked a character to indicate as empty
 		ammoDisplayTxt := "/ "
@@ -207,7 +206,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	// render weapon group indicator
 	if len(a.weaponGroups) > 0 {
 		a.fontRenderer.SetAlign(etxt.Top, etxt.Right)
-		a.fontRenderer.SetSizePxFract(a.fontSizeGroups)
+		a.fontRenderer.SetSizePx(a.fontSizeGroups)
 
 		var groupsTxt string
 		for _, g := range model.GetGroupsForWeapon(w.weapon, a.weaponGroups) {

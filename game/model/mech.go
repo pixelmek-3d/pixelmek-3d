@@ -17,9 +17,15 @@ const (
 	MECH_ASSAULT
 )
 
+const (
+	MECH_POWER_ON_SECONDS float64 = 5.0
+)
+
 type Mech struct {
 	*UnitModel
-	Resource *ModelMechResource
+	Resource      *ModelMechResource
+	PowerOffTimer int
+	PowerOnTimer  int
 }
 
 func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Mech {
@@ -100,7 +106,61 @@ func (e *Mech) MaxStructurePoints() float64 {
 	return e.Resource.Structure
 }
 
+func (e *Mech) SetPowered(powered UnitPowerStatus) {
+	if powered == POWER_ON {
+		if e.powered != POWER_ON && e.PowerOnTimer <= 0 {
+			// initiate power up sequence
+			e.PowerOnTimer = int(MECH_POWER_ON_SECONDS * TICKS_PER_SECOND)
+		}
+	} else {
+		if e.powered == POWER_ON && e.PowerOffTimer <= 0 {
+			// initiate power down sequence
+			e.PowerOffTimer = int(UNIT_POWER_OFF_SECONDS * TICKS_PER_SECOND)
+		}
+		e.powered = powered
+	}
+}
+
 func (e *Mech) Update() bool {
+	isOverHeated := e.OverHeated()
+	if e.powered == POWER_ON {
+		// if heat is too high, auto shutdown
+		if isOverHeated {
+			e.SetPowered(POWER_OFF_HEAT)
+		}
+	} else {
+		switch {
+		case e.PowerOffTimer > 0:
+			// continue power down sequence
+			e.PowerOffTimer--
+
+		case isOverHeated:
+			// continue cooling down
+			break
+
+		case e.powered == POWER_OFF_HEAT &&
+			!isOverHeated && e.PowerOnTimer == 0:
+			// set power on sequence to begin automatically after overheat status is cleared
+			e.SetPowered(POWER_ON)
+
+		case e.PowerOnTimer > 0:
+			// continue power on sequence
+			e.PowerOnTimer--
+			if e.PowerOnTimer <= 0 {
+				// power on sequence completed
+				e.powered = POWER_ON
+			}
+		}
+	}
+
+	if e.powered != POWER_ON {
+		// ensure certain values are reset when not powered on
+		e.jumpJetsActive = false
+		e.targetRelHeading = 0
+		e.targetVelocity = 0
+		e.targetVelocityZ = 0
+	}
+
 	if e.jumpJetsActive {
 		// consume jump jet charge
 		e.jumpJetDuration += SECONDS_PER_TICK

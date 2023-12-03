@@ -8,7 +8,6 @@ import (
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go"
 	"github.com/tinne26/etxt"
-	"github.com/tinne26/etxt/efixed"
 )
 
 type NavSprite struct {
@@ -61,8 +60,7 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 		fontPxSize = 1
 	}
 
-	fractSize, _ := efixed.FromFloat64(fontPxSize)
-	renderer.SetSizePxFract(fractSize)
+	renderer.SetSizePx(int(fontPxSize))
 	renderer.SetAlign(etxt.YCenter, etxt.XCenter)
 
 	navChar := navPoint.Name[0:1]

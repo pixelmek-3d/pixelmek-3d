@@ -63,22 +63,23 @@ type Game struct {
 	width  int
 	height int
 
-	player        *Player
-	playerStatus  *render.UnitStatus
-	targetStatus  *render.UnitStatus
-	navStatus     *render.NavStatus
-	armament      *render.Armament
-	compass       *render.Compass
-	altimeter     *render.Altimeter
-	heat          *render.HeatIndicator
-	radar         *render.Radar
-	throttle      *render.Throttle
-	jets          *render.JumpJetIndicator
-	crosshairs    *render.Crosshairs
-	targetReticle *render.TargetReticle
-	navReticle    *render.NavReticle
-	fps           *render.FPSIndicator
-	fonts         *render.FontHandler
+	player    *Player
+	playerHUD map[HUDElementType]HUDElement
+	// playerStatus  *render.UnitStatus
+	// targetStatus  *render.UnitStatus
+	// navStatus     *render.NavStatus
+	// armament      *render.Armament
+	// compass       *render.Compass
+	// altimeter     *render.Altimeter
+	// heat          *render.HeatIndicator
+	// radar         *render.Radar
+	// throttle      *render.Throttle
+	// jets          *render.JumpJetIndicator
+	// crosshairs    *render.Crosshairs
+	// targetReticle *render.TargetReticle
+	// navReticle    *render.NavReticle
+	// fps           *render.FPSIndicator
+	fonts *render.FontHandler
 
 	hudEnabled        bool
 	hudScale          float64
@@ -221,8 +222,13 @@ func (g *Game) initMission() {
 	g.player.SetPos(&geom.Vector2{X: pX, Y: pY})
 	g.player.SetHeading(geom.Radians(pDegrees))
 
+	// init player as powered off but booting up
+	g.player.SetPowered(model.POWER_ON)
+
 	// init player armament for display
-	g.armament.SetWeapons(g.player.Armament())
+	if armament := g.GetHUDElement(HUD_ARMAMENT); armament != nil {
+		armament.(*render.Armament).SetWeapons(g.player.Armament())
+	}
 
 	// initial mouse position to establish delta
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
@@ -404,6 +410,30 @@ func (g *Game) updatePlayer() {
 
 		g.updatePlayerPosition(moveLine.X2, moveLine.Y2, posZ)
 		g.player.moved = true
+	}
+
+	if g.player.Powered() == model.POWER_ON {
+		// make sure engine ambience is playing
+		if g.audio.EngineAmbience() != _SFX_HINT_ENGINE {
+			g.audio.StartEngineAmbience()
+		}
+	} else {
+		// play power down sequence and make sure engine ambience is not playing
+		engAmbience := g.audio.EngineAmbience()
+		if engAmbience == _SFX_HINT_ENGINE {
+			g.audio.StopEngineAmbience()
+			g.audio.PlayPowerOffSequence()
+		} else {
+			// check if power on sound needs to be started
+			switch g.player.Unit.(type) {
+			case *model.Mech:
+				m := g.player.Unit.(*model.Mech)
+				if m.PowerOffTimer <= 0 && m.PowerOnTimer > 0 && engAmbience != _SFX_HINT_POWER_ON {
+					// play power on sequence if not already playing
+					g.audio.PlayPowerOnSequence()
+				}
+			}
+		}
 	}
 
 	if g.player.JumpJets() > 0 {
@@ -673,9 +703,9 @@ func (g *Game) updateSprites() {
 				s := k.(*render.MechSprite)
 				sUnit := model.EntityUnit(s.Entity)
 				if s.IsDestroyed() {
-					if s.GetMechAnimation() != render.ANIMATE_DESTRUCT {
+					if s.MechAnimation() != render.MECH_ANIMATE_DESTRUCT {
 						// play unit destruction animation
-						s.SetMechAnimation(render.ANIMATE_DESTRUCT)
+						s.SetMechAnimation(render.MECH_ANIMATE_DESTRUCT, false)
 					} else if s.LoopCounter() >= 1 {
 						// delete when animation is over
 						g.sprites.deleteMechSprite(s)
@@ -686,14 +716,45 @@ func (g *Game) updateSprites() {
 					break
 				}
 
+				mech := s.Mech()
 				g.updateMechPosition(s)
 				s.Update(g.player.Pos())
 				g.updateWeaponCooldowns(sUnit)
 
+				if sUnit.Powered() != model.POWER_ON {
+					poweringOn := s.AnimationReversed()
+					if mech.PowerOffTimer > 0 &&
+						(s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN || poweringOn) {
+
+						// start shutdown animation since unit is powering off
+						s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, false)
+					}
+					if mech.PowerOffTimer <= 0 && mech.PowerOnTimer > 0 &&
+						(s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN || !poweringOn) {
+
+						// reverse shutdown animation since unit is powering on
+						s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, true)
+
+					}
+					if s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN {
+						s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, true)
+					}
+				} else {
+					if s.Velocity() == 0 && s.VelocityZ() == 0 {
+						if s.MechAnimation() != render.MECH_ANIMATE_IDLE {
+							s.SetMechAnimation(render.MECH_ANIMATE_IDLE, false)
+						}
+					} else {
+						if s.MechAnimation() != render.MECH_ANIMATE_STRUT {
+							s.SetMechAnimation(render.MECH_ANIMATE_STRUT, false)
+						}
+					}
+				}
+
 				if s.StrideStomp() {
 					s.ResetStrideStomp()
 					pos, posZ := s.Pos(), s.PosZ()
-					mechStompFile, err := StompSFXForMech(sUnit.(*model.Mech))
+					mechStompFile, err := StompSFXForMech(mech)
 					if err == nil {
 						g.audio.PlayExternalAudio(g, mechStompFile, pos.X, pos.Y, posZ, 2.5, 0.35)
 					}
@@ -812,6 +873,18 @@ func (g *Game) updateSprites() {
 }
 
 func (g *Game) updateMechPosition(s *render.MechSprite) {
+	if s.Mech().Powered() != model.POWER_ON {
+		// TODO: refactor to use same update logic from player shutdown
+		s.SetVelocity(0)
+		s.SetVelocityZ(0)
+
+		if s.Mech().Heat() < s.Mech().MaxHeat() {
+			s.Mech().SetPowered(model.POWER_ON)
+		}
+		s.Mech().Update()
+		return
+	}
+
 	// TODO: give mechs a bit more of a brain than this
 	sPosition := s.Pos()
 	if len(s.PatrolPath) > 0 {
@@ -833,6 +906,7 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 				s.PatrolPathIndex = 0
 			}
 			g.updateMechPosition(s)
+			return
 		} else {
 			// keep movements towards current patrol point
 			s.SetHeading(angle)
@@ -855,6 +929,8 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 			s.SetPosZ(newPosZ)
 		}
 	}
+
+	s.Mech().Update()
 }
 
 func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {

@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"github.com/tinne26/etxt"
-	"github.com/tinne26/etxt/efixed"
 )
 
 var (
@@ -40,8 +39,7 @@ func (f *FPSIndicator) updateFontSize(width, height int) {
 		pxSize = 1
 	}
 
-	fractSize, _ := efixed.FromFloat64(pxSize)
-	f.fontRenderer.SetSizePxFract(fractSize)
+	f.fontRenderer.SetSizePx(int(pxSize))
 }
 
 func (f *FPSIndicator) SetFPSText(fpsText string) {
