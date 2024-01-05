@@ -189,6 +189,8 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/quasilyte/ebitengine-input v0.9.0 h1:EwkWsPjftAF46ZwhVDMWlWTImPjHRz+F5lNYqbDZNLw=
 github.com/quasilyte/ebitengine-input v0.9.0/go.mod h1:HRIFIBHHRkQbZASa/95EM6pxUnjxca+g+TFdnGE6QnA=
+github.com/quasilyte/ebitengine-input v0.9.1 h1:sN7jNDLfGn9ZY1lurD4d3oXIOmQbZwYPVpuo4DlsiG0=
+github.com/quasilyte/ebitengine-input v0.9.1/go.mod h1:xYkU+JqzWzjnVMolCIar0VFRly1TtjmEHfQWAoIan+o=
 github.com/quasilyte/gmath v0.0.0-20230723114625-7e8674b9f7b8 h1:sn3OqS/7OZBPrhEhhtEp8nHdatc/RNODsEHNxNRpyz8=
 github.com/quasilyte/gmath v0.0.0-20230723114625-7e8674b9f7b8/go.mod h1:EbI+KMbALSVE2s0YFOQpR4uj66zBh9ter5P4CBMSuvA=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=

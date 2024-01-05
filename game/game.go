@@ -43,7 +43,6 @@ type Game struct {
 	audio       *AudioHandler
 	input       *input.Handler
 	inputSystem input.System
-	inputHeld   map[input.Action]bool
 
 	//--create slicer and declare slices--//
 	tex                *TextureHandler

@@ -185,9 +185,6 @@ func (g *Game) initControls() {
 		g.setDefaultControls()
 		g.saveControls()
 	}
-
-	// temporary input action holder to know when an action is just released
-	g.inputHeld = make(map[input.Action]bool, 8)
 }
 
 func (g *Game) setDefaultControls() {
@@ -338,36 +335,6 @@ func (g *Game) saveControls() error {
 	return nil
 }
 
-func (g *Game) holdInputAction(a input.Action) {
-	g.inputHeld[a] = true
-}
-
-func (g *Game) isHeldInputAction(a input.Action) bool {
-	held, ok := g.inputHeld[a]
-	if ok {
-		return held
-	}
-	return false
-}
-
-func (g *Game) releaseInputAction(a input.Action) {
-	_, ok := g.inputHeld[a]
-	if ok {
-		g.inputHeld[a] = false
-	}
-}
-
-func (g *Game) isInputActionJustReleased(a input.Action) bool {
-	// FIXME: very simple justReleased method until implemented by ebitengine-input:
-	//     https://github.com/quasilyte/ebitengine-input/issues/25
-	v, ok := g.inputHeld[a]
-	if ok && !v {
-		delete(g.inputHeld, a)
-		return true
-	}
-	return false
-}
-
 func (g *Game) handleInput() {
 	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenu)
 	if menuKeyPressed {
@@ -502,13 +469,10 @@ func (g *Game) handleInput() {
 	}
 
 	if g.input.ActionIsPressed(ActionWeaponFire) {
-		g.holdInputAction(ActionWeaponFire)
 		g.firePlayerWeapon(-1)
-	} else {
-		g.releaseInputAction(ActionWeaponFire)
 	}
 
-	isFireButtonJustReleased := g.isInputActionJustReleased(ActionWeaponFire)
+	isFireButtonJustReleased := g.input.ActionIsJustReleased(ActionWeaponFire)
 	if isFireButtonJustReleased {
 		if g.player.fireMode == model.CHAIN_FIRE {
 			// cycle to next weapon only in same group (g.player.selectedGroup)
