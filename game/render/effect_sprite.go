@@ -16,6 +16,9 @@ type EffectSprite struct {
 	*Sprite
 	LoopCount int
 	AudioFile string
+
+	AttachedTo    *Sprite
+	AttachedDepth float64
 }
 
 func NewAnimatedEffect(
@@ -59,15 +62,28 @@ func (e *EffectSprite) Clone() *EffectSprite {
 }
 
 func (e *EffectSprite) Update(camPos *geom.Vector2) {
-	if e.Velocity() != 0 {
-		ePos := e.Pos()
-		trajectory := geom3d.Line3dFromAngle(ePos.X, ePos.Y, e.PosZ(), e.Heading(), e.Pitch(), e.Velocity())
-		e.SetPos(&geom.Vector2{X: trajectory.X2, Y: trajectory.Y2})
-		e.SetPosZ(trajectory.Z2)
-	}
+	if e.AttachedTo != nil && e.AttachedDepth != 0 {
+		// keep this effect moving along with sprite it is attached to
+		x, y, z := e.AttachedTo.Pos().X, e.AttachedTo.Pos().Y, e.AttachedTo.PosZ()
 
-	if e.VelocityZ() != 0 {
-		e.SetPosZ(e.PosZ() + e.VelocityZ())
+		// use attached depth to set relative from camera position so it appears in front or behind attached
+		camLine := &geom.Line{X1: camPos.X, Y1: camPos.Y, X2: x, Y2: y}
+		angle, distance := camLine.Angle(), camLine.Distance()
+
+		attachedLine := geom.LineFromAngle(camPos.X, camPos.Y, angle, distance+e.AttachedDepth)
+		e.SetPos(&geom.Vector2{X: attachedLine.X2, Y: attachedLine.Y2})
+		e.SetPosZ(z)
+	} else {
+		if e.Velocity() != 0 {
+			ePos := e.Pos()
+			trajectory := geom3d.Line3dFromAngle(ePos.X, ePos.Y, e.PosZ(), e.Heading(), e.Pitch(), e.Velocity())
+			e.SetPos(&geom.Vector2{X: trajectory.X2, Y: trajectory.Y2})
+			e.SetPosZ(trajectory.Z2)
+		}
+
+		if e.VelocityZ() != 0 {
+			e.SetPosZ(e.PosZ() + e.VelocityZ())
+		}
 	}
 
 	e.Sprite.Update(camPos)

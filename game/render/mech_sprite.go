@@ -19,6 +19,9 @@ type MechSprite struct {
 	// TODO: move to separate AI handler
 	PatrolPathIndex int
 	PatrolPath      [][2]float64
+
+	// TODO: general purpose method to track state of similar things
+	JetsPlaying bool
 }
 
 type MechPart int

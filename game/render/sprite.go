@@ -54,6 +54,10 @@ func (s *Sprite) Scale() float64 {
 	return s.scale
 }
 
+func (s *Sprite) SetScale(scale float64) {
+	s.scale = scale
+}
+
 func (s *Sprite) VerticalAnchor() raycaster.SpriteAnchor {
 	return s.Entity.Anchor()
 }

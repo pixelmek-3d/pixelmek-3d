@@ -5,6 +5,8 @@ import (
 )
 
 var (
+	JumpJet *model.ModelEffectResource
+
 	Blood      map[string]*model.ModelEffectResource
 	Explosions map[string]*model.ModelEffectResource
 	Fires      map[string]*model.ModelEffectResource
@@ -16,6 +18,17 @@ var (
 )
 
 func init() {
+	// init jump jet animation
+	JumpJet = &model.ModelEffectResource{
+		Scale: 1.0,
+		Image: "jump_jet_flame.png",
+		ImageSheet: &model.ModelResourceImageSheet{
+			Columns:       8,
+			Rows:          8,
+			AnimationRate: 1,
+		},
+	}
+
 	// init bloody animations
 	Blood = make(map[string]*model.ModelEffectResource)
 

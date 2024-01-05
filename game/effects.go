@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
 	"github.com/harbdog/pixelmek-3d/game/resources/effects"
@@ -11,6 +12,9 @@ import (
 )
 
 var (
+	jumpJetEffect     *render.EffectSprite
+	attachedJJEffects map[*render.Sprite]*render.EffectSprite
+
 	bloodEffects     map[string]*render.EffectSprite
 	explosionEffects map[string]*render.EffectSprite
 	fireEffects      map[string]*render.EffectSprite
@@ -18,6 +22,7 @@ var (
 )
 
 func init() {
+	attachedJJEffects = make(map[*render.Sprite]*render.EffectSprite)
 	bloodEffects = make(map[string]*render.EffectSprite)
 	explosionEffects = make(map[string]*render.EffectSprite)
 	fireEffects = make(map[string]*render.EffectSprite)
@@ -25,20 +30,32 @@ func init() {
 }
 
 func (g *Game) loadSpecialEffects() {
+	// load the jump jet effect sprite template
+	jumpJetImg := _getEffectImageFromResource(effects.JumpJet)
+	jumpJetEffect = render.NewAnimatedEffect(effects.JumpJet, jumpJetImg, math.MaxInt)
+	for s := range attachedJJEffects {
+		delete(attachedJJEffects, s)
+	}
+
 	// load the blood effect sprite templates
-	g._loadEffectSpritesFromResourceList(effects.Blood, bloodEffects)
+	_loadEffectSpritesFromResourceList(effects.Blood, bloodEffects)
 
 	// load the explosion effect sprite templates
-	g._loadEffectSpritesFromResourceList(effects.Explosions, explosionEffects)
+	_loadEffectSpritesFromResourceList(effects.Explosions, explosionEffects)
 
 	// load the fire effect sprite templates
-	g._loadEffectSpritesFromResourceList(effects.Fires, fireEffects)
+	_loadEffectSpritesFromResourceList(effects.Fires, fireEffects)
 
 	// load the smoke effect sprite templates
-	g._loadEffectSpritesFromResourceList(effects.Smokes, smokeEffects)
+	_loadEffectSpritesFromResourceList(effects.Smokes, smokeEffects)
 }
 
-func (g *Game) _loadEffectSpritesFromResourceList(
+func _getEffectImageFromResource(r *model.ModelEffectResource) *ebiten.Image {
+	effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, r.Image)
+	return getSpriteFromFile(effectRelPath)
+}
+
+func _loadEffectSpritesFromResourceList(
 	resourceMap map[string]*model.ModelEffectResource, spriteMap map[string]*render.EffectSprite,
 ) {
 	for key, fx := range resourceMap {
@@ -46,11 +63,38 @@ func (g *Game) _loadEffectSpritesFromResourceList(
 			continue
 		}
 		// load the blood effect sprite template
-		effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, fx.Image)
-		effectImg := getSpriteFromFile(effectRelPath)
-
-		eSpriteTemplate := render.NewAnimatedEffect(fx, effectImg, 1)
+		eSpriteTemplate := render.NewAnimatedEffect(fx, _getEffectImageFromResource(fx), 1)
 		spriteMap[key] = eSpriteTemplate
+	}
+}
+
+func (g *Game) spawnJumpJetEffect(s *render.Sprite) {
+	_, found := attachedJJEffects[s]
+	if found {
+		// do not spawn another effect
+		return
+	}
+
+	jumpFx := jumpJetEffect.Clone()
+
+	jumpFx.SetScale(s.Scale())
+	jumpFx.AttachedTo = s
+	jumpFx.AttachedDepth = 0.01
+
+	g.sprites.addEffect(jumpFx)
+
+	// illuminate source sprite unit jump jetting
+	s.SetIlluminationPeriod(5000, 0.35)
+
+	// keep track of effect so only one is attached and can be deleted later
+	attachedJJEffects[s] = jumpFx
+}
+
+func (g *Game) removeJumpJetEffect(s *render.Sprite) {
+	jumpFx, found := attachedJJEffects[s]
+	if found {
+		g.sprites.deleteEffect(jumpFx)
+		delete(attachedJJEffects, s)
 	}
 }
 

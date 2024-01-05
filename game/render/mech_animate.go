@@ -12,7 +12,7 @@ type MechAnimationIndex int
 const (
 	MECH_ANIMATE_IDLE MechAnimationIndex = iota
 	MECH_ANIMATE_STRUT
-	// TODO: MECH_ANIMATE_JUMP
+	MECH_ANIMATE_JUMP_JET
 	MECH_ANIMATE_SHUTDOWN
 	MECH_ANIMATE_DESTRUCT
 	NUM_MECH_ANIMATIONS
@@ -89,6 +89,17 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 		maxCols = animationCfg[MECH_ANIMATE_STRUT].numCols
 	}
 
+	// jump jet animation: torso goes up 4% and back down, while arms go down 4%, and back up
+	jumpPxTorso, jumpPxPerArm := 0.04*float64(uHeight), 0.04*float64(uHeight)
+	animationCfg[MECH_ANIMATE_JUMP_JET] = &mechAnimateConfig{
+		numCols:       16,
+		animationRate: 4,
+		maxLoops:      0,
+	}
+	if animationCfg[MECH_ANIMATE_JUMP_JET].numCols > maxCols {
+		maxCols = animationCfg[MECH_ANIMATE_JUMP_JET].numCols
+	}
+
 	// shut down animation: torso drops 8% pixel height, followed by arms dropping 12% pixel height
 	downPxTorso, downPxPerArm := 0.08*float64(uHeight), 0.12*float64(uHeight)
 	animationCfg[MECH_ANIMATE_SHUTDOWN] = &mechAnimateConfig{
@@ -126,6 +137,9 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 
 	// draw strut animation
 	m.drawMechStrut(uSize, centerX, bottomY, strutPxPerArm, strutPxPerLeg, srcParts)
+
+	// draw jump jet animation
+	m.drawMechJumpJet(uSize, centerX, bottomY, jumpPxTorso, jumpPxPerArm, srcParts)
 
 	// draw shutdown animation
 	m.drawMechShutdown(uSize, centerX, bottomY, downPxTorso, downPxPerArm, srcParts)
@@ -211,6 +225,30 @@ func (m *MechSpriteAnimate) drawMechStrut(uSize int, adjustX, adjustY, pxPerArm,
 	m.drawMechAnimationParts(
 		row, col, 4, uSize, adjustX, adjustY, ct, pxPerTorso, la, -pxPerArm, 0, ra, pxPerArm, 0, ll, pxPerLeg, 0, rl, 0, 0,
 	)
+}
+
+// drawMechJumpJet draws onto the sheet the jump jet animation in its assigned row in the sheet
+func (m *MechSpriteAnimate) drawMechJumpJet(uSize int, adjustX, adjustY, pxTorso, pxPerArm float64, parts []*mechAnimatePart) {
+	row, col := int(MECH_ANIMATE_JUMP_JET), 0
+
+	resetMechAnimationParts(parts)
+	ct := parts[MECH_PART_CT]
+	la := parts[MECH_PART_LA]
+	ra := parts[MECH_PART_RA]
+	ll := parts[MECH_PART_LL]
+	rl := parts[MECH_PART_RL]
+
+	// 8x arms down, ct up
+	m.drawMechAnimationParts(
+		row, col, 8, uSize, adjustX, adjustY, ct, pxTorso, la, -pxPerArm, 0, ra, -pxPerArm, 0, ll, 0, 0, rl, 0, 0,
+	)
+	col += 8
+
+	// 8x arms up, ct down
+	m.drawMechAnimationParts(
+		row, col, 8, uSize, adjustX, adjustY, ct, -pxTorso, la, pxPerArm, 0, ra, pxPerArm, 0, ll, 0, 0, rl, 0, 0,
+	)
+	col += 8
 }
 
 // drawMechShutdown draws onto the sheet the idle animation in its assigned row in the sheet

@@ -164,13 +164,15 @@ func (e *Mech) Update() bool {
 	if e.jumpJetsActive {
 		// consume jump jet charge
 		e.jumpJetDuration += SECONDS_PER_TICK
-		if e.jumpJetDuration >= e.maxJumpJetDuration {
+		if e.jumpJetDuration < e.maxJumpJetDuration {
+			// set jump jet heading and velocity only while active
+			e.jumpJetHeading = e.heading
+			e.jumpJetVelocity = e.velocity
+		} else {
 			e.jumpJetDuration = e.maxJumpJetDuration
+			e.SetJumpJetsActive(false)
+			e.SetTargetVelocityZ(0)
 		}
-
-		// set jump jet heading and velocity only while active
-		e.jumpJetHeading = e.heading
-		e.jumpJetVelocity = e.velocity
 
 	} else {
 		if e.positionZ > 0 {
@@ -253,7 +255,8 @@ func (e *Mech) Update() bool {
 		if zDeltaV > 0 && e.targetVelocityZ > 0 && zNewV > e.targetVelocityZ {
 			// bound velocity changes to target velocity (for jump jets, ascent only)
 			zNewV = e.targetVelocityZ
-		} else if e.positionZ <= 0 && zNewV < 0 {
+		}
+		if e.positionZ <= 0 && zNewV < 0 {
 			// negative velocity returns to zero when back on the ground
 			zNewV = 0
 		}

@@ -58,9 +58,10 @@ type BGMHandler struct {
 }
 
 type SFXHandler struct {
-	mainSources  []*SFXSource
-	extSources   *queue.Priority[*SFXSource]
-	_extSFXCount *sync.Map // map[string]float64
+	mainSources   []*SFXSource
+	entitySources *sync.Map // map[model.Entity]*SFXSource
+	extSources    *queue.Priority[*SFXSource]
+	_extSFXCount  *sync.Map // map[string]float64
 }
 
 type SFXSource struct {
@@ -98,6 +99,8 @@ func NewAudioHandler() *AudioHandler {
 	a.sfxMap = &sync.Map{}
 	a.sfx = &SFXHandler{}
 	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
+	a.sfx.entitySources = &sync.Map{}
+
 	a.sfx.mainSources[AUDIO_INTERFACE] = NewSoundEffectSource(0.8)
 	// engine audio source file setup later since it is a looping ambient source
 	// TODO: increase engine noise level a bit when running or at high heat levels
@@ -153,6 +156,40 @@ func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 	}
 
 	s.player = s.channel.CreatePlayer(stream)
+	s.player.SetBufferSize(time.Millisecond * 100)
+	s._sfxFile = sfxFile
+
+	return nil
+}
+
+// LoadLoopSFX loads a new looping sound effect player into the sound effect channel
+func (s *SFXSource) LoadLoopSFX(a *AudioHandler, sfxFile string) error {
+	// make sure current source is closed before loading a new one
+	s.Close()
+
+	// use cache of audio if possible
+	var audioBytes []byte
+	iAudioBytes, found := a.sfxMap.Load(sfxFile)
+	if audioBytesCheck, ok := iAudioBytes.([]byte); found && ok {
+		audioBytes = audioBytesCheck
+	} else {
+		var err error
+		audioBytes, err = resources.ReadFile(sfxFile)
+		if err != nil {
+			log.Error("Error reading looping sound effect file: " + sfxFile)
+			return err
+		}
+		a.sfxMap.Store(sfxFile, audioBytes)
+	}
+
+	stream, length, err := resources.NewAudioStream(audioBytes, sfxFile)
+	if err != nil {
+		log.Error("Error playing looping sound effect file: " + sfxFile)
+		return err
+	}
+
+	loop := audio.NewInfiniteLoop(stream, length)
+	s.player = s.channel.CreatePlayer(loop)
 	s.player.SetBufferSize(time.Millisecond * 100)
 	s._sfxFile = sfxFile
 
@@ -246,6 +283,65 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	// increment count of this sound effect
 	a.sfx._updateExtSFXCount(sfxFile, 1)
 	a.sfx.extSources.Offer(source)
+}
+
+// PlayLoopEntitySFX plays given looping sound effect as emitted from an Entity object, if not already playing
+func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, sourceVolume, panPercent float64) {
+	if sfxVolume <= 0 || sourceVolume <= 0 {
+		return
+	}
+
+	// check if entity is already playing a looping source to update instead of playing as new source
+	var source *SFXSource
+	a.sfx.entitySources.Range(func(k, v interface{}) bool {
+		if entity == k.(model.Entity) {
+			source = v.(*SFXSource)
+			return false
+		}
+		return true
+	})
+
+	// get and close the lowest priority source for reuse
+	// source, _ := a.sfx.extSources.Get()
+	if source == nil {
+		source = NewSoundEffectSource(0.0)
+	} else if source._sfxFile != sfxFile {
+		// close out the source to play a new source
+		source.Close()
+	}
+
+	// update volume and panning, even if continuing to play current loop
+	source.SetSourceVolume(sourceVolume)
+	source.SetPan(panPercent)
+
+	if source._sfxFile == sfxFile {
+		// TODO: any better way to get the volume and pan to update in a playing loop?
+		source.player.Pause()
+		source.player.Play()
+	} else {
+		source.LoadLoopSFX(a, sfxFile)
+		source.Play()
+	}
+
+	// store the sound effect against the Entity
+	a.sfx.entitySources.Store(entity, source)
+}
+
+// StopLoopEntitySFX stops given looping sound effect as emitted from an Entity object
+func (a *AudioHandler) StopLoopEntitySFX(sfxFile string, entity model.Entity) {
+	var source *SFXSource
+	a.sfx.entitySources.Range(func(k, v interface{}) bool {
+		if entity == k.(model.Entity) {
+			source = v.(*SFXSource)
+			return false
+		}
+		return true
+	})
+
+	if source != nil && sfxFile == source._sfxFile {
+		source.Close()
+		source._sfxFile = ""
+	}
 }
 
 // _updateExtSFXCount is used to keep track of duplicate sound effects being played to prioritize channel reuse
@@ -382,9 +478,13 @@ func (a *AudioHandler) StopSFX() {
 	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
 			s.player.Close()
-			//s.player = nil // do not want to have to reinitialize main sources
 		}
 	}
+	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+		s := v.(*SFXSource)
+		s.Close()
+		return true
+	})
 	for s := range a.sfx.extSources.Iterator() {
 		s.Close()
 		a.sfx.extSources.Offer(s)
@@ -396,6 +496,11 @@ func (a *AudioHandler) PauseSFX() {
 	for _, s := range a.sfx.mainSources {
 		s.Pause()
 	}
+	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+		s := v.(*SFXSource)
+		s.Pause()
+		return true
+	})
 	for s := range a.sfx.extSources.Iterator() {
 		s.Pause()
 		a.sfx.extSources.Offer(s)
@@ -407,6 +512,11 @@ func (a *AudioHandler) ResumeSFX() {
 	for _, s := range a.sfx.mainSources {
 		s.Resume()
 	}
+	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+		s := v.(*SFXSource)
+		s.Resume()
+		return true
+	})
 	for s := range a.sfx.extSources.Iterator() {
 		s.Resume()
 		a.sfx.extSources.Offer(s)
@@ -515,6 +625,13 @@ func StompSFXForMech(m *model.Mech) (string, error) {
 	return mechStompFile, nil
 }
 
+func JumpJetSFXForMech(m *model.Mech) (string, error) {
+	if m == nil {
+		return "", fmt.Errorf("can not get jump jet SFX for nil mech")
+	}
+	return "audio/sfx/jet-thrust.ogg", nil
+}
+
 // PlayButtonAudio plays the indicated button audio channel resource
 func (a *AudioHandler) PlayButtonAudio(buttonResource AudioInterfaceResource) {
 	sfxSource := a.sfx.mainSources[AUDIO_INTERFACE]
@@ -594,4 +711,33 @@ func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPo
 	if extVolume > 0.05 {
 		go g.audio.PlaySFX(sfxFile, extVolume, relPercent)
 	}
+}
+
+// PlayEntityAudioLoop plays audio that may be near the player emitted from an Entity object
+// intensityDist - distance of 100% sound intensity before volume begins to dropoff at a rate of 1/d^2
+// maxVolume - the maximum volume percent to be perceived by the player
+func (a *AudioHandler) PlayEntityAudioLoop(g *Game, sfxFile string, entity model.Entity, intensityDist, maxVolume float64) {
+	playerPos := g.player.Pos()
+	playerHeading := g.player.Heading() + g.player.TurretAngle()
+
+	extPosX, extPosY, extPosZ := entity.Pos().X, entity.Pos().Y, entity.PosZ()
+	extLine := geom3d.Line3d{
+		X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
+		X2: extPosX, Y2: extPosY, Z2: extPosZ,
+	}
+	extDist := extLine.Distance()
+	extHeading := extLine.Heading()
+
+	relHeading := -model.AngleDistance(playerHeading, extHeading)
+	relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
+
+	extVolume := geom.Clamp(math.Pow(intensityDist/extDist, 2), 0.0, maxVolume)
+	if extVolume > 0.05 {
+		go g.audio.PlayLoopEntitySFX(sfxFile, entity, extVolume, relPercent)
+	}
+}
+
+// StopEntityAudioLoop stops audio emitted from an Entity object that may have been playing
+func (a *AudioHandler) StopEntityAudioLoop(g *Game, sfxFile string, entity model.Entity) {
+	g.audio.StopLoopEntitySFX(sfxFile, entity)
 }

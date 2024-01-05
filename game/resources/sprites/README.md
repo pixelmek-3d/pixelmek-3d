@@ -2,8 +2,14 @@
 
 ## ./effects
 
+- `autocannon_*_impact`: "JoesAlotofthings"
+  - https://opengameart.org/content/alotofimpacts-15-frame-impacts-wsmoke-3-variations
+
 - `blood`: "Betson/borix134"
   - https://opengameart.org/content/blood-effect-sprite-sheet
+
+- `bullet_impact`: "JoesAlotofthings"
+  - https://opengameart.org/content/alotofimpacts-5-frame-impacts-4-variations-brown-orange-impacts-17of20
 
 - `explosion_*`, `smoke_*`: "chabull"
   - https://opengameart.org/content/explosions-0
@@ -11,11 +17,8 @@
 - `fire_*`: "Retimer"
   - https://opengameart.org/content/wgstudio-fire-animation-loop
 
-- `autocannon_*_impact`: "JoesAlotofthings"
-  - https://opengameart.org/content/alotofimpacts-15-frame-impacts-wsmoke-3-variations
-
-- `bullet_impact`: "JoesAlotofthings"
-  - https://opengameart.org/content/alotofimpacts-5-frame-impacts-4-variations-brown-orange-impacts-17of20
+- `jump_jet_flame`: "para"
+  - https://opengameart.org/content/animated-particle-effects-2
 
 - `laser_x_impact`: Ville Seppanen
   - https://opengameart.org/content/explosion-animated
