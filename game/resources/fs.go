@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/spf13/viper"
 
@@ -167,8 +168,16 @@ func ReadDir(path string) ([]fs.DirEntry, error) {
 		return nil, fmt.Errorf("directory not found for %s", path)
 	}
 
+	// sort filename keys
+	keys := make([]string, 0, len(fsPathSub))
+	for k := range fsPathSub {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 	var entries []fs.DirEntry = make([]fs.DirEntry, 0, len(fsPathSub))
-	for _, fsr := range fsPathSub {
+	for _, k := range keys {
+		fsr := fsPathSub[k]
 		entries = append(entries, fsr.entry)
 	}
 	return entries, nil
