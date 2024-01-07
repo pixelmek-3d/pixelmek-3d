@@ -388,7 +388,7 @@ func (r *ModelResources) loadUnitResources() error {
 	v := validator.New()
 
 	unitsPath := "units"
-	unitsTypes, err := resources.FilesInPath(unitsPath)
+	unitsTypes, err := resources.ReadDir(unitsPath)
 	if err != nil {
 		return err
 	}
@@ -401,7 +401,7 @@ func (r *ModelResources) loadUnitResources() error {
 
 		unitType := t.Name()
 		unitTypePath := filepath.Join(unitsPath, unitType)
-		unitFiles, err := resources.FilesInPath(unitTypePath)
+		unitFiles, err := resources.ReadDir(unitTypePath)
 		if err != nil {
 			return err
 		}
@@ -524,7 +524,7 @@ func (r *ModelResources) loadWeaponResources() error {
 	v := validator.New()
 
 	weaponsPath := "weapons"
-	weaponsTypes, err := resources.FilesInPath(weaponsPath)
+	weaponsTypes, err := resources.ReadDir(weaponsPath)
 	if err != nil {
 		return err
 	}
@@ -537,7 +537,7 @@ func (r *ModelResources) loadWeaponResources() error {
 
 		weaponType := t.Name()
 		weaponTypePath := filepath.Join(weaponsPath, weaponType)
-		weaponFiles, err := resources.FilesInPath(weaponTypePath)
+		weaponFiles, err := resources.ReadDir(weaponTypePath)
 		if err != nil {
 			return err
 		}

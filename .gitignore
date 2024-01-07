@@ -15,3 +15,7 @@ bin/
 
 # IDE files
 .vscode
+
+# Only allow mods documentation
+mods/*
+!mods/README.md

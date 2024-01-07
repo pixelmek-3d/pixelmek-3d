@@ -13,6 +13,7 @@ import (
 
 	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/harbdog/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -81,6 +82,7 @@ type Game struct {
 	fonts *render.FontHandler
 
 	hudEnabled        bool
+	hudFont           string
 	hudScale          float64
 	hudRGBA           *color.NRGBA
 	hudUseCustomColor bool
@@ -148,13 +150,22 @@ const (
 func NewGame() *Game {
 	// initialize Game object
 	g := new(Game)
-	g.fonts = render.NewFontHandler()
-
 	g.initConfig()
 	g.initControls()
 
 	if g.opengl {
 		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
+	}
+
+	// initialize resources file handler
+	resources.InitFS()
+
+	// initialize fonts
+	var err error
+	g.fonts, err = render.NewFontHandler(g.hudFont)
+	if err != nil {
+		log.Error("Error loading font handler:", err)
+		exit(1)
 	}
 
 	// initialize audio and background music
@@ -174,11 +185,9 @@ func NewGame() *Game {
 	g.setFullscreen(g.fullscreen)
 	g.setVsyncEnabled(g.vsync)
 
-	var err error
 	g.resources, err = model.LoadModelResources()
 	if err != nil {
-		log.Error("Error loading models:")
-		log.Error(err)
+		log.Error("Error loading models:", err)
 		exit(1)
 	}
 

@@ -136,7 +136,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 func ListMissionFilenames() ([]string, error) {
 	missionFilenames := make([]string, 0, 64)
 	missionsPath := "missions"
-	missionFiles, err := resources.FilesInPath(missionsPath)
+	missionFiles, err := resources.ReadDir(missionsPath)
 	if err != nil {
 		return missionFilenames, err
 	}

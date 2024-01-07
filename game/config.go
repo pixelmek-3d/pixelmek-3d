@@ -121,13 +121,8 @@ func (g *Game) initConfig() {
 	clutterDistanceMeters := viper.GetFloat64(CONFIG_KEY_CLUTTER_DISTANCE)
 	g.clutterDistance = clutterDistanceMeters / model.METERS_PER_UNIT
 
-	var err error
-	g.fonts.HUDFont, err = g.fonts.LoadFont(viper.GetString(CONFIG_KEY_HUD_FONT))
-	if err != nil {
-		log.Fatal(err)
-		exit(1)
-	}
 	g.hudEnabled = viper.GetBool(CONFIG_KEY_HUD_ENABLED)
+	g.hudFont = viper.GetString(CONFIG_KEY_HUD_FONT)
 	g.hudScale = viper.GetFloat64(CONFIG_KEY_HUD_SCALE)
 	g.hudUseCustomColor = viper.GetBool(CONFIG_KEY_HUD_COLOR_CUSTOM)
 	g.hudRGBA = &color.NRGBA{

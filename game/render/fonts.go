@@ -19,9 +19,11 @@ type Font struct {
 	FontPath  string
 }
 
-func NewFontHandler() *FontHandler {
+func NewFontHandler(hudFont string) (*FontHandler, error) {
+	var err error
 	f := &FontHandler{}
-	return f
+	f.HUDFont, err = f.LoadFont(hudFont)
+	return f, err
 }
 
 func (f *FontHandler) LoadFont(fontFile string) (*Font, error) {
