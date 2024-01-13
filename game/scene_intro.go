@@ -3,9 +3,9 @@ package game
 import (
 	"image"
 
-	"github.com/harbdog/pixelmek-3d/game/render/effects"
-	"github.com/harbdog/pixelmek-3d/game/render/transitions"
-	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"

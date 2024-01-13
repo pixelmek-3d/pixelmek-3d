@@ -4,7 +4,7 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
 type LaunchMenu struct {

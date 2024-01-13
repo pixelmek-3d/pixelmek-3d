@@ -6,8 +6,8 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/tinne26/etxt"
 )
 

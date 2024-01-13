@@ -2,7 +2,7 @@ package transitions
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 type Dissolve struct {

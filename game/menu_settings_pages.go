@@ -6,7 +6,7 @@ import (
 	"math"
 
 	"github.com/ebitenui/ebitenui/widget"
-	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
 type settingsPageContainer struct {
