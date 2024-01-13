@@ -1,0 +1,76 @@
+---
+name: Build Executables
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  GO_VERSION: "1.20"
+
+jobs:
+
+  build-lnx:
+    name: Build Linux binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Install dependencies
+        shell: bash
+        run: sudo apt-get update && sudo apt-get -y install libgl1-mesa-dev xorg-dev libasound2-dev
+      - name: Build Linux executable
+        shell: bash
+        run: go build -o bin/pixelmek-3d
+      - name: Tar it up
+        shell: bash
+        run: tar -zcvf pixelmek-3d-lnx.tar.gz bin/pixelmek-3d LICENSE
+      - name: Upload Linux executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: pixelmek-3d-lnx
+          path: pixelmek-3d-lnx.tar.gz
+
+  build-win:
+    name: Build Windows binary
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Build Windows executable
+        shell: bash
+        run: go build -o bin/pixelmek-3d.exe
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: pixelmek-3d-win
+          path: |
+            LICENSE
+            bin/pixelmek-3d.exe
+
+  build-mac:
+    name: Build MacOS binary
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Build Mac executable
+        shell: bash
+        run: go build -o bin/pixelmek-3d
+      - name: Tar it up
+        shell: bash
+        run: tar -zcvf pixelmek-3d-mac.tar.gz bin/pixelmek-3d LICENSE
+      - name: Upload Mac executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: pixelmek-3d-mac
+          path: pixelmek-3d-mac.tar.gz
