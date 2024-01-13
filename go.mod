@@ -1,4 +1,4 @@
-module github.com/harbdog/pixelmek-3d
+module github.com/pixelmek-3d/pixelmek-3d
 
 go 1.20
 

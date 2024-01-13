@@ -8,11 +8,11 @@ import (
 
 	"github.com/adrianbrad/queue"
 	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/harbdog/pixelmek-3d/game/model"
-	"github.com/harbdog/pixelmek-3d/game/render"
-	"github.com/harbdog/pixelmek-3d/game/resources"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/solarlune/resound"
 
 	log "github.com/sirupsen/logrus"

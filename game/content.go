@@ -7,9 +7,9 @@ import (
 	"math"
 	"path/filepath"
 
-	"github.com/harbdog/pixelmek-3d/game/model"
-	"github.com/harbdog/pixelmek-3d/game/render"
-	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"

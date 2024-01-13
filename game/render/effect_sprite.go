@@ -3,9 +3,9 @@ package render
 import (
 	"path/filepath"
 
-	"github.com/harbdog/pixelmek-3d/game/model"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"

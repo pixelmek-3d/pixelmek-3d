@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
 type InstantActionScene struct {

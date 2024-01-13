@@ -5,10 +5,10 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/pixelmek-3d/game/model"
-	"github.com/harbdog/pixelmek-3d/game/render"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 )
 
 type HUDElementType int

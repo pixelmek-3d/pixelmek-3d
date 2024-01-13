@@ -6,7 +6,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/harbdog/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"

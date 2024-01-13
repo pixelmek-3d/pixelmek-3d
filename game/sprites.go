@@ -5,8 +5,8 @@ import (
 	"math"
 	"sync"
 
-	"github.com/harbdog/pixelmek-3d/game/model"
-	"github.com/harbdog/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 
 	"github.com/harbdog/raycaster-go"
 )

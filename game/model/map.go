@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"

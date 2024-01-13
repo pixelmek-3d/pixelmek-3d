@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/harbdog/pixelmek-3d/game/model"
-	"github.com/harbdog/pixelmek-3d/game/render"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	log "github.com/sirupsen/logrus"
 )
 

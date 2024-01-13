@@ -17,7 +17,7 @@ package main
 import (
 	"os"
 
-	"github.com/harbdog/pixelmek-3d/game"
+	"github.com/pixelmek-3d/pixelmek-3d/game"
 	log "github.com/sirupsen/logrus"
 )
 

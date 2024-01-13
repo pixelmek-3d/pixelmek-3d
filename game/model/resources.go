@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )

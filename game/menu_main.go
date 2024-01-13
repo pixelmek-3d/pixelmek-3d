@@ -147,6 +147,6 @@ func mainMenuFooterContainer(m *MainMenu) *widget.Container {
 		}),
 	)))
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("github.com/harbdog/pixelmek-3d", res.text.smallFace, res.text.disabledColor)))
+		widget.TextOpts.Text("github.com/pixelmek-3d/pixelmek-3d", res.text.smallFace, res.text.disabledColor)))
 	return c
 }

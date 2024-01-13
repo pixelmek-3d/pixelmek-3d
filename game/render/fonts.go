@@ -3,7 +3,7 @@ package render
 import (
 	"path/filepath"
 
-	"github.com/harbdog/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/tinne26/etxt"
 	"github.com/tinne26/etxt/ecache"
 )
