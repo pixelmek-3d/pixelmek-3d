@@ -1,0 +1,101 @@
+---
+name: Build/Release Executables
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: ["v*.*.*"]
+
+env:
+  GO_VERSION: "1.20"
+
+jobs:
+
+  build-lnx:
+    name: Build Linux binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Install dependencies
+        shell: bash
+        run: sudo apt-get update && sudo apt-get -y install libgl1-mesa-dev xorg-dev libasound2-dev
+      - name: Build Linux executable
+        shell: bash
+        run: go build -o pixelmek-3d
+      - name: Tar it up
+        shell: bash
+        run: tar -zcvf pixelmek-3d-lnx.tar.gz pixelmek-3d LICENSE
+      - name: Upload Linux executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelmek-3d-lnx
+          path: pixelmek-3d-lnx.tar.gz
+
+  build-mac:
+    name: Build MacOS binary
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Build Mac executable
+        shell: bash
+        run: go build -o pixelmek-3d
+      - name: Tar it up
+        shell: bash
+        run: tar -zcvf pixelmek-3d-mac.tar.gz pixelmek-3d LICENSE
+      - name: Upload Mac executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelmek-3d-mac
+          path: pixelmek-3d-mac.tar.gz
+
+  build-win:
+    name: Build Windows binary
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Build Windows executable
+        shell: bash
+        run: go build -o pixelmek-3d.exe
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelmek-3d-win
+          path: |
+            LICENSE
+            pixelmek-3d.exe
+
+  release:
+    name: Create release from tag
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build-lnx
+      - build-win
+      - build-mac
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all executables
+        uses: actions/download-artifact@v4
+      - name: Display downloaded artifacts
+        run: ls -R
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            pixelmek-3d.exe
+            pixelmek-3d-lnx.tar.gz
+            pixelmek-3d-mac.tar.gz
