@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 
@@ -99,7 +100,7 @@ func _storeFsResource(p string, d fs.DirEntry, _fs fs.FS) {
 	}
 
 	fName := d.Name()
-	fParent := filepath.Dir(p)
+	fParent := path.Dir(p)
 
 	fsr := &fsResource{
 		entry: d,
@@ -130,17 +131,17 @@ func _loadTarFS(path string) (fs.FS, error) {
 	return tfs, nil
 }
 
-func _fsForPath(path string) (fs.FS, error) {
-	pDir := filepath.Dir(path)
+func _fsForPath(fPath string) (fs.FS, error) {
+	pDir := path.Dir(fPath)
 	fsPathSub, ok := fsPathMap[pDir]
 	if !ok {
-		return nil, fmt.Errorf("directory not found for %s", path)
+		return nil, fmt.Errorf("directory not found for %s", fPath)
 	}
 
-	pBase := filepath.Base(path)
+	pBase := path.Base(fPath)
 	fsr, ok := fsPathSub[pBase]
 	if !ok {
-		return nil, fmt.Errorf("file not found for %s", path)
+		return nil, fmt.Errorf("file not found for %s", fPath)
 	}
 
 	return fsr.fs, nil

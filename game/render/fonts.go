@@ -1,7 +1,7 @@
 package render
 
 import (
-	"path/filepath"
+	"path"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/tinne26/etxt"
@@ -27,8 +27,8 @@ func NewFontHandler(hudFont string) (*FontHandler, error) {
 }
 
 func (f *FontHandler) LoadFont(fontFile string) (*Font, error) {
-	fontPath := filepath.Join("fonts", fontFile)
-	font, fontName, err := resources.NewFontFromFile(filepath.ToSlash(fontPath))
+	fontPath := path.Join("fonts", fontFile)
+	font, fontName, err := resources.NewFontFromFile(fontPath)
 	if err != nil {
 		return nil, err
 	}

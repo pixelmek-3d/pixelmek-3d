@@ -27,3 +27,9 @@ jobs:
       - name: Build Linux executable
         shell: bash
         run: go build -o pixelmek-3d -v
+
+      - name: Upload Linux executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelmek-3d
+          path: pixelmek-3d

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"path/filepath"
+	"path"
 	"strings"
 
 	"github.com/harbdog/raycaster-go/geom"
@@ -67,7 +67,7 @@ func NewEnergyWeapon(r *ModelEnergyWeaponResource, collisionRadius, collisionHei
 	}
 
 	if len(r.Audio) > 0 {
-		w.audio = filepath.Join("audio/sfx/weapons", r.Audio)
+		w.audio = path.Join("audio/sfx/weapons", r.Audio)
 	}
 
 	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight)

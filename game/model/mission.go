@@ -1,7 +1,7 @@
 package model
 
 import (
-	"path/filepath"
+	"path"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
@@ -97,7 +97,7 @@ func (n *NavPoint) SetVisited(visited bool) {
 }
 
 func LoadMission(missionFile string) (*Mission, error) {
-	missionPath := filepath.Join("missions", missionFile)
+	missionPath := path.Join("missions", missionFile)
 
 	missionYaml, err := resources.ReadFile(missionPath)
 	if err != nil {

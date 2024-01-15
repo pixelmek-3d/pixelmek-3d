@@ -2,7 +2,7 @@ package render
 
 import (
 	"math"
-	"path/filepath"
+	"path"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 
@@ -55,7 +55,7 @@ func NewAnimatedProjectile(
 
 	for _, audioFile := range impactAudioFiles {
 		if len(audioFile) > 0 {
-			audioFile = filepath.Join("audio/sfx/impacts", audioFile)
+			audioFile = path.Join("audio/sfx/impacts", audioFile)
 			s.ImpactAudioFiles = append(s.ImpactAudioFiles, audioFile)
 		}
 	}
