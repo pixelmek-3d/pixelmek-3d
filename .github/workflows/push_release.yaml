@@ -86,8 +86,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download all executables
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
       - name: Display downloaded artifacts
         run: ls -R
       - name: Release
