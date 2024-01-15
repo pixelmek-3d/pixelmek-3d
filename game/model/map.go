@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math"
-	"path/filepath"
+	"path"
 	"regexp"
 	"strings"
 
@@ -176,7 +176,7 @@ func (m *Map) Level(levelNum int) [][]int {
 }
 
 func LoadMap(mapFile string) (*Map, error) {
-	mapPath := filepath.Join("maps", mapFile)
+	mapPath := path.Join("maps", mapFile)
 
 	mapYaml, err := resources.ReadFile(mapPath)
 	if err != nil {

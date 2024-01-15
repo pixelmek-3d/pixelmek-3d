@@ -1,7 +1,7 @@
 package render
 
 import (
-	"path/filepath"
+	"path"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -40,7 +40,7 @@ func NewAnimatedEffect(
 
 	// optional audio for sound effects (not for projectile impact effect audio)
 	if len(r.Audio) > 0 {
-		e.AudioFile = filepath.Join("audio/sfx/impacts", r.Audio)
+		e.AudioFile = path.Join("audio/sfx/impacts", r.Audio)
 	}
 
 	return e

@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"path/filepath"
+	"path"
 	"sort"
 	"strings"
 
@@ -400,7 +400,7 @@ func (r *ModelResources) loadUnitResources() error {
 		}
 
 		unitType := t.Name()
-		unitTypePath := filepath.Join(unitsPath, unitType)
+		unitTypePath := path.Join(unitsPath, unitType)
 		unitFiles, err := resources.ReadDir(unitTypePath)
 		if err != nil {
 			return err
@@ -431,7 +431,7 @@ func (r *ModelResources) loadUnitResources() error {
 			}
 
 			fileName := u.Name()
-			filePath := filepath.Join(unitTypePath, fileName)
+			filePath := path.Join(unitTypePath, fileName)
 			unitYaml, err := resources.ReadFile(filePath)
 			if err != nil {
 				return err
@@ -536,7 +536,7 @@ func (r *ModelResources) loadWeaponResources() error {
 		}
 
 		weaponType := t.Name()
-		weaponTypePath := filepath.Join(weaponsPath, weaponType)
+		weaponTypePath := path.Join(weaponsPath, weaponType)
 		weaponFiles, err := resources.ReadDir(weaponTypePath)
 		if err != nil {
 			return err
@@ -558,7 +558,7 @@ func (r *ModelResources) loadWeaponResources() error {
 			}
 
 			fileName := u.Name()
-			weaponFilePath := filepath.Join(weaponTypePath, fileName)
+			weaponFilePath := path.Join(weaponTypePath, fileName)
 			weaponYaml, err := resources.ReadFile(weaponFilePath)
 			if err != nil {
 				return err

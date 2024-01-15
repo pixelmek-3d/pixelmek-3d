@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/color"
 	"math"
-	"path/filepath"
+	"path"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
@@ -27,7 +27,7 @@ var (
 func getRGBAFromFile(texFile string) *image.RGBA {
 	var rgba *image.RGBA
 	resourcePath := "textures"
-	texFilePath := filepath.Join(resourcePath, texFile)
+	texFilePath := path.Join(resourcePath, texFile)
 	if rgba, ok := rgbaByPath[texFilePath]; ok {
 		return rgba
 	}
@@ -55,7 +55,7 @@ func getRGBAFromFile(texFile string) *image.RGBA {
 }
 
 func getTextureFromFile(texFile string) *ebiten.Image {
-	resourcePath := filepath.Join("textures", texFile)
+	resourcePath := path.Join("textures", texFile)
 	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
@@ -71,7 +71,7 @@ func getTextureFromFile(texFile string) *ebiten.Image {
 }
 
 func getSpriteFromFile(sFile string) *ebiten.Image {
-	resourcePath := filepath.Join("sprites", sFile)
+	resourcePath := path.Join("sprites", sFile)
 	if eImg, ok := imageByPath[resourcePath]; ok {
 		return eImg
 	}
