@@ -15,6 +15,7 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 	m := &Infantry{
 		Resource: r,
 		UnitModel: &UnitModel{
+			unitType:           InfantryUnitType,
 			anchor:             raycaster.AnchorBottom,
 			collisionRadius:    collisionRadius,
 			collisionHeight:    collisionHeight,

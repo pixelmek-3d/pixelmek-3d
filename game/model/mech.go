@@ -32,6 +32,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 	m := &Mech{
 		Resource: r,
 		UnitModel: &UnitModel{
+			unitType:           MechUnitType,
 			anchor:             raycaster.AnchorBottom,
 			collisionRadius:    collisionRadius,
 			collisionHeight:    collisionHeight,

@@ -12,6 +12,18 @@ const (
 	UNIT_POWER_OFF_SECONDS float64 = 1.5
 )
 
+type UnitType int
+
+const (
+	MapUnitType UnitType = iota
+	MechUnitType
+	VehicleUnitType
+	VTOLUnitType
+	InfantryUnitType
+	EmplacementUnitType
+	TotalUnitTypes
+)
+
 type UnitPowerStatus int
 
 const (
@@ -25,6 +37,7 @@ type Unit interface {
 	Name() string
 	Variant() string
 	Tonnage() float64
+	UnitType() UnitType
 
 	Heat() float64
 	MaxHeat() float64
@@ -73,6 +86,7 @@ type Unit interface {
 }
 
 type UnitModel struct {
+	unitType           UnitType
 	position           *geom.Vector2
 	positionZ          float64
 	anchor             raycaster.SpriteAnchor
@@ -134,6 +148,10 @@ func (e1 *UnitModel) DistanceToEntity(e2 Entity) float64 {
 	return line.Distance()
 }
 
+func (e *UnitModel) UnitType() UnitType {
+	return e.unitType
+}
+
 func (e *UnitModel) Pitch() float64 {
 	return e.pitch
 }
@@ -143,11 +161,27 @@ func (e *UnitModel) Heat() float64 {
 }
 
 func (e *UnitModel) MaxHeat() float64 {
-	// FIXME: determine based on # of heat sinks
-	return 100
+	// determine based on unit type and # of heat sinks
+	switch e.unitType {
+	case MechUnitType:
+		return 50 + float64(e.heatSinks)
+	case VehicleUnitType:
+		return 50 + float64(e.heatSinks)
+	case VTOLUnitType:
+		return 50 + float64(e.heatSinks)
+	case InfantryUnitType:
+		return float64(e.heatSinks)
+	case EmplacementUnitType:
+		return 100 + float64(e.heatSinks)
+	}
+	return 1
 }
 
 func (e *UnitModel) OverHeated() bool {
+	if e.powered == POWER_OFF_HEAT {
+		// resuming from auto shutdown overheat status requires under 70% of max heat
+		return e.heat > 0.7*e.MaxHeat()
+	}
 	return e.heat > e.MaxHeat()
 }
 

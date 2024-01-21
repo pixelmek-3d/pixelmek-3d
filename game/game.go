@@ -65,21 +65,7 @@ type Game struct {
 
 	player    *Player
 	playerHUD map[HUDElementType]HUDElement
-	// playerStatus  *render.UnitStatus
-	// targetStatus  *render.UnitStatus
-	// navStatus     *render.NavStatus
-	// armament      *render.Armament
-	// compass       *render.Compass
-	// altimeter     *render.Altimeter
-	// heat          *render.HeatIndicator
-	// radar         *render.Radar
-	// throttle      *render.Throttle
-	// jets          *render.JumpJetIndicator
-	// crosshairs    *render.Crosshairs
-	// targetReticle *render.TargetReticle
-	// navReticle    *render.NavReticle
-	// fps           *render.FPSIndicator
-	fonts *render.FontHandler
+	fonts     *render.FontHandler
 
 	hudEnabled        bool
 	hudFont           string
@@ -922,7 +908,7 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 		s.SetVelocity(0)
 		s.SetVelocityZ(0)
 
-		if s.Mech().Heat() < s.Mech().MaxHeat() {
+		if s.Mech().Heat() < 0.7*s.Mech().MaxHeat() {
 			s.Mech().SetPowered(model.POWER_ON)
 		}
 		s.Mech().Update()
