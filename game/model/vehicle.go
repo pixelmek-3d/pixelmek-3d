@@ -15,6 +15,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 	m := &Vehicle{
 		Resource: r,
 		UnitModel: &UnitModel{
+			unitType:        VehicleUnitType,
 			anchor:          raycaster.AnchorBottom,
 			collisionRadius: collisionRadius,
 			collisionHeight: collisionHeight,

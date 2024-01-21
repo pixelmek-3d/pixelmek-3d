@@ -15,6 +15,7 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 	m := &Emplacement{
 		Resource: r,
 		UnitModel: &UnitModel{
+			unitType:        EmplacementUnitType,
 			anchor:          raycaster.AnchorBottom,
 			collisionRadius: collisionRadius,
 			collisionHeight: collisionHeight,

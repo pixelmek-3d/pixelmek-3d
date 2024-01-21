@@ -15,6 +15,7 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 	m := &VTOL{
 		Resource: r,
 		UnitModel: &UnitModel{
+			unitType:        VTOLUnitType,
 			anchor:          raycaster.AnchorCenter,
 			collisionRadius: collisionRadius,
 			collisionHeight: collisionHeight,
