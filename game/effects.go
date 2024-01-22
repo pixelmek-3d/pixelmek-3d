@@ -12,6 +12,8 @@ import (
 )
 
 var (
+	ejectionPod *render.ProjectileSprite
+
 	jumpJetEffect     *render.EffectSprite
 	attachedJJEffects map[*render.Sprite]*render.EffectSprite
 
@@ -30,12 +32,11 @@ func init() {
 }
 
 func (g *Game) loadSpecialEffects() {
+	// load the ejection pod template
+	_loadEjectionPodResource(g)
+
 	// load the jump jet effect sprite template
-	jumpJetImg := _getEffectImageFromResource(effects.JumpJet)
-	jumpJetEffect = render.NewAnimatedEffect(effects.JumpJet, jumpJetImg, math.MaxInt)
-	for s := range attachedJJEffects {
-		delete(attachedJJEffects, s)
-	}
+	_loadJumpJetEffectResource()
 
 	// load the blood effect sprite templates
 	_loadEffectSpritesFromResourceList(effects.Blood, bloodEffects)
@@ -53,6 +54,61 @@ func (g *Game) loadSpecialEffects() {
 func _getEffectImageFromResource(r *model.ModelEffectResource) *ebiten.Image {
 	effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, r.Image)
 	return getSpriteFromFile(effectRelPath)
+}
+
+func _loadJumpJetEffectResource() {
+	if jumpJetEffect == nil {
+		jumpJetImg := _getEffectImageFromResource(effects.JumpJet)
+		jumpJetEffect = render.NewAnimatedEffect(effects.JumpJet, jumpJetImg, math.MaxInt)
+	}
+	for s := range attachedJJEffects {
+		delete(attachedJJEffects, s)
+	}
+}
+
+func _loadEjectionPodResource(g *Game) {
+	if ejectionPod != nil {
+		return
+	}
+
+	// TODO: refactor to use same func as g.loadUnitWeapons
+	weaponResource := g.resources.GetMissileWeaponResource("_ejection_pod.yaml")
+
+	// need to use the projectile image size to find the unit collision conversion from pixels
+	pResource := weaponResource.Projectile
+	projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
+	projectileImg := getSpriteFromFile(projectileRelPath)
+	pColumns, pRows := 1, 1
+	if pResource.ImageSheet != nil {
+		pColumns = pResource.ImageSheet.Columns
+		pRows = pResource.ImageSheet.Rows
+	}
+
+	pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
+	pWidth = pWidth / pColumns
+	pHeight = pHeight / pRows
+	pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
+		pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
+	)
+
+	// create the pod as missile projectile model
+	_, pod := model.NewMissileWeapon(
+		weaponResource, pCollisionRadius, pCollisionHeight, &geom.Vector2{}, &geom.Vector2{}, nil,
+	)
+
+	// create the projectile and effect sprite templates
+	eResource := weaponResource.Projectile.ImpactEffect
+	effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
+	effectImg := getSpriteFromFile(effectRelPath)
+
+	projectileImpactAudioFiles := make([]string, 1)
+	projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
+	projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
+
+	eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
+	ejectionPod = render.NewAnimatedProjectile(
+		&pod, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
+	)
 }
 
 func _loadEffectSpritesFromResourceList(

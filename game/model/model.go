@@ -34,12 +34,15 @@ func init() {
 type TechBase int
 
 const (
-	CLAN TechBase = iota
+	COMMON TechBase = iota
+	CLAN
 	IS
 )
 
 func TechBaseString(t TechBase) string {
 	switch t {
+	case COMMON:
+		return "common"
 	case CLAN:
 		return "clan"
 	case IS:

@@ -29,7 +29,7 @@ var (
 	UserConfigFile string
 	UserKeymapFile string
 
-	//go:embed audio fonts maps menu missions shaders sprites textures units weapons
+	//go:embed audio fonts maps menu missions shaders sprites textures all:units all:weapons
 	embedded embed.FS
 )
 
