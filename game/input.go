@@ -361,9 +361,12 @@ func (g *Game) handleInput() {
 		// TESTING purposes only
 		if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
 			target := model.EntityUnit(g.player.Target())
-			if target != nil && target.JumpJets() > 0 {
-				target.SetJumpJetsActive(true)
-				target.SetTargetVelocityZ(0.05)
+			// if target != nil && target.JumpJets() > 0 {
+			// 	target.SetJumpJetsActive(true)
+			// 	target.SetTargetVelocityZ(0.05)
+			// }
+			if target != nil {
+				target.SetStructurePoints(0)
 			}
 		} else {
 			g.fireTestWeaponAtPlayer()

@@ -124,6 +124,20 @@ func _loadEffectSpritesFromResourceList(
 	}
 }
 
+func (g *Game) spawnEjectionPod(s *render.Sprite) {
+	podSprite := ejectionPod.Clone()
+
+	podSprite.SetPos(s.Pos().Copy())
+	podSprite.SetPosZ(s.PosZ() + s.CollisionHeight() + 0.01)
+	podSprite.SetPitch(geom.HalfPi)
+
+	// TODO: define how far the project should go before removing itself
+
+	g.sprites.addProjectile(podSprite)
+
+	// TODO: spawn smoke trail
+}
+
 func (g *Game) spawnJumpJetEffect(s *render.Sprite) {
 	_, found := attachedJJEffects[s]
 	if found {
