@@ -248,15 +248,17 @@ type ModelResourceAmmo struct {
 func (t *ModelTech) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
 
-	clan, is := TechBaseString(CLAN), TechBaseString(IS)
+	common, clan, is := TechBaseString(COMMON), TechBaseString(CLAN), TechBaseString(IS)
 
 	switch str {
+	case common:
+		t.TechBase = COMMON
 	case clan:
 		t.TechBase = CLAN
 	case is:
 		t.TechBase = IS
 	default:
-		return fmt.Errorf("unknown tech value '%s', must be one of: [%s, %s]", str, clan, is)
+		return fmt.Errorf("unknown tech value '%s', must be one of: [%s, %s, %s]", str, clan, is, common)
 	}
 
 	return nil

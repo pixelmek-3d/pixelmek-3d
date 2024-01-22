@@ -1,0 +1,33 @@
+---
+name: Ejection Pod
+short: EJECT
+tech: common
+audio: missile-1.ogg
+tonnage: 0.5
+damage: 2
+heat: 1
+# max distance in meters: 1km
+distance: 1000
+# velocity in meters/second
+velocity: 200
+# cooldown in seconds
+cooldown: 2
+ammoPerTon: 1
+projectileCount: 1
+projectile:
+  collisionRadius: 4
+  collisionHeight: 6
+  scale: 0.5
+  image: ejection_pod.png
+  imageSheet:
+    columns: 1
+    rows: 1
+    animationRate: 0
+  impactEffect:
+    audio: explode.ogg
+    scale: 0.3
+    image: missile_impact.png
+    imageSheet:
+      columns: 6
+      rows: 1
+      animationRate: 5
