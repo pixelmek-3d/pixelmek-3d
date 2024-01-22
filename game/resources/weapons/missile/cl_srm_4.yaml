@@ -19,7 +19,7 @@ projectileDelay: 0.15
 projectile:
   collisionRadius: 2
   collisionHeight: 4
-  scale: 0.35
+  scale: 0.3
   image: missile.png
   imageSheet:
     columns: 1

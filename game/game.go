@@ -700,6 +700,10 @@ func (g *Game) updateSprites() {
 					if s.MechAnimation() != render.MECH_ANIMATE_DESTRUCT {
 						// play unit destruction animation
 						s.SetMechAnimation(render.MECH_ANIMATE_DESTRUCT, false)
+
+						// spawn ejection pod
+						g.spawnEjectionPod(s.Sprite)
+
 					} else if s.LoopCounter() >= 1 {
 						// delete when animation is over
 						g.sprites.deleteMechSprite(s)
