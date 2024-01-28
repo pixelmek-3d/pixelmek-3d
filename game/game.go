@@ -830,7 +830,7 @@ func (g *Game) updateSprites() {
 						// use the destroy counter to determine how often to spawn effects
 						destroyCounter = s.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
 					} else if s.PosZ() <= 0 {
-						// deleted only when it hits the ground
+						// instantly delete if it gets below the ground
 						g.sprites.deleteVTOLSprite(s)
 						break
 					} else if destroyCounter == 1 {

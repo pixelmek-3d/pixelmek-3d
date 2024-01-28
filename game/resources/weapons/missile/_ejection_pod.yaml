@@ -6,8 +6,8 @@ audio: missile-1.ogg
 tonnage: 0.5
 damage: 2
 heat: 1
-# max distance in meters: 1km
-distance: 1000
+# max distance in meters: 250m (disappears after 2x max distance)
+distance: 250
 # velocity in meters/second
 velocity: 50
 # cooldown in seconds
