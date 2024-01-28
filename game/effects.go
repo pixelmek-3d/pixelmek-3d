@@ -11,8 +11,13 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources/effects"
 )
 
+const (
+	ejectName string = "EJECT"
+)
+
 var (
-	ejectionPod *render.ProjectileSprite
+	ejectLauncher model.Weapon
+	ejectPod      *render.ProjectileSprite
 
 	jumpJetEffect     *render.EffectSprite
 	attachedJJEffects map[*render.Sprite]*render.EffectSprite
@@ -67,7 +72,7 @@ func _loadJumpJetEffectResource() {
 }
 
 func _loadEjectionPodResource(g *Game) {
-	if ejectionPod != nil {
+	if ejectPod != nil {
 		return
 	}
 
@@ -92,7 +97,8 @@ func _loadEjectionPodResource(g *Game) {
 	)
 
 	// create the pod as missile projectile model
-	_, pod := model.NewMissileWeapon(
+	var modelPod model.Projectile
+	ejectLauncher, modelPod = model.NewMissileWeapon(
 		weaponResource, pCollisionRadius, pCollisionHeight, &geom.Vector2{}, &geom.Vector2{}, nil,
 	)
 
@@ -106,8 +112,8 @@ func _loadEjectionPodResource(g *Game) {
 	projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
 	eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
-	ejectionPod = render.NewAnimatedProjectile(
-		&pod, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
+	ejectPod = render.NewAnimatedProjectile(
+		&modelPod, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 	)
 }
 
@@ -125,17 +131,33 @@ func _loadEffectSpritesFromResourceList(
 }
 
 func (g *Game) spawnEjectionPod(s *render.Sprite) {
-	podSprite := ejectionPod.Clone()
+	podSprite := ejectPod.Clone()
+	podSprite.Projectile.SetWeapon(ejectLauncher)
 
 	podSprite.SetPos(s.Pos().Copy())
 	podSprite.SetPosZ(s.PosZ() + s.CollisionHeight() + 0.01)
 	podSprite.SetPitch(geom.HalfPi)
 
-	// TODO: define how far the project should go before removing itself
-
 	g.sprites.addProjectile(podSprite)
+}
 
-	// TODO: spawn smoke trail
+func (g *Game) spawnEjectionPodSmokeEffects(s *render.ProjectileSprite) (duration int) {
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
+
+	// TODO: only spawn every few frames, maybe reduce scale and/or opacity?
+	xFx := x + randFloat(-r/2, r/2)
+	yFx := y + randFloat(-r/2, r/2)
+	zFx := z + randFloat(-h/2, h/2)
+
+	smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+	g.sprites.addEffect(smokeFx)
+
+	fxDuration := smokeFx.AnimationDuration()
+	if fxDuration > duration {
+		duration = fxDuration
+	}
+	return
 }
 
 func (g *Game) spawnJumpJetEffect(s *render.Sprite) {

@@ -412,6 +412,11 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 		} else {
 			p.SetPos(newPos)
 			p.SetPosZ(newPosZ)
+
+			// smoke trail for ejection pod
+			if p.Projectile.Weapon() != nil && p.Projectile.Weapon().ShortName() == ejectName {
+				g.spawnEjectionPodSmokeEffects(p)
+			}
 		}
 	}
 	p.Update(g.player.Pos())
