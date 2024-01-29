@@ -145,7 +145,15 @@ func (g *Game) spawnEjectionPodSmokeEffects(s *render.ProjectileSprite) (duratio
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
-	// TODO: only spawn every few frames, maybe reduce scale and/or opacity?
+	// TODO: reduce smoke scale and/or opacity?
+
+	// only spawn smoke every few frames
+	fxCounter := s.EffectCounter()
+	if fxCounter > 0 {
+		s.SetEffectCounter(fxCounter - 1)
+		return
+	}
+
 	xFx := x + randFloat(-r/2, r/2)
 	yFx := y + randFloat(-r/2, r/2)
 	zFx := z + randFloat(-h/2, h/2)
@@ -157,6 +165,8 @@ func (g *Game) spawnEjectionPodSmokeEffects(s *render.ProjectileSprite) (duratio
 	if fxDuration > duration {
 		duration = fxDuration
 	}
+
+	s.SetEffectCounter(1 + model.Randish.Intn(3))
 	return
 }
 
@@ -203,6 +213,9 @@ func (g *Game) spawnGenericDestroyEffects(s *render.Sprite, spawnFires bool) (du
 		yFx := y + randFloat(-r/2, r/2)
 		zFx := z + randFloat(h/8, h)
 
+		// only spawn effects in front of sprite relative to camera position
+		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
+
 		if spawnFires {
 			fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
 			g.sprites.addEffect(fireFx)
@@ -240,10 +253,20 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 		numFx = 2
 	}
 
+	// limit effects to only spawn every few frames to reduce performance impact
+	fxCounter := s.EffectCounter()
+	if fxCounter > 0 {
+		s.SetEffectCounter(fxCounter - 1)
+		return
+	}
+
 	for i := 0; i < numFx; i++ {
 		xFx := x + randFloat(-r, r)
 		yFx := y + randFloat(-r, r)
 		zFx := z + randFloat(h/4, h)
+
+		// only spawn effects in front of sprite relative to camera position
+		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(explosionFx)
@@ -261,6 +284,7 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 			duration = fxDuration
 		}
 	}
+	s.SetEffectCounter(1 + model.Randish.Intn(2))
 	return
 }
 
@@ -273,6 +297,9 @@ func (g *Game) spawnInfantryDestroyEffects(s *render.InfantrySprite) (duration i
 		xFx := x + randFloat(-r, r)
 		yFx := y + randFloat(-r, r)
 		zFx := z + randFloat(0, h)
+
+		// only spawn effects in front of sprite relative to camera position
+		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		bloodFx := g.randBloodEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(bloodFx)
@@ -294,6 +321,9 @@ func (g *Game) spawnVehicleDestroyEffects(s *render.VehicleSprite) (duration int
 		xFx := x + randFloat(-r, r)
 		yFx := y + randFloat(-r, r)
 		zFx := z + randFloat(0, h)
+
+		// only spawn effects in front of sprite relative to camera position
+		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(explosionFx)
@@ -318,11 +348,21 @@ func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions boo
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
-	numFx := 5 // TODO: alter number of effects based on sprite dimensions
+	// only spawn smoke every few frames
+	fxCounter := s.EffectCounter()
+
+	numFx := 1 // TODO: alter number of effects based on sprite dimensions
+	if spawnExplosions {
+		numFx = 5
+	}
+
 	for i := 0; i < numFx; i++ {
 		xFx := x + randFloat(-r/2, r/2)
 		yFx := y + randFloat(-r/2, r/2)
 		zFx := z + randFloat(-h/2, h/2)
+
+		// only spawn effects in front of sprite relative to camera position
+		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		if spawnExplosions {
 			explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
@@ -338,15 +378,24 @@ func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions boo
 			}
 		}
 
-		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
-		if !spawnExplosions {
-			fxDuration := smokeFx.AnimationDuration()
-			if fxDuration > duration {
-				duration = fxDuration
+		if fxCounter == 0 {
+			smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+			g.sprites.addEffect(smokeFx)
+			if !spawnExplosions {
+				fxDuration := smokeFx.AnimationDuration()
+				if fxDuration > duration {
+					duration = fxDuration
+				}
 			}
 		}
 	}
+
+	if fxCounter > 0 {
+		s.SetEffectCounter(fxCounter - 1)
+	} else {
+		s.SetEffectCounter(1 + model.Randish.Intn(3))
+	}
+
 	return
 }
 
@@ -359,6 +408,9 @@ func (g *Game) spawnEmplacementDestroyEffects(s *render.EmplacementSprite) (dura
 		xFx := x + randFloat(-r/2, r/2)
 		yFx := y + randFloat(-r/2, r/2)
 		zFx := z + randFloat(h/12, h)
+
+		// only spawn effects in front of sprite relative to camera position
+		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
 		g.sprites.addEffect(explosionFx)

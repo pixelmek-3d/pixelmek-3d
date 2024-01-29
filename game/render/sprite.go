@@ -26,6 +26,7 @@ type Sprite struct {
 	animCounter       int
 	loopCounter       int
 	maxLoops          int
+	effectCounter     int
 	destroyCounter    int
 	columns, rows     int
 	texNum, lenTex    int
@@ -270,6 +271,17 @@ func (s *Sprite) ResetAnimation() {
 
 func (s *Sprite) LoopCounter() int {
 	return s.loopCounter
+}
+
+// EffectCounter used only to limit effects spawned by this sprite every tick
+func (s *Sprite) EffectCounter() int {
+	return s.effectCounter
+}
+
+// SetEffectCounter to set how many ticks to wait before spawning another effect
+func (s *Sprite) SetEffectCounter(counter int) int {
+	s.effectCounter = counter
+	return s.effectCounter
 }
 
 // DestroyCounter used only when destroyed to remain visible until ready to be removed
