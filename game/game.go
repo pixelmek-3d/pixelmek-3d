@@ -507,28 +507,6 @@ func (g *Game) updatePlayer() {
 	}
 }
 
-// Update camera to match player position and orientation
-func (g *Game) updatePlayerCamera(forceUpdate bool) {
-	if !g.player.moved && !forceUpdate {
-		// only update camera position if player moved or forceUpdate set
-		return
-	}
-
-	// reset player moved flag to only update camera when necessary
-	g.player.moved = false
-
-	camPos, camPosZ := g.player.CameraPosition()
-	g.camera.SetPosition(camPos)
-	g.camera.SetPositionZ(camPosZ)
-	g.camera.SetPitchAngle(g.player.Pitch())
-
-	cameraHeadingAngle := g.player.Heading()
-	if g.player.HasTurret() {
-		cameraHeadingAngle += g.player.TurretAngle()
-	}
-	g.camera.SetHeadingAngle(cameraHeadingAngle)
-}
-
 func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 	// Update player position
 	newPos, newZ, isCollision, collisions := g.getValidMove(g.player.Unit, setX, setY, setZ, true)
@@ -827,16 +805,15 @@ func (g *Game) updateSprites() {
 						s.SetVelocity(0)
 						s.SetVelocityZ(0)
 
-						// use the destroy counter to determine how often to spawn effects
-						destroyCounter = s.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
+						// use the destroy counter to determine which effects to spawn
+						s.SetDestroyCounter(1)
 					} else if s.PosZ() <= 0 {
 						// instantly delete if it gets below the ground
 						g.sprites.deleteVTOLSprite(s)
 						break
-					} else if destroyCounter == 1 {
-						// reset counter and spawn only smoke effects
+					} else {
+						// spawn only smoke effects
 						g.spawnVTOLDestroyEffects(s, false)
-						destroyCounter = s.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
 					}
 
 					// fall towards the ground
@@ -856,7 +833,6 @@ func (g *Game) updateSprites() {
 					}
 
 					s.Update(g.player.Pos())
-					s.SetDestroyCounter(destroyCounter - 1)
 					break
 				}
 
