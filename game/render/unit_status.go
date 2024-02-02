@@ -112,12 +112,13 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op := &colorm.DrawImageOptions{}
 	var uColor color.NRGBA
 	// Set unit image color based on health status
-	if armorPercent >= 25 {
-		uColor = hudOpts.HudColor(_colorStatusOk)
-	} else if internalPercent >= 50 {
-		uColor = hudOpts.HudColor(_colorStatusWarn)
-	} else {
+	switch {
+	case internalPercent <= 50:
 		uColor = hudOpts.HudColor(_colorStatusCritical)
+	case armorPercent <= 25 || internalPercent <= 75:
+		uColor = hudOpts.HudColor(_colorStatusWarn)
+	default:
+		uColor = hudOpts.HudColor(_colorStatusOk)
 	}
 
 	// create static outline image of unit
