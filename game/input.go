@@ -360,14 +360,18 @@ func (g *Game) handleInput() {
 	if g.debug && ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
 		// TESTING purposes only
 		if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
-			target := model.EntityUnit(g.player.Target())
+			g.player.SetStructurePoints(0)
+
+			// target := model.EntityUnit(g.player.Target())
+			// if target != nil {
+			// 	target.SetStructurePoints(0)
+			// }
+
 			// if target != nil && target.JumpJets() > 0 {
 			// 	target.SetJumpJetsActive(true)
 			// 	target.SetTargetVelocityZ(0.05)
 			// }
-			if target != nil {
-				target.SetStructurePoints(0)
-			}
+
 		} else {
 			g.fireTestWeaponAtPlayer()
 		}

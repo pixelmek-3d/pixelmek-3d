@@ -63,7 +63,9 @@ type Game struct {
 	width  int
 	height int
 
-	player    *Player
+	player            *Player
+	playerEjectionPod *render.ProjectileSprite
+
 	playerHUD map[HUDElementType]HUDElement
 	fonts     *render.FontHandler
 
@@ -202,6 +204,7 @@ func (g *Game) initMission() {
 
 	// clear mission sprites
 	g.sprites.clear()
+	g.playerEjectionPod = nil
 
 	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
 	worldMap := g.mission.Map().Level(0)
@@ -384,6 +387,15 @@ func (g *Game) Pitch(pSpeed float64) {
 }
 
 func (g *Game) updatePlayer() {
+	if g.player.IsDestroyed() {
+		if g.playerEjectionPod == nil {
+			// spawn ejection pod
+			g.playerEjectionPod = g.spawnEjectionPod(g.player.sprite)
+		}
+		g.player.moved = true
+		return
+	}
+
 	if g.player.Update() {
 
 		// TODO: refactor to use same update position function as sprites (g.updateMechPosition, etc.)

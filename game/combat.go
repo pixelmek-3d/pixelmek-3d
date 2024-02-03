@@ -413,8 +413,8 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			p.SetPos(newPos)
 			p.SetPosZ(newPosZ)
 
-			// smoke trail for ejection pod
-			if p.Projectile.Weapon() != nil && p.Projectile.Weapon().ShortName() == ejectName {
+			// smoke trail for non-player ejection pod
+			if p.Projectile.Weapon() != nil && p.Projectile.Weapon().ShortName() == ejectName && p.Parent() != g.player.Unit {
 				g.spawnEjectionPodSmokeEffects(p)
 			}
 		}
