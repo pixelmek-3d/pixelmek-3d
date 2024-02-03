@@ -112,6 +112,15 @@ func (g *Game) loadHUD() {
 	g.playerHUD[HUD_FPS] = fps
 }
 
+func (g *Game) resetHUDElementScale() {
+	hudElement := g.GetHUDElement(HUD_CROSSHAIRS)
+	if hudElement != nil && hudElement.Scale() < 1.0 {
+		for _, hudElement := range g.playerHUD {
+			hudElement.SetScale(1.0)
+		}
+	}
+}
+
 // drawHUD draws HUD elements on the screen
 func (g *Game) drawHUD(screen *ebiten.Image) {
 	hudRect := g.uiRect()
@@ -133,16 +142,24 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 		return
 	}
 
-	if g.player.Powered() == model.POWER_ON {
-		// make sure HUD element scale is properly set in case of just coming from power down
-		hudElement := g.GetHUDElement(HUD_CROSSHAIRS)
-		if hudElement != nil && hudElement.Scale() < 1.0 {
-			for _, hudElement := range g.playerHUD {
-				hudElement.SetScale(1.0)
-			}
-		}
+	// custom HUD elements based on player status
+	switch {
+	case g.player.ejectionPod != nil:
+		// limited HUD for ejection pod: radar, altimeter, compass
+		g.drawCompass(hudOpts)
+		g.drawAltimeter(hudOpts)
+		g.drawRadar(hudOpts)
 
-	} else {
+		// make sure HUD element scale is properly set in case of just coming from power down
+		g.resetHUDElementScale()
+		return
+
+	case g.player.Powered() == model.POWER_ON:
+		// make sure HUD element scale is properly set in case of just coming from power down
+		g.resetHUDElementScale()
+
+	default:
+		// handle player shutting down or powering up
 		isOverHeated := g.player.OverHeated()
 		switch unitType := g.player.Unit.(type) {
 		case *model.Mech:
