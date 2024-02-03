@@ -95,6 +95,13 @@ func (p *Player) SetTargetRelativeHeading(rHeading float64) {
 	p.Unit.SetTargetRelativeHeading(rHeading)
 }
 
+func (p *Player) PosZ() float64 {
+	if p.ejectionPod != nil {
+		return p.ejectionPod.PosZ()
+	}
+	return p.Unit.PosZ()
+}
+
 func (p *Player) SetPosZ(z float64) {
 	p.cameraZ = z + p.strideZ + p.Unit.CockpitOffset().Y
 	p.Unit.SetPosZ(z)
