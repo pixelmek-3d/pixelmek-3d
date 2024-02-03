@@ -17,7 +17,7 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 
 	var camPos *geom.Vector2
 	var camPosZ, cameraHeadingAngle float64
-	if g.playerEjectionPod == nil {
+	if g.player.ejectionPod == nil {
 		// camera tracks player unit
 		camPos, camPosZ = g.player.CameraPosition()
 		cameraHeadingAngle = g.player.Heading()
@@ -26,8 +26,8 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 		}
 	} else {
 		// camera tracks ejection pod position until it is gone
-		camPos, camPosZ = g.playerEjectionPod.Pos(), g.playerEjectionPod.PosZ()
-		cameraHeadingAngle = g.playerEjectionPod.Heading()
+		camPos, camPosZ = g.player.ejectionPod.Pos(), g.player.ejectionPod.PosZ()
+		cameraHeadingAngle = g.player.ejectionPod.Heading()
 	}
 
 	g.camera.SetPosition(camPos)
