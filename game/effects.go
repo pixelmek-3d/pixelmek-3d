@@ -130,15 +130,17 @@ func _loadEffectSpritesFromResourceList(
 	}
 }
 
-func (g *Game) spawnEjectionPod(s *render.Sprite) {
+func (g *Game) spawnEjectionPod(s *render.Sprite) *render.ProjectileSprite {
 	podSprite := ejectPod.Clone()
+	podSprite.SetParent(s.Entity)
 	podSprite.Projectile.SetWeapon(ejectLauncher)
 
 	podSprite.SetPos(s.Pos().Copy())
-	podSprite.SetPosZ(s.PosZ() + s.CollisionHeight() + 0.01)
+	podSprite.SetPosZ(s.PosZ() + s.CollisionHeight())
 	podSprite.SetPitch(geom.HalfPi)
 
 	g.sprites.addProjectile(podSprite)
+	return podSprite
 }
 
 func (g *Game) spawnEjectionPodSmokeEffects(s *render.ProjectileSprite) (duration int) {
