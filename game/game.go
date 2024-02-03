@@ -187,6 +187,15 @@ func NewGame() *Game {
 	// setup initial scene
 	g.scene = NewIntroScene(g)
 
+	// set window icon
+	_, icon, err := resources.NewImageFromFile("icons/pixelmek_icon.png")
+	if err != nil {
+		log.Error(err)
+	}
+	if icon != nil {
+		ebiten.SetWindowIcon([]image.Image{icon})
+	}
+
 	return g
 }
 
