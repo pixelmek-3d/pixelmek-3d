@@ -42,6 +42,7 @@ type Player struct {
 	selectedGroup       uint
 	fireMode            model.WeaponFireMode
 	navPoint            *render.NavSprite
+	ejectionPod         *render.ProjectileSprite
 }
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
@@ -141,6 +142,14 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 	} else {
 		g.mouseMode = MouseModeBody
 	}
+}
+
+func (p *Player) Eject(g *Game) {
+	if p.ejectionPod != nil {
+		return
+	}
+	// spawn ejection pod
+	p.ejectionPod = g.spawnEjectionPod(p.sprite)
 }
 
 func (p *Player) Update() bool {
