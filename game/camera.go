@@ -15,19 +15,10 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	// reset player moved flag to only update camera when necessary
 	g.player.moved = false
 
-	var camPos *geom.Vector2
-	var camPosZ, cameraHeadingAngle float64
-	if g.player.ejectionPod == nil {
-		// camera tracks player unit
-		camPos, camPosZ = g.player.CameraPosition()
-		cameraHeadingAngle = g.player.Heading()
-		if g.player.HasTurret() {
-			cameraHeadingAngle += g.player.TurretAngle()
-		}
-	} else {
-		// camera tracks ejection pod position until it is gone
-		camPos, camPosZ = g.player.ejectionPod.Pos(), g.player.ejectionPod.PosZ()
-		cameraHeadingAngle = g.player.ejectionPod.Heading()
+	camPos, camPosZ := g.player.CameraPosition()
+	cameraHeadingAngle := g.player.Heading()
+	if g.player.HasTurret() {
+		cameraHeadingAngle += g.player.TurretAngle()
 	}
 
 	g.camera.SetPosition(camPos)

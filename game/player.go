@@ -73,12 +73,46 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	return p
 }
 
+func (p *Player) Heading() float64 {
+	if p.ejectionPod != nil {
+		return p.ejectionPod.Heading()
+	}
+	return p.Unit.Heading()
+}
+
+func (p *Player) SetHeading(angle float64) {
+	if p.ejectionPod != nil {
+		p.ejectionPod.SetHeading(angle)
+	}
+	p.Unit.SetHeading(angle)
+}
+
+func (p *Player) SetTargetRelativeHeading(rHeading float64) {
+	if p.ejectionPod != nil {
+		angle := model.ClampAngle(p.ejectionPod.Heading() + rHeading)
+		p.ejectionPod.SetHeading(angle)
+	}
+	p.Unit.SetTargetRelativeHeading(rHeading)
+}
+
 func (p *Player) SetPosZ(z float64) {
 	p.cameraZ = z + p.strideZ + p.Unit.CockpitOffset().Y
 	p.Unit.SetPosZ(z)
 }
 
+func (p *Player) HasTurret() bool {
+	if p.ejectionPod != nil {
+		return false
+	}
+	return p.Unit.HasTurret()
+}
+
 func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
+	if p.ejectionPod != nil {
+		pos, posZ = p.ejectionPod.Pos().Copy(), p.ejectionPod.PosZ()
+		return
+	}
+
 	pos, posZ = p.Pos().Copy(), p.cameraZ
 	cockpitOffset := p.Unit.CockpitOffset()
 	if cockpitOffset.X == 0 {
