@@ -138,8 +138,11 @@ func (g *Game) spawnEjectionPod(s *render.Sprite) *render.ProjectileSprite {
 	podSprite.SetPos(s.Pos().Copy())
 	podSprite.SetPosZ(s.PosZ() + s.CollisionHeight())
 	podSprite.SetPitch(geom.HalfPi)
+	podSprite.SetHeading(s.Entity.Heading())
 
 	g.sprites.addProjectile(podSprite)
+	g.audio.PlayLocalWeaponFireAudio(ejectLauncher)
+
 	return podSprite
 }
 
