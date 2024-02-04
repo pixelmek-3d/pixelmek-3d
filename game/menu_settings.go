@@ -35,7 +35,7 @@ func (m *SettingsMenu) initMenu() {
 	m.MenuModel.initMenu()
 
 	// menu title
-	titleBar := settingsTitleContainer(m)
+	titleBar := settingsTitleContainer(m, false)
 	m.root.AddChild(titleBar)
 
 	// settings pages
@@ -102,8 +102,13 @@ func generateMenuResolutions() []MenuResolution {
 	return resolutions
 }
 
-func settingsTitleContainer(m Menu) *widget.Container {
+func settingsTitleContainer(m Menu, inGame bool) *widget.Container {
 	res := m.Resources()
+
+	settingsTitle := "PixelMek 3D Settings"
+	if inGame {
+		settingsTitle = "PixelMek 3D"
+	}
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
@@ -117,7 +122,7 @@ func settingsTitleContainer(m Menu) *widget.Container {
 			}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("PixelMek 3D Settings", res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Text(settingsTitle, res.text.titleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
