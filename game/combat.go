@@ -126,8 +126,8 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 
 func (g *Game) fireTestWeaponAtPlayer() {
 	// Just for testing! Firing test projectiles at player
-	playerPosition := g.player.Pos()
-	playerPositionZ := g.player.PosZ()
+	playerPosition := g.player.Unit.Pos()
+	playerPositionZ := g.player.Unit.PosZ()
 	var playerTarget model.Unit
 	if g.player.Target() != nil {
 		// if player has a target, only it shoots at the player
