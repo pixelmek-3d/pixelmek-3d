@@ -397,19 +397,32 @@ func (g *Game) updatePlayer() {
 		justEjected := g.player.Eject(g)
 		if justEjected {
 			g.spawnPlayerDestroyEffects()
-			g.player.sprite.SetDestroyCounter(20)
-		} else if g.player.sprite.DestroyCounter() > 0 {
-			fxDuration := g.spawnPlayerDestroyEffects()
-			if fxDuration > 0 {
-				counter := g.player.sprite.DestroyCounter() - 1
-				g.player.sprite.SetDestroyCounter(counter)
+			g.player.sprite.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
+			g.player.ejectionPod.SetDestroyCounter(int(model.TICKS_PER_SECOND * 7))
+		} else {
+			// keep playing destruction effects until the counter runs out
+			if g.player.sprite.DestroyCounter() > 0 {
+				fxDuration := g.spawnPlayerDestroyEffects()
+				if fxDuration > 0 {
+					counter := g.player.sprite.DestroyCounter() - 1
+					g.player.sprite.SetDestroyCounter(counter)
+				}
 			}
-		}
 
-		// make ejection pod thrust sound
-		jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
-		if !jetThrust.player.IsPlaying() {
-			jetThrust.Play()
+			podCounter := g.player.ejectionPod.DestroyCounter() - 1
+			if podCounter <= 0 {
+				// TODO: fade game out slowly
+				// TODO: create mission failed summary scene
+				g.LeaveGame()
+				return
+			} else {
+				g.player.ejectionPod.SetDestroyCounter(podCounter)
+				// make ejection pod thrust sound
+				jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
+				if !jetThrust.player.IsPlaying() {
+					jetThrust.Play()
+				}
+			}
 		}
 
 		g.player.moved = true
