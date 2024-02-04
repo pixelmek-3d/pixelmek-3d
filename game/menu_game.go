@@ -32,7 +32,7 @@ func (m *GameMenu) initMenu() {
 	m.MenuModel.initMenu()
 
 	// menu title
-	titleBar := settingsTitleContainer(m)
+	titleBar := settingsTitleContainer(m, true)
 	m.root.AddChild(titleBar)
 
 	// settings pages

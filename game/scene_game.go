@@ -4,11 +4,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type MissionScene struct {
+type GameScene struct {
 	Game *Game
 }
 
-func NewMissionScene(g *Game) *MissionScene {
+func NewGameScene(g *Game) *GameScene {
 	// load mission resources and launch
 	g.initMission()
 
@@ -30,12 +30,12 @@ func NewMissionScene(g *Game) *MissionScene {
 	// start engine ambience
 	g.audio.PlayPowerOnSequence()
 
-	return &MissionScene{
+	return &GameScene{
 		Game: g,
 	}
 }
 
-func (s *MissionScene) Update() error {
+func (s *GameScene) Update() error {
 	g := s.Game
 
 	if g.osType == osTypeBrowser && ebiten.CursorMode() == ebiten.CursorModeVisible && !g.menu.Active() && !g.menu.Closing() {
@@ -80,7 +80,7 @@ func (s *MissionScene) Update() error {
 	return nil
 }
 
-func (s *MissionScene) Draw(screen *ebiten.Image) {
+func (s *GameScene) Draw(screen *ebiten.Image) {
 	g := s.Game
 
 	// Put projectiles together with sprites for raycasting both as sprites

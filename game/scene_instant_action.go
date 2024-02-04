@@ -82,7 +82,7 @@ func (s *InstantActionScene) next() {
 			g.SetPlayerUnit(g.randomUnit(model.MechResourceType))
 		}
 
-		g.scene = NewMissionScene(g)
+		g.scene = NewGameScene(g)
 
 	case s.unitSelect:
 		// to pre-launch briefing after setting player unit and mission
