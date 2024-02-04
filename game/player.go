@@ -114,6 +114,13 @@ func (p *Player) HasTurret() bool {
 	return p.Unit.HasTurret()
 }
 
+func (p *Player) TurretAngle() float64 {
+	if p.ejectionPod != nil {
+		return 0
+	}
+	return p.Unit.TurretAngle()
+}
+
 func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
 	if p.ejectionPod != nil {
 		pos, posZ = p.ejectionPod.Pos().Copy(), p.ejectionPod.PosZ()

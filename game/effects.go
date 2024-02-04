@@ -138,7 +138,13 @@ func (g *Game) spawnEjectionPod(s *render.Sprite) *render.ProjectileSprite {
 	podSprite.SetPos(s.Pos().Copy())
 	podSprite.SetPosZ(s.PosZ() + s.CollisionHeight())
 	podSprite.SetPitch(geom.HalfPi)
-	podSprite.SetHeading(s.Entity.Heading())
+
+	if s == g.player.sprite {
+		podHeading := model.ClampAngle(g.player.Unit.Heading() + g.player.TurretAngle())
+		podSprite.SetHeading(podHeading)
+	} else {
+		podSprite.SetHeading(s.Entity.Heading())
+	}
 
 	// let ejection pod accelerate from zero for effect
 	podSprite.SetVelocity(0)
