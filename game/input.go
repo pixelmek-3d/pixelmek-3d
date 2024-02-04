@@ -359,20 +359,26 @@ func (g *Game) handleInput() {
 
 	if g.debug && ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
 		// TESTING purposes only
-		if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
+		ctrl_test := ebiten.IsKeyPressed(ebiten.KeyControl)
+		alt_test := ebiten.IsKeyPressed(ebiten.KeyAlt)
+		switch {
+		case ctrl_test && alt_test:
 			g.player.SetStructurePoints(0)
 
-			// target := model.EntityUnit(g.player.Target())
-			// if target != nil {
-			// 	target.SetStructurePoints(0)
-			// }
+		case ctrl_test:
+			target := model.EntityUnit(g.player.Target())
+			if target != nil {
+				target.SetStructurePoints(0)
+			}
 
-			// if target != nil && target.JumpJets() > 0 {
-			// 	target.SetJumpJetsActive(true)
-			// 	target.SetTargetVelocityZ(0.05)
-			// }
+		case alt_test:
+			target := model.EntityUnit(g.player.Target())
+			if target != nil && target.JumpJets() > 0 {
+				target.SetJumpJetsActive(true)
+				target.SetTargetVelocityZ(0.05)
+			}
 
-		} else {
+		default:
 			g.fireTestWeaponAtPlayer()
 		}
 	}
