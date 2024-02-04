@@ -140,6 +140,10 @@ func (g *Game) spawnEjectionPod(s *render.Sprite) *render.ProjectileSprite {
 	podSprite.SetPitch(geom.HalfPi)
 	podSprite.SetHeading(s.Entity.Heading())
 
+	// let ejection pod accelerate from zero for effect
+	podSprite.SetVelocity(0)
+	podSprite.Projectile.SetAcceleration(podSprite.Projectile.MaxVelocity() / (2 * model.TICKS_PER_SECOND))
+
 	g.sprites.addProjectile(podSprite)
 	g.audio.PlayLocalWeaponFireAudio(ejectLauncher)
 

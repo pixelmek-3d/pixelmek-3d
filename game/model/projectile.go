@@ -18,6 +18,8 @@ type Projectile struct {
 	pitch           float64
 	velocity        float64
 	velocityZ       float64
+	maxVelocity     float64
+	acceleration    float64
 	collisionRadius float64
 	collisionHeight float64
 	lifespan        float64
@@ -40,6 +42,8 @@ func NewProjectile(
 		anchor:          raycaster.AnchorCenter,
 		damage:          damage,
 		velocity:        velocity,
+		maxVelocity:     velocity,
+		acceleration:    velocity,
 		lifespan:        optimalLifespan,
 		extremeLifespan: extremeLifespan,
 		inExtremeRange:  false,
@@ -165,6 +169,22 @@ func (e *Projectile) Velocity() float64 {
 
 func (e *Projectile) SetVelocity(velocity float64) {
 	e.velocity = velocity
+}
+
+func (e *Projectile) MaxVelocity() float64 {
+	return e.maxVelocity
+}
+
+func (e *Projectile) SetMaxVelocity(maxVelocity float64) {
+	e.maxVelocity = maxVelocity
+}
+
+func (e *Projectile) Acceleration() float64 {
+	return e.acceleration
+}
+
+func (e *Projectile) SetAcceleration(acceleration float64) {
+	e.acceleration = acceleration
 }
 
 func (e *Projectile) VelocityZ() float64 {
