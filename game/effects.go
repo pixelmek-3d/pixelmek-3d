@@ -252,9 +252,51 @@ func (g *Game) spawnGenericDestroyEffects(s *render.Sprite, spawnFires bool) (du
 	return
 }
 
+func (g *Game) spawnPlayerDestroyEffects() (duration int) {
+	s := g.player.sprite
+
+	// limit effects to only spawn every few frames to reduce performance impact
+	fxCounter := s.EffectCounter()
+	if fxCounter > 0 {
+		s.SetEffectCounter(fxCounter - 1)
+		return
+	}
+
+	// TODO: player destruction effects based on player unit type/size
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
+
+	numFx := 2
+	for i := 0; i < numFx; i++ {
+		xFx := x + randFloat(-r, r)
+		yFx := y + randFloat(-r, r)
+		zFx := z + randFloat(h/4, h)
+
+		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(explosionFx)
+
+		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
+		g.sprites.addEffect(smokeFx)
+
+		if i == 0 {
+			// only play one audio track at a time
+			g.audio.PlayEffectAudio(g, explosionFx)
+		}
+
+		fxDuration := explosionFx.AnimationDuration()
+		if fxDuration > duration {
+			duration = fxDuration
+		}
+	}
+	s.SetEffectCounter(1 + model.Randish.Intn(4))
+	return
+}
+
 func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
-	if s.AnimationFrameCounter() != 0 {
-		// do not spawn effects every tick
+	// limit effects to only spawn every few frames to reduce performance impact
+	fxCounter := s.EffectCounter()
+	if fxCounter > 0 {
+		s.SetEffectCounter(fxCounter - 1)
 		return
 	}
 
@@ -266,13 +308,6 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 	numFx := 1
 	if m.Class() >= model.MECH_HEAVY {
 		numFx = 2
-	}
-
-	// limit effects to only spawn every few frames to reduce performance impact
-	fxCounter := s.EffectCounter()
-	if fxCounter > 0 {
-		s.SetEffectCounter(fxCounter - 1)
-		return
 	}
 
 	for i := 0; i < numFx; i++ {
@@ -360,9 +395,6 @@ func (g *Game) spawnVehicleDestroyEffects(s *render.VehicleSprite) (duration int
 }
 
 func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions bool) (duration int) {
-	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
-	r, h := s.CollisionRadius(), s.CollisionHeight()
-
 	// only spawn smoke every few frames
 	fxCounter := s.EffectCounter()
 
@@ -370,6 +402,9 @@ func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions boo
 	if spawnExplosions {
 		numFx = 5
 	}
+
+	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
+	r, h := s.CollisionRadius(), s.CollisionHeight()
 
 	for i := 0; i < numFx; i++ {
 		xFx := x + randFloat(-r/2, r/2)
