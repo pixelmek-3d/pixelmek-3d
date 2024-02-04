@@ -107,7 +107,13 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Scale(1/g.renderScale, 1/g.renderScale)
 	}
-	screen.DrawImage(g.rayScene, op)
+
+	if g.player.ejectionPod != nil {
+		// TODO: make CRT shader an option for gameplay
+		crtShader.Draw(screen, g.rayScene, op.GeoM)
+	} else {
+		screen.DrawImage(g.rayScene, op)
+	}
 
 	// store raycasted convergence point for next Update
 	g.player.convergenceDistance = g.camera.GetConvergenceDistance()

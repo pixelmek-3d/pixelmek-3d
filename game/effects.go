@@ -8,6 +8,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	renderFx "github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources/effects"
 )
 
@@ -16,6 +17,8 @@ const (
 )
 
 var (
+	crtShader *renderFx.CRT
+
 	ejectLauncher model.Weapon
 	ejectPod      *render.ProjectileSprite
 
@@ -37,6 +40,9 @@ func init() {
 }
 
 func (g *Game) loadSpecialEffects() {
+	// load shader effect
+	_loadShaderEffects()
+
 	// load the ejection pod template
 	_loadEjectionPodResource(g)
 
@@ -59,6 +65,10 @@ func (g *Game) loadSpecialEffects() {
 func _getEffectImageFromResource(r *model.ModelEffectResource) *ebiten.Image {
 	effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, r.Image)
 	return getSpriteFromFile(effectRelPath)
+}
+
+func _loadShaderEffects() {
+	crtShader = renderFx.NewCRT()
 }
 
 func _loadJumpJetEffectResource() {
