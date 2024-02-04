@@ -281,12 +281,17 @@ func (g *Game) updateProjectiles() {
 func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	_, isBallistic := p.Projectile.Weapon().(*model.BallisticWeapon)
+	_, isEnergy := p.Projectile.Weapon().(*model.EnergyWeapon)
+	missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
+
+	if isMissile && p.Velocity() < p.Projectile.MaxVelocity() {
+		newVelocity := geom.Clamp(p.Velocity()+p.Projectile.Acceleration(), 0, p.Projectile.MaxVelocity())
+		p.SetVelocity(newVelocity)
+	}
+
 	if p.Velocity() != 0 {
 		pPos := p.Pos()
-
-		_, isBallistic := p.Projectile.Weapon().(*model.BallisticWeapon)
-		_, isEnergy := p.Projectile.Weapon().(*model.EnergyWeapon)
-		missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
 
 		// adjust pitch and heading if is a locked missile projectile
 		if isMissile && missileWeapon.IsLockOn() && !p.Projectile.InExtremeRange() {

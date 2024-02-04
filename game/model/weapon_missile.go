@@ -89,7 +89,14 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 		w.audio = path.Join("audio/sfx/weapons", r.Audio)
 	}
 
-	p := *NewProjectile(r.Projectile, pDamage, pVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight)
+	// initial velocity of missile projectile starts lower then ramps up to given max velocity
+	// TODO: define initial velocity based on missile type
+	iVelocity := pVelocity / 2
+	p := *NewProjectile(r.Projectile, pDamage, iVelocity, pLifespan, pExtreme, collisionRadius, collisionHeight)
+	p.SetMaxVelocity(pVelocity)
+	// TODO: define acceleration based on missile type
+	p.SetAcceleration(pVelocity / TICKS_PER_SECOND)
+
 	w.projectile = p
 	return w, p
 }
