@@ -35,6 +35,15 @@ func NewGameScene(g *Game) *GameScene {
 	}
 }
 
+func (g *Game) LeaveGame() {
+	// stop mission music and sfx audio
+	g.audio.StopSFX()
+	g.audio.StopMusic()
+
+	// go back to main menu
+	g.scene = NewMenuScene(g)
+}
+
 func (s *GameScene) Update() error {
 	g := s.Game
 

@@ -335,13 +335,7 @@ func openExitWindow(m Menu) {
 				widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 					// save config now in case settings changes were made
 					game.saveConfig()
-
-					// stop mission music and sfx audio
-					game.audio.StopSFX()
-					game.audio.StopMusic()
-
-					// go back to main menu
-					game.scene = NewMenuScene(game)
+					game.LeaveGame()
 				}),
 			)
 			bc.AddChild(leave)
