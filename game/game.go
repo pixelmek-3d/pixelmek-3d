@@ -394,7 +394,24 @@ func (g *Game) Pitch(pSpeed float64) {
 
 func (g *Game) updatePlayer() {
 	if g.player.IsDestroyed() {
-		g.player.Eject(g)
+		justEjected := g.player.Eject(g)
+		if justEjected {
+			g.spawnPlayerDestroyEffects()
+			g.player.sprite.SetDestroyCounter(20)
+		} else if g.player.sprite.DestroyCounter() > 0 {
+			fxDuration := g.spawnPlayerDestroyEffects()
+			if fxDuration > 0 {
+				counter := g.player.sprite.DestroyCounter() - 1
+				g.player.sprite.SetDestroyCounter(counter)
+			}
+		}
+
+		// make ejection pod thrust sound
+		jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
+		if !jetThrust.player.IsPlaying() {
+			jetThrust.Play()
+		}
+
 		g.player.moved = true
 		return
 	}

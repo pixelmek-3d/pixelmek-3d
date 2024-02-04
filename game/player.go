@@ -192,12 +192,13 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 	}
 }
 
-func (p *Player) Eject(g *Game) {
+func (p *Player) Eject(g *Game) bool {
 	if p.ejectionPod != nil {
-		return
+		return false
 	}
 	// spawn ejection pod
 	p.ejectionPod = g.spawnEjectionPod(p.sprite)
+	return true
 }
 
 func (p *Player) Update() bool {
