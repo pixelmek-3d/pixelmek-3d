@@ -1,5 +1,4 @@
 //kage:unit pixels
-
 package main
 
 var Direction float

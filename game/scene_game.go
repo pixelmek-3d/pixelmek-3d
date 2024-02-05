@@ -108,8 +108,8 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 		op.GeoM.Scale(1/g.renderScale, 1/g.renderScale)
 	}
 
-	if g.player.ejectionPod != nil {
-		// TODO: make CRT shader an option for gameplay
+	if g.lightAmpEngaged || g.player.ejectionPod != nil {
+		// use CRT shader over raycasted scene
 		crtShader.Draw(screen, g.rayScene, op.GeoM)
 	} else {
 		screen.DrawImage(g.rayScene, op)
