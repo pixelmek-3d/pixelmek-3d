@@ -335,7 +335,13 @@ func openExitWindow(m Menu) {
 				widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 					// save config now in case settings changes were made
 					game.saveConfig()
-					game.LeaveGame()
+
+					if game.player.ejectionPod == nil {
+						game.player.SetStructurePoints(0)
+						game.closeMenu()
+					} else {
+						game.LeaveGame()
+					}
 				}),
 			)
 			bc.AddChild(leave)
