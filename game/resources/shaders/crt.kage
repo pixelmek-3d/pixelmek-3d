@@ -7,9 +7,8 @@
 //	License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 //	https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en
 
-package main
-
 //kage:unit pixels
+package main
 
 func curve(uv vec2) vec2 {
 	uv = (uv - 0.5) * 2
