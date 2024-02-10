@@ -203,6 +203,7 @@ func (g *Game) setRenderScale(renderScale float64) {
 	g.width = int(math.Floor(float64(g.screenWidth) * g.renderScale))
 	g.height = int(math.Floor(float64(g.screenHeight) * g.renderScale))
 
+	g.windowScene = ebiten.NewImage(g.screenWidth, g.screenHeight)
 	g.rayScene = ebiten.NewImage(g.width, g.height)
 	if g.camera != nil {
 		g.camera.SetViewSize(g.width, g.height)
