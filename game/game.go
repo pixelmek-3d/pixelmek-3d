@@ -78,6 +78,8 @@ type Game struct {
 	rayScene    *ebiten.Image
 	windowScene *ebiten.Image
 
+	crtShader bool
+
 	mouseMode      MouseMode
 	mouseX, mouseY int
 

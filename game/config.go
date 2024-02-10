@@ -29,6 +29,8 @@ const (
 	CONFIG_KEY_CLUTTER_DISTANCE = "screen.clutter_distance"
 	CONFIG_KEY_OPENGL           = "screen.opengl"
 
+	CONFIG_KEY_CRT_SHADER = "screen.crt_shader"
+
 	CONFIG_KEY_HUD_ENABLED      = "hud.enabled"
 	CONFIG_KEY_HUD_SCALE        = "hud.scale"
 	CONFIG_KEY_HUD_FONT         = "hud.font"
@@ -64,6 +66,8 @@ func (g *Game) initConfig() {
 	viper.SetDefault(CONFIG_KEY_RENDER_FLOOR, true)
 	viper.SetDefault(CONFIG_KEY_RENDER_DISTANCE, 2000)
 	viper.SetDefault(CONFIG_KEY_CLUTTER_DISTANCE, 500)
+
+	viper.SetDefault(CONFIG_KEY_CRT_SHADER, false)
 
 	if g.osType == osTypeBrowser {
 		viper.SetDefault(CONFIG_KEY_SCREEN_WIDTH, 800)
@@ -115,6 +119,8 @@ func (g *Game) initConfig() {
 	g.opengl = viper.GetBool(CONFIG_KEY_OPENGL)
 	g.initRenderFloorTex = viper.GetBool(CONFIG_KEY_RENDER_FLOOR)
 
+	g.crtShader = viper.GetBool(CONFIG_KEY_CRT_SHADER)
+
 	renderDistanceMeters := viper.GetFloat64(CONFIG_KEY_RENDER_DISTANCE)
 	g.renderDistance = renderDistanceMeters / model.METERS_PER_UNIT
 
@@ -160,6 +166,7 @@ func (g *Game) saveConfig() error {
 	viper.Set(CONFIG_KEY_FULLSCREEN, g.fullscreen)
 	viper.Set(CONFIG_KEY_VSYNC, g.vsync)
 	viper.Set(CONFIG_KEY_OPENGL, g.opengl)
+	viper.Set(CONFIG_KEY_CRT_SHADER, g.crtShader)
 
 	viper.Set(CONFIG_KEY_RENDER_FLOOR, g.initRenderFloorTex)
 	viper.Set(CONFIG_KEY_RENDER_DISTANCE, g.renderDistance*model.METERS_PER_UNIT)
