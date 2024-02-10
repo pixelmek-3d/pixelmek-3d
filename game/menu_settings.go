@@ -163,18 +163,18 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	}
 
 	displaySettings := displayPage(m)
-	audioSettings := audioPage(m)
 	renderSettings := renderPage(m)
 	hudSettings := hudPage(m)
+	audioSettings := audioPage(m)
 
 	pages := make([]interface{}, 0, 8)
 	if missionSettings != nil {
 		pages = append(pages, missionSettings)
 	}
 	pages = append(pages, displaySettings)
-	pages = append(pages, audioSettings)
 	pages = append(pages, renderSettings)
 	pages = append(pages, hudSettings)
+	pages = append(pages, audioSettings)
 
 	var lightingSettings *settingsPage
 	if gameMenu != nil && m.Game().debug {
