@@ -460,6 +460,12 @@ func renderPage(m Menu) *settingsPage {
 	})
 	c.AddChild(floorCheckbox)
 
+	// CRT shader checkbox
+	crtCheckbox := newCheckbox(m, "CRT Shader", game.crtShader, func(args *widget.CheckboxChangedEventArgs) {
+		game.crtShader = args.State == widget.WidgetChecked
+	})
+	c.AddChild(crtCheckbox)
+
 	return &settingsPage{
 		title:   "Render",
 		content: c,
