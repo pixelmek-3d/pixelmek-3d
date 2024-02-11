@@ -2,10 +2,14 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 )
 
 type GameScene struct {
 	Game *Game
+
+	transition       SceneTransition
+	transitionScreen *ebiten.Image
 }
 
 func NewGameScene(g *Game) *GameScene {
@@ -98,10 +102,15 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	// Update camera (calculate raycast)
 	g.camera.Update(raycastSprites)
 
+	// store raycasted convergence point for next Update
+	g.player.convergenceDistance = g.camera.GetConvergenceDistance()
+	g.player.convergencePoint = g.camera.GetConvergencePoint()
+	g.player.convergenceSprite = getSpriteFromInterface(g.camera.GetConvergenceSprite())
+
 	// Render raycast scene
 	g.camera.Draw(g.rayScreen)
 
-	// draw raycasted scene on window scene, scaled as needed
+	// Draw raycast scene on render scene, scaled as needed
 	if g.renderScale == 1 {
 		g.renderScreen = g.rayScreen
 	} else {
@@ -114,18 +123,35 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
 		// use CRT shader over raycasted scene
 		showCurve := (g.lightAmpEngaged || g.player.ejectionPod != nil)
-		crtShader.DrawWithOptions(screen, g.renderScreen, showCurve)
+		crtShader.DrawWithOptions(g.overlayScreen, g.renderScreen, showCurve)
 	} else {
-		screen.DrawImage(g.renderScreen, nil)
+		g.overlayScreen.DrawImage(g.renderScreen, nil)
 	}
 
-	// store raycasted convergence point for next Update
-	g.player.convergenceDistance = g.camera.GetConvergenceDistance()
-	g.player.convergencePoint = g.camera.GetConvergencePoint()
-	g.player.convergenceSprite = getSpriteFromInterface(g.camera.GetConvergenceSprite())
+	// draw HUD elements to overlay screen
+	g.drawHUD(g.overlayScreen)
 
-	// draw HUD elements
-	g.drawHUD(screen)
+	if g.player.ejectionPod != nil {
+		// setup transition shader to render to screen
+		if s.transition == nil {
+			// initialize transition shader and screen
+			tOpts := &transitions.TransitionOptions{
+				InDuration:   0,
+				HoldDuration: 10.0,
+				OutDuration:  5.0,
+			}
+			s.transition = transitions.NewDissolve(g.overlayScreen, tOpts, ebiten.GeoM{})
+			s.transitionScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
+		} else {
+			s.transition.SetImage(g.overlayScreen)
+			s.transition.Update()
+		}
+
+		s.transition.Draw(screen)
+	} else {
+		// draw HUD overlayed elements directly to screen
+		screen.DrawImage(g.overlayScreen, nil)
+	}
 
 	// draw menu (if active)
 	g.menu.Draw(screen)

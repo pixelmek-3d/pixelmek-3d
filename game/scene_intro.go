@@ -24,7 +24,7 @@ type IntroScene struct {
 }
 
 type SplashScreen struct {
-	image      *ebiten.Image
+	img        *ebiten.Image
 	screen     *ebiten.Image
 	geoM       ebiten.GeoM
 	effect     SceneEffect
@@ -47,7 +47,7 @@ func NewIntroScene(g *Game) *IntroScene {
 			OutDuration:  1.0,
 		}
 		splash := NewSplashScreen(g)
-		splash.image = nil
+		splash.img = nil
 		splash.transition = transitions.NewDissolve(im, tOpts, geoM)
 		splash.geoM = geoM
 		splashes = append(splashes, splash)
@@ -58,7 +58,7 @@ func NewIntroScene(g *Game) *IntroScene {
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
 		splash := NewSplashScreen(g)
-		splash.image = im
+		splash.img = im
 		splash.effect = effects.NewStars(g.screenWidth, g.screenHeight)
 		//splash.shader = effects.NewCRT()
 		splash.geoM = geoM
@@ -161,12 +161,12 @@ func (s *IntroScene) Draw(screen *ebiten.Image) {
 		splash.transition.Draw(splash.screen)
 	}
 
-	if splash.image != nil {
+	if splash.img != nil {
 		// draw splash image
 		op := &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM = splash.geoM
-		splash.screen.DrawImage(splash.image, op)
+		splash.screen.DrawImage(splash.img, op)
 	}
 
 	if splash.shader != nil {
