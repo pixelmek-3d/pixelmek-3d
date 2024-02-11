@@ -74,9 +74,9 @@ type Game struct {
 	hudUseCustomColor bool
 
 	//--define camera and render scene--//
-	camera      *raycaster.Camera
-	rayScene    *ebiten.Image
-	windowScene *ebiten.Image
+	camera       *raycaster.Camera
+	rayScreen    *ebiten.Image
+	renderScreen *ebiten.Image
 
 	crtShader bool
 
