@@ -5,9 +5,6 @@ briefing: |
   Justice by combat.
 map: "testing_grounds.yaml"
 music: "scanner_tek.mp3"
-dropZone:
-  position: [60, 60]
-  heading: 180
 lighting:
   falloff: -500
   illumination: 0
@@ -17,14 +14,15 @@ floorBox:
   image: "floors/floor_green_evening.png"
 skyBox:
   image: "skies/sky_blue_evening.png"
+dropZone:
+  position: [50, 50]
+  heading: 180
 navPoints:
 - name: "Alpha"
   position: [25, 25]
 - name: "Zulu"
   position: [75, 75]
 mechs:
-- unit: "jenner_iic.yaml"
-  position: [10, 10]
 - unit: "warhawk_prime.yaml"
   position: [13, 14]
 - unit: "executioner_prime.yaml"
@@ -32,9 +30,6 @@ mechs:
 - unit: "nova_prime.yaml"
   position: [9, 23]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
-- unit: "adder_prime.yaml"
-  position: [12, 21]
-  patrolPath: [[18, 21], [18, 16], [3, 16], [3, 21], [18, 21]]
 - unit: "timber_wolf_prime.yaml"
   position: [15, 23]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
@@ -50,9 +45,4 @@ vtols:
 - unit: "donar.yaml"
   position: [17, 15]
   zPosition: 3.0
-infantry:
-- unit: "heavy_foot.yaml"
-  position: [13, 13.5]
-- unit: "heavy_foot.yaml"
-  position: [12, 14]
-  patrolPath: [[12, 14], [9, 14], [12, 14]]
+infantry: []
