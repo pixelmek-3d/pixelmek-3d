@@ -210,8 +210,10 @@ func (g *Game) setRenderScale(renderScale float64) {
 	g.width = int(math.Floor(float64(g.screenWidth) * g.renderScale))
 	g.height = int(math.Floor(float64(g.screenHeight) * g.renderScale))
 
-	g.renderScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
 	g.rayScreen = ebiten.NewImage(g.width, g.height)
+	g.renderScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
+	g.overlayScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
+
 	if g.camera != nil {
 		g.camera.SetViewSize(g.width, g.height)
 	}

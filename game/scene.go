@@ -18,6 +18,7 @@ type SceneShader interface {
 }
 
 type SceneTransition interface {
+	SetImage(img *ebiten.Image)
 	Update() error
 	Draw(screen *ebiten.Image)
 }

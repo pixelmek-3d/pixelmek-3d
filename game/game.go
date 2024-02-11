@@ -73,10 +73,11 @@ type Game struct {
 	hudRGBA           *color.NRGBA
 	hudUseCustomColor bool
 
-	//--define camera and render scene--//
-	camera       *raycaster.Camera
-	rayScreen    *ebiten.Image
-	renderScreen *ebiten.Image
+	//--define camera and rendering screens--//
+	camera        *raycaster.Camera
+	rayScreen     *ebiten.Image
+	renderScreen  *ebiten.Image
+	overlayScreen *ebiten.Image
 
 	crtShader bool
 

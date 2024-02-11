@@ -19,28 +19,32 @@ func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 	shader, _ := resources.NewShaderFromFile("shaders/dissolve.kage")
 	noise, _, _ := resources.NewImageFromFile("shaders/noise.png")
 
+	d := &Dissolve{
+		noiseImage: noise,
+		shader:     shader,
+		geoM:       geoM,
+		tOptions:   tOptions,
+		tickDelta:  1 / float32(ebiten.TPS()),
+	}
+	d.SetImage(img)
+
+	return d
+}
+
+func (d *Dissolve) SetImage(img *ebiten.Image) {
+	d.dissolveImage = img
+
 	// scale noise image to match dissolve image size
 	dW, dH := img.Bounds().Dx(), img.Bounds().Dy()
-	nW, nH := noise.Bounds().Dx(), noise.Bounds().Dy()
+	nW, nH := d.noiseImage.Bounds().Dx(), d.noiseImage.Bounds().Dy()
 	if dW != nW || dH != nH {
 		op := &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Scale(float64(dW)/float64(nW), float64(dH)/float64(nH))
 		scaledImage := ebiten.NewImage(dW, dH)
-		scaledImage.DrawImage(noise, op)
-		noise = scaledImage
+		scaledImage.DrawImage(d.noiseImage, op)
+		d.noiseImage = scaledImage
 	}
-
-	d := &Dissolve{
-		dissolveImage: img,
-		noiseImage:    noise,
-		shader:        shader,
-		geoM:          geoM,
-		tOptions:      tOptions,
-		tickDelta:     1 / float32(ebiten.TPS()),
-	}
-
-	return d
 }
 
 func (d *Dissolve) Update() error {
