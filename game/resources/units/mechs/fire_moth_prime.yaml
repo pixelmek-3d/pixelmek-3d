@@ -1,0 +1,39 @@
+---
+# https://www.sarna.net/wiki/Fire_Moth_(Dasher)
+name: Fire Moth
+variant: FRM-Prime
+image: fire_moth.png
+tech: clan
+tonnage: 20
+height: 9
+heightPixelGap: 1
+speed: 162
+jumpJets: 0
+armor: 38
+structure: 33
+collisionRadius: 13
+collisionHeight: 38
+cockpitOffset: [0, 28]
+heatSinks:
+  quantity: 10
+  type: double
+armament:
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [8, 37]
+- weapon: "cl_er_medium_laser.yaml"
+  type: energy
+  location: la
+  offset: [11, 37]
+- weapon: "cl_srm_4.yaml"
+  type: missile
+  location: rt
+  offset: [-4, 32]
+- weapon: "cl_srm_6.yaml"
+  type: missile
+  location: ra
+  offset: [-11, 37]
+ammo:
+- type: srm
+  tons: 2
