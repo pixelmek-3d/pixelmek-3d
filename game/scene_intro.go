@@ -24,9 +24,11 @@ type IntroScene struct {
 }
 
 type SplashScreen struct {
-	*ebiten.Image
+	image      *ebiten.Image
+	screen     *ebiten.Image
 	geoM       ebiten.GeoM
 	effect     SceneEffect
+	shader     SceneShader
 	transition SceneTransition
 }
 
@@ -35,6 +37,7 @@ func NewIntroScene(g *Game) *IntroScene {
 	var splashes = make([]*SplashScreen, 0)
 	splashRect := g.uiRect()
 
+	// Ebitengine splash
 	im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
@@ -43,22 +46,22 @@ func NewIntroScene(g *Game) *IntroScene {
 			HoldDuration: 1.5,
 			OutDuration:  1.0,
 		}
-		splash := &SplashScreen{
-			Image:      nil,
-			transition: transitions.NewDissolve(im, tOpts, geoM),
-			geoM:       geoM,
-		}
+		splash := NewSplashScreen(g)
+		splash.image = nil
+		splash.transition = transitions.NewDissolve(im, tOpts, geoM)
+		splash.geoM = geoM
 		splashes = append(splashes, splash)
 	}
 
+	// Golang Gopher splash
 	im, _, err = resources.NewImageFromFile("textures/gopher_space.png")
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
-		splash := &SplashScreen{
-			Image:  im,
-			effect: effects.NewStars(g.screenWidth, g.screenHeight),
-			geoM:   geoM,
-		}
+		splash := NewSplashScreen(g)
+		splash.image = im
+		splash.effect = effects.NewStars(g.screenWidth, g.screenHeight)
+		//splash.shader = effects.NewCRT()
+		splash.geoM = geoM
 		splashes = append(splashes, splash)
 	}
 
@@ -67,6 +70,12 @@ func NewIntroScene(g *Game) *IntroScene {
 		splashes:    splashes,
 		splashRect:  splashRect,
 		splashTimer: SPLASH_TIMEOUT,
+	}
+}
+
+func NewSplashScreen(g *Game) *SplashScreen {
+	return &SplashScreen{
+		screen: ebiten.NewImage(g.screenWidth, g.screenHeight),
 	}
 }
 
@@ -130,7 +139,7 @@ func (s *IntroScene) Update() error {
 	}
 
 	if s.splashIndex >= len(s.splashes) {
-		// TODO: make last splash require key/button press to move on to main menu?
+		// TODO: make a last splash that requires key/button press to move on to main menu
 		s.Game.scene = NewMenuScene(s.Game)
 	}
 
@@ -140,19 +149,31 @@ func (s *IntroScene) Update() error {
 func (s *IntroScene) Draw(screen *ebiten.Image) {
 	// draw effect as splash image background
 	splash := s.currentSplash()
+	splash.screen.Clear()
+
 	if splash.effect != nil {
-		splash.effect.Draw(screen)
+		// draw effect
+		splash.effect.Draw(splash.screen)
 	}
 
 	if splash.transition != nil {
-		splash.transition.Draw(screen)
+		// draw transition image
+		splash.transition.Draw(splash.screen)
 	}
 
-	if splash.Image != nil {
+	if splash.image != nil {
 		// draw splash image
 		op := &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM = splash.geoM
-		screen.DrawImage(splash.Image, op)
+		splash.screen.DrawImage(splash.image, op)
+	}
+
+	if splash.shader != nil {
+		// draw shader effect with splash scene to screen
+		splash.shader.Draw(screen, splash.screen)
+	} else {
+		// draw splash scene to screen
+		screen.DrawImage(splash.screen, nil)
 	}
 }

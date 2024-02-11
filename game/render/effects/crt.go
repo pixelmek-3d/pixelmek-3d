@@ -17,7 +17,15 @@ func NewCRT() *CRT {
 	return c
 }
 
-func (c *CRT) Draw(screen *ebiten.Image, img *ebiten.Image, curve bool) {
+func (c *CRT) Update() error {
+	return nil
+}
+
+func (c *CRT) Draw(screen *ebiten.Image, img *ebiten.Image) {
+	c.DrawWithOptions(screen, img, true)
+}
+
+func (c *CRT) DrawWithOptions(screen *ebiten.Image, img *ebiten.Image, curve bool) {
 	showCurve := 0
 	if curve {
 		showCurve = 1

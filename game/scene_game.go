@@ -99,24 +99,24 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	g.camera.Update(raycastSprites)
 
 	// Render raycast scene
-	g.camera.Draw(g.rayScene)
+	g.camera.Draw(g.rayScreen)
 
 	// draw raycasted scene on window scene, scaled as needed
 	if g.renderScale == 1 {
-		g.windowScene = g.rayScene
+		g.renderScreen = g.rayScreen
 	} else {
 		rayOp := &ebiten.DrawImageOptions{}
 		rayOp.Filter = ebiten.FilterNearest
 		rayOp.GeoM.Scale(1/g.renderScale, 1/g.renderScale)
-		g.windowScene.DrawImage(g.rayScene, rayOp)
+		g.renderScreen.DrawImage(g.rayScreen, rayOp)
 	}
 
 	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
 		// use CRT shader over raycasted scene
 		showCurve := (g.lightAmpEngaged || g.player.ejectionPod != nil)
-		crtShader.Draw(screen, g.windowScene, showCurve)
+		crtShader.DrawWithOptions(screen, g.renderScreen, showCurve)
 	} else {
-		screen.DrawImage(g.windowScene, nil)
+		screen.DrawImage(g.renderScreen, nil)
 	}
 
 	// store raycasted convergence point for next Update
