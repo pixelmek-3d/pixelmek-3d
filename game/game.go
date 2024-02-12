@@ -375,6 +375,10 @@ func (g *Game) RotateTurret(rSpeed float64) {
 	if !g.player.HasTurret() {
 		return
 	}
+	if g.player.Powered() != model.POWER_ON {
+		// disallow turret rotation when shutdown
+		return
+	}
 
 	angle := g.player.TurretAngle() + rSpeed
 
@@ -391,6 +395,10 @@ func (g *Game) RotateTurret(rSpeed float64) {
 
 // Update player pitch angle by pitch speed
 func (g *Game) Pitch(pSpeed float64) {
+	if g.player.Powered() != model.POWER_ON && g.player.ejectionPod == nil {
+		// disallow turret pitch when shutdown
+		return
+	}
 	// current raycasting method can only allow up to 45 degree pitch in either direction
 	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -geom.Pi/8, geom.Pi/4))
 	g.player.moved = true
