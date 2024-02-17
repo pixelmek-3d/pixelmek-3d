@@ -9,11 +9,27 @@ dropZone:
   position: [50, 50]
   heading: 45
 navPoints:
-- name: "Debug"
-  position: [50, 60]
+  - name: "Debug"
+    position: [50, 60]
+  - name: "ByeBye"
+    position: [50, 70]
+objectives:
+  destroy:
+    - all: true
+    # - unit: "destroy_me"
+  nav:
+    visit:
+      - name: "Debug"
+    dustoff:
+      - name: "ByeBye"
 mechs:
-- unit: "timber_wolf_prime.yaml"
-  position: [60, 60]
-vehicles: []
+  - id: "destroy_me"
+    unit: "fire_moth_prime.yaml"
+    position: [60, 60]
+vehicles:
+  - id: "destroy_me2"
+    unit: "srm_carrier.yaml"
+    position: [57, 55]
 vtols: []
 infantry: []
+emplacements: []

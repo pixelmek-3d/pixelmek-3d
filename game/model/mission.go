@@ -23,6 +23,7 @@ type Mission struct {
 	FloorBox     *MapTexture          `yaml:"floorBox,omitempty"`
 	SkyBox       *MapTexture          `yaml:"skyBox,omitempty"`
 	NavPoints    []*NavPoint          `yaml:"navPoints"`
+	Objectives   *MissionObjectives   `yaml:"objectives" validate:"required"`
 	Mechs        []MissionMech        `yaml:"mechs"`
 	Vehicles     []MissionVehicle     `yaml:"vehicles"`
 	VTOLs        []MissionVTOL        `yaml:"vtols"`
@@ -37,6 +38,29 @@ func (m *Mission) Map() *Map {
 type MissionDropZone struct {
 	Position [2]float64 `yaml:"position" validate:"required"`
 	Heading  float64    `yaml:"heading" validate:"required"`
+}
+
+type MissionObjectives struct {
+	Destroy []*MissionDestroyObjectives `yaml:"destroy"`
+	Nav     *MissionNavObjectives       `yaml:"nav"`
+}
+
+type MissionDestroyObjectives struct {
+	All  bool   `yaml:"all,omitempty"`
+	Unit string `yaml:"unit,omitempty"`
+}
+
+type MissionNavObjectives struct {
+	Visit   []*MissionNavVisit   `yaml:"visit,omitempty"`
+	Dustoff []*MissionNavDustoff `yaml:"dustoff,omitempty"`
+}
+
+type MissionNavVisit struct {
+	Name string `yaml:"name" validate:"required"`
+}
+
+type MissionNavDustoff struct {
+	Name string `yaml:"name" validate:"required"`
 }
 
 type MissionMech struct {
@@ -101,14 +125,12 @@ func LoadMission(missionFile string) (*Mission, error) {
 
 	missionYaml, err := resources.ReadFile(missionPath)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 
 	m := &Mission{}
 	err = yaml.Unmarshal(missionYaml, m)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 
