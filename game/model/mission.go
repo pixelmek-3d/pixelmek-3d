@@ -42,11 +42,16 @@ type MissionDropZone struct {
 
 type MissionObjectives struct {
 	Destroy []*MissionDestroyObjectives `yaml:"destroy"`
+	Protect []*MissionProtectObjectives `yaml:"protect"`
 	Nav     *MissionNavObjectives       `yaml:"nav"`
 }
 
 type MissionDestroyObjectives struct {
 	All  bool   `yaml:"all,omitempty"`
+	Unit string `yaml:"unit,omitempty"`
+}
+
+type MissionProtectObjectives struct {
 	Unit string `yaml:"unit,omitempty"`
 }
 
@@ -64,18 +69,21 @@ type MissionNavDustoff struct {
 }
 
 type MissionMech struct {
+	ID         string       `yaml:"id"`
 	Unit       string       `yaml:"unit" validate:"required"`
 	Position   [2]float64   `yaml:"position" validate:"required"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
 type MissionVehicle struct {
+	ID         string       `yaml:"id"`
 	Unit       string       `yaml:"unit" validate:"required"`
 	Position   [2]float64   `yaml:"position" validate:"required"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
 type MissionVTOL struct {
+	ID         string       `yaml:"id"`
 	Unit       string       `yaml:"unit" validate:"required"`
 	Position   [2]float64   `yaml:"position" validate:"required"`
 	ZPosition  float64      `yaml:"zPosition" validate:"required"`
@@ -83,12 +91,14 @@ type MissionVTOL struct {
 }
 
 type MissionInfantry struct {
+	ID         string       `yaml:"id"`
 	Unit       string       `yaml:"unit" validate:"required"`
 	Position   [2]float64   `yaml:"position" validate:"required"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
 type MissionEmplacement struct {
+	ID       string     `yaml:"id"`
 	Unit     string     `yaml:"unit" validate:"required"`
 	Position [2]float64 `yaml:"position" validate:"required"`
 }

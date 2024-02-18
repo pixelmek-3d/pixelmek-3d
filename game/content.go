@@ -261,6 +261,7 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionMech := range g.mission.Mechs {
 		modelMech := g.createModelMech(missionMech.Unit)
+		modelMech.SetID(missionMech.ID)
 		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
 
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
@@ -275,6 +276,7 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionVehicle := range g.mission.Vehicles {
 		modelVehicle := g.createModelVehicle(missionVehicle.Unit)
+		modelVehicle.SetID(missionVehicle.ID)
 		vehicle := g.createUnitSprite(modelVehicle).(*render.VehicleSprite)
 
 		posX, posY := missionVehicle.Position[0], missionVehicle.Position[1]
@@ -289,6 +291,7 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionVTOL := range g.mission.VTOLs {
 		modelVTOL := g.createModelVTOL(missionVTOL.Unit)
+		modelVTOL.SetID(missionVTOL.ID)
 		vtol := g.createUnitSprite(modelVTOL).(*render.VTOLSprite)
 
 		posX, posY, posZ := missionVTOL.Position[0], missionVTOL.Position[1], missionVTOL.ZPosition
@@ -304,6 +307,7 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionInfantry := range g.mission.Infantry {
 		modelInfantry := g.createModelInfantry(missionInfantry.Unit)
+		modelInfantry.SetID(missionInfantry.ID)
 		infantry := g.createUnitSprite(modelInfantry).(*render.InfantrySprite)
 
 		posX, posY := missionInfantry.Position[0], missionInfantry.Position[1]
@@ -318,6 +322,7 @@ func (g *Game) loadMissionSprites() {
 
 	for _, missionEmplacement := range g.mission.Emplacements {
 		modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit)
+		modelEmplacement.SetID(missionEmplacement.ID)
 		emplacement := g.createUnitSprite(modelEmplacement).(*render.EmplacementSprite)
 
 		posX, posY := missionEmplacement.Position[0], missionEmplacement.Position[1]

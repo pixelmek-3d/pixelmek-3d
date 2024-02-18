@@ -99,8 +99,9 @@ type Game struct {
 	lightAmpEngaged bool
 
 	// Mission and map
-	mission      *model.Mission
-	collisionMap []*geom.Line
+	mapWidth, mapHeight int
+	mission             *model.Mission
+	collisionMap        []*geom.Line
 
 	sprites                *SpriteHandler
 	clutter                *ClutterHandler
@@ -108,7 +109,8 @@ type Game struct {
 	interactiveSpriteTypes map[SpriteType]struct{}
 	delayedProjectiles     map[*DelayedProjectileSpawn]struct{}
 
-	mapWidth, mapHeight int
+	// Gameplay
+	objectives *ObjectivesHandler
 
 	// control options
 	throttleDecay bool
@@ -221,8 +223,11 @@ func (g *Game) initMission() {
 	g.mapWidth = len(worldMap)
 	g.mapHeight = len(worldMap[0])
 
-	// load map and mission content once when first run
+	// load map and mission content
 	g.loadContent()
+
+	// initialize objectives
+	g.objectives = NewObjectivesHandler(g, g.mission.Objectives)
 
 	// init player at DZ
 	pX, pY, pDegrees := g.mission.DropZone.Position[0], g.mission.DropZone.Position[1], g.mission.DropZone.Heading
@@ -402,6 +407,20 @@ func (g *Game) Pitch(pSpeed float64) {
 	// current raycasting method can only allow up to 45 degree pitch in either direction
 	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -geom.Pi/8, geom.Pi/4))
 	g.player.moved = true
+}
+
+func (g *Game) updateObjectives() {
+	g.objectives.Update(g)
+	switch g.objectives.Status() {
+	case OBJECTIVES_FAILED:
+		// TODO: end mission as failure (and do not spam debug console)
+		log.Debugf("one or more objectives failed")
+		g.player.SetStructurePoints(0)
+	case OBJECTIVES_COMPLETED:
+		// TODO: end mission as success (and do not spam debug console)
+		log.Debugf("all objectives completed")
+		g.player.SetStructurePoints(0)
+	}
 }
 
 func (g *Game) updatePlayer() {

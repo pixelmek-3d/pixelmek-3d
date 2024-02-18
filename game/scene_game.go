@@ -75,6 +75,7 @@ func (s *GameScene) Update() error {
 		g.updatePlayer()
 		g.updateProjectiles()
 		g.updateSprites()
+		g.updateObjectives()
 
 		if g.clutter != nil {
 			g.clutter.Update(g, false)

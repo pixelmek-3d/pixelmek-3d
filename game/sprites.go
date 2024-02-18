@@ -241,6 +241,23 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	return raycastSprites[:count]
 }
 
+func (g *Game) getSpriteUnits() []model.Unit {
+	units := make([]model.Unit, 0, 32)
+	for _, spriteMap := range g.sprites.sprites {
+		spriteMap.Range(func(k, _ interface{}) bool {
+			spriteInterface := k.(raycaster.Sprite)
+			entity := getEntityFromInterface(spriteInterface)
+			unit := model.EntityUnit(entity)
+			if unit != nil {
+				units = append(units, unit)
+			}
+			return true
+		})
+	}
+
+	return units
+}
+
 func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
 	if sInterface == nil {
 		return nil

@@ -15,19 +15,21 @@ navPoints:
     position: [50, 70]
 objectives:
   destroy:
-    - all: true
-    # - unit: "destroy_me"
-  nav:
-    visit:
-      - name: "Debug"
-    dustoff:
-      - name: "ByeBye"
+    #  - all: true
+     - unit: "destroy_me"
+  # protect:
+  #   - unit: "do_not_hurt_me"
+  # nav:
+  #   visit:
+  #     - name: "Debug"
+  #   dustoff:
+  #     - name: "ByeBye"
 mechs:
   - id: "destroy_me"
     unit: "fire_moth_prime.yaml"
     position: [60, 60]
 vehicles:
-  - id: "destroy_me2"
+  - id: "do_not_hurt_me"
     unit: "srm_carrier.yaml"
     position: [57, 55]
 vtols: []
