@@ -54,6 +54,17 @@ func (o *BasicObjective) Failed() bool {
 }
 
 func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *ObjectivesHandler {
+	if objectives == nil {
+		// default objectives: destroy all
+		objectives = &model.MissionObjectives{
+			Destroy: []*model.MissionDestroyObjectives{
+				{
+					All: true,
+				},
+			},
+		}
+	}
+
 	o := &ObjectivesHandler{
 		_objectives: objectives,
 		current:     make(map[Objective]time.Time),
@@ -65,12 +76,13 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 
 	var iTime time.Time
 	for _, modelObjective := range objectives.Destroy {
+		all := modelObjective.All
 		unitID := modelObjective.Unit
 
-		if len(unitID) > 0 {
+		if all || len(unitID) > 0 {
 			objective_units := make([]model.Unit, 0, 1)
 			for _, unit := range all_units {
-				if unitID == unit.ID() {
+				if all || unitID == unit.ID() {
 					objective_units = append(objective_units, unit)
 				}
 			}
