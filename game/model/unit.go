@@ -34,6 +34,8 @@ const (
 
 type Unit interface {
 	Entity
+	ID() string
+	SetID(string)
 	Name() string
 	Variant() string
 	Tonnage() float64
@@ -86,6 +88,7 @@ type Unit interface {
 }
 
 type UnitModel struct {
+	id                 string
 	unitType           UnitType
 	position           *geom.Vector2
 	positionZ          float64
@@ -146,6 +149,14 @@ func (e1 *UnitModel) DistanceToEntity(e2 Entity) float64 {
 		X2: x2, Y2: y2, Z2: z2,
 	}
 	return line.Distance()
+}
+
+func (e *UnitModel) ID() string {
+	return e.id
+}
+
+func (e *UnitModel) SetID(id string) {
+	e.id = id
 }
 
 func (e *UnitModel) UnitType() UnitType {
