@@ -47,6 +47,12 @@ type ProtectObjective struct {
 	_units     []model.Unit
 }
 
+type VisitObjective struct {
+	*BasicObjective
+	_objective *model.MissionNavVisit
+	_nav       model.NavPoint
+}
+
 func (o *BasicObjective) Current() bool {
 	return !o.completed && !o.failed
 }

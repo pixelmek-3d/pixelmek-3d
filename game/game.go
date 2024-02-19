@@ -478,8 +478,21 @@ func (g *Game) updatePlayer() {
 		}
 		moveLine := geom.LineFromAngle(position.X, position.Y, moveHeading, velocity)
 
-		g.updatePlayerPosition(moveLine.X2, moveLine.Y2, posZ)
+		newX, newY := moveLine.X2, moveLine.Y2
+		g.updatePlayerPosition(newX, newY, posZ)
 		g.player.moved = true
+
+		// check for nav point visits
+		for _, nav := range g.mission.NavPoints {
+			if nav.Visited() {
+				continue
+			}
+
+			navX, navY := nav.Position[0], nav.Position[1]
+			if model.PointInProximity(1.0, newX, newY, navX, navY) {
+				nav.SetVisited(true)
+			}
+		}
 	}
 
 	if g.player.Powered() == model.POWER_ON {
