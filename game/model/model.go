@@ -3,6 +3,7 @@ package model
 import (
 	"math"
 	"math/rand"
+	"reflect"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -300,4 +301,21 @@ func (a *AmmoBin) ConsumeAmmo(forWeapon Weapon, consumeN int) {
 			a.ammoCount = 0
 		}
 	}
+}
+
+func InArray(array, search interface{}) bool {
+	a := reflect.ValueOf(array)
+	a = a.Convert(a.Type())
+	t := reflect.TypeOf(array).Kind()
+
+	switch t {
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < a.Len(); i++ {
+			if reflect.DeepEqual(search, a.Index(i).Interface()) {
+				return true
+			}
+		}
+	}
+
+	return false
 }

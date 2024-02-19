@@ -41,6 +41,12 @@ type DestroyObjective struct {
 	_units     []model.Unit
 }
 
+type ProtectObjective struct {
+	*BasicObjective
+	_objective *model.MissionProtectObjectives
+	_units     []model.Unit
+}
+
 func (o *BasicObjective) Current() bool {
 	return !o.completed && !o.failed
 }
@@ -50,7 +56,7 @@ func (o *BasicObjective) Completed() bool {
 }
 
 func (o *BasicObjective) Failed() bool {
-	return o.completed && o.failed
+	return o.failed
 }
 
 func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *ObjectivesHandler {
@@ -73,24 +79,52 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 	}
 
 	all_units := g.getSpriteUnits()
-
 	var iTime time.Time
+
+	protectUnits := make([]model.Unit, 0, 16)
+	destroyUnits := make([]model.Unit, 0, 16)
+
+	for _, modelObjective := range objectives.Protect {
+		unitID := modelObjective.Unit
+
+		if len(unitID) > 0 {
+			for _, unit := range all_units {
+				if unitID == unit.ID() {
+					protectUnits = append(protectUnits, unit)
+				}
+			}
+
+			protectObjective := &ProtectObjective{
+				BasicObjective: &BasicObjective{},
+				_objective:     modelObjective,
+				_units:         protectUnits,
+			}
+			o.current[protectObjective] = iTime
+		}
+	}
+
 	for _, modelObjective := range objectives.Destroy {
 		all := modelObjective.All
 		unitID := modelObjective.Unit
 
 		if all || len(unitID) > 0 {
-			objective_units := make([]model.Unit, 0, 1)
 			for _, unit := range all_units {
-				if all || unitID == unit.ID() {
-					objective_units = append(objective_units, unit)
+				if all || (len(unitID) > 0 && unitID == unit.ID()) {
+					if model.InArray(protectUnits, unit) {
+						// prevent protected units from also being a destroy objective
+						if !all {
+							log.Errorf("same unit ID found in protect and destroy objectives: %s", unit.ID())
+						}
+						continue
+					}
+					destroyUnits = append(destroyUnits, unit)
 				}
 			}
 
 			destroyObjective := &DestroyObjective{
 				BasicObjective: &BasicObjective{},
 				_objective:     modelObjective,
-				_units:         objective_units,
+				_units:         destroyUnits,
 			}
 			o.current[destroyObjective] = iTime
 		}
@@ -101,7 +135,16 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 
 func (o *ObjectivesHandler) Update(g *Game) {
 	updated := time.Now()
+	objsDestroy := make([]*DestroyObjective, 0, 16)
+	objsProtect := make([]*ProtectObjective, 0, 16)
 	for objective := range o.current {
+		switch objective := objective.(type) {
+		case *DestroyObjective:
+			objsDestroy = append(objsDestroy, objective)
+		case *ProtectObjective:
+			objsProtect = append(objsProtect, objective)
+		}
+
 		objective.Update(g)
 		if objective.Current() {
 			o.current[objective] = updated
@@ -118,6 +161,16 @@ func (o *ObjectivesHandler) Update(g *Game) {
 			panic(fmt.Sprintf("unexpected objective state for %v", objective))
 		}
 	}
+
+	// TODO: special handling for Nav.Dustoff which cannot be completed until after all destroy/visit, where applicable
+
+	// special handling for Protect.Unit which cannot be completed until after all destroy/visit/dustoff, where applicable
+	if len(objsDestroy) == 0 {
+		for _, objective := range objsProtect {
+			log.Debugf("protect objective completed: %s", objective._objective.Unit)
+			objective.completed = true
+		}
+	}
 }
 
 func (o *ObjectivesHandler) Status() ObjectivesStatus {
@@ -131,16 +184,31 @@ func (o *ObjectivesHandler) Status() ObjectivesStatus {
 }
 
 func (o *DestroyObjective) Update(g *Game) {
-	all_destroyed := true
+	allDestroyed := true
 	for _, unit := range o._units {
 		if !unit.IsDestroyed() {
-			all_destroyed = false
+			allDestroyed = false
 			break
 		}
 	}
 
-	if all_destroyed {
+	if allDestroyed {
 		log.Debugf("destroy objective completed: %s", o._objective.Unit)
 		o.completed = true
+	}
+}
+
+func (o *ProtectObjective) Update(g *Game) {
+	allAlive := true
+	for _, unit := range o._units {
+		if unit.IsDestroyed() {
+			allAlive = false
+			break
+		}
+	}
+
+	if !allAlive {
+		log.Debugf("protect objective failed: %s", o._objective.Unit)
+		o.failed = true
 	}
 }
