@@ -19,9 +19,9 @@ objectives:
       - unit: "destroy_me"
   protect:
     - unit: "do_not_hurt_me"
-  # nav:
-  #   visit:
-  #     - name: "Debug"
+  nav:
+    visit:
+      - name: "Debug"
   #   dustoff:
   #     - name: "ByeBye"
 mechs:

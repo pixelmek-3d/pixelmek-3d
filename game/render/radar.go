@@ -183,10 +183,19 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			// draw target nav circle around lighter colored nav
 			tAlpha := uint8(nColor.A / 3)
 			tColor := color.NRGBA{R: nColor.R, G: nColor.G, B: nColor.B, A: tAlpha}
-			vector.DrawFilledCircle(screen, float32(nLine.X2), float32(nLine.Y2), 8, tColor, false) // TODO: calculate thickness based on image size
+
+			var navTargetRadius float32 = 8
+			if nav.NavPoint.Visited() {
+				navTargetRadius = 4
+			}
+			vector.DrawFilledCircle(screen, float32(nLine.X2), float32(nLine.Y2), navTargetRadius, tColor, false) // TODO: calculate thickness based on image size
 		}
 
-		vector.DrawFilledCircle(screen, float32(nLine.X2), float32(nLine.Y2), 3, nColor, false) // TODO: calculate thickness based on image size
+		var navRadius float32 = 3
+		if nav.NavPoint.Visited() {
+			navRadius = 1
+		}
+		vector.DrawFilledCircle(screen, float32(nLine.X2), float32(nLine.Y2), navRadius, nColor, false) // TODO: calculate thickness based on image size
 	}
 
 	// Draw radar blips
