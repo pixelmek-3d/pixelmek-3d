@@ -15,10 +15,10 @@ navPoints:
     position: [50, 70]
 objectives:
   destroy:
-    #  - all: true
-     - unit: "destroy_me"
-  # protect:
-  #   - unit: "do_not_hurt_me"
+    # - all: true
+      - unit: "destroy_me"
+  protect:
+    - unit: "do_not_hurt_me"
   # nav:
   #   visit:
   #     - name: "Debug"
