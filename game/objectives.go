@@ -193,7 +193,11 @@ func (o *DestroyObjective) Update(g *Game) {
 	}
 
 	if allDestroyed {
-		log.Debugf("destroy objective completed: %s", o._objective.Unit)
+		destroyedStr := o._objective.Unit
+		if o._objective.All {
+			destroyedStr = "all"
+		}
+		log.Debugf("destroy objective completed: %s", destroyedStr)
 		o.completed = true
 	}
 }
