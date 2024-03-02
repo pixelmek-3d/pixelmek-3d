@@ -22,8 +22,8 @@ objectives:
   nav:
     visit:
       - name: "Debug"
-  #   dustoff:
-  #     - name: "ByeBye"
+    dustoff:
+      - name: "ByeBye"
 mechs:
   - id: "destroy_me"
     unit: "fire_moth_prime.yaml"
