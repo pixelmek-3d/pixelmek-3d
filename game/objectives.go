@@ -50,7 +50,14 @@ type ProtectObjective struct {
 type VisitObjective struct {
 	*BasicObjective
 	_objective *model.MissionNavVisit
-	_nav       model.NavPoint
+	_nav       *model.NavPoint
+}
+
+type DustoffObjective struct {
+	*BasicObjective
+	_objective     *model.MissionNavDustoff
+	_nav           *model.NavPoint
+	_verifyDustoff bool
 }
 
 func (o *BasicObjective) Current() bool {
@@ -136,6 +143,56 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 		}
 	}
 
+	for _, modelObjective := range objectives.Nav.Visit {
+		navName := modelObjective.Name
+		if len(navName) == 0 {
+			continue
+		}
+		var objectiveNav *model.NavPoint
+		for _, nav := range g.mission.NavPoints {
+			if navName == nav.Name {
+				objectiveNav = nav
+				break
+			}
+		}
+		if objectiveNav == nil {
+			log.Errorf("visit objective nav point not found: %s", navName)
+			continue
+		}
+
+		visitObjective := &VisitObjective{
+			BasicObjective: &BasicObjective{},
+			_objective:     modelObjective,
+			_nav:           objectiveNav,
+		}
+		o.current[visitObjective] = iTime
+	}
+
+	for _, modelObjective := range objectives.Nav.Dustoff {
+		navName := modelObjective.Name
+		if len(navName) == 0 {
+			continue
+		}
+		var objectiveNav *model.NavPoint
+		for _, nav := range g.mission.NavPoints {
+			if navName == nav.Name {
+				objectiveNav = nav
+				break
+			}
+		}
+		if objectiveNav == nil {
+			log.Errorf("dustoff objective nav point not found: %s", navName)
+			continue
+		}
+
+		visitObjective := &DustoffObjective{
+			BasicObjective: &BasicObjective{},
+			_objective:     modelObjective,
+			_nav:           objectiveNav,
+		}
+		o.current[visitObjective] = iTime
+	}
+
 	return o
 }
 
@@ -143,12 +200,18 @@ func (o *ObjectivesHandler) Update(g *Game) {
 	updated := time.Now()
 	objsDestroy := make([]*DestroyObjective, 0, 16)
 	objsProtect := make([]*ProtectObjective, 0, 16)
+	objsVisit := make([]*VisitObjective, 0, 4)
+	objsDustoff := make([]*DustoffObjective, 0, 1)
 	for objective := range o.current {
 		switch objective := objective.(type) {
 		case *DestroyObjective:
 			objsDestroy = append(objsDestroy, objective)
 		case *ProtectObjective:
 			objsProtect = append(objsProtect, objective)
+		case *VisitObjective:
+			objsVisit = append(objsVisit, objective)
+		case *DustoffObjective:
+			objsDustoff = append(objsDustoff, objective)
 		}
 
 		objective.Update(g)
@@ -168,10 +231,35 @@ func (o *ObjectivesHandler) Update(g *Game) {
 		}
 	}
 
-	// TODO: special handling for Nav.Dustoff which cannot be completed until after all destroy/visit, where applicable
+	// special handling for Nav.Dustoff which cannot be completed until after all destroy/visit, where applicable
+	if len(objsDustoff) > 0 {
+		dustoffReady := (len(objsDestroy) == 0 && len(objsVisit) == 0)
+		dustoffComplete := false
+		for _, objective := range objsDustoff {
+			if !dustoffReady && objective._verifyDustoff {
+				// reset dustoff nav site visited flag until other objectives are complete
+				objective._nav.SetVisited(false)
+				objective._verifyDustoff = false
+				continue
+			}
+
+			if dustoffReady && objective._verifyDustoff {
+				log.Debugf("nav dustoff objective completed: %s", objective._nav.Name)
+				dustoffComplete = true
+				break
+			}
+		}
+
+		if dustoffComplete {
+			// only one nav needed to complete dustoff objective
+			for _, objective := range objsDustoff {
+				objective.completed = true
+			}
+		}
+	}
 
 	// special handling for Protect.Unit which cannot be completed until after all destroy/visit/dustoff, where applicable
-	if len(objsDestroy) == 0 {
+	if len(objsProtect) > 0 && len(objsDestroy) == 0 && len(objsVisit) == 0 && len(objsDustoff) == 0 {
 		for _, objective := range objsProtect {
 			log.Debugf("protect objective completed: %s", objective._objective.Unit)
 			objective.completed = true
@@ -220,5 +308,19 @@ func (o *ProtectObjective) Update(g *Game) {
 	if !allAlive {
 		log.Debugf("protect objective failed: %s", o._objective.Unit)
 		o.failed = true
+	}
+}
+
+func (o *VisitObjective) Update(g *Game) {
+	if o._nav.Visited() {
+		log.Debugf("nav visit objective completed: %s", o._nav.Name)
+		o.completed = true
+	}
+}
+
+func (o *DustoffObjective) Update(g *Game) {
+	// TODO: special handling for Dustoff that all non-dustoff objectives must first be completed
+	if o._nav.Visited() {
+		o._verifyDustoff = true
 	}
 }
