@@ -22,7 +22,7 @@ type Dissolve struct {
 func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.GeoM) *Dissolve {
 	shader, err := resources.NewShaderFromFile(SHADER_DISSOLVE)
 	if err != nil {
-		log.Errorf("error loading shader: %s", SHADER_SCREEN_FADE)
+		log.Errorf("error loading shader: %s", SHADER_DISSOLVE)
 		log.Fatal(err)
 	}
 
