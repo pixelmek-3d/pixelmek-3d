@@ -7,9 +7,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const SHADER_DISSOLVE = "shaders/dissolve.kage"
+const SHADER_DIGITAL_BURN = "shaders/digital_burn.kage"
 
-type Dissolve struct {
+type DigitalBurn struct {
 	dissolveImage *ebiten.Image
 	noiseImage    *ebiten.Image
 	shader        *ebiten.Shader
@@ -19,8 +19,8 @@ type Dissolve struct {
 	tickDelta     float32
 }
 
-func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.GeoM) *Dissolve {
-	shader, err := resources.NewShaderFromFile(SHADER_DISSOLVE)
+func NewDigitalBurn(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.GeoM) *DigitalBurn {
+	shader, err := resources.NewShaderFromFile(SHADER_DIGITAL_BURN)
 	if err != nil {
 		log.Errorf("error loading shader: %s", SHADER_DIGITAL_BURN)
 		log.Fatal(err)
@@ -28,7 +28,7 @@ func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 
 	noise, _, _ := resources.NewImageFromFile("shaders/noise.png")
 
-	d := &Dissolve{
+	d := &DigitalBurn{
 		noiseImage: noise,
 		shader:     shader,
 		geoM:       geoM,
@@ -40,7 +40,7 @@ func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 	return d
 }
 
-func (d *Dissolve) SetImage(img *ebiten.Image) {
+func (d *DigitalBurn) SetImage(img *ebiten.Image) {
 	d.dissolveImage = img
 
 	// scale noise image to match dissolve image size
@@ -56,7 +56,7 @@ func (d *Dissolve) SetImage(img *ebiten.Image) {
 	}
 }
 
-func (d *Dissolve) Update() error {
+func (d *DigitalBurn) Update() error {
 	duration := d.tOptions.Duration()
 	if d.time+d.tickDelta < duration {
 		d.time += d.tickDelta
@@ -69,13 +69,13 @@ func (d *Dissolve) Update() error {
 	return nil
 }
 
-func (d *Dissolve) Draw(screen *ebiten.Image) {
+func (d *DigitalBurn) Draw(screen *ebiten.Image) {
 	time := d.time
 	duration := d.tOptions.Duration()
 	direction := 1.0
 	switch d.tOptions.CurrentDirection {
 	case TransitionOut:
-		direction = 0.0
+		direction = -1.0
 	case TransitionHold:
 		direction = 0.0
 		time = 0
@@ -95,6 +95,6 @@ func (d *Dissolve) Draw(screen *ebiten.Image) {
 	screen.DrawRectShader(w, h, d.shader, op)
 }
 
-func (d *Dissolve) SetGeoM(geoM ebiten.GeoM) {
+func (d *DigitalBurn) SetGeoM(geoM ebiten.GeoM) {
 	d.geoM = geoM
 }
