@@ -17,6 +17,7 @@ type Dissolve struct {
 	tOptions      *TransitionOptions
 	time          float32
 	tickDelta     float32
+	completed     bool
 }
 
 func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.GeoM) *Dissolve {
@@ -40,6 +41,10 @@ func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 	return d
 }
 
+func (d *Dissolve) Completed() bool {
+	return d.completed
+}
+
 func (d *Dissolve) SetImage(img *ebiten.Image) {
 	d.dissolveImage = img
 
@@ -57,6 +62,10 @@ func (d *Dissolve) SetImage(img *ebiten.Image) {
 }
 
 func (d *Dissolve) Update() error {
+	if d.completed {
+		return nil
+	}
+
 	duration := d.tOptions.Duration()
 	if d.time+d.tickDelta < duration {
 		d.time += d.tickDelta
@@ -64,6 +73,10 @@ func (d *Dissolve) Update() error {
 		// move to next transition direction and reset timer
 		d.tOptions.CurrentDirection += 1
 		d.time = 0
+	}
+
+	if d.tOptions.CurrentDirection == TransitionCompleted {
+		d.completed = true
 	}
 
 	return nil

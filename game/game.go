@@ -429,7 +429,6 @@ func (g *Game) updatePlayer() {
 		if justEjected {
 			g.spawnPlayerDestroyEffects()
 			g.player.sprite.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
-			g.player.ejectionPod.SetDestroyCounter(int(model.TICKS_PER_SECOND * 7))
 		} else {
 			// keep playing destruction effects until the counter runs out
 			if g.player.sprite.DestroyCounter() > 0 {
@@ -440,19 +439,10 @@ func (g *Game) updatePlayer() {
 				}
 			}
 
-			podCounter := g.player.ejectionPod.DestroyCounter() - 1
-			if podCounter <= 0 {
-				// TODO: fade game out slowly
-				// TODO: create mission failed summary scene
-				g.LeaveGame()
-				return
-			} else {
-				g.player.ejectionPod.SetDestroyCounter(podCounter)
-				// make ejection pod thrust sound
-				jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
-				if !jetThrust.player.IsPlaying() {
-					jetThrust.Play()
-				}
+			// make ejection pod thrust sound
+			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
+			if !jetThrust.player.IsPlaying() {
+				jetThrust.Play()
 			}
 		}
 

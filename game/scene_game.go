@@ -87,9 +87,23 @@ func (s *GameScene) Update() error {
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 
-		// update transition (if active)
-		if s.transition != nil {
-			s.transition.Update()
+		if g.player.ejectionPod != nil {
+			if s.transition == nil {
+				// start transition to leave game
+				tOpts := &transitions.TransitionOptions{
+					InDuration:   0.0,
+					HoldDuration: 4.0,
+					OutDuration:  3.0,
+				}
+				s.transition = transitions.NewDissolve(g.overlayScreen, tOpts, ebiten.GeoM{})
+				s.transitionScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
+			} else {
+				s.transition.Update()
+				if s.transition.Completed() {
+					// TODO: create mission failed summary scene
+					g.LeaveGame()
+				}
+			}
 		}
 	}
 
@@ -138,21 +152,11 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	g.drawHUD(g.overlayScreen)
 
 	if g.player.ejectionPod != nil {
-		// setup transition shader to render to screen
-		if s.transition == nil {
-			// initialize transition shader and screen
-			tOpts := &transitions.TransitionOptions{
-				InDuration:   0.0,
-				HoldDuration: 4.0,
-				OutDuration:  3.0,
-			}
-			s.transition = transitions.NewDissolve(g.overlayScreen, tOpts, ebiten.GeoM{})
-			s.transitionScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
-		} else {
+		if s.transition != nil {
+			// draw transition shader to screen
 			s.transition.SetImage(g.overlayScreen)
+			s.transition.Draw(screen)
 		}
-
-		s.transition.Draw(screen)
 	} else {
 		// draw HUD overlayed elements directly to screen
 		screen.DrawImage(g.overlayScreen, nil)
