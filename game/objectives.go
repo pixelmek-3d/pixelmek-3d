@@ -143,54 +143,56 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 		}
 	}
 
-	for _, modelObjective := range objectives.Nav.Visit {
-		navName := modelObjective.Name
-		if len(navName) == 0 {
-			continue
-		}
-		var objectiveNav *model.NavPoint
-		for _, nav := range g.mission.NavPoints {
-			if navName == nav.Name {
-				objectiveNav = nav
-				break
+	if objectives.Nav != nil {
+		for _, modelObjective := range objectives.Nav.Visit {
+			navName := modelObjective.Name
+			if len(navName) == 0 {
+				continue
 			}
-		}
-		if objectiveNav == nil {
-			log.Errorf("visit objective nav point not found: %s", navName)
-			continue
-		}
-
-		visitObjective := &VisitObjective{
-			BasicObjective: &BasicObjective{},
-			_objective:     modelObjective,
-			_nav:           objectiveNav,
-		}
-		o.current[visitObjective] = iTime
-	}
-
-	for _, modelObjective := range objectives.Nav.Dustoff {
-		navName := modelObjective.Name
-		if len(navName) == 0 {
-			continue
-		}
-		var objectiveNav *model.NavPoint
-		for _, nav := range g.mission.NavPoints {
-			if navName == nav.Name {
-				objectiveNav = nav
-				break
+			var objectiveNav *model.NavPoint
+			for _, nav := range g.mission.NavPoints {
+				if navName == nav.Name {
+					objectiveNav = nav
+					break
+				}
 			}
-		}
-		if objectiveNav == nil {
-			log.Errorf("dustoff objective nav point not found: %s", navName)
-			continue
+			if objectiveNav == nil {
+				log.Errorf("visit objective nav point not found: %s", navName)
+				continue
+			}
+
+			visitObjective := &VisitObjective{
+				BasicObjective: &BasicObjective{},
+				_objective:     modelObjective,
+				_nav:           objectiveNav,
+			}
+			o.current[visitObjective] = iTime
 		}
 
-		visitObjective := &DustoffObjective{
-			BasicObjective: &BasicObjective{},
-			_objective:     modelObjective,
-			_nav:           objectiveNav,
+		for _, modelObjective := range objectives.Nav.Dustoff {
+			navName := modelObjective.Name
+			if len(navName) == 0 {
+				continue
+			}
+			var objectiveNav *model.NavPoint
+			for _, nav := range g.mission.NavPoints {
+				if navName == nav.Name {
+					objectiveNav = nav
+					break
+				}
+			}
+			if objectiveNav == nil {
+				log.Errorf("dustoff objective nav point not found: %s", navName)
+				continue
+			}
+
+			visitObjective := &DustoffObjective{
+				BasicObjective: &BasicObjective{},
+				_objective:     modelObjective,
+				_nav:           objectiveNav,
+			}
+			o.current[visitObjective] = iTime
 		}
-		o.current[visitObjective] = iTime
 	}
 
 	return o
