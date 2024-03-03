@@ -146,7 +146,7 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 				HoldDuration: 2.0,
 				OutDuration:  5.0,
 			}
-			s.transition = transitions.NewDigitalBurn(g.overlayScreen, tOpts, ebiten.GeoM{})
+			s.transition = transitions.NewScreenFade(g.overlayScreen, tOpts, ebiten.GeoM{})
 			s.transitionScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
 		} else {
 			s.transition.SetImage(g.overlayScreen)
