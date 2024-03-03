@@ -3,14 +3,22 @@ package effects
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+
+	log "github.com/sirupsen/logrus"
 )
+
+const SHADER_CRT = "shaders/crt.kage"
 
 type CRT struct {
 	shader *ebiten.Shader
 }
 
 func NewCRT() *CRT {
-	shader, _ := resources.NewShaderFromFile("shaders/crt.kage")
+	shader, err := resources.NewShaderFromFile(SHADER_CRT)
+	if err != nil {
+		log.Errorf("error loading shader: %s", SHADER_CRT)
+		log.Fatal(err)
+	}
 	c := &CRT{
 		shader: shader,
 	}

@@ -86,6 +86,11 @@ func (s *GameScene) Update() error {
 
 		// handle player camera movement
 		g.updatePlayerCamera(false)
+
+		// update transition (if active)
+		if s.transition != nil {
+			s.transition.Update()
+		}
 	}
 
 	// update the menu (if active)
@@ -137,15 +142,14 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 		if s.transition == nil {
 			// initialize transition shader and screen
 			tOpts := &transitions.TransitionOptions{
-				InDuration:   0,
-				HoldDuration: 10.0,
+				InDuration:   0.0,
+				HoldDuration: 2.0,
 				OutDuration:  5.0,
 			}
-			s.transition = transitions.NewDissolve(g.overlayScreen, tOpts, ebiten.GeoM{})
+			s.transition = transitions.NewDigitalBurn(g.overlayScreen, tOpts, ebiten.GeoM{})
 			s.transitionScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
 		} else {
 			s.transition.SetImage(g.overlayScreen)
-			s.transition.Update()
 		}
 
 		s.transition.Draw(screen)
