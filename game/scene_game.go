@@ -143,10 +143,10 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 			// initialize transition shader and screen
 			tOpts := &transitions.TransitionOptions{
 				InDuration:   0.0,
-				HoldDuration: 2.0,
-				OutDuration:  5.0,
+				HoldDuration: 4.0,
+				OutDuration:  3.0,
 			}
-			s.transition = transitions.NewScreenFade(g.overlayScreen, tOpts, ebiten.GeoM{})
+			s.transition = transitions.NewDissolve(g.overlayScreen, tOpts, ebiten.GeoM{})
 			s.transitionScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
 		} else {
 			s.transition.SetImage(g.overlayScreen)
