@@ -42,9 +42,9 @@ func NewIntroScene(g *Game) *IntroScene {
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
 		tOpts := &transitions.TransitionOptions{
-			InDuration:   2.0,
-			HoldDuration: 1.5,
-			OutDuration:  1.0,
+			InDuration:   SPLASH_TIMEOUT * 2 / 5,
+			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
+			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
 		}
 		splash := NewSplashScreen(g)
 		splash.img = nil

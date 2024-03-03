@@ -6,6 +6,7 @@ const (
 	TransitionIn TransitionDirection = iota
 	TransitionHold
 	TransitionOut
+	TransitionCompleted
 )
 
 type TransitionOptions struct {
