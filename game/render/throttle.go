@@ -42,7 +42,7 @@ func NewThrottle(font *Font) *Throttle {
 	return t
 }
 
-func (t *Throttle) updateFontSize(width, height int) {
+func (t *Throttle) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 18
 	if pxSize < 1 {

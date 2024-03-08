@@ -41,7 +41,7 @@ func NewHeatIndicator(font *Font) *HeatIndicator {
 	return h
 }
 
-func (h *HeatIndicator) updateFontSize(width, height int) {
+func (h *HeatIndicator) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 3
 	if pxSize < 1 {

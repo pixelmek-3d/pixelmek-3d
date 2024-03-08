@@ -102,7 +102,7 @@ func (a *Armament) SetSelectedWeapon(weaponOrGroupIndex uint, weaponFireMode mod
 	}
 }
 
-func (a *Armament) updateFontSize(width, height int) {
+func (a *Armament) updateFontSize(_, height int) {
 	// set font size based on individual weapon element size
 	pxSize := float64(height) / 2
 	if pxSize < 1 {

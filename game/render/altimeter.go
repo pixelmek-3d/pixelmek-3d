@@ -43,7 +43,7 @@ func NewAltimeter(font *Font) *Altimeter {
 	return a
 }
 
-func (a *Altimeter) updateFontSize(width, height int) {
+func (a *Altimeter) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 14
 	if pxSize < 1 {

@@ -47,7 +47,7 @@ func (n *NavStatus) SetNavDistance(distance float64) {
 	n.navDistance = distance
 }
 
-func (n *NavStatus) updateFontSize(width, height int) {
+func (n *NavStatus) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 8
 	if pxSize < 1 {

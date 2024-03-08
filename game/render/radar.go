@@ -60,7 +60,7 @@ func NewRadar(font *Font) *Radar {
 	return r
 }
 
-func (r *Radar) updateFontSize(width, height int) {
+func (r *Radar) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 15
 	if pxSize < 1 {
