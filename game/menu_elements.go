@@ -340,7 +340,6 @@ func openExitWindow(m Menu) {
 						game.player.SetStructurePoints(0)
 						game.closeMenu()
 					} else {
-						// TODO: let escape when game not InProgress leave game without opening menu again
 						game.LeaveGame()
 					}
 				}),
