@@ -271,7 +271,7 @@ func (p *missionMenuPageContainer) setPage(page *missionMenuPage) {
 	p.flipBook.RequestRelayout()
 }
 
-func missionSelectionPage(m *MissionMenu, missionFile string) *missionMenuPage {
+func missionSelectionPage(_ *MissionMenu, missionFile string) *missionMenuPage {
 	// create page stub container, not loading mission data until it is selected
 	titleStr := strings.ToTitle(strings.ReplaceAll(strings.TrimSuffix(missionFile, ".yaml"), "_", " "))
 	page := &missionMenuPage{

@@ -362,7 +362,7 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 	p.flipBook.RequestRelayout()
 }
 
-func unitSelectionPage(m *UnitMenu, unit model.Unit, variants []model.Unit) *unitPage {
+func unitSelectionPage(_ *UnitMenu, unit model.Unit, variants []model.Unit) *unitPage {
 	// create page stub container, not loading unit data until the page/variant is selected
 
 	var unitName, unitTonnage string

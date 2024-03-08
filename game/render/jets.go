@@ -36,7 +36,7 @@ func NewJumpJetIndicator(font *Font) *JumpJetIndicator {
 	return j
 }
 
-func (j *JumpJetIndicator) updateFontSize(width, height int) {
+func (j *JumpJetIndicator) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 10
 	if pxSize < 1 {

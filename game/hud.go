@@ -15,6 +15,7 @@ type HUDElementType int
 
 const (
 	HUD_FPS HUDElementType = iota
+	HUD_BANNER
 	HUD_ALTIMETER
 	HUD_ARMAMENT
 	HUD_COMPASS
@@ -108,6 +109,9 @@ func (g *Game) loadHUD() {
 	navReticle := render.NewNavReticle(1.0, navReticleSheet)
 	g.playerHUD[HUD_NAV_RETICLE] = navReticle
 
+	banner := render.NewMissionBanner(g.fonts.HUDFont)
+	g.playerHUD[HUD_BANNER] = banner
+
 	fps := render.NewFPSIndicator(g.fonts.HUDFont)
 	g.playerHUD[HUD_FPS] = fps
 }
@@ -145,10 +149,11 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	// custom HUD elements based on player status
 	switch {
 	case g.player.ejectionPod != nil:
-		// limited HUD for ejection pod: radar, altimeter, compass
+		// limited HUD for ejection pod: radar, altimeter, compass, mission banner
 		g.drawCompass(hudOpts)
 		g.drawAltimeter(hudOpts)
 		g.drawRadar(hudOpts)
+		g.drawMissionBanner(hudOpts)
 
 		// make sure HUD element scale is properly set in case of just coming from power down
 		g.resetHUDElementScale()
@@ -262,6 +267,9 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 
 	// draw nav status display
 	g.drawNavStatus(hudOpts)
+
+	// draw mission banner
+	g.drawMissionBanner(hudOpts)
 }
 
 func (g *Game) drawFPS(hudOpts *render.DrawHudOptions) {
@@ -759,4 +767,37 @@ func (g *Game) drawNavReticle(hudOpts *render.DrawHudOptions) {
 	}
 
 	navReticle.Draw(*navBounds, hudOpts)
+}
+
+func (g *Game) drawMissionBanner(hudOpts *render.DrawHudOptions) {
+	banner := g.GetHUDElement(HUD_BANNER).(*render.MissionBanner)
+	if banner == nil {
+		return
+	}
+
+	bannerText := ""
+	if !g.InProgress() {
+		if g.objectives.Status() == OBJECTIVES_COMPLETED {
+			bannerText = "Mission Successful..."
+		} else {
+			bannerText = "Mission Failed..."
+		}
+	}
+	if len(bannerText) == 0 {
+		return
+	}
+
+	banner.SetBannerText(bannerText)
+
+	marginY := hudOpts.MarginY
+	hudRect := hudOpts.HudRect
+
+	bScale := banner.Scale() * g.hudScale
+	bWidth, bHeight := int(bScale*float64(hudRect.Dx())), 3*int(bScale*float64(marginY))
+
+	bX, bY := 0, 0
+	bBounds := image.Rect(
+		bX, bY, bX+bWidth, bY+bHeight,
+	)
+	banner.Draw(bBounds, hudOpts)
 }

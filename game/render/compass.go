@@ -51,7 +51,7 @@ func NewCompass(font *Font) *Compass {
 	return c
 }
 
-func (c *Compass) updateFontSize(width, height int) {
+func (c *Compass) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 2
 	if pxSize < 1 {

@@ -72,7 +72,7 @@ func (u *UnitStatus) SetTargetReticle(reticle *TargetReticle) {
 	u.targetReticle = reticle
 }
 
-func (u *UnitStatus) updateFontSize(width, height int) {
+func (u *UnitStatus) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height) / 8
 	if pxSize < 1 {

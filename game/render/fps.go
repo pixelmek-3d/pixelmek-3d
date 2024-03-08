@@ -32,7 +32,7 @@ func NewFPSIndicator(font *Font) *FPSIndicator {
 	return f
 }
 
-func (f *FPSIndicator) updateFontSize(width, height int) {
+func (f *FPSIndicator) updateFontSize(_, height int) {
 	// set font size based on element size
 	pxSize := float64(height)
 	if pxSize < 1 {
