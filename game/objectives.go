@@ -35,6 +35,10 @@ type BasicObjective struct {
 	failed    bool
 }
 
+type PlayerAliveObjective struct {
+	*BasicObjective
+}
+
 type DestroyObjective struct {
 	*BasicObjective
 	_objective *model.MissionDestroyObjectives
@@ -267,6 +271,15 @@ func (o *ObjectivesHandler) Update(g *Game) {
 			objective.completed = true
 		}
 	}
+
+	// special handling for player objective of staying alive
+	if g.player.IsDestroyed() {
+		o.failed[&PlayerAliveObjective{
+			BasicObjective: &BasicObjective{
+				failed: true,
+			},
+		}] = updated
+	}
 }
 
 func (o *ObjectivesHandler) Status() ObjectivesStatus {
@@ -278,6 +291,8 @@ func (o *ObjectivesHandler) Status() ObjectivesStatus {
 	}
 	return OBJECTIVES_IN_PROGRESS
 }
+
+func (o *PlayerAliveObjective) Update(g *Game) {}
 
 func (o *DestroyObjective) Update(g *Game) {
 	allDestroyed := true
@@ -321,7 +336,7 @@ func (o *VisitObjective) Update(g *Game) {
 }
 
 func (o *DustoffObjective) Update(g *Game) {
-	// TODO: special handling for Dustoff that all non-dustoff objectives must first be completed
+	// special handling for Dustoff to verify all non-dustoff objectives must first be completed
 	if o._nav.Visited() {
 		o._verifyDustoff = true
 	}
