@@ -409,17 +409,24 @@ func (g *Game) Pitch(pSpeed float64) {
 	g.player.moved = true
 }
 
+func (g *Game) InProgress() bool {
+	return g.objectives.Status() == OBJECTIVES_IN_PROGRESS
+}
+
 func (g *Game) updateObjectives() {
-	g.objectives.Update(g)
-	switch g.objectives.Status() {
-	case OBJECTIVES_FAILED:
-		// TODO: end mission as failure (and do not spam debug console)
-		log.Debugf("one or more objectives failed")
-		g.player.SetStructurePoints(0)
-	case OBJECTIVES_COMPLETED:
-		// TODO: end mission as success (and do not spam debug console)
-		log.Debugf("all objectives completed")
-		g.player.SetStructurePoints(0)
+	if g.InProgress() {
+		g.objectives.Update(g)
+
+		switch g.objectives.Status() {
+		case OBJECTIVES_FAILED:
+			// TODO: end mission as failure
+			log.Debugf("one or more objectives failed")
+			g.player.SetStructurePoints(0)
+		case OBJECTIVES_COMPLETED:
+			// TODO: end mission as success
+			log.Debugf("all objectives completed")
+			g.player.SetStructurePoints(0)
+		}
 	}
 }
 

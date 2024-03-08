@@ -336,10 +336,11 @@ func openExitWindow(m Menu) {
 					// save config now in case settings changes were made
 					game.saveConfig()
 
-					if game.player.ejectionPod == nil {
+					if game.InProgress() && game.player.ejectionPod == nil {
 						game.player.SetStructurePoints(0)
 						game.closeMenu()
 					} else {
+						// TODO: let escape when game not InProgress leave game without opening menu again
 						game.LeaveGame()
 					}
 				}),

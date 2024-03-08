@@ -87,7 +87,7 @@ func (s *GameScene) Update() error {
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 
-		if g.player.ejectionPod != nil {
+		if !g.InProgress() {
 			if s.transition == nil {
 				// start transition to leave game
 				tOpts := &transitions.TransitionOptions{
@@ -141,7 +141,7 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	}
 
 	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
-		// use CRT shader over raycasted scene
+		// use CRT shader over raycasted scene when in ejection pod
 		showCurve := (g.lightAmpEngaged || g.player.ejectionPod != nil)
 		crtShader.DrawWithOptions(g.overlayScreen, g.renderScreen, showCurve)
 	} else {
@@ -151,15 +151,15 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	// draw HUD elements to overlay screen
 	g.drawHUD(g.overlayScreen)
 
-	if g.player.ejectionPod != nil {
+	if g.InProgress() {
+		// draw HUD overlayed elements directly to screen
+		screen.DrawImage(g.overlayScreen, nil)
+	} else {
 		if s.transition != nil {
 			// draw transition shader to screen
 			s.transition.SetImage(g.overlayScreen)
 			s.transition.Draw(screen)
 		}
-	} else {
-		// draw HUD overlayed elements directly to screen
-		screen.DrawImage(g.overlayScreen, nil)
 	}
 
 	// draw menu (if active)
