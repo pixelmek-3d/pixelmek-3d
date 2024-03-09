@@ -10,6 +10,8 @@ dropZone:
   heading: 45
 navPoints:
   - name: "Debug"
+    position: [50, 55]
+  - name: "Foo"
     position: [50, 60]
   - name: "ByeBye"
     position: [50, 70]
@@ -22,6 +24,7 @@ objectives:
   nav:
     visit:
       - name: "Debug"
+      - name: "Foo"
     dustoff:
       - name: "ByeBye"
 mechs:
