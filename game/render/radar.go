@@ -121,7 +121,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	oColor := hudOpts.HudColor(_colorRadarOutline)
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height
-	oAlpha := uint8(oColor.A / 5)
+	oAlpha := uint8(int(oColor.A) / 5)
 	vector.StrokeCircle(screen, float32(midX), float32(midY), float32(radius), oT, color.NRGBA{oColor.R, oColor.G, oColor.B, oAlpha}, false)
 
 	// Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
@@ -181,7 +181,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 		if nav.IsTarget {
 			// draw target nav circle around lighter colored nav
-			tAlpha := uint8(nColor.A / 3)
+			tAlpha := uint8(int(nColor.A) / 3)
 			tColor := color.NRGBA{R: nColor.R, G: nColor.G, B: nColor.B, A: tAlpha}
 
 			var navTargetRadius float32 = 8
@@ -210,7 +210,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 		if blip.IsTarget {
 			// draw target square around lighter colored blip
-			tAlpha := uint8(bColor.A / 3)
+			tAlpha := uint8(int(bColor.A) / 3)
 			tColor := color.NRGBA{R: bColor.R, G: bColor.G, B: bColor.B, A: tAlpha}
 			vector.DrawFilledRect(screen, float32(bLine.X2-6), float32(bLine.Y2-6), 12, 12, tColor, false) // TODO: calculate thickness based on image size
 		}
