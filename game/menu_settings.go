@@ -157,9 +157,13 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	settingsMenu, _ := m.(*SettingsMenu)
 
 	var missionSettings *settingsPage
+	var unitSettings *settingsPage
 	if gameMenu != nil {
-		// only show the Resume/Exit buttons page in-mission
-		missionSettings = missionPage(m)
+		// only show the mission and unit card pages in-game
+		missionSettings = gameMissionPage(m)
+		unitSettings = gameUnitPage(m)
+
+		gameMenu.updaters = []settingsUpdater{missionSettings}
 	}
 
 	displaySettings := displayPage(m)
@@ -170,6 +174,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	pages := make([]interface{}, 0, 8)
 	if missionSettings != nil {
 		pages = append(pages, missionSettings)
+		pages = append(pages, unitSettings)
 	}
 	pages = append(pages, displaySettings)
 	pages = append(pages, renderSettings)
