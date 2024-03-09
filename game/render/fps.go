@@ -2,7 +2,6 @@ package render
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/tinne26/etxt"
 )
@@ -55,7 +54,7 @@ func (f *FPSIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// fps indicator text
 	tColor := hudOpts.HudColor(_colorFPSText)
-	f.fontRenderer.SetColor(color.RGBA(tColor))
+	f.fontRenderer.SetColor(tColor)
 	f.fontRenderer.SetAlign(etxt.Top, etxt.Left)
 	f.fontRenderer.Draw(f.fpsText, bX, bY)
 }

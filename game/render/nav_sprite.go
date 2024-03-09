@@ -52,7 +52,7 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 	renderer.SetTarget(navImage)
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetColor(color.RGBA(nColor))
+	renderer.SetColor(nColor)
 
 	// set font size based on image size
 	fontPxSize := float64(imageSize) / 3

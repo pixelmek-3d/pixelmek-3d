@@ -60,7 +60,7 @@ func (f *MissionBanner) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	vector.DrawFilledRect(screen, 0, float32(bY), float32(sW), float32(bH), _colorBannerBackground, false)
 
 	// mission banner text
-	f.fontRenderer.SetColor(color.RGBA(_colorBannerText))
+	f.fontRenderer.SetColor(_colorBannerText)
 	f.fontRenderer.SetAlign(etxt.Top, etxt.Left)
 	f.fontRenderer.Draw(f.bannerText, bX, bY+bH/8)
 }

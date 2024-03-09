@@ -183,7 +183,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	if weapon.Cooldown() > 0 || isAmmoEmpty {
 		wColor.A = uint8(2 * (int(wColor.A) / 5))
 	}
-	a.fontRenderer.SetColor(color.RGBA(wColor))
+	a.fontRenderer.SetColor(color.NRGBA(wColor))
 
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing
 
