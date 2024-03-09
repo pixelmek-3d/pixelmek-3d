@@ -10,7 +10,7 @@ import (
 
 var (
 	_colorBannerText       = _colorDefaultGreen
-	_colorBannerBackground = color.NRGBA{R: 50, G: 50, B: 50, A: 255}
+	_colorBannerBackground = color.NRGBA{R: 50, G: 50, B: 50, A: 200}
 )
 
 type MissionBanner struct {
@@ -52,17 +52,15 @@ func (f *MissionBanner) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
 	f.fontRenderer.SetTarget(screen)
 
+	sW := screen.Bounds().Dx()
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	f.updateFontSize(bW, bH)
 
 	// background box
-	bColor := hudOpts.HudColor(_colorBannerBackground)
-	sAlpha := uint8(2 * int(bColor.A) / 3)
-	vector.DrawFilledRect(screen, float32(bX), float32(bY), float32(bW), float32(bH), color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
+	vector.DrawFilledRect(screen, 0, float32(bY), float32(sW), float32(bH), _colorBannerBackground, false)
 
 	// mission banner text
-	tColor := hudOpts.HudColor(_colorBannerText)
-	f.fontRenderer.SetColor(color.RGBA(tColor))
+	f.fontRenderer.SetColor(color.RGBA(_colorBannerText))
 	f.fontRenderer.SetAlign(etxt.Top, etxt.Left)
-	f.fontRenderer.Draw(f.bannerText, bX, bY)
+	f.fontRenderer.Draw(f.bannerText, bX, bY+bH/8)
 }
