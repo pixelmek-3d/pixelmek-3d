@@ -419,13 +419,11 @@ func (g *Game) updateObjectives() {
 
 		switch g.objectives.Status() {
 		case OBJECTIVES_FAILED:
-			// TODO: end mission as failure
+			// end mission as failure
 			log.Debugf("one or more objectives failed")
-			g.player.SetStructurePoints(0)
 		case OBJECTIVES_COMPLETED:
-			// TODO: end mission as success
+			// end mission as success
 			log.Debugf("all objectives completed")
-			g.player.SetStructurePoints(0)
 		}
 	}
 }
