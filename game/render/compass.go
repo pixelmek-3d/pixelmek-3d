@@ -165,12 +165,12 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	hW, hH := float32(5.0), float32(bH)/2 // TODO: calculate line thickness based on image height
 	vector.DrawFilledRect(screen, midX-hW/2, topY, hW, hH, headingColor, false)
 
-	if c.targetIndicator.enabled {
-		// TODO: draw target indicator slightly better
-		iHeading := c.targetIndicator.heading
+	if c.navIndicator.enabled {
+		// TODO: draw nav indicator slightly better
+		iHeading := c.navIndicator.heading
 		iDeg := int(geom.Degrees(iHeading))
 
-		iColor := hudOpts.HudColor(_colorEnemy)
+		iColor := hudOpts.HudColor(_colorNavPoint)
 
 		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
@@ -209,12 +209,12 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		}
 	}
 
-	if c.navIndicator.enabled {
-		// TODO: draw nav indicator slightly better
-		iHeading := c.navIndicator.heading
+	if c.targetIndicator.enabled {
+		// TODO: draw target indicator slightly better
+		iHeading := c.targetIndicator.heading
 		iDeg := int(geom.Degrees(iHeading))
 
-		iColor := hudOpts.HudColor(_colorNavPoint)
+		iColor := hudOpts.HudColor(_colorEnemy)
 
 		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
