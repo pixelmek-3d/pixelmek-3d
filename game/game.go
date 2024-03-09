@@ -653,7 +653,7 @@ func (g *Game) navPointCycle() {
 
 func (g *Game) targetCrosshairs() model.Entity {
 	newTarget := g.player.convergenceSprite
-	if newTarget != nil {
+	if newTarget != nil && !newTarget.IsDestroyed() {
 		g.player.SetTarget(newTarget.Entity)
 		return newTarget.Entity
 	}
@@ -671,6 +671,10 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 			}
 
 			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			if s.IsDestroyed() {
+				return true
+			}
+
 			targetables = append(targetables, s)
 
 			return true
