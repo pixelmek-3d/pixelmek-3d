@@ -165,6 +165,7 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 				continue
 			}
 
+			objectiveNav.SetIsObjective(true)
 			visitObjective := &VisitObjective{
 				BasicObjective: &BasicObjective{},
 				_objective:     modelObjective,
@@ -190,6 +191,7 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 				continue
 			}
 
+			objectiveNav.SetIsDustoff(true)
 			visitObjective := &DustoffObjective{
 				BasicObjective: &BasicObjective{},
 				_objective:     modelObjective,
