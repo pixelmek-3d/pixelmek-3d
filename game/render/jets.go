@@ -2,7 +2,6 @@ package render
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tinne26/etxt"
@@ -82,7 +81,7 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions)
 
 	// jet indicator text
 	tColor := hudOpts.HudColor(_colorJetsText)
-	j.fontRenderer.SetColor(color.RGBA(tColor))
+	j.fontRenderer.SetColor(tColor)
 	j.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 	j.fontRenderer.Draw("Jets", int(midX), int(oY+oH+2*oT)) // TODO: calculate better margin spacing
 }

@@ -39,7 +39,7 @@ func NewCompass(font *Font) *Compass {
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetAlign(etxt.Top, etxt.XCenter)
-	renderer.SetColor(color.RGBA{255, 255, 255, 255})
+	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	c := &Compass{
 		HUDSprite:       NewHUDSprite(nil, 1.0),
@@ -113,7 +113,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// compass pips
 	pipColor := hudOpts.HudColor(_colorCompassPips)
-	c.fontRenderer.SetColor(color.RGBA(pipColor))
+	c.fontRenderer.SetColor(pipColor)
 
 	for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
 		actualDeg := i + int(math.Round(headingDeg))

@@ -72,7 +72,7 @@ func (s *Star) Update(x, y float32) {
 }
 
 func (s *Star) Draw(screen *ebiten.Image) {
-	c := color.RGBA{
+	c := color.NRGBA{
 		R: uint8(0xbb * s.brightness / 0xff),
 		G: uint8(0xdd * s.brightness / 0xff),
 		B: uint8(0xff * s.brightness / 0xff),

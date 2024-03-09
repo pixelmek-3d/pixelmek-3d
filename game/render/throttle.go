@@ -3,7 +3,6 @@ package render
 import (
 	"fmt"
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tinne26/etxt"
@@ -90,7 +89,7 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// current throttle velocity text
 	tColor := hudOpts.HudColor(_colorThrottleText)
-	t.fontRenderer.SetColor(color.RGBA(tColor))
+	t.fontRenderer.SetColor(tColor)
 
 	velocityStr := fmt.Sprintf("%0.1f kph", t.velocity)
 	if t.velocityZ != 0 {

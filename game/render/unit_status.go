@@ -151,7 +151,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// setup text color
 	tColor := hudOpts.HudColor(_colorStatusText)
-	u.fontRenderer.SetColor(color.RGBA(tColor))
+	u.fontRenderer.SetColor(tColor)
 
 	// armor readout
 	armorStr := fmt.Sprintf("ARMOR\n %0.0f%%", armorPercent)
@@ -173,7 +173,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		if tUnit != nil {
 			// target chassis name
 			eColor := hudOpts.HudColor(_colorEnemy)
-			u.fontRenderer.SetColor(color.RGBA(eColor))
+			u.fontRenderer.SetColor(eColor)
 
 			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 			chassisVariant := strings.ToUpper(tUnit.Variant())
@@ -185,7 +185,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				if u.targetLock < 1.0 {
 					lColor = hudOpts.HudColor(_colorStatusWarn)
 				}
-				u.fontRenderer.SetColor(color.RGBA(lColor))
+				u.fontRenderer.SetColor(lColor)
 				u.fontRenderer.SetAlign(etxt.Bottom, etxt.Left)
 
 				lockStr := fmt.Sprintf("LOCK: %0.0f%%", u.targetLock*100)
