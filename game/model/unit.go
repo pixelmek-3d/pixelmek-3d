@@ -24,6 +24,14 @@ const (
 	TotalUnitTypes
 )
 
+type UnitObjective int
+
+const (
+	NonUnitObjective UnitObjective = iota
+	DestroyUnitObjective
+	ProtectUnitObjective
+)
+
 type UnitPowerStatus int
 
 const (
@@ -81,6 +89,8 @@ type Unit interface {
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
 
+	Objective() UnitObjective
+	SetObjective(UnitObjective)
 	SetAsPlayer(bool)
 	IsPlayer() bool
 
@@ -124,6 +134,7 @@ type UnitModel struct {
 	maxJumpJetDuration float64
 	target             Entity
 	targetLock         float64
+	objective          UnitObjective
 	parent             Entity
 	isPlayer           bool
 }
@@ -458,6 +469,14 @@ func (e *UnitModel) JumpJetDuration() float64 {
 
 func (e *UnitModel) MaxJumpJetDuration() float64 {
 	return e.maxJumpJetDuration
+}
+
+func (e *UnitModel) Objective() UnitObjective {
+	return e.objective
+}
+
+func (e *UnitModel) SetObjective(objective UnitObjective) {
+	e.objective = objective
 }
 
 func (e *UnitModel) Parent() Entity {

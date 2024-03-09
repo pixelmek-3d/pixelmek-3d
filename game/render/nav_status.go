@@ -112,10 +112,10 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	switch {
 	case n.navPoint.Visited():
 		break
-	case n.navPoint.IsDustoff():
-		navName = "^ " + navName + " ^"
-	case n.navPoint.IsObjective():
-		navName = "* " + navName + " *"
+	case n.navPoint.Objective() == model.NavDustoffObjective:
+		navName = "^" + navName + "^"
+	case n.navPoint.Objective() == model.NavVisitObjective:
+		navName = "*" + navName + "*"
 	}
 	n.fontRenderer.Draw(navName, bX+bW/2, bY)
 }

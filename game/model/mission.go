@@ -103,13 +103,20 @@ type MissionEmplacement struct {
 	Position [2]float64 `yaml:"position" validate:"required"`
 }
 
+type NavObjective int
+
+const (
+	NavNonObjective NavObjective = iota
+	NavVisitObjective
+	NavDustoffObjective
+)
+
 type NavPoint struct {
-	Name        string     `yaml:"name" validate:"required"`
-	Position    [2]float64 `yaml:"position" validate:"required"`
-	image       *ebiten.Image
-	visited     bool
-	isObjective bool
-	isDustoff   bool
+	Name      string     `yaml:"name" validate:"required"`
+	Position  [2]float64 `yaml:"position" validate:"required"`
+	image     *ebiten.Image
+	visited   bool
+	objective NavObjective
 }
 
 func (n *NavPoint) Pos() geom.Vector2 {
@@ -132,20 +139,12 @@ func (n *NavPoint) SetVisited(visited bool) {
 	n.visited = visited
 }
 
-func (n *NavPoint) IsObjective() bool {
-	return n.isObjective
+func (n *NavPoint) Objective() NavObjective {
+	return n.objective
 }
 
-func (n *NavPoint) SetIsObjective(isObjective bool) {
-	n.isObjective = isObjective
-}
-
-func (n *NavPoint) IsDustoff() bool {
-	return n.isDustoff
-}
-
-func (n *NavPoint) SetIsDustoff(isDustoff bool) {
-	n.isDustoff = isDustoff
+func (n *NavPoint) SetObjective(objective NavObjective) {
+	n.objective = objective
 }
 
 func LoadMission(missionFile string) (*Mission, error) {
