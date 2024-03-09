@@ -175,8 +175,15 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			eColor := hudOpts.HudColor(_colorEnemy)
 			u.fontRenderer.SetColor(eColor)
 
-			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 			chassisVariant := strings.ToUpper(tUnit.Variant())
+			switch tUnit.Objective() {
+			case model.DestroyUnitObjective:
+				chassisVariant = "*" + chassisVariant + "*"
+			case model.ProtectUnitObjective:
+				chassisVariant = "^" + chassisVariant + "^"
+			}
+
+			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 			u.fontRenderer.Draw(chassisVariant, bX+bW/2, bY)
 
 			// if lock-ons equipped, display lock percent on target

@@ -107,6 +107,7 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 		if len(unitID) > 0 {
 			for _, unit := range all_units {
 				if unitID == unit.ID() {
+					unit.SetObjective(model.ProtectUnitObjective)
 					protectUnits = append(protectUnits, unit)
 				}
 			}
@@ -134,6 +135,7 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 						}
 						continue
 					}
+					unit.SetObjective(model.DestroyUnitObjective)
 					destroyUnits = append(destroyUnits, unit)
 				}
 			}
@@ -165,7 +167,7 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 				continue
 			}
 
-			objectiveNav.SetIsObjective(true)
+			objectiveNav.SetObjective(model.NavVisitObjective)
 			visitObjective := &VisitObjective{
 				BasicObjective: &BasicObjective{},
 				_objective:     modelObjective,
@@ -191,7 +193,7 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 				continue
 			}
 
-			objectiveNav.SetIsDustoff(true)
+			objectiveNav.SetObjective(model.NavDustoffObjective)
 			visitObjective := &DustoffObjective{
 				BasicObjective: &BasicObjective{},
 				_objective:     modelObjective,
