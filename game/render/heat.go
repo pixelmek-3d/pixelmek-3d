@@ -86,7 +86,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	// TODO: make current heat level box appear to flash when near/over maxHeat?
 
 	// heat indicator outline
-	oAlpha := uint8(4 * (int(hColor.A) / 5))
+	oAlpha := uint8(4 * int(hColor.A) / 5)
 	oColor := color.NRGBA{hColor.R, hColor.G, hColor.B, oAlpha}
 
 	var oT float32 = 2 // TODO: calculate line thickness based on image height

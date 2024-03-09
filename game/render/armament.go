@@ -153,7 +153,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			wColor := hudOpts.HudColor(w.weaponColor)
 
 			if w.weapon.Cooldown() > 0 {
-				wAlpha := uint8(2 * (int(wColor.A) / 5))
+				wAlpha := uint8(2 * int(wColor.A) / 5)
 				wColor = color.NRGBA{wColor.R, wColor.G, wColor.B, wAlpha}
 			}
 

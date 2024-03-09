@@ -70,11 +70,8 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// background box
 	bColor := hudOpts.HudColor(_colorStatusBackground)
-
 	sAlpha := uint8(int(bColor.A) / 3)
 	vector.DrawFilledRect(screen, sX, sY, sW, sH, color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
-
-	nColor := hudOpts.HudColor(_colorNavPoint)
 
 	// draw nav image
 	nTexture := n.navPoint.Image()
@@ -87,13 +84,15 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op.Filter = ebiten.FilterNearest
 	op.GeoM.Scale(nScale, nScale)
 	op.GeoM.Translate(float64(sX+sW/2)-nScale*float64(nH)/2, float64(sY+sH/2)-nScale*float64(nH)/2)
+	if n.navPoint.Visited() {
+		op.ColorScale.ScaleAlpha(0.5)
+	}
 	screen.DrawImage(nTexture, op)
 
-	// setup text color
+	// nav point distance
 	tColor := hudOpts.HudColor(_colorStatusText)
 	n.fontRenderer.SetColor(tColor)
 
-	// nav point distance
 	if n.navDistance >= 0 {
 		n.fontRenderer.SetAlign(etxt.Bottom, etxt.XCenter)
 		distanceStr := fmt.Sprintf("%0.0fm", n.navDistance)
@@ -101,6 +100,11 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	}
 
 	// nav point name
+	nColor := hudOpts.HudColor(_colorNavPoint)
+	if n.navPoint.Visited() {
+		nAlpha := uint8(2 * int(nColor.A) / 3)
+		nColor = color.NRGBA{nColor.R, nColor.G, nColor.B, nAlpha}
+	}
 	n.fontRenderer.SetColor(nColor)
 	n.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
 
