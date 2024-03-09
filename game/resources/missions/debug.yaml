@@ -8,16 +8,8 @@ music: "icy_wastes.mp3"
 dropZone:
   position: [50, 50]
   heading: 45
-navPoints:
-  - name: "Debug"
-    position: [50, 55]
-  - name: "Foo"
-    position: [50, 60]
-  - name: "ByeBye"
-    position: [50, 70]
 objectives:
   destroy:
-      # - all: true
       - unit: "destroy_me"
   protect:
     - unit: "do_not_hurt_me"
@@ -27,6 +19,13 @@ objectives:
       - name: "Foo"
     dustoff:
       - name: "ByeBye"
+navPoints:
+  - name: "Debug"
+    position: [50, 55]
+  - name: "Foo"
+    position: [50, 60]
+  - name: "ByeBye"
+    position: [50, 70]
 mechs:
   - id: "destroy_me"
     unit: "fire_moth_prime.yaml"

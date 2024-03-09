@@ -8,6 +8,9 @@ music: "bone_remains.mp3"
 dropZone:
   position: [8.5, 3.5]
   heading: 60
+objectives:
+  destroy:
+      - all: true
 navPoints: # https://en.wikipedia.org/wiki/NATO_phonetic_alphabet
 - name: "Alpha"
   position: [10, 50]
