@@ -681,7 +681,7 @@ func (g *Game) handleInput() {
 
 	if g.input.ActionIsJustPressed(ActionNavCycle) {
 		// cycle nav points
-		g.navPointCycle()
+		g.navPointCycle(true)
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetCrosshairs) {

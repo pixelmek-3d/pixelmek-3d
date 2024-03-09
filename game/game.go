@@ -486,6 +486,11 @@ func (g *Game) updatePlayer() {
 			navX, navY := nav.Position[0], nav.Position[1]
 			if model.PointInProximity(1.0, newX, newY, navX, navY) {
 				nav.SetVisited(true)
+
+				// automatically cycle to next nav point
+				if g.player.navPoint.NavPoint == nav && nav.Objective() != model.NavDustoffObjective {
+					g.navPointCycle(false)
+				}
 			}
 		}
 	}
@@ -613,12 +618,12 @@ func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 	}
 }
 
-func (g *Game) navPointCycle() {
+func (g *Game) navPointCycle(replaceTarget bool) {
 	if len(g.mission.NavPoints) == 0 {
 		return
 	}
 
-	if g.player.Target() != nil {
+	if replaceTarget && g.player.Target() != nil {
 		// unset player target so status display can show nav selection
 		g.player.SetTarget(nil)
 		if g.player.navPoint != nil {
