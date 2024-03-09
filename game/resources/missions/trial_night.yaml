@@ -17,6 +17,13 @@ skyBox:
 dropZone:
   position: [60, 60]
   heading: 180
+objectives:
+  nav:
+    visit:
+      - name: "Alpha"
+      - name: "Bravo"
+    dustoff:
+      - name: "Charlie"
 navPoints:
 - name: "Alpha"
   position: [20, 50]

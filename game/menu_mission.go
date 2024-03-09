@@ -309,7 +309,7 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(1),
-			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, false, true}),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, false, false, false, true}),
 			widget.GridLayoutOpts.Spacing(0, 0)),
 		),
 	)
@@ -330,7 +330,7 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		cardContainer.AddChild(missionText)
 	}
 
-	// mission map area
+	// mission map area text
 	worldMap := mission.Map().Level(0)
 	mapWidthKm := float64(len(worldMap)) * model.METERS_PER_UNIT / 1000
 	mapHeightKm := float64(len(worldMap[0])) * model.METERS_PER_UNIT / 1000
@@ -338,15 +338,22 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 	mapText := widget.NewText(widget.TextOpts.Text(mapString, res.text.face, res.text.idleColor))
 	cardContainer.AddChild(mapText)
 
-	// mission briefing text area
+	// mission briefing text
 	briefingText := newTextArea(mission.Briefing, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 		MaxHeight: g.uiRect().Dy() / 3,
 	}))
 	cardContainer.AddChild(briefingText)
 
-	// TODO: show mission map image preview
+	// mission objectives text
+	objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives:", res.text.face, res.text.idleColor))
+	cardContainer.AddChild(objectivesLabel)
 
-	// TODO: add more mission/map content
+	objectivesText := newTextArea(mission.Objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+		MaxHeight: g.uiRect().Dy() / 3,
+	}))
+	cardContainer.AddChild(objectivesText)
+
+	// TODO: show mission map image preview
 
 	return missionCard
 }

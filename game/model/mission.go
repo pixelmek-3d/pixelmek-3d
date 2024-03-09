@@ -1,10 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"path"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
@@ -148,6 +150,7 @@ func (n *NavPoint) SetObjective(objective NavObjective) {
 }
 
 func LoadMission(missionFile string) (*Mission, error) {
+	v := validator.New()
 	missionPath := path.Join("missions", missionFile)
 
 	missionYaml, err := resources.ReadFile(missionPath)
@@ -159,6 +162,11 @@ func LoadMission(missionFile string) (*Mission, error) {
 	err = yaml.Unmarshal(missionYaml, m)
 	if err != nil {
 		return nil, err
+	}
+
+	err = v.Struct(m)
+	if err != nil {
+		return nil, fmt.Errorf("[%s] %s", missionPath, err.Error())
 	}
 
 	// load mission map
@@ -200,4 +208,38 @@ func ListMissionFilenames() ([]string, error) {
 	}
 
 	return missionFilenames, nil
+}
+
+func (o *MissionObjectives) Text() string {
+	oText := ""
+	if len(o.Destroy) > 0 {
+		for _, destroy := range o.Destroy {
+			if destroy.All {
+				oText += "Destroy All Enemies\n"
+				break
+			}
+			oText += "Destroy " + destroy.Unit + "\n"
+		}
+	}
+
+	if len(o.Protect) > 0 {
+		for _, protect := range o.Protect {
+			oText += "Protect " + protect.Unit + "\n"
+		}
+	}
+
+	if o.Nav != nil {
+		if len(o.Nav.Visit) > 0 {
+			for _, visit := range o.Nav.Visit {
+				oText += "Visit Nav " + visit.Name + "\n"
+			}
+		}
+		if len(o.Nav.Dustoff) > 0 {
+			for _, dustoff := range o.Nav.Dustoff {
+				oText += "Dustoff Nav " + dustoff.Name + "\n"
+			}
+		}
+	}
+
+	return oText
 }

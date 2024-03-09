@@ -10,6 +10,7 @@ import (
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
@@ -176,6 +177,7 @@ func (m *Map) Level(levelNum int) [][]int {
 }
 
 func LoadMap(mapFile string) (*Map, error) {
+	v := validator.New()
 	mapPath := path.Join("maps", mapFile)
 
 	mapYaml, err := resources.ReadFile(mapPath)
@@ -188,6 +190,12 @@ func LoadMap(mapFile string) (*Map, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = v.Struct(m)
+	if err != nil {
+		return nil, fmt.Errorf("[%s] %s", mapPath, err.Error())
+	}
+
 	if len(m.Textures) == 0 {
 		return m, fmt.Errorf("one or more entry in textures is required")
 	}
