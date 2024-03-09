@@ -8,6 +8,7 @@ import (
 type GameMenu struct {
 	*MenuModel
 	preSelectedPage int
+	updaters        []settingsUpdater
 }
 
 func createGameMenu(g *Game) *GameMenu {
@@ -38,6 +39,12 @@ func (m *GameMenu) initMenu() {
 	// settings pages
 	settings := settingsContainer(m)
 	m.root.AddChild(settings)
+}
+
+func (m *GameMenu) refreshUpdaters() {
+	for _, updater := range m.updaters {
+		updater.update(m.game)
+	}
 }
 
 func (m *GameMenu) Update() {

@@ -187,6 +187,8 @@ func (g *Game) openMenu() {
 		ebiten.SetCursorMode(ebiten.CursorModeVisible)
 		if gameMenu.root == nil {
 			gameMenu.initMenu()
+		} else {
+			gameMenu.refreshUpdaters()
 		}
 		gameMenu.active = true
 	}

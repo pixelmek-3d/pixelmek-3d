@@ -16,11 +16,22 @@ type settingsPageContainer struct {
 }
 
 type settingsPage struct {
-	title   string
-	content widget.PreferredSizeLocateableWidget
+	title    string
+	content  widget.PreferredSizeLocateableWidget
+	updaters []settingsUpdater
 }
 
-func missionPage(m Menu) *settingsPage {
+type settingsUpdater interface {
+	update(*Game)
+}
+
+func (s *settingsPage) update(g *Game) {
+	for _, updater := range s.updaters {
+		updater.update(g)
+	}
+}
+
+func gameMissionPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	g := m.Game()
@@ -59,14 +70,6 @@ func missionPage(m Menu) *settingsPage {
 			}))))
 	mContainer.AddChild(bContainer)
 
-	// show player unit card
-	var playerUnit model.Unit
-	if g.player != nil {
-		playerUnit = g.player.Unit
-	}
-	unitCard := createUnitCard(g, res, playerUnit, UnitCardMission)
-	mContainer.AddChild(unitCard)
-
 	if g.osType == osTypeBrowser {
 		// exit in browser kills but freezes the application, users can just close the tab/window
 		bContainer.AddChild(newBlankSeparator(m, widget.RowLayoutData{
@@ -102,8 +105,52 @@ func missionPage(m Menu) *settingsPage {
 	)
 	bContainer.AddChild(resume)
 
+	// show mission objectives
+	missionCard := createMissionCard(g, res, g.mission, MissionCardGame)
+	mContainer.AddChild(missionCard)
+
 	return &settingsPage{
-		title:   "Mission",
+		title:    "Mission",
+		content:  c,
+		updaters: []settingsUpdater{missionCard},
+	}
+}
+
+func gameUnitPage(m Menu) *settingsPage {
+	c := newPageContentContainer()
+	res := m.Resources()
+	g := m.Game()
+
+	mContainer := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Top:    0,
+				Bottom: 0,
+				Left:   0,
+				Right:  0,
+			}),
+			// Spacing defines how much space to put between each column and row
+			widget.GridLayoutOpts.Spacing(0, m.Spacing()))),
+	)
+	c.AddChild(mContainer)
+
+	// show player unit card
+	var playerUnit model.Unit
+	if g.player != nil {
+		playerUnit = g.player.Unit
+	}
+	unitCard := createUnitCard(g, res, playerUnit, UnitCardMission)
+	mContainer.AddChild(unitCard)
+
+	return &settingsPage{
+		title:   "Unit",
 		content: c,
 	}
 }

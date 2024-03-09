@@ -36,11 +36,13 @@ type MissionCardStyle int
 const (
 	MissionCardSelect MissionCardStyle = iota
 	MissionCardLaunch
+	MissionCardGame
 )
 
 type MissionCard struct {
 	*widget.Container
-	style MissionCardStyle
+	style          MissionCardStyle
+	objectivesText *widget.TextArea
 }
 
 func createMissionMenu(g *Game) *MissionMenu {
@@ -314,46 +316,69 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		),
 	)
 
-	missionCard := &MissionCard{
-		Container: cardContainer,
-		style:     style,
-	}
-
 	switch style {
-	case MissionCardLaunch:
+	case MissionCardLaunch, MissionCardGame:
 		missionText := widget.NewText(widget.TextOpts.Text(mission.Title, res.text.titleFace, res.text.idleColor),
 			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
 			})),
-			widget.TextOpts.Position(widget.TextPositionEnd, widget.TextPositionCenter),
+			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 		)
 		cardContainer.AddChild(missionText)
 	}
 
-	// mission map area text
-	worldMap := mission.Map().Level(0)
-	mapWidthKm := float64(len(worldMap)) * model.METERS_PER_UNIT / 1000
-	mapHeightKm := float64(len(worldMap[0])) * model.METERS_PER_UNIT / 1000
-	mapString := fmt.Sprintf("Area: %0.0fkm x %0.0fkm", mapWidthKm, mapHeightKm)
-	mapText := widget.NewText(widget.TextOpts.Text(mapString, res.text.face, res.text.idleColor))
-	cardContainer.AddChild(mapText)
+	var objectivesText *widget.TextArea
 
-	// mission briefing text
-	briefingText := newTextArea(mission.Briefing, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-		MaxHeight: g.uiRect().Dy() / 3,
-	}))
-	cardContainer.AddChild(briefingText)
+	switch style {
+	case MissionCardSelect, MissionCardLaunch:
+		// mission map area text
+		worldMap := mission.Map().Level(0)
+		mapWidthKm := float64(len(worldMap)) * model.METERS_PER_UNIT / 1000
+		mapHeightKm := float64(len(worldMap[0])) * model.METERS_PER_UNIT / 1000
+		mapString := fmt.Sprintf("Area: %0.0fkm x %0.0fkm", mapWidthKm, mapHeightKm)
+		mapText := widget.NewText(widget.TextOpts.Text(mapString, res.text.face, res.text.idleColor))
+		cardContainer.AddChild(mapText)
 
-	// mission objectives text
-	objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives:", res.text.face, res.text.idleColor))
-	cardContainer.AddChild(objectivesLabel)
+		// mission briefing text
+		briefingText := newTextArea(mission.Briefing, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+			MaxHeight: g.uiRect().Dy() / 3,
+		}))
+		cardContainer.AddChild(briefingText)
 
-	objectivesText := newTextArea(mission.Objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-		MaxHeight: g.uiRect().Dy() / 3,
-	}))
-	cardContainer.AddChild(objectivesText)
+		// mission objectives text
+		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives:", res.text.face, res.text.idleColor))
+		cardContainer.AddChild(objectivesLabel)
+
+		objectivesText = newTextArea(mission.Objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+			MaxHeight: g.uiRect().Dy() / 3,
+		}))
+		cardContainer.AddChild(objectivesText)
+
+	case MissionCardGame:
+		// in-game mission objectives text
+		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives:", res.text.face, res.text.idleColor))
+		cardContainer.AddChild(objectivesLabel)
+
+		objectivesText = newTextArea(g.objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+			MaxHeight: g.uiRect().Dy() / 3,
+		}))
+		cardContainer.AddChild(objectivesText)
+	}
 
 	// TODO: show mission map image preview
 
+	missionCard := &MissionCard{
+		Container:      cardContainer,
+		style:          style,
+		objectivesText: objectivesText,
+	}
+
 	return missionCard
+}
+
+func (c *MissionCard) update(g *Game) {
+	switch c.style {
+	case MissionCardGame:
+		c.objectivesText.SetText(g.objectives.Text())
+	}
 }

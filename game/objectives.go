@@ -21,6 +21,8 @@ type ObjectivesHandler struct {
 	current     map[Objective]time.Time
 	completed   map[Objective]time.Time
 	failed      map[Objective]time.Time
+
+	objectivesText string
 }
 
 type Objective interface {
@@ -28,6 +30,7 @@ type Objective interface {
 	Current() bool
 	Completed() bool
 	Failed() bool
+	Text() string
 }
 
 type BasicObjective struct {
@@ -203,11 +206,15 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 		}
 	}
 
+	o.updateObjectivesText()
+
 	return o
 }
 
 func (o *ObjectivesHandler) Update(g *Game) {
-	updated := time.Now()
+	update := false
+	currTime := time.Now()
+
 	objsDestroy := make([]*DestroyObjective, 0, 16)
 	objsProtect := make([]*ProtectObjective, 0, 16)
 	objsVisit := make([]*VisitObjective, 0, 4)
@@ -226,19 +233,21 @@ func (o *ObjectivesHandler) Update(g *Game) {
 
 		objective.Update(g)
 		if objective.Current() {
-			o.current[objective] = updated
+			o.current[objective] = currTime
 			continue
 		}
 
 		delete(o.current, objective)
 		switch {
 		case objective.Completed():
-			o.completed[objective] = updated
+			o.completed[objective] = currTime
 		case objective.Failed():
-			o.failed[objective] = updated
+			o.failed[objective] = currTime
 		default:
 			panic(fmt.Sprintf("unexpected objective state for %v", objective))
 		}
+
+		update = true
 	}
 
 	// special handling for Nav.Dustoff which cannot be completed until after all destroy/visit, where applicable
@@ -261,6 +270,7 @@ func (o *ObjectivesHandler) Update(g *Game) {
 		}
 
 		if dustoffComplete {
+			update = true
 			// only one nav needed to complete dustoff objective
 			for _, objective := range objsDustoff {
 				objective.completed = true
@@ -270,6 +280,7 @@ func (o *ObjectivesHandler) Update(g *Game) {
 
 	// special handling for Protect.Unit which cannot be completed until after all destroy/visit/dustoff, where applicable
 	if len(objsProtect) > 0 && len(objsDestroy) == 0 && len(objsVisit) == 0 && len(objsDustoff) == 0 {
+		update = true
 		for _, objective := range objsProtect {
 			log.Debugf("protect objective completed: %s", objective._objective.Unit)
 			objective.completed = true
@@ -278,12 +289,47 @@ func (o *ObjectivesHandler) Update(g *Game) {
 
 	// special handling for player objective of staying alive
 	if g.player.IsDestroyed() {
+		update = true
 		o.failed[&PlayerAliveObjective{
 			BasicObjective: &BasicObjective{
 				failed: true,
 			},
-		}] = updated
+		}] = currTime
 	}
+
+	if update {
+		o.updateObjectivesText()
+	}
+}
+
+func (o *ObjectivesHandler) updateObjectivesText() {
+	oText := ""
+
+	if len(o.current) > 0 {
+		for objective := range o.current {
+			oText += objective.Text() + "\n"
+		}
+	}
+
+	if len(o.failed) > 0 {
+		oText += "\n*FAILED*\n"
+		for objective := range o.failed {
+			oText += objective.Text() + "\n"
+		}
+	}
+
+	if len(o.completed) > 0 {
+		oText += "\n^COMPLETED^\n"
+		for objective := range o.completed {
+			oText += objective.Text() + "\n"
+		}
+	}
+
+	o.objectivesText = oText
+}
+
+func (o *ObjectivesHandler) Text() string {
+	return o.objectivesText
 }
 
 func (o *ObjectivesHandler) Status() ObjectivesStatus {
@@ -297,6 +343,9 @@ func (o *ObjectivesHandler) Status() ObjectivesStatus {
 }
 
 func (o *PlayerAliveObjective) Update(g *Game) {}
+func (o *PlayerAliveObjective) Text() string {
+	return ""
+}
 
 func (o *DestroyObjective) Update(g *Game) {
 	allDestroyed := true
@@ -316,6 +365,12 @@ func (o *DestroyObjective) Update(g *Game) {
 		o.completed = true
 	}
 }
+func (o *DestroyObjective) Text() string {
+	if o._objective.All {
+		return `Destroy All Enemies`
+	}
+	return `Destroy ` + o._objective.Unit
+}
 
 func (o *ProtectObjective) Update(g *Game) {
 	allAlive := true
@@ -331,6 +386,9 @@ func (o *ProtectObjective) Update(g *Game) {
 		o.failed = true
 	}
 }
+func (o *ProtectObjective) Text() string {
+	return `Protect ` + o._objective.Unit
+}
 
 func (o *VisitObjective) Update(g *Game) {
 	if o._nav.Visited() {
@@ -338,10 +396,16 @@ func (o *VisitObjective) Update(g *Game) {
 		o.completed = true
 	}
 }
+func (o *VisitObjective) Text() string {
+	return `Visit Nav ` + o._objective.Name
+}
 
 func (o *DustoffObjective) Update(g *Game) {
 	// special handling for Dustoff to verify all non-dustoff objectives must first be completed
 	if o._nav.Visited() {
 		o._verifyDustoff = true
 	}
+}
+func (o *DustoffObjective) Text() string {
+	return `Dustoff Nav ` + o._objective.Name
 }
