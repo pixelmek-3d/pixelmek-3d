@@ -795,7 +795,7 @@ func (g *Game) drawMissionBanner(hudOpts *render.DrawHudOptions) {
 	bScale := banner.Scale() * g.hudScale
 	bWidth, bHeight := int(bScale*float64(hudRect.Dx())), 3*int(bScale*float64(marginY))
 
-	bX, bY := 0, 0
+	bX, bY := hudRect.Min.X, 0
 	bBounds := image.Rect(
 		bX, bY, bX+bWidth, bY+bHeight,
 	)
