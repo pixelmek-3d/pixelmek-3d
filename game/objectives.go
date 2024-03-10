@@ -319,7 +319,7 @@ func (o *ObjectivesHandler) updateObjectivesText() {
 	}
 
 	if len(o.completed) > 0 {
-		oText += "\n^COMPLETED^\n"
+		oText += "\n-COMPLETED-\n"
 		for objective := range o.completed {
 			oText += objective.Text() + "\n"
 		}
