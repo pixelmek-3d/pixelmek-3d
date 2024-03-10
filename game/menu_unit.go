@@ -36,12 +36,17 @@ type UnitCardStyle int
 const (
 	UnitCardSelect UnitCardStyle = iota
 	UnitCardLaunch
-	UnitCardMission
+	UnitCardGame
+	UnitCardDebrief
 )
 
 type UnitCard struct {
 	*widget.Container
-	style UnitCardStyle
+	style       UnitCardStyle
+	unit        model.Unit
+	unitContent *widget.Container
+	armsContent *widget.Container
+	res         *uiResources
 }
 
 type unitCardWeapon struct {
@@ -407,6 +412,8 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	unitCard := &UnitCard{
 		Container: cardContainer,
 		style:     style,
+		unit:      unit,
+		res:       res,
 	}
 
 	switch style {
@@ -418,7 +425,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 		}
 		chassisText := widget.NewText(widget.TextOpts.Text(chassisVariant, res.text.titleFace, res.text.idleColor))
 		cardContainer.AddChild(chassisText)
-	case UnitCardMission:
+	case UnitCardGame, UnitCardDebrief:
 		// also show chassis name and variant header
 		chassisVariant := fmt.Sprintf("%s / %s", unit.Name(), unit.Variant())
 		chassisText := widget.NewText(widget.TextOpts.Text(chassisVariant, res.text.face, res.text.idleColor))
@@ -471,19 +478,49 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	}
 
 	// unit content container
-	unitContent := widget.NewContainer(
+	unitCard.unitContent = widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Padding(widget.Insets{
 				Left:  g.menu.Spacing(),
 				Right: g.menu.Spacing(),
 			}),
 			widget.GridLayoutOpts.Columns(2),
-			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false, false}),
-			widget.GridLayoutOpts.Spacing(g.menu.Spacing(), g.menu.Spacing()),
+			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false, false, false, false, false}),
+			widget.GridLayoutOpts.Spacing(g.menu.Spacing(), g.menu.Spacing()/4),
 		)))
-	unitTable.AddChild(unitContent)
+	unitTable.AddChild(unitCard.unitContent)
 
 	// unit specifications (tonnage, speed, jumpjets, armor, structure)
+	unitCard.updateUnitContent()
+
+	// armament summary container
+	unitCard.armsContent = widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(0),
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+		)),
+	)
+	cardContainer.AddChild(unitCard.armsContent)
+
+	// unit weapons and ammo
+	unitCard.updateArmamentContent()
+
+	// TODO: add more content
+
+	return unitCard
+}
+
+func (c *UnitCard) updateUnitContent() {
+	if c.unitContent == nil {
+		return
+	}
+
+	unit := c.unit
+	unitContent := c.unitContent
+	res := c.res
+
+	unitContent.RemoveChildren()
+
 	massString := fmt.Sprintf("%0.0f Tons", unit.Tonnage())
 	massText := newUnitContentText(res, massString)
 	unitContent.AddChild(newUnitContentText(res, "Mass:"))
@@ -495,14 +532,35 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	unitContent.AddChild(newUnitContentText(res, "Top Speed:"))
 	unitContent.AddChild(speedText)
 
-	// armament summary container
-	armsContent := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(0),
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-		)),
-	)
-	cardContainer.AddChild(armsContent)
+	armorString := fmt.Sprintf("%0.0f", unit.ArmorPoints())
+	armorText := newUnitContentText(res, armorString)
+	unitContent.AddChild(newUnitContentText(res, "Armor:"))
+	unitContent.AddChild(armorText)
+
+	structureString := fmt.Sprintf("%0.0f", unit.StructurePoints())
+	structureText := newUnitContentText(res, structureString)
+	unitContent.AddChild(newUnitContentText(res, "Structure:"))
+	unitContent.AddChild(structureText)
+
+	if unit.JumpJets() > 0 {
+		// TODO: jump jet distance instead of quantity
+		jjString := fmt.Sprintf("%d", unit.JumpJets())
+		jjText := newUnitContentText(res, jjString)
+		unitContent.AddChild(newUnitContentText(res, "Jump Jets:"))
+		unitContent.AddChild(jjText)
+	}
+}
+
+func (c *UnitCard) updateArmamentContent() {
+	if c.armsContent == nil {
+		return
+	}
+
+	unit := c.unit
+	armsContent := c.armsContent
+	res := c.res
+
+	c.armsContent.RemoveChildren()
 
 	armamentText := widget.NewText(
 		widget.TextOpts.Text("Armament:", res.text.face, res.text.idleColor),
@@ -580,10 +638,18 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 		)
 		armsContent.AddChild(ammoText)
 	}
+}
 
-	// TODO: add more content
+func (c *UnitCard) update(g *Game) {
+	if c.unit == nil {
+		return
+	}
 
-	return unitCard
+	switch c.style {
+	case UnitCardGame:
+		c.updateUnitContent()
+		c.updateArmamentContent()
+	}
 }
 
 func newUnitContentText(res *uiResources, str string) *widget.Text {

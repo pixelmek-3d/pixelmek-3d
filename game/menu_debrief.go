@@ -142,6 +142,6 @@ func (m *DebriefMenu) loadDebriefing() {
 	if g.player != nil {
 		playerUnit = g.player.Unit
 	}
-	unitCard := createUnitCard(g, res, playerUnit, UnitCardLaunch)
+	unitCard := createUnitCard(g, res, playerUnit, UnitCardDebrief)
 	m.content.AddChild(unitCard)
 }

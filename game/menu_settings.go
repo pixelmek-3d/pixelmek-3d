@@ -163,7 +163,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		missionSettings = gameMissionPage(m)
 		unitSettings = gameUnitPage(m)
 
-		gameMenu.updaters = []settingsUpdater{missionSettings}
+		gameMenu.updaters = []settingsUpdater{missionSettings, unitSettings}
 	}
 
 	displaySettings := displayPage(m)
