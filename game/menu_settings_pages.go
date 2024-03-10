@@ -213,8 +213,8 @@ func displayPage(m Menu) *settingsPage {
 				settingsMenu, _ := m.(*SettingsMenu)
 				switch {
 				case gameMenu != nil:
-					// re-initialize the menu with the Display settings pre-selected
-					gameMenu.preSelectedPage = 1
+					// re-initialize the in-game menu with the Display settings pre-selected
+					gameMenu.preSelectedPage = 2
 					gameMenu.initResources()
 					gameMenu.initMenu()
 				case settingsMenu != nil:

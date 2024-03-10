@@ -174,6 +174,8 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	pages := make([]interface{}, 0, 8)
 	if missionSettings != nil {
 		pages = append(pages, missionSettings)
+	}
+	if unitSettings != nil {
 		pages = append(pages, unitSettings)
 	}
 	pages = append(pages, displaySettings)
