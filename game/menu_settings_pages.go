@@ -146,12 +146,13 @@ func gameUnitPage(m Menu) *settingsPage {
 	if g.player != nil {
 		playerUnit = g.player.Unit
 	}
-	unitCard := createUnitCard(g, res, playerUnit, UnitCardMission)
+	unitCard := createUnitCard(g, res, playerUnit, UnitCardGame)
 	mContainer.AddChild(unitCard)
 
 	return &settingsPage{
-		title:   "Unit",
-		content: c,
+		title:    "Unit",
+		content:  c,
+		updaters: []settingsUpdater{unitCard},
 	}
 }
 
