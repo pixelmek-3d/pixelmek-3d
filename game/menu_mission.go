@@ -37,6 +37,7 @@ const (
 	MissionCardSelect MissionCardStyle = iota
 	MissionCardLaunch
 	MissionCardGame
+	MissionCardDebrief
 )
 
 type MissionCard struct {
@@ -317,7 +318,7 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 	)
 
 	switch style {
-	case MissionCardLaunch, MissionCardGame:
+	case MissionCardLaunch, MissionCardGame, MissionCardDebrief:
 		missionText := widget.NewText(widget.TextOpts.Text(mission.Title, res.text.titleFace, res.text.idleColor),
 			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -354,7 +355,7 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		}))
 		cardContainer.AddChild(objectivesText)
 
-	case MissionCardGame:
+	case MissionCardGame, MissionCardDebrief:
 		// in-game mission objectives text
 		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives:", res.text.face, res.text.idleColor))
 		cardContainer.AddChild(objectivesLabel)

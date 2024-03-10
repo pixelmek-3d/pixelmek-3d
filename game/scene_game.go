@@ -44,8 +44,8 @@ func (g *Game) LeaveGame() {
 	g.audio.StopSFX()
 	g.audio.StopMusic()
 
-	// go back to main menu
-	g.scene = NewMenuScene(g)
+	// go to mission debrief
+	g.scene = NewMissionDebriefScene(g)
 }
 
 func (s *GameScene) Update() error {
