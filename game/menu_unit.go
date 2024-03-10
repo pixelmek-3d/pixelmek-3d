@@ -521,6 +521,20 @@ func (c *UnitCard) updateUnitContent() {
 
 	unitContent.RemoveChildren()
 
+	armor, maxArmor := unit.ArmorPoints(), unit.MaxArmorPoints()
+	structure, maxStructure := unit.StructurePoints(), unit.MaxStructurePoints()
+
+	var armorString, structureString string
+	switch c.style {
+	case UnitCardGame, UnitCardDebrief:
+		armorPercent, structurePercent := 100*armor/maxArmor, 100*structure/maxStructure
+		armorString = fmt.Sprintf("%0.0f%% (%0.0f/%0.0f)", armorPercent, armor, maxArmor)
+		structureString = fmt.Sprintf("%0.0f%% (%0.0f/%0.0f)", structurePercent, structure, maxStructure)
+	default:
+		armorString = fmt.Sprintf("%0.0f", maxArmor)
+		structureString = fmt.Sprintf("%0.0f", maxStructure)
+	}
+
 	massString := fmt.Sprintf("%0.0f Tons", unit.Tonnage())
 	massText := newUnitContentText(res, massString)
 	unitContent.AddChild(newUnitContentText(res, "Mass:"))
@@ -532,12 +546,10 @@ func (c *UnitCard) updateUnitContent() {
 	unitContent.AddChild(newUnitContentText(res, "Top Speed:"))
 	unitContent.AddChild(speedText)
 
-	armorString := fmt.Sprintf("%0.0f", unit.ArmorPoints())
 	armorText := newUnitContentText(res, armorString)
 	unitContent.AddChild(newUnitContentText(res, "Armor:"))
 	unitContent.AddChild(armorText)
 
-	structureString := fmt.Sprintf("%0.0f", unit.StructurePoints())
 	structureText := newUnitContentText(res, structureString)
 	unitContent.AddChild(newUnitContentText(res, "Structure:"))
 	unitContent.AddChild(structureText)
@@ -605,6 +617,7 @@ func (c *UnitCard) updateArmamentContent() {
 	for _, ammoBin := range ammoBins {
 		forWeapon := ammoBin.ForWeapon()
 		ammoCount := ammoBin.AmmoCount()
+		ammoMax := ammoBin.AmmoMax()
 
 		ammoShort := ammoBin.AmmoType().ShortName()
 		ammoFull := ammoBin.AmmoType().Name()
@@ -614,8 +627,17 @@ func (c *UnitCard) updateArmamentContent() {
 			ammoFull = forWeapon.Name()
 		}
 
-		// TODO: add more ammo data in tooltip
-		toolTipString := fmt.Sprintf("Ammo for %s (%d)", ammoFull, ammoCount)
+		var ammoString, toolTipString string
+		switch c.style {
+		case UnitCardGame, UnitCardDebrief:
+			// in-game show ammo and max ammo counts
+			ammoString = fmt.Sprintf("%s Ammo (%d/%d)", ammoShort, ammoCount, ammoMax)
+			toolTipString = fmt.Sprintf("Ammo for %s (%d/%d)", ammoFull, ammoCount, ammoMax)
+		default:
+			ammoString = fmt.Sprintf("%s Ammo (%d)", ammoShort, ammoMax)
+			toolTipString = fmt.Sprintf("Ammo for %s (%d)", ammoFull, ammoMax)
+		}
+
 		toolTip := widget.NewContainer(
 			widget.ContainerOpts.BackgroundImage(res.toolTip.background),
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -628,7 +650,6 @@ func (c *UnitCard) updateArmamentContent() {
 		)
 		toolTip.AddChild(toolTipText)
 
-		ammoString := fmt.Sprintf("%s Ammo (%d)", ammoShort, ammoCount)
 		ammoText := widget.NewText(
 			widget.TextOpts.Text(ammoString, res.text.smallFace, res.text.idleColor),
 			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
