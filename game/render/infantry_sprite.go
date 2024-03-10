@@ -48,6 +48,13 @@ func NewInfantrySprite(
 	return s
 }
 
+func (t *InfantrySprite) Infantry() *model.Infantry {
+	if t.Entity == nil {
+		return nil
+	}
+	return t.Entity.(*model.Infantry)
+}
+
 func (t *InfantrySprite) Clone(asUnit model.Unit) *InfantrySprite {
 	tClone := &InfantrySprite{}
 	sClone := &Sprite{}

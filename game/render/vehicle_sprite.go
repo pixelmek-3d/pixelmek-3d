@@ -48,6 +48,13 @@ func NewVehicleSprite(
 	return s
 }
 
+func (v *VehicleSprite) Vehicle() *model.Vehicle {
+	if v.Entity == nil {
+		return nil
+	}
+	return v.Entity.(*model.Vehicle)
+}
+
 func (v *VehicleSprite) Clone(asUnit model.Unit) *VehicleSprite {
 	vClone := &VehicleSprite{}
 	sClone := &Sprite{}

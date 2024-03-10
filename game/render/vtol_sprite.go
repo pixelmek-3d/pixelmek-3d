@@ -47,6 +47,13 @@ func NewVTOLSprite(
 	return s
 }
 
+func (v *VTOLSprite) VTOL() *model.VTOL {
+	if v.Entity == nil {
+		return nil
+	}
+	return v.Entity.(*model.VTOL)
+}
+
 func (v *VTOLSprite) Clone(asUnit model.Unit) *VTOLSprite {
 	vClone := &VTOLSprite{}
 	sClone := &Sprite{}

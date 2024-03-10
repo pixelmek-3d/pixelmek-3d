@@ -30,7 +30,6 @@ func NewGameScene(g *Game) *GameScene {
 		g.audio.StartMusicFromFile("audio/music/" + g.mission.MusicPath)
 	}
 
-	// TODO: initial startup sound for all systems being in a nominal state before engine ambience
 	// start engine ambience
 	g.audio.PlayPowerOnSequence()
 

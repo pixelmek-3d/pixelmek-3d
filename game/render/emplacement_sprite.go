@@ -44,6 +44,13 @@ func NewEmplacementSprite(
 	return s
 }
 
+func (t *EmplacementSprite) Emplacement() *model.Emplacement {
+	if t.Entity == nil {
+		return nil
+	}
+	return t.Entity.(*model.Emplacement)
+}
+
 func (t *EmplacementSprite) Clone(asUnit model.Unit) *EmplacementSprite {
 	tClone := &EmplacementSprite{}
 	sClone := &Sprite{}
