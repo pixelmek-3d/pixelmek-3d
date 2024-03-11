@@ -1,0 +1,56 @@
+// TODO: "kage:unit pixels"
+package main
+
+var Direction float
+var Duration float
+var Time float
+
+const MaxCellSize int = 32
+
+func Fragment(dst vec4, src vec2, _ vec4) vec4 {
+    if Direction == 0 {
+		return imageSrc0UnsafeAt(src)
+	}
+
+    iTime := Time
+	if iTime > Duration {
+		iTime = Duration
+	}
+
+    // calculate cell size based on transition time, duration, and direction
+    cellSize := int((iTime/Duration) * float(MaxCellSize))
+    if Direction > 0 {
+        cellSize = MaxCellSize - cellSize
+    }
+    if cellSize < 1 {
+        cellSize = 1
+    }
+
+	// find the position of the cell we are working on
+	baseX := (int(dst.x)/cellSize)*cellSize
+	baseY := (int(dst.y)/cellSize)*cellSize
+
+	// prepare helper variables
+	sizeInPixels := imageSrcTextureSize()
+	offsetInTexels, _ := imageSrcRegionOnTexture()
+	texDeltaX := 1.0/sizeInPixels.x
+	texDeltaY := 1.0/sizeInPixels.y
+	texBaseX := float(baseX)/sizeInPixels.x + offsetInTexels.x
+	texCurrY := float(baseY)/sizeInPixels.y + offsetInTexels.y
+
+	// iterate the pixelization cell
+	colorAcc := vec4(0.0) // color accumulator
+	for y := 0; y < MaxCellSize; y += 1 {
+		if y >= cellSize { break }
+		texCurrX := texBaseX
+		for x := 0; x < MaxCellSize; x += 1 {
+			if x >= cellSize { break }
+			colorAcc += imageSrc0At(vec2(texCurrX, texCurrY))
+			texCurrX += texDeltaX
+		}
+		texCurrY += texDeltaY
+	}
+
+	// divide the color to average it
+	return colorAcc/float(cellSize*cellSize)
+}
