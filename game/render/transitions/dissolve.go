@@ -88,7 +88,7 @@ func (d *Dissolve) Draw(screen *ebiten.Image) {
 	direction := 1.0
 	switch d.tOptions.CurrentDirection {
 	case TransitionOut:
-		direction = 0.0
+		direction = -1.0
 	case TransitionHold:
 		direction = 0.0
 		time = 0
@@ -97,10 +97,9 @@ func (d *Dissolve) Draw(screen *ebiten.Image) {
 	w, h := d.dissolveImage.Bounds().Dx(), d.dissolveImage.Bounds().Dy()
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
-		"Direction":  direction,
-		"Duration":   duration,
-		"Time":       time,
-		"ScreenSize": []float32{float32(w), float32(h)},
+		"Direction": direction,
+		"Duration":  duration,
+		"Time":      time,
 	}
 	op.Images[0] = d.dissolveImage
 	op.Images[1] = d.noiseImage
