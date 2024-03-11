@@ -4,11 +4,24 @@ package main
 var Direction float
 var Duration float
 var Time float
-var ScreenSize vec2
 
 func Fragment(dst vec4, src vec2, color vec4) vec4 {
+	if Direction == 0 {
+		return imageSrc0UnsafeAt(src)
+	}
+
+	iTime := Time
+	if iTime > Duration {
+		iTime = Duration
+	}
+
 	// Triangle wave to go 0-->1-->0...
-	limit := abs(fract(Time/Duration)-Direction)
+	dirOffset := 0.0
+	if Direction > 0 {
+		dirOffset = 1.0
+	} 
+
+	limit := abs(fract(iTime/Duration)-dirOffset)
 	level := imageSrc1UnsafeAt(src).x
 
 	// Add a white border
