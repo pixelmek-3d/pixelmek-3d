@@ -24,7 +24,7 @@ func NewMenuScene(g *Game) *MenuScene {
 
 	transitionScreen := ebiten.NewImage(g.screenWidth, g.screenHeight)
 	tOpts := &transitions.TransitionOptions{
-		InDuration:   2.0,
+		InDuration:   1.5,
 		HoldDuration: 0,
 		OutDuration:  0,
 	}
