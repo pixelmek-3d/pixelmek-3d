@@ -8,8 +8,7 @@ import (
 type GameScene struct {
 	Game *Game
 
-	transition       SceneTransition
-	transitionScreen *ebiten.Image
+	transition SceneTransition
 }
 
 func NewGameScene(g *Game) *GameScene {
@@ -33,8 +32,17 @@ func NewGameScene(g *Game) *GameScene {
 	// start engine ambience
 	g.audio.PlayPowerOnSequence()
 
+	// transition in to start game
+	tOpts := &transitions.TransitionOptions{
+		InDuration:   5.0,
+		HoldDuration: 0,
+		OutDuration:  0,
+	}
+	transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
+
 	return &GameScene{
-		Game: g,
+		Game:       g,
+		transition: transition,
 	}
 }
 
@@ -86,20 +94,27 @@ func (s *GameScene) Update() error {
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 
-		if !g.InProgress() {
+		if g.InProgress() {
+			if s.transition != nil {
+				// update transition at start of game
+				s.transition.Update()
+				if s.transition.Completed() {
+					s.transition = nil
+				}
+			}
+		} else {
 			if s.transition == nil {
-				// start transition to leave game
+				// transition out to leave game
 				tOpts := &transitions.TransitionOptions{
 					InDuration:   0.0,
 					HoldDuration: 4.0,
 					OutDuration:  3.0,
 				}
-				s.transition = transitions.NewDissolve(g.overlayScreen, tOpts, ebiten.GeoM{})
-				s.transitionScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
+				s.transition = transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
 			} else {
+				// update transition about to leave game
 				s.transition.Update()
 				if s.transition.Completed() {
-					// TODO: create mission failed summary scene
 					g.LeaveGame()
 				}
 			}
@@ -150,15 +165,13 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	// draw HUD elements to overlay screen
 	g.drawHUD(g.overlayScreen)
 
-	if g.InProgress() {
+	if s.transition != nil {
+		// draw transition shader to screen
+		s.transition.SetImage(g.overlayScreen)
+		s.transition.Draw(screen)
+	} else {
 		// draw HUD overlayed elements directly to screen
 		screen.DrawImage(g.overlayScreen, nil)
-	} else {
-		if s.transition != nil {
-			// draw transition shader to screen
-			s.transition.SetImage(g.overlayScreen)
-			s.transition.Draw(screen)
-		}
 	}
 
 	// draw menu (if active)
