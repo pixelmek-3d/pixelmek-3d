@@ -29,64 +29,67 @@ func NewDissolve(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 
 	noise, _, _ := resources.NewImageFromFile("shaders/noise.png")
 
-	d := &Dissolve{
+	t := &Dissolve{
 		noiseImage: noise,
 		shader:     shader,
 		geoM:       geoM,
 		tOptions:   tOptions,
 		tickDelta:  1 / float32(ebiten.TPS()),
 	}
-	d.SetImage(img)
+	t.SetImage(img)
 
-	return d
+	return t
 }
 
-func (d *Dissolve) Completed() bool {
-	return d.completed
+func (t *Dissolve) Completed() bool {
+	return t.completed
 }
 
-func (d *Dissolve) SetImage(img *ebiten.Image) {
-	d.dissolveImage = img
+func (t *Dissolve) SetImage(img *ebiten.Image) {
+	t.dissolveImage = img
 
 	// scale noise image to match dissolve image size
 	dW, dH := img.Bounds().Dx(), img.Bounds().Dy()
-	nW, nH := d.noiseImage.Bounds().Dx(), d.noiseImage.Bounds().Dy()
+	nW, nH := t.noiseImage.Bounds().Dx(), t.noiseImage.Bounds().Dy()
 	if dW != nW || dH != nH {
 		op := &ebiten.DrawImageOptions{}
 		op.Filter = ebiten.FilterNearest
 		op.GeoM.Scale(float64(dW)/float64(nW), float64(dH)/float64(nH))
 		scaledImage := ebiten.NewImage(dW, dH)
-		scaledImage.DrawImage(d.noiseImage, op)
-		d.noiseImage = scaledImage
+		scaledImage.DrawImage(t.noiseImage, op)
+		t.noiseImage = scaledImage
 	}
 }
 
-func (d *Dissolve) Update() error {
-	if d.completed {
+func (t *Dissolve) Update() error {
+	if t.completed {
 		return nil
 	}
 
-	duration := d.tOptions.Duration()
-	if d.time+d.tickDelta < duration {
-		d.time += d.tickDelta
+	duration := t.tOptions.Duration()
+	if t.time+t.tickDelta < duration {
+		t.time += t.tickDelta
 	} else {
 		// move to next transition direction and reset timer
-		d.tOptions.CurrentDirection += 1
-		d.time = 0
+		t.tOptions.CurrentDirection += 1
+		t.time = 0
 	}
 
-	if d.tOptions.CurrentDirection == TransitionCompleted {
-		d.completed = true
+	if t.tOptions.CurrentDirection == TransitionCompleted {
+		t.completed = true
+	} else if t.time == 0 && t.tOptions.Duration() == 0 {
+		// if the next transition unused, update to move on to the next
+		t.Update()
 	}
 
 	return nil
 }
 
-func (d *Dissolve) Draw(screen *ebiten.Image) {
-	time := d.time
-	duration := d.tOptions.Duration()
+func (t *Dissolve) Draw(screen *ebiten.Image) {
+	time := t.time
+	duration := t.tOptions.Duration()
 	direction := 1.0
-	switch d.tOptions.CurrentDirection {
+	switch t.tOptions.CurrentDirection {
 	case TransitionOut:
 		direction = -1.0
 	case TransitionHold:
@@ -94,19 +97,19 @@ func (d *Dissolve) Draw(screen *ebiten.Image) {
 		time = 0
 	}
 
-	w, h := d.dissolveImage.Bounds().Dx(), d.dissolveImage.Bounds().Dy()
+	w, h := t.dissolveImage.Bounds().Dx(), t.dissolveImage.Bounds().Dy()
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
 		"Direction": direction,
 		"Duration":  duration,
 		"Time":      time,
 	}
-	op.Images[0] = d.dissolveImage
-	op.Images[1] = d.noiseImage
-	op.GeoM = d.geoM
-	screen.DrawRectShader(w, h, d.shader, op)
+	op.Images[0] = t.dissolveImage
+	op.Images[1] = t.noiseImage
+	op.GeoM = t.geoM
+	screen.DrawRectShader(w, h, t.shader, op)
 }
 
-func (d *Dissolve) SetGeoM(geoM ebiten.GeoM) {
-	d.geoM = geoM
+func (t *Dissolve) SetGeoM(geoM ebiten.GeoM) {
+	t.geoM = geoM
 }

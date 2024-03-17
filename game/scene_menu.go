@@ -1,13 +1,17 @@
 package game
 
 import (
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type MenuScene struct {
-	Game     *Game
-	main     *MainMenu
-	settings *SettingsMenu
+	Game             *Game
+	main             *MainMenu
+	settings         *SettingsMenu
+	transition       SceneTransition
+	transitionScreen *ebiten.Image
 }
 
 func NewMenuScene(g *Game) *MenuScene {
@@ -18,10 +22,20 @@ func NewMenuScene(g *Game) *MenuScene {
 	main := createMainMenu(g)
 	settings := createSettingsMenu(g)
 
+	transitionScreen := ebiten.NewImage(g.screenWidth, g.screenHeight)
+	tOpts := &transitions.TransitionOptions{
+		InDuration:   2.0,
+		HoldDuration: 0,
+		OutDuration:  0,
+	}
+	transition := transitions.NewFade(transitionScreen, tOpts, ebiten.GeoM{})
+
 	scene := &MenuScene{
-		Game:     g,
-		main:     main,
-		settings: settings,
+		Game:             g,
+		main:             main,
+		settings:         settings,
+		transition:       transition,
+		transitionScreen: transitionScreen,
 	}
 	scene.SetMenu(main)
 	return scene
@@ -49,6 +63,14 @@ func (s *MenuScene) Update() error {
 		}
 	}
 
+	if s.transition != nil {
+		s.transition.Update()
+		if s.transition.Completed() {
+			s.transition = nil
+			s.transitionScreen = nil
+		}
+	}
+
 	// update the menu
 	g.menu.Update()
 
@@ -58,6 +80,13 @@ func (s *MenuScene) Update() error {
 func (s *MenuScene) Draw(screen *ebiten.Image) {
 	g := s.Game
 
-	// draw menu
-	g.menu.Draw(screen)
+	if s.transition != nil {
+		// draw menu with transition
+		g.menu.Draw(s.transitionScreen)
+		s.transition.SetImage(s.transitionScreen)
+		s.transition.Draw(screen)
+	} else {
+		// draw menu
+		g.menu.Draw(screen)
+	}
 }
