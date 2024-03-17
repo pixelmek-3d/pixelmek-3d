@@ -39,7 +39,7 @@ func (c *CRT) DrawWithOptions(screen *ebiten.Image, img *ebiten.Image, curve boo
 		showCurve = 1
 	}
 
-	w, h := img.Bounds().Dx(), img.Bounds().Dy()
+	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
 		"ShowCurve": showCurve,

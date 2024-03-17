@@ -16,11 +16,12 @@ const (
 )
 
 type IntroScene struct {
-	Game        *Game
-	splashes    []*SplashScreen
-	splashRect  image.Rectangle
-	splashIndex int
-	splashTimer float64
+	Game         *Game
+	splashes     []*SplashScreen
+	splashRect   image.Rectangle
+	splashIndex  int
+	splashTimer  float64
+	bufferScreen *ebiten.Image
 }
 
 type SplashScreen struct {
@@ -46,9 +47,10 @@ func NewIntroScene(g *Game) *IntroScene {
 			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
 			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
 		}
+
 		splash := NewSplashScreen(g)
-		splash.img = nil
-		splash.transition = transitions.NewDissolve(im, tOpts, geoM)
+		splash.img = im
+		splash.transition = transitions.NewDissolve(splash.screen, tOpts, ebiten.GeoM{})
 		splash.geoM = geoM
 		splashes = append(splashes, splash)
 	}
@@ -57,19 +59,26 @@ func NewIntroScene(g *Game) *IntroScene {
 	im, _, err = resources.NewImageFromFile("textures/gopher_space.png")
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
+		tOpts := &transitions.TransitionOptions{
+			InDuration:   SPLASH_TIMEOUT * 2 / 5,
+			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
+			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
+		}
+
 		splash := NewSplashScreen(g)
 		splash.img = im
 		splash.effect = effects.NewStars(g.screenWidth, g.screenHeight)
-		//splash.shader = effects.NewCRT()
+		splash.transition = transitions.NewFade(splash.screen, tOpts, ebiten.GeoM{})
 		splash.geoM = geoM
 		splashes = append(splashes, splash)
 	}
 
 	return &IntroScene{
-		Game:        g,
-		splashes:    splashes,
-		splashRect:  splashRect,
-		splashTimer: SPLASH_TIMEOUT,
+		Game:         g,
+		splashes:     splashes,
+		splashRect:   splashRect,
+		splashTimer:  SPLASH_TIMEOUT,
+		bufferScreen: ebiten.NewImage(g.screenWidth, g.screenHeight),
 	}
 }
 
@@ -105,6 +114,9 @@ func (s *IntroScene) Update() error {
 	splash := s.currentSplash()
 	if splash.effect != nil {
 		splash.effect.Update()
+	}
+	if splash.shader != nil {
+		splash.shader.Update()
 	}
 	if splash.transition != nil {
 		splash.transition.Update()
@@ -150,15 +162,11 @@ func (s *IntroScene) Draw(screen *ebiten.Image) {
 	// draw effect as splash image background
 	splash := s.currentSplash()
 	splash.screen.Clear()
+	s.bufferScreen.Clear()
 
 	if splash.effect != nil {
 		// draw effect
 		splash.effect.Draw(splash.screen)
-	}
-
-	if splash.transition != nil {
-		// draw transition image
-		splash.transition.Draw(splash.screen)
 	}
 
 	if splash.img != nil {
@@ -170,10 +178,19 @@ func (s *IntroScene) Draw(screen *ebiten.Image) {
 	}
 
 	if splash.shader != nil {
-		// draw shader effect with splash scene to screen
-		splash.shader.Draw(screen, splash.screen)
+		// draw shader effect with splash screen to buffer
+		splash.shader.Draw(s.bufferScreen, splash.screen)
 	} else {
-		// draw splash scene to screen
-		screen.DrawImage(splash.screen, nil)
+		// draw splash screen to buffer
+		s.bufferScreen.DrawImage(splash.screen, nil)
+	}
+
+	if splash.transition != nil {
+		// draw transition from buffer
+		splash.transition.SetImage(s.bufferScreen)
+		splash.transition.Draw(screen)
+	} else {
+		// draw buffer directly to screen
+		screen.DrawImage(s.bufferScreen, nil)
 	}
 }
