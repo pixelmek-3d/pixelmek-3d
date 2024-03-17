@@ -27,67 +27,70 @@ func NewPixelize(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 		log.Fatal(err)
 	}
 
-	d := &Pixelize{
+	t := &Pixelize{
 		shader:    shader,
 		geoM:      geoM,
 		tOptions:  tOptions,
 		tickDelta: 1 / float32(ebiten.TPS()),
 	}
-	d.SetImage(img)
+	t.SetImage(img)
 
-	return d
+	return t
 }
 
-func (d *Pixelize) Completed() bool {
-	return d.completed
+func (t *Pixelize) Completed() bool {
+	return t.completed
 }
 
-func (d *Pixelize) SetImage(img *ebiten.Image) {
-	d.pixelizeImage = img
+func (t *Pixelize) SetImage(img *ebiten.Image) {
+	t.pixelizeImage = img
 }
 
-func (d *Pixelize) screenBuffer(w, h int) {
+func (t *Pixelize) screenBuffer(w, h int) {
 	createBuffer := false
-	if d.bufferImage == nil {
+	if t.bufferImage == nil {
 		createBuffer = true
 	} else {
-		bW, bH := d.bufferImage.Bounds().Dx(), d.bufferImage.Bounds().Dy()
+		bW, bH := t.bufferImage.Bounds().Dx(), t.bufferImage.Bounds().Dy()
 		if w != bW || h != bH {
 			createBuffer = true
 		}
 	}
 
 	if createBuffer {
-		d.bufferImage = ebiten.NewImage(w, h)
+		t.bufferImage = ebiten.NewImage(w, h)
 	}
 }
 
-func (d *Pixelize) Update() error {
-	if d.completed {
+func (t *Pixelize) Update() error {
+	if t.completed {
 		return nil
 	}
 
-	duration := d.tOptions.Duration()
-	if d.time+d.tickDelta < duration {
-		d.time += d.tickDelta
+	duration := t.tOptions.Duration()
+	if t.time+t.tickDelta < duration {
+		t.time += t.tickDelta
 	} else {
 		// move to next transition direction and reset timer
-		d.tOptions.CurrentDirection += 1
-		d.time = 0
+		t.tOptions.CurrentDirection += 1
+		t.time = 0
 	}
 
-	if d.tOptions.CurrentDirection == TransitionCompleted {
-		d.completed = true
+	if t.tOptions.CurrentDirection == TransitionCompleted {
+		t.completed = true
+	} else if t.time == 0 && t.tOptions.Duration() == 0 {
+		// if the next transition unused, update to move on to the next
+		t.Update()
 	}
 
 	return nil
 }
 
-func (d *Pixelize) Draw(screen *ebiten.Image) {
-	time := d.time
-	duration := d.tOptions.Duration()
+func (t *Pixelize) Draw(screen *ebiten.Image) {
+	time := t.time
+	duration := t.tOptions.Duration()
 	direction := 1.0
-	switch d.tOptions.CurrentDirection {
+	switch t.tOptions.CurrentDirection {
 	case TransitionOut:
 		direction = -1.0
 	case TransitionHold:
@@ -97,8 +100,8 @@ func (d *Pixelize) Draw(screen *ebiten.Image) {
 
 	// draw image to buffer with translation first (since this shader does not like any post-GeoM)
 	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
-	d.screenBuffer(w, h)
-	d.bufferImage.DrawImage(d.pixelizeImage, &ebiten.DrawImageOptions{GeoM: d.geoM})
+	t.screenBuffer(w, h)
+	t.bufferImage.DrawImage(t.pixelizeImage, &ebiten.DrawImageOptions{GeoM: t.geoM})
 
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
@@ -106,12 +109,12 @@ func (d *Pixelize) Draw(screen *ebiten.Image) {
 		"Duration":  duration,
 		"Time":      time,
 	}
-	op.Images[0] = d.bufferImage
+	op.Images[0] = t.bufferImage
 
 	// draw shader from buffer image
-	screen.DrawRectShader(w, h, d.shader, op)
+	screen.DrawRectShader(w, h, t.shader, op)
 }
 
-func (d *Pixelize) SetGeoM(geoM ebiten.GeoM) {
-	d.geoM = geoM
+func (t *Pixelize) SetGeoM(geoM ebiten.GeoM) {
+	t.geoM = geoM
 }
