@@ -206,7 +206,7 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 						}
 
 					case HUD_CROSSHAIRS:
-						if m.PowerOnTimer > 1 {
+						if m.PowerOnTimer > 0 {
 							// hide crosshairs until fully powered on
 							hudElement.SetScale(0)
 						}
