@@ -58,6 +58,14 @@ func (m *DebriefMenu) Draw(screen *ebiten.Image) {
 func debriefTitleContainer(m *DebriefMenu) *widget.Container {
 	res := m.Resources()
 
+	debriefText := "Mission Debrief"
+	switch m.MenuModel.game.objectives.Status() {
+	case OBJECTIVES_FAILED:
+		debriefText = "Mission Failed"
+	case OBJECTIVES_COMPLETED:
+		debriefText = "Mission Successful"
+	}
+
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
@@ -70,7 +78,7 @@ func debriefTitleContainer(m *DebriefMenu) *widget.Container {
 			}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Mission Debrief", res.text.bigTitleFace, res.text.idleColor),
+		widget.TextOpts.Text(debriefText, res.text.bigTitleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
