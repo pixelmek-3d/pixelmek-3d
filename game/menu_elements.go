@@ -178,7 +178,7 @@ func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) 
 			widget.SliderOpts.TrackPadding(res.list.trackPadding),
 		),
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
-		widget.TextAreaOpts.VerticalScrollMode(widget.PositionAtEnd),
+		// widget.TextAreaOpts.VerticalScrollMode(widget.PositionAtEnd),
 		widget.TextAreaOpts.ProcessBBCode(true),
 		widget.TextAreaOpts.FontFace(res.textArea.face),
 		widget.TextAreaOpts.FontColor(color.NRGBA{R: 200, G: 100, B: 0, A: 255}),
