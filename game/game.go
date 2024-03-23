@@ -488,7 +488,7 @@ func (g *Game) updatePlayer() {
 				nav.SetVisited(true)
 
 				// automatically cycle to next nav point
-				if g.player.navPoint.NavPoint == nav && nav.Objective() != model.NavDustoffObjective {
+				if g.player.NavPoint() == nav && nav.Objective() != model.NavDustoffObjective {
 					g.navPointCycle(false)
 				}
 			}
@@ -626,7 +626,7 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 	if replaceTarget && g.player.Target() != nil {
 		// unset player target so status display can show nav selection
 		g.player.SetTarget(nil)
-		if g.player.navPoint != nil {
+		if g.player.currentNav != nil {
 			// on the first time after unset target have it not cycle to next nav
 			return
 		}
@@ -634,7 +634,7 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 
 	var newNav *model.NavPoint
 	navPoints := g.mission.NavPoints
-	currentNav := g.player.navPoint
+	currentNav := g.player.currentNav
 
 	for _, n := range navPoints {
 		if currentNav == nil {
@@ -653,7 +653,7 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 		newNav = navPoints[0]
 	}
 
-	g.player.navPoint = render.NewNavSprite(newNav, 1.0)
+	g.player.currentNav = render.NewNavSprite(newNav, 1.0)
 }
 
 func (g *Game) targetCrosshairs() model.Entity {

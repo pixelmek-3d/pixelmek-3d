@@ -41,7 +41,7 @@ type Player struct {
 	selectedWeapon      uint
 	selectedGroup       uint
 	fireMode            model.WeaponFireMode
-	navPoint            *render.NavSprite
+	currentNav          *render.NavSprite
 	ejectionPod         *render.ProjectileSprite
 }
 
@@ -119,6 +119,13 @@ func (p *Player) TurretAngle() float64 {
 		return 0
 	}
 	return p.Unit.TurretAngle()
+}
+
+func (p *Player) NavPoint() *model.NavPoint {
+	if p.currentNav == nil {
+		return nil
+	}
+	return p.currentNav.NavPoint
 }
 
 func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
