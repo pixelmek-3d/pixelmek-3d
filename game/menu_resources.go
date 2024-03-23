@@ -38,6 +38,7 @@ const (
 const (
 	fontFaceRegular = "fonts/pixeloid-sans.otf"
 	fontFaceBold    = "fonts/pixeloid-bold.otf"
+	fontFaceMono    = "fonts/pixeloid.otf"
 )
 
 type uiResources struct {
@@ -145,6 +146,7 @@ type toolTipResources struct {
 	background *image.NineSlice
 	padding    widget.Insets
 	face       font.Face
+	monoFace   font.Face
 	color      color.Color
 }
 
@@ -154,6 +156,7 @@ type fonts struct {
 	titleFace    font.Face
 	bigTitleFace font.Face
 	toolTipFace  font.Face
+	toolTipMono  font.Face
 }
 
 func NewUIResources(fonts *fonts) (*uiResources, error) {
@@ -258,12 +261,18 @@ func loadFonts(fontScale float64) (*fonts, error) {
 		return nil, err
 	}
 
+	toolTipMono, err := resources.LoadFont(fontFaceMono, 15.0*fontScale)
+	if err != nil {
+		return nil, err
+	}
+
 	return &fonts{
 		scale:        fontScale,
 		face:         fontFace,
 		titleFace:    titleFontFace,
 		bigTitleFace: bigTitleFontFace,
 		toolTipFace:  toolTipFace,
+		toolTipMono:  toolTipMono,
 	}, nil
 }
 
@@ -766,8 +775,9 @@ func newToolTipResources(fonts *fonts) (*toolTipResources, error) {
 			Bottom: 10,
 		},
 
-		face:  fonts.toolTipFace,
-		color: hexToColor(toolTipColor),
+		face:     fonts.toolTipFace,
+		monoFace: fonts.toolTipMono,
+		color:    hexToColor(toolTipColor),
 	}, nil
 }
 

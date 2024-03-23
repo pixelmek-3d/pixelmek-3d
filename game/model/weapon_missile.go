@@ -14,6 +14,7 @@ type MissileWeapon struct {
 	Resource        *ModelMissileWeaponResource
 	name            string
 	short           string
+	summary         string
 	tech            TechBase
 	classification  WeaponClassification
 	tonnage         float64
@@ -57,6 +58,7 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 
 	// load general classification of weapon programmatically
 	w.loadClassification()
+	w.summary = weaponSummary(w)
 
 	if r.LockOn != nil {
 		w.lockOnLockRequired = r.LockOn.LockRequired
@@ -177,6 +179,10 @@ func (w *MissileWeapon) Clone() Weapon {
 	w.projectile = *pClone
 
 	return wClone
+}
+
+func (w *MissileWeapon) Summary() string {
+	return w.summary
 }
 
 func (w *MissileWeapon) AmmoPerTon() int {

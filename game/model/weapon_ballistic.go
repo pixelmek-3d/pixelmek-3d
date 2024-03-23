@@ -13,6 +13,7 @@ type BallisticWeapon struct {
 	Resource        *ModelBallisticWeaponResource
 	name            string
 	short           string
+	summary         string
 	tech            TechBase
 	classification  WeaponClassification
 	tonnage         float64
@@ -48,6 +49,7 @@ func NewBallisticWeapon(r *ModelBallisticWeaponResource, collisionRadius, collis
 
 	// load general classification of weapon programmatically
 	w.loadClassification()
+	w.summary = weaponSummary(w)
 
 	// convert velocity from meters/second to unit distance per tick
 	pVelocity := (w.velocity / METERS_PER_UNIT) * SECONDS_PER_TICK
@@ -84,6 +86,10 @@ func (w *BallisticWeapon) Clone() Weapon {
 	w.projectile = *pClone
 
 	return wClone
+}
+
+func (w *BallisticWeapon) Summary() string {
+	return w.summary
 }
 
 func (w *BallisticWeapon) AmmoPerTon() int {

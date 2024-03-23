@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 )
@@ -35,10 +37,15 @@ const (
 	GROUP_FIRE
 )
 
+const (
+	weaponSummaryPadding = 12
+)
+
 type Weapon interface {
 	File() string
 	Name() string
 	ShortName() string
+	Summary() string
 	Tech() TechBase
 	Type() WeaponType
 	Classification() WeaponClassification
@@ -65,6 +72,25 @@ type Weapon interface {
 	Audio() string
 	Clone() Weapon
 	Parent() Entity
+}
+
+func weaponSummary(w Weapon) string {
+	s := ""
+	pad := weaponSummaryPadding
+
+	pCount := w.ProjectileCount()
+	pDamage := w.Damage()
+	if pCount > 1 {
+		pDamage /= float64(pCount)
+		s += fmt.Sprintf("%-*s%0.1fx%d\n", pad, "Damage:", pDamage, pCount)
+	} else {
+		s += fmt.Sprintf("%-*s%0.1f\n", pad, "Damage:", pDamage)
+	}
+
+	s += fmt.Sprintf("%-*s%0.1f\n", pad, "Heat:", w.Heat())
+	s += fmt.Sprintf("%-*s%0.0fm\n", pad, "Range:", w.Distance())
+	s += fmt.Sprintf("%-*s%0.1fs\n", pad, "Cooldown:", w.MaxCooldown())
+	return s
 }
 
 // WeaponPosition3D gets the X, Y and Z axis offsets needed for weapon projectile spawned from a 2-D sprite reference
