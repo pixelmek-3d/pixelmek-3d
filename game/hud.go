@@ -374,7 +374,8 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 
 func (g *Game) drawNavStatus(hudOpts *render.DrawHudOptions) {
 	navStatus := g.GetHUDElement(HUD_NAV_STATUS).(*render.NavStatus)
-	if navStatus == nil || g.player.navPoint == nil || g.player.Target() != nil {
+	navPoint := g.player.NavPoint()
+	if navStatus == nil || navPoint == nil || g.player.Target() != nil {
 		return
 	}
 
@@ -392,7 +393,6 @@ func (g *Game) drawNavStatus(hudOpts *render.DrawHudOptions) {
 		sX, sY, sX+statusWidth, sY+statusHeight,
 	)
 
-	navPoint := g.player.navPoint.NavPoint
 	pPos, nPos := g.player.Pos(), navPoint.Pos()
 	navLine := geom.Line{
 		X1: pPos.X, Y1: pPos.Y,
@@ -469,10 +469,10 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 		compass.SetTargetHeading(tAngle)
 	}
 
-	if g.player.navPoint == nil {
+	if g.player.currentNav == nil {
 		compass.SetNavEnabled(false)
 	} else {
-		navPos := g.player.navPoint.Pos()
+		navPos := g.player.currentNav.Pos()
 		tLine := geom.Line{
 			X1: playerPos.X, Y1: playerPos.Y,
 			X2: navPos.X, Y2: navPos.Y,
@@ -628,10 +628,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	playerAngle := g.player.Heading()
 	playerTarget := g.player.Target()
 
-	var playerNav *model.NavPoint
-	if g.player.navPoint != nil {
-		playerNav = g.player.navPoint.NavPoint
-	}
+	playerNav := g.player.NavPoint()
 
 	// discover nav points that are in range
 	navCount := 0
@@ -752,11 +749,11 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 
 func (g *Game) drawNavReticle(hudOpts *render.DrawHudOptions) {
 	navReticle := g.GetHUDElement(HUD_NAV_RETICLE).(*render.NavReticle)
-	if navReticle == nil || g.player.Target() != nil || g.player.navPoint == nil {
+	if navReticle == nil || g.player.Target() != nil || g.player.currentNav == nil {
 		return
 	}
 
-	s := g.player.navPoint
+	s := g.player.currentNav
 	if s == nil {
 		return
 	}
