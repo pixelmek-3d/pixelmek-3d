@@ -583,9 +583,10 @@ func (c *UnitCard) updateArmamentContent() {
 	for _, weapon := range armamentSummary(unit) {
 		weaponFull := weapon.weapon.Name()
 		weaponShort := weapon.weapon.ShortName()
+		weaponStats := weapon.weapon.Summary()
 
-		// TODO: add more weapon data in tooltip
-		toolTipString := fmt.Sprintf("%dx %s", weapon.quantity, weaponFull)
+		// more weapon data in tooltip
+		toolTipString := fmt.Sprintf("%dx %s\n\n%s", weapon.quantity, weaponFull, weaponStats)
 		toolTip := widget.NewContainer(
 			widget.ContainerOpts.BackgroundImage(res.toolTip.background),
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -594,7 +595,7 @@ func (c *UnitCard) updateArmamentContent() {
 				widget.RowLayoutOpts.Spacing(2),
 			)))
 		toolTipText := widget.NewText(
-			widget.TextOpts.Text(toolTipString, res.toolTip.face, res.toolTip.color),
+			widget.TextOpts.Text(toolTipString, res.toolTip.monoFace, res.toolTip.color),
 		)
 		toolTip.AddChild(toolTipText)
 
@@ -646,7 +647,7 @@ func (c *UnitCard) updateArmamentContent() {
 				widget.RowLayoutOpts.Spacing(2),
 			)))
 		toolTipText := widget.NewText(
-			widget.TextOpts.Text(toolTipString, res.toolTip.face, res.toolTip.color),
+			widget.TextOpts.Text(toolTipString, res.toolTip.monoFace, res.toolTip.color),
 		)
 		toolTip.AddChild(toolTipText)
 
