@@ -28,6 +28,7 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 			ammunition:      NewAmmoStock(),
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
+			maxTurretRate:   100 / r.Tonnage * 0.03, // FIXME: testing
 			jumpJets:        0,
 		},
 	}
@@ -87,6 +88,8 @@ func (e *VTOL) SetTargetVelocityZ(tVelocityZ float64) {
 }
 
 func (e *VTOL) Update() bool {
+	e.UnitModel.update()
+
 	if e.heat > 0 {
 		// TODO: apply heat from movement based on velocity
 

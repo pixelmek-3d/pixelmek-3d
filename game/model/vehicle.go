@@ -29,6 +29,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 			hasTurret:       true,
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:     100 / r.Tonnage * 0.015, // FIXME: testing
+			maxTurretRate:   100 / r.Tonnage * 0.03,  // FIXME: testing
 			jumpJets:        0,
 		},
 	}
@@ -77,6 +78,8 @@ func (e *Vehicle) MaxStructurePoints() float64 {
 }
 
 func (e *Vehicle) Update() bool {
+	e.UnitModel.update()
+
 	if e.heat > 0 {
 		// TODO: apply heat from movement based on velocity
 

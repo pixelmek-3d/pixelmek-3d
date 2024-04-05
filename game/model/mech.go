@@ -46,6 +46,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 			hasTurret:          true,
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:        100 / r.Tonnage * 0.02, // FIXME: testing
+			maxTurretRate:      100 / r.Tonnage * 0.04, // FIXME: testing
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: float64(r.JumpJets) * 2.0,
 		},
@@ -125,6 +126,8 @@ func (e *Mech) SetPowered(powered UnitPowerStatus) {
 func (e *Mech) Update() bool {
 	isOverHeated := e.OverHeated()
 	if e.powered == POWER_ON {
+		e.UnitModel.update()
+
 		// if heat is too high, auto shutdown
 		if isOverHeated {
 			e.SetPowered(POWER_OFF_HEAT)

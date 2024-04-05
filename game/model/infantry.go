@@ -26,6 +26,7 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 			ammunition:         NewAmmoStock(),
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:        0.05, // FIXME: testing
+			maxTurretRate:      0.05, // FIXME: testing
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: float64(r.JumpJets) * 2.0,
 		},
@@ -91,6 +92,8 @@ func (e *Infantry) TurnRate() float64 {
 }
 
 func (e *Infantry) Update() bool {
+	e.UnitModel.update()
+
 	if e.targetRelHeading == 0 &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {

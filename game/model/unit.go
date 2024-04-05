@@ -75,6 +75,9 @@ type Unit interface {
 	SetHasTurret(bool)
 	TurretAngle() float64
 	SetTurretAngle(float64)
+	TurretRate() float64
+	SetTargetAngle(float64)
+	SetTargetPitch(float64)
 
 	CockpitOffset() *geom.Vector2
 	Ammunition() *Ammo
@@ -107,8 +110,11 @@ type UnitModel struct {
 	targetRelHeading   float64
 	maxTurnRate        float64
 	pitch              float64
+	targetPitch        float64
 	hasTurret          bool
 	turretAngle        float64
+	targetTurretAngle  float64
+	maxTurretRate      float64
 	velocity           float64
 	velocityZ          float64
 	targetVelocity     float64
@@ -348,6 +354,21 @@ func (e *UnitModel) SetTargetRelativeHeading(rHeading float64) {
 	e.targetRelHeading = rHeading
 }
 
+func (e *UnitModel) TurretRate() float64 {
+	if e.hasTurret {
+		return e.maxTurretRate
+	}
+	return e.maxTurnRate
+}
+
+func (e *UnitModel) SetTargetAngle(angle float64) {
+	e.targetTurretAngle = angle
+}
+
+func (e *UnitModel) SetTargetPitch(pitch float64) {
+	e.targetPitch = pitch
+}
+
 func (e *UnitModel) Velocity() float64 {
 	return e.velocity
 }
@@ -493,4 +514,22 @@ func (e *UnitModel) SetAsPlayer(isPlayer bool) {
 
 func (e *UnitModel) IsPlayer() bool {
 	return e.isPlayer
+}
+
+func (e *UnitModel) update() {
+	// TODO: move targetRelHeading updates here too
+	//maxRate := e.TurretRate()
+	if e.targetPitch != e.pitch {
+
+	}
+
+	switch {
+	case e.hasTurret:
+		if e.targetTurretAngle != e.turretAngle {
+
+		}
+	default:
+		// TODO: handle target angle as heading
+		break
+	}
 }

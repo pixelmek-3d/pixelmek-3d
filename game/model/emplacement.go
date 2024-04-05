@@ -26,6 +26,7 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 			ammunition:      NewAmmoStock(),
 			maxVelocity:     0,
 			maxTurnRate:     0.05, // FIXME: testing
+			maxTurretRate:   0.05, // FIXME: testing
 		},
 	}
 	return m
@@ -89,6 +90,8 @@ func (e *Emplacement) TurnRate() float64 {
 }
 
 func (e *Emplacement) Update() bool {
+	e.UnitModel.update()
+
 	if e.targetRelHeading == 0 &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {
