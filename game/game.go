@@ -368,44 +368,29 @@ func (g *Game) VerticalMove(vSpeed float64) {
 	g.updatePlayerPosition(pos.X, pos.Y, newPosZ)
 }
 
-// Rotate player heading angle by rotation speed
-func (g *Game) Rotate(rSpeed float64) {
-	angle := model.ClampAngle(g.player.Heading() + rSpeed)
-	g.player.SetHeading(angle)
-	g.player.moved = true
-}
-
-// Rotate player turret angle, relative to body heading, by rotation speed
-func (g *Game) RotateTurret(rSpeed float64) {
-	if !g.player.HasTurret() {
-		return
-	}
+// Rotate camera, relative to current angle, by rotation speed
+func (g *Game) RotateCamera(rSpeed float64) {
 	if g.player.Powered() != model.POWER_ON {
-		// disallow turret rotation when shutdown
+		// disallow camera rotation when shutdown
 		return
 	}
 
-	angle := g.player.TurretAngle() + rSpeed
-
-	// currently restricting turret rotation to only 90 degrees,
-	if angle > geom.HalfPi {
-		angle = geom.HalfPi
-	} else if angle < -geom.HalfPi {
-		angle = -geom.HalfPi
-	}
-
-	g.player.SetTurretAngle(angle)
+	// currently restricting camera rotation to only 90 degrees
+	angle := geom.Clamp(g.player.cameraAngle+rSpeed, -geom.HalfPi, geom.HalfPi)
+	g.player.cameraAngle = angle
 	g.player.moved = true
 }
 
-// Update player pitch angle by pitch speed
-func (g *Game) Pitch(pSpeed float64) {
-	if g.player.Powered() != model.POWER_ON && g.player.ejectionPod == nil {
-		// disallow turret pitch when shutdown
+// Pitch camera, relative to current pitch, by rotation speed
+func (g *Game) PitchCamera(pSpeed float64) {
+	if g.player.Powered() != model.POWER_ON {
+		// disallow camera rotation when shutdown
 		return
 	}
-	// current raycasting method can only allow up to 45 degree pitch in either direction
-	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -geom.Pi/8, geom.Pi/4))
+
+	// current raycasting method can only allow certain amount in either direction without graphical artifacts
+	pitch := geom.Clamp(g.player.cameraPitch+pSpeed, -geom.Pi/8, geom.Pi/4)
+	g.player.cameraPitch = pitch
 	g.player.moved = true
 }
 

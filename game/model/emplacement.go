@@ -90,9 +90,10 @@ func (e *Emplacement) TurnRate() float64 {
 }
 
 func (e *Emplacement) Update() bool {
-	if e.targetHeading == e.heading &&
+	if e.targetHeading == e.heading && e.targetPitch == e.pitch &&
+		e.targetTurretAngle == e.turretAngle &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 {
+		e.targetVelocityZ == 0 && e.velocityZ == 0 && e.positionZ == 0 {
 		// no position update needed
 		return false
 	}

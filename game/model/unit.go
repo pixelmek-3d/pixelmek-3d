@@ -64,6 +64,7 @@ type Unit interface {
 
 	TurnRate() float64
 	SetTargetHeading(float64)
+	SetTargetPitch(float64)
 	MaxVelocity() float64
 	TargetVelocity() float64
 	SetTargetVelocity(float64)
@@ -76,8 +77,7 @@ type Unit interface {
 	TurretAngle() float64
 	SetTurretAngle(float64)
 	TurretRate() float64
-	SetTargetAngle(float64)
-	SetTargetPitch(float64)
+	SetTargetTurretAngle(float64)
 
 	CockpitOffset() *geom.Vector2
 	Ammunition() *Ammo
@@ -292,6 +292,19 @@ func (e *UnitModel) SetTurretAngle(angle float64) {
 	}
 }
 
+func (e *UnitModel) SetTargetTurretAngle(angle float64) {
+	if e.hasTurret {
+		e.targetTurretAngle = angle
+	}
+}
+
+func (e *UnitModel) TurretRate() float64 {
+	if e.hasTurret {
+		return e.maxTurretRate
+	}
+	return e.maxTurnRate
+}
+
 func (e *UnitModel) Ammunition() *Ammo {
 	return e.ammunition
 }
@@ -336,8 +349,16 @@ func (e *UnitModel) SetHeading(angle float64) {
 	e.heading = angle
 }
 
+func (e *UnitModel) SetTargetHeading(heading float64) {
+	e.targetHeading = heading
+}
+
 func (e *UnitModel) SetPitch(pitch float64) {
 	e.pitch = pitch
+}
+
+func (e *UnitModel) SetTargetPitch(pitch float64) {
+	e.targetPitch = pitch
 }
 
 func (e *UnitModel) TurnRate() float64 {
@@ -348,27 +369,6 @@ func (e *UnitModel) TurnRate() float64 {
 	// dynamic turn rate is half of the max turn rate when at max velocity
 	vTurnRatio := 0.5 + 0.5*(e.maxVelocity-math.Abs(e.velocity))/e.maxVelocity
 	return e.maxTurnRate * vTurnRatio
-}
-
-func (e *UnitModel) SetTargetHeading(heading float64) {
-	e.targetHeading = heading
-}
-
-func (e *UnitModel) TurretRate() float64 {
-	if e.hasTurret {
-		return e.maxTurretRate
-	}
-	return e.maxTurnRate
-}
-
-func (e *UnitModel) SetTargetAngle(angle float64) {
-	if e.hasTurret {
-		e.targetTurretAngle = angle
-	}
-}
-
-func (e *UnitModel) SetTargetPitch(pitch float64) {
-	e.targetPitch = pitch
 }
 
 func (e *UnitModel) Velocity() float64 {
@@ -524,17 +524,11 @@ func (e *UnitModel) update() {
 	}
 
 	turnRate := e.TurnRate()
-	// turretRate := e.TurretRate()
+	turretRate := e.TurretRate()
 
 	if e.targetHeading != e.heading {
 		// move towards target heading amount allowed by turn rate
-		deltaH := AngleDistance(e.heading, e.targetHeading)
-		if deltaH > turnRate {
-			deltaH = turnRate
-		} else if deltaH < -turnRate {
-			deltaH = -turnRate
-		}
-
+		deltaH := geom.Clamp(AngleDistance(e.heading, e.targetHeading), -turnRate, turnRate)
 		e.heading = ClampAngle(e.heading + deltaH)
 
 		if e.jumpJets > 0 && e.jumpJetsActive {
@@ -545,9 +539,13 @@ func (e *UnitModel) update() {
 
 	if e.targetPitch != e.pitch {
 		// move towards target pitch amount allowed by turret rate
+		deltaP := geom.Clamp(AngleDistance(e.pitch, e.targetPitch), -turretRate, turretRate)
+		e.pitch = ClampAngle(e.pitch + deltaP)
 	}
 
 	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
 		// move towards target turret angle amount allowed by turret rate
+		deltaA := geom.Clamp(AngleDistance(e.turretAngle, e.targetTurretAngle), -turretRate, turretRate)
+		e.turretAngle = ClampAngle(e.turretAngle + deltaA)
 	}
 }

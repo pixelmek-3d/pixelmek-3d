@@ -88,9 +88,10 @@ func (e *Vehicle) Update() bool {
 		}
 	}
 
-	if e.targetHeading == e.heading && e.positionZ == 0 &&
+	if e.targetHeading == e.heading && e.targetPitch == e.pitch &&
+		e.targetTurretAngle == e.turretAngle &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 {
+		e.targetVelocityZ == 0 && e.velocityZ == 0 && e.positionZ == 0 {
 		// no position update needed
 		return false
 	}

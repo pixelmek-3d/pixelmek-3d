@@ -28,6 +28,8 @@ const (
 type Player struct {
 	model.Unit
 	sprite              *render.Sprite
+	cameraAngle         float64
+	cameraPitch         float64
 	cameraZ             float64
 	strideDir           StrideDirection
 	strideZ             float64
@@ -47,9 +49,11 @@ type Player struct {
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
 	p := &Player{
-		Unit:   unit,
-		sprite: sprite,
-		moved:  false,
+		Unit:        unit,
+		sprite:      sprite,
+		cameraAngle: angle,
+		cameraPitch: pitch,
+		moved:       false,
 	}
 
 	p.SetAsPlayer(true)
@@ -209,7 +213,18 @@ func (p *Player) Eject(g *Game) bool {
 }
 
 func (p *Player) Update() bool {
-	// handle player specific updates such as camera bobbing from movement
+	// handle player specific updates
+	if p.HasTurret() {
+		// camera angle/pitch leads turret angle/pitch
+		p.SetTargetTurretAngle(p.cameraAngle)
+		p.SetTargetPitch(p.cameraPitch)
+	} else {
+		// camera angle/pitch leads unit heading/pitch
+		p.SetTargetHeading(p.cameraAngle)
+		p.SetTargetPitch(p.cameraPitch)
+	}
+
+	// camera bobbing from mech movement
 	switch p.Unit.(type) {
 	case *model.Mech:
 		resource := p.Unit.(*model.Mech).Resource
