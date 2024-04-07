@@ -92,15 +92,11 @@ func (e *Infantry) TurnRate() float64 {
 }
 
 func (e *Infantry) Update() bool {
-	if e.targetHeading == e.heading && e.targetPitch == e.pitch &&
-		e.targetTurretAngle == e.turretAngle &&
-		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 && e.positionZ == 0 {
-		// no position update needed
+	if e.needsUpdate() {
+		e.UnitModel.update()
+	} else {
 		return false
 	}
-
-	e.UnitModel.update()
 
 	if e.velocity != e.targetVelocity {
 		e.velocity = e.targetVelocity

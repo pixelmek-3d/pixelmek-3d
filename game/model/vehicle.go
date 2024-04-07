@@ -88,15 +88,11 @@ func (e *Vehicle) Update() bool {
 		}
 	}
 
-	if e.targetHeading == e.heading && e.targetPitch == e.pitch &&
-		e.targetTurretAngle == e.turretAngle &&
-		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 && e.positionZ == 0 {
-		// no position update needed
+	if e.needsUpdate() {
+		e.UnitModel.update()
+	} else {
 		return false
 	}
-
-	e.UnitModel.update()
 
 	if e.targetVelocity != e.velocity {
 		// TODO: move velocity toward target by amount allowed by calculated acceleration
