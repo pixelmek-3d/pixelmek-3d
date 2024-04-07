@@ -92,7 +92,7 @@ func (p *Player) SetTargetRelativeHeading(rHeading float64) {
 		angle := model.ClampAngle(p.ejectionPod.Heading() + rHeading)
 		p.ejectionPod.SetHeading(angle)
 	}
-	p.Unit.SetTargetRelativeHeading(rHeading)
+	p.Unit.SetTargetHeading(model.ClampAngle(p.Heading() + rHeading))
 }
 
 func (p *Player) PosZ() float64 {

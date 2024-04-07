@@ -92,41 +92,17 @@ func (e *Infantry) TurnRate() float64 {
 }
 
 func (e *Infantry) Update() bool {
-	e.UnitModel.update()
-
-	if e.targetRelHeading == 0 &&
+	if e.targetHeading == e.heading && e.positionZ == 0 &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {
 		// no position update needed
 		return false
 	}
 
+	e.UnitModel.update()
+
 	if e.velocity != e.targetVelocity {
 		e.velocity = e.targetVelocity
-	}
-
-	if e.targetRelHeading != 0 {
-		// move by relative heading amount allowed by calculated turn rate
-		var deltaH, maxDeltaH, newH float64
-		newH = e.Heading()
-		maxDeltaH = e.TurnRate()
-		if e.targetRelHeading > 0 {
-			deltaH = e.targetRelHeading
-			if deltaH > maxDeltaH {
-				deltaH = maxDeltaH
-			}
-		} else {
-			deltaH = e.targetRelHeading
-			if deltaH < -maxDeltaH {
-				deltaH = -maxDeltaH
-			}
-		}
-
-		newH += deltaH
-		newH = ClampAngle(newH)
-
-		e.targetRelHeading -= deltaH
-		e.heading = newH
 	}
 
 	// position update needed

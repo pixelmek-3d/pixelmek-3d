@@ -88,8 +88,6 @@ func (e *VTOL) SetTargetVelocityZ(tVelocityZ float64) {
 }
 
 func (e *VTOL) Update() bool {
-	e.UnitModel.update()
-
 	if e.heat > 0 {
 		// TODO: apply heat from movement based on velocity
 
@@ -100,12 +98,14 @@ func (e *VTOL) Update() bool {
 		}
 	}
 
-	if e.targetRelHeading == 0 &&
+	if e.targetHeading == e.heading && e.targetPitch != e.pitch &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {
 		// no position update needed
 		return false
 	}
+
+	e.UnitModel.update()
 
 	if e.targetVelocity != e.velocity {
 		// TODO: move velocity toward target by amount allowed by calculated acceleration
@@ -148,30 +148,6 @@ func (e *VTOL) Update() bool {
 		}
 
 		e.velocityZ = zNewV
-	}
-
-	if e.targetRelHeading != 0 {
-		// move by relative heading amount allowed by calculated turn rate
-		var deltaH, maxDeltaH, newH float64
-		newH = e.Heading()
-		maxDeltaH = e.TurnRate()
-		if e.targetRelHeading > 0 {
-			deltaH = e.targetRelHeading
-			if deltaH > maxDeltaH {
-				deltaH = maxDeltaH
-			}
-		} else {
-			deltaH = e.targetRelHeading
-			if deltaH < -maxDeltaH {
-				deltaH = -maxDeltaH
-			}
-		}
-
-		newH += deltaH
-		newH = ClampAngle(newH)
-
-		e.targetRelHeading -= deltaH
-		e.heading = newH
 	}
 
 	// position update needed

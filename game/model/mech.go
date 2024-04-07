@@ -126,8 +126,6 @@ func (e *Mech) SetPowered(powered UnitPowerStatus) {
 func (e *Mech) Update() bool {
 	isOverHeated := e.OverHeated()
 	if e.powered == POWER_ON {
-		e.UnitModel.update()
-
 		// if heat is too high, auto shutdown
 		if isOverHeated {
 			e.SetPowered(POWER_OFF_HEAT)
@@ -160,9 +158,11 @@ func (e *Mech) Update() bool {
 	if e.powered != POWER_ON {
 		// ensure certain values are reset when not powered on
 		e.jumpJetsActive = false
-		e.targetRelHeading = 0
 		e.targetVelocity = 0
 		e.targetVelocityZ = 0
+		e.SetTargetHeading(e.heading)
+		e.SetTargetPitch(e.pitch)
+		e.SetTargetAngle(e.turretAngle)
 	}
 
 	if e.jumpJetsActive {
@@ -214,12 +214,14 @@ func (e *Mech) Update() bool {
 		}
 	}
 
-	if e.targetRelHeading == 0 && e.positionZ == 0 &&
+	if e.targetHeading == e.heading && e.positionZ == 0 &&
 		e.targetVelocity == 0 && e.velocity == 0 &&
 		e.targetVelocityZ == 0 && e.velocityZ == 0 {
 		// no position update needed
 		return false
 	}
+
+	e.UnitModel.update()
 
 	if e.targetVelocity != e.velocity {
 		// TODO: move velocity toward target by amount allowed by calculated acceleration
@@ -271,35 +273,6 @@ func (e *Mech) Update() bool {
 		}
 
 		e.velocityZ = zNewV
-	}
-
-	if e.targetRelHeading != 0 {
-		// move by relative heading amount allowed by calculated turn rate
-		var deltaH, maxDeltaH, newH float64
-		newH = e.Heading()
-		maxDeltaH = e.TurnRate()
-		if e.targetRelHeading > 0 {
-			deltaH = e.targetRelHeading
-			if deltaH > maxDeltaH {
-				deltaH = maxDeltaH
-			}
-		} else {
-			deltaH = e.targetRelHeading
-			if deltaH < -maxDeltaH {
-				deltaH = -maxDeltaH
-			}
-		}
-
-		newH += deltaH
-		newH = ClampAngle(newH)
-
-		e.targetRelHeading -= deltaH
-		e.heading = newH
-
-		if e.jumpJetsActive {
-			// set jump jet heading only while jumping
-			e.jumpJetHeading = e.heading
-		}
 	}
 
 	// position update needed

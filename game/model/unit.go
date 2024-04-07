@@ -63,7 +63,7 @@ type Unit interface {
 	SetTargetLock(float64)
 
 	TurnRate() float64
-	SetTargetRelativeHeading(float64)
+	SetTargetHeading(float64)
 	MaxVelocity() float64
 	TargetVelocity() float64
 	SetTargetVelocity(float64)
@@ -107,7 +107,7 @@ type UnitModel struct {
 	positionZ          float64
 	anchor             raycaster.SpriteAnchor
 	heading            float64
-	targetRelHeading   float64
+	targetHeading      float64
 	maxTurnRate        float64
 	pitch              float64
 	targetPitch        float64
@@ -350,8 +350,8 @@ func (e *UnitModel) TurnRate() float64 {
 	return e.maxTurnRate * vTurnRatio
 }
 
-func (e *UnitModel) SetTargetRelativeHeading(rHeading float64) {
-	e.targetRelHeading = rHeading
+func (e *UnitModel) SetTargetHeading(heading float64) {
+	e.targetHeading = heading
 }
 
 func (e *UnitModel) TurretRate() float64 {
@@ -362,7 +362,9 @@ func (e *UnitModel) TurretRate() float64 {
 }
 
 func (e *UnitModel) SetTargetAngle(angle float64) {
-	e.targetTurretAngle = angle
+	if e.hasTurret {
+		e.targetTurretAngle = angle
+	}
 }
 
 func (e *UnitModel) SetTargetPitch(pitch float64) {
@@ -517,19 +519,35 @@ func (e *UnitModel) IsPlayer() bool {
 }
 
 func (e *UnitModel) update() {
-	// TODO: move targetRelHeading updates here too
-	//maxRate := e.TurretRate()
-	if e.targetPitch != e.pitch {
-
+	if e.powered != POWER_ON {
+		return
 	}
 
-	switch {
-	case e.hasTurret:
-		if e.targetTurretAngle != e.turretAngle {
+	turnRate := e.TurnRate()
+	// turretRate := e.TurretRate()
 
+	if e.targetHeading != e.heading {
+		// move towards target heading amount allowed by turn rate
+		deltaH := AngleDistance(e.heading, e.targetHeading)
+		if deltaH > turnRate {
+			deltaH = turnRate
+		} else if deltaH < -turnRate {
+			deltaH = -turnRate
 		}
-	default:
-		// TODO: handle target angle as heading
-		break
+
+		e.heading = ClampAngle(e.heading + deltaH)
+
+		if e.jumpJets > 0 && e.jumpJetsActive {
+			// set jump jet heading only while jumping
+			e.jumpJetHeading = e.heading
+		}
+	}
+
+	if e.targetPitch != e.pitch {
+		// move towards target pitch amount allowed by turret rate
+	}
+
+	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
+		// move towards target turret angle amount allowed by turret rate
 	}
 }
