@@ -16,15 +16,11 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	g.player.moved = false
 
 	camPos, camPosZ := g.player.CameraPosition()
-	cameraHeadingAngle := g.player.Heading()
-	if g.player.HasTurret() {
-		cameraHeadingAngle += g.player.TurretAngle()
-	}
 
 	g.camera.SetPosition(camPos)
 	g.camera.SetPositionZ(camPosZ)
-	g.camera.SetPitchAngle(g.player.Pitch())
-	g.camera.SetHeadingAngle(cameraHeadingAngle)
+	g.camera.SetHeadingAngle(g.player.cameraAngle)
+	g.camera.SetPitchAngle(g.player.cameraPitch)
 }
 
 // CameraLineTo returns a 2D Line of the current camera position to the given position

@@ -145,10 +145,7 @@ func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
 	}
 
 	// adjust camera position to account for perpendicular horizontal cockpit offset
-	cameraHeadingAngle := p.Heading() + geom.HalfPi
-	if p.HasTurret() {
-		cameraHeadingAngle += p.TurretAngle()
-	}
+	cameraHeadingAngle := p.cameraAngle + geom.HalfPi
 	cockpitLine := geom.LineFromAngle(pos.X, pos.Y, cameraHeadingAngle, cockpitOffset.X)
 	pos = &geom.Vector2{X: cockpitLine.X2, Y: cockpitLine.Y2}
 	return
