@@ -281,7 +281,7 @@ func (e *UnitModel) TurretAngle() float64 {
 	if e.hasTurret {
 		return e.turretAngle
 	}
-	return 0
+	return e.heading
 }
 
 func (e *UnitModel) SetTurretAngle(angle float64) {
@@ -295,6 +295,8 @@ func (e *UnitModel) SetTurretAngle(angle float64) {
 func (e *UnitModel) SetTargetTurretAngle(angle float64) {
 	if e.hasTurret {
 		e.targetTurretAngle = angle
+	} else {
+		e.SetTargetHeading(angle)
 	}
 }
 

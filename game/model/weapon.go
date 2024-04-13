@@ -104,7 +104,7 @@ func WeaponPosition3D(e Unit, weaponOffX, weaponOffY float64) *geom3d.Vector3 {
 	}
 
 	// calculate X,Y based on player orientation angle perpendicular to angle of view
-	offAngle := e.Heading() + e.TurretAngle() + geom.Pi/2
+	offAngle := e.TurretAngle() + geom.Pi/2
 
 	// create line segment using offset angle and X offset to determine 3D position offset of X/Y
 	offLine := geom.LineFromAngle(0, 0, offAngle, weaponOffX)

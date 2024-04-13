@@ -120,7 +120,7 @@ func (p *Player) HasTurret() bool {
 
 func (p *Player) TurretAngle() float64 {
 	if p.ejectionPod != nil {
-		return 0
+		return p.ejectionPod.Heading()
 	}
 	return p.Unit.TurretAngle()
 }
