@@ -457,7 +457,7 @@ func (g *Game) handleInput() {
 
 	if turretDx != 0 {
 		if g.player.HasTurret() {
-			g.RotateCamera(0.005 * turretDx / g.zoomFovDepth)
+			g.player.RotateCamera(0.005 * turretDx / g.zoomFovDepth)
 		} else {
 			turnAmount := 0.01 * turretDx / g.zoomFovDepth
 			g.player.SetTargetRelativeHeading(turnAmount)
@@ -469,7 +469,7 @@ func (g *Game) handleInput() {
 		}
 	}
 	if turretDy != 0 {
-		g.PitchCamera(0.005 * turretDy)
+		g.player.PitchCamera(0.005 * turretDy)
 	}
 
 	weaponFireGroups := [5]input.Action{
@@ -873,17 +873,17 @@ func (g *Game) handleInput() {
 	if lookUp {
 		// TODO: better and configurable values for dx/dy
 		dy := 2.0
-		g.PitchCamera(0.005 * dy)
+		g.player.PitchCamera(0.005 * dy)
 	} else if lookDown {
 		dy := -2.0
-		g.PitchCamera(0.005 * dy)
+		g.player.PitchCamera(0.005 * dy)
 	}
 	if lookLeft {
 		dx := 5.0
-		g.RotateCamera(0.005 * dx / g.zoomFovDepth)
+		g.player.RotateCamera(0.005 * dx / g.zoomFovDepth)
 	} else if lookRight {
 		dx := -5.0
-		g.RotateCamera(0.005 * dx / g.zoomFovDepth)
+		g.player.RotateCamera(0.005 * dx / g.zoomFovDepth)
 	}
 
 	if isStrafe {

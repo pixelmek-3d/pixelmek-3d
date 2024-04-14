@@ -96,15 +96,16 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	c.updateFontSize(bW, bH)
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
-	compassTurretAngle := -c.turretAngle
+	relTurretAngle := -model.AngleDistance(c.heading, c.turretAngle)
 	headingDeg := geom.Degrees(c.heading)
-	relTurretDeg := geom.Degrees(compassTurretAngle)
+	relTurretDeg := geom.Degrees(relTurretAngle)
 
 	midX, topY := float32(bX)+float32(bW)/2, float32(bY)
 
 	// turret indicator box
 	turretColor := hudOpts.HudColor(_colorCompassTurret)
 
+	// TODO: support 360 degree turret rotation option
 	var maxTurretDeg float64 = 90
 	relTurretRatio := relTurretDeg / maxTurretDeg
 	tW, tH := float32(relTurretRatio)*float32(bW)/2, float32(bH/4)
@@ -139,17 +140,17 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 			vector.DrawFilledRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, pipColor, false)
 
-			// TODO: switch statement
 			var pipDegStr string
-			if actualDeg == 0 {
+			switch {
+			case actualDeg == 0:
 				pipDegStr = "E"
-			} else if actualDeg == 90 {
+			case actualDeg == 90:
 				pipDegStr = "N"
-			} else if actualDeg == 180 {
+			case actualDeg == 180:
 				pipDegStr = "W"
-			} else if actualDeg == 270 {
+			case actualDeg == 270:
 				pipDegStr = "S"
-			} else if actualDeg%30 == 0 {
+			case actualDeg%30 == 0:
 				pipDegStr = fmt.Sprintf("%d", actualDeg)
 			}
 

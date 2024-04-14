@@ -231,8 +231,12 @@ func (g *Game) initMission() {
 
 	// init player at DZ
 	pX, pY, pDegrees := g.mission.DropZone.Position[0], g.mission.DropZone.Position[1], g.mission.DropZone.Heading
+	pHeading := geom.Radians(pDegrees)
 	g.player.SetPos(&geom.Vector2{X: pX, Y: pY})
-	g.player.SetHeading(geom.Radians(pDegrees))
+	g.player.SetHeading(pHeading)
+	g.player.SetTurretAngle(pHeading)
+	g.player.cameraAngle = pHeading
+	g.player.cameraPitch = 0
 
 	// init player as powered off but booting up
 	g.player.SetPowered(model.POWER_ON)
@@ -366,32 +370,6 @@ func (g *Game) VerticalMove(vSpeed float64) {
 	pos := g.player.Pos()
 	newPosZ := g.player.PosZ() + vSpeed
 	g.updatePlayerPosition(pos.X, pos.Y, newPosZ)
-}
-
-// Rotate camera, relative to current angle, by rotation speed
-func (g *Game) RotateCamera(rSpeed float64) {
-	if g.player.Powered() != model.POWER_ON {
-		// disallow camera rotation when shutdown
-		return
-	}
-
-	// currently restricting camera rotation to only 90 degrees
-	angle := geom.Clamp(g.player.cameraAngle+rSpeed, -geom.HalfPi, geom.HalfPi)
-	g.player.cameraAngle = angle
-	g.player.moved = true
-}
-
-// Pitch camera, relative to current pitch, by rotation speed
-func (g *Game) PitchCamera(pSpeed float64) {
-	if g.player.Powered() != model.POWER_ON {
-		// disallow camera rotation when shutdown
-		return
-	}
-
-	// current raycasting method can only allow certain amount in either direction without graphical artifacts
-	pitch := geom.Clamp(g.player.cameraPitch+pSpeed, -geom.Pi/8, geom.Pi/4)
-	g.player.cameraPitch = pitch
-	g.player.moved = true
 }
 
 func (g *Game) InProgress() bool {

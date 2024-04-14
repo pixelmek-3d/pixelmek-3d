@@ -98,7 +98,8 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	// and offset by -90 degrees to make 0 degree turret angle as relative from the forward (up) position
-	radarTurretAngle := -r.turretAngle - geom.HalfPi
+	relTurretAngle := -model.AngleDistance(r.heading, r.turretAngle)
+	radarTurretAngle := relTurretAngle - geom.HalfPi
 
 	midX, midY := float64(bW)/2, float64(bH)/2
 	radius := midX - 1

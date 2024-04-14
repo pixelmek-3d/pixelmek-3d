@@ -61,6 +61,7 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	p.SetPos(&geom.Vector2{X: x, Y: y})
 	p.SetPosZ(z)
 	p.SetHeading(angle)
+	p.SetTurretAngle(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
 
@@ -87,6 +88,8 @@ func (p *Player) Heading() float64 {
 func (p *Player) SetHeading(angle float64) {
 	if p.ejectionPod != nil {
 		p.ejectionPod.SetHeading(angle)
+		p.cameraAngle = angle
+		return
 	}
 	p.Unit.SetHeading(angle)
 }
@@ -95,8 +98,14 @@ func (p *Player) SetTargetRelativeHeading(rHeading float64) {
 	if p.ejectionPod != nil {
 		angle := model.ClampAngle(p.ejectionPod.Heading() + rHeading)
 		p.ejectionPod.SetHeading(angle)
+		p.cameraAngle = angle
+		return
 	}
+
 	p.Unit.SetTargetHeading(model.ClampAngle(p.Heading() + rHeading))
+
+	// rotate camera view along with unit heading
+	p.RotateCamera(rHeading)
 }
 
 func (p *Player) PosZ() float64 {
@@ -130,6 +139,36 @@ func (p *Player) NavPoint() *model.NavPoint {
 		return nil
 	}
 	return p.currentNav.NavPoint
+}
+
+// Rotate camera, relative to current angle, by rotation speed
+func (p *Player) RotateCamera(rSpeed float64) {
+	if p.Powered() != model.POWER_ON {
+		// disallow camera rotation when shutdown
+		return
+	}
+
+	// restrict camera rotation to only 90 degrees offset from heading
+	heading := p.Heading()
+
+	// TODO: add config option to allow 360 degree torso rotation
+	//angle := model.ClampAngle(p.cameraAngle + rSpeed)
+	angle := geom.Clamp(p.cameraAngle+rSpeed, heading-geom.HalfPi, heading+geom.HalfPi)
+	p.cameraAngle = angle
+	p.moved = true
+}
+
+// Pitch camera, relative to current pitch, by rotation speed
+func (p *Player) PitchCamera(pSpeed float64) {
+	if p.Powered() != model.POWER_ON {
+		// disallow camera rotation when shutdown
+		return
+	}
+
+	// current raycasting method can only allow certain amount in either direction without graphical artifacts
+	pitch := geom.Clamp(p.cameraPitch+pSpeed, -geom.Pi/8, geom.Pi/4)
+	p.cameraPitch = pitch
+	p.moved = true
 }
 
 func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
