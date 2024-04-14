@@ -542,7 +542,7 @@ func (e *UnitModel) update() {
 	if e.targetHeading != e.heading {
 		// move towards target heading amount allowed by turn rate
 		deltaH := geom.Clamp(AngleDistance(e.heading, e.targetHeading), -turnRate, turnRate)
-		e.heading = ClampAngle(e.heading + deltaH)
+		e.heading = ClampAngle2Pi(e.heading + deltaH)
 
 		if e.jumpJets > 0 && e.jumpJetsActive {
 			// set jump jet heading only while jumping
@@ -559,6 +559,6 @@ func (e *UnitModel) update() {
 	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
 		// move towards target turret angle amount allowed by turret rate
 		deltaA := geom.Clamp(AngleDistance(e.turretAngle, e.targetTurretAngle), -turretRate, turretRate)
-		e.turretAngle = ClampAngle(e.turretAngle + deltaA)
+		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA)
 	}
 }

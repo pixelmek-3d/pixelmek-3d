@@ -16,11 +16,23 @@ func RandFloat64In(lo, hi float64) float64 {
 	return lo + (hi-lo)*Randish.Float64()
 }
 
+// ClampAngle clamps the given angle in a range of -pi to pi
 func ClampAngle(angle float64) float64 {
 	for angle > geom.Pi {
 		angle = angle - geom.Pi2
 	}
 	for angle <= -geom.Pi {
+		angle = angle + geom.Pi2
+	}
+	return angle
+}
+
+// ClampAngle2Pi clamps the given in a range of 0 to 2*pi
+func ClampAngle2Pi(angle float64) float64 {
+	for angle >= geom.Pi2 {
+		angle = angle - geom.Pi2
+	}
+	for angle < 0 {
 		angle = angle + geom.Pi2
 	}
 	return angle

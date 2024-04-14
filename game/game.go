@@ -878,7 +878,7 @@ func (g *Game) updateSprites() {
 
 					// put in a tailspin
 					heading := s.Heading()
-					s.SetHeading(model.ClampAngle(heading + (geom.Pi2 / model.TICKS_PER_SECOND)))
+					s.SetHeading(model.ClampAngle2Pi(heading + (geom.Pi2 / model.TICKS_PER_SECOND)))
 
 					hasCollision := g.updateSpritePosition(s.Sprite)
 					if hasCollision {

@@ -96,16 +96,17 @@ func (p *Player) SetHeading(angle float64) {
 
 func (p *Player) SetTargetRelativeHeading(rHeading float64) {
 	if p.ejectionPod != nil {
-		angle := model.ClampAngle(p.ejectionPod.Heading() + rHeading)
+		angle := model.ClampAngle2Pi(p.ejectionPod.Heading() + rHeading)
 		p.ejectionPod.SetHeading(angle)
 		p.cameraAngle = angle
 		return
 	}
 
-	p.Unit.SetTargetHeading(model.ClampAngle(p.Heading() + rHeading))
+	p.Unit.SetTargetHeading(model.ClampAngle2Pi(p.Heading() + rHeading))
 
-	// rotate camera view along with unit heading
-	p.RotateCamera(rHeading)
+	// rotate camera view along with unit heading (limit to turn rate)
+	turnRate := p.TurnRate()
+	p.RotateCamera(geom.Clamp(rHeading, -turnRate, turnRate))
 }
 
 func (p *Player) PosZ() float64 {
@@ -148,12 +149,22 @@ func (p *Player) RotateCamera(rSpeed float64) {
 		return
 	}
 
-	// restrict camera rotation to only 90 degrees offset from heading
-	heading := p.Heading()
-
 	// TODO: add config option to allow 360 degree torso rotation
-	//angle := model.ClampAngle(p.cameraAngle + rSpeed)
-	angle := geom.Clamp(p.cameraAngle+rSpeed, heading-geom.HalfPi, heading+geom.HalfPi)
+	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
+
+	// restrict camera rotation to only 90 degrees offset from heading
+	var angle float64
+	heading := p.Heading()
+	aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
+	switch {
+	case aDist < -geom.HalfPi:
+		angle = model.ClampAngle2Pi(heading - geom.HalfPi)
+	case aDist > geom.HalfPi:
+		angle = model.ClampAngle2Pi(heading + geom.HalfPi)
+	default:
+		angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
+	}
+
 	p.cameraAngle = angle
 	p.moved = true
 }
