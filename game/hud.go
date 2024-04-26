@@ -728,8 +728,9 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 	deltaAngle := model.AngleDistance(g.player.TurretAngle(), g.player.cameraAngle)
 	deltaPitch := model.AngleDistance(g.player.Pitch(), g.player.cameraPitch)
 
+	fovHorizontal, fovVertical := g.camera.FovRadians(), g.camera.FovRadiansVertical()
 	crosshairs.SetOffsets(deltaAngle, deltaPitch)
-	crosshairs.SetFocalDepth(g.fovDepth)
+	crosshairs.SetFocalAngles(fovHorizontal, fovVertical)
 
 	crosshairs.Draw(crosshairBounds, hudOpts)
 }
