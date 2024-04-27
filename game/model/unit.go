@@ -552,13 +552,17 @@ func (e *UnitModel) update() {
 
 	if e.targetPitch != e.pitch {
 		// move towards target pitch amount allowed by turret rate
-		deltaP := geom.Clamp(AngleDistance(e.pitch, e.targetPitch), -turretRate, turretRate)
+		distP := AngleDistance(e.pitch, e.targetPitch)
+		pitchRate := math.Log1p(2*math.Abs(distP)) * turretRate
+		deltaP := geom.Clamp(distP, -pitchRate, pitchRate)
 		e.pitch = ClampAngle(e.pitch + deltaP)
 	}
 
 	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
 		// move towards target turret angle amount allowed by turret rate
-		deltaA := geom.Clamp(AngleDistance(e.turretAngle, e.targetTurretAngle), -turretRate, turretRate)
+		distA := AngleDistance(e.turretAngle, e.targetTurretAngle)
+		twistRate := math.Log1p(2*math.Abs(distA)) * turretRate
+		deltaA := geom.Clamp(distA, -twistRate, twistRate)
 		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA)
 	}
 }
