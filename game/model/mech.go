@@ -18,7 +18,9 @@ const (
 )
 
 const (
-	MECH_POWER_ON_SECONDS float64 = 5.0
+	MECH_POWER_ON_SECONDS   float64 = 5.0
+	MECH_TURN_RATE_FACTOR   float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
+	MECH_TURRET_RATE_FACTOR float64 = 1.5 * MECH_TURN_RATE_FACTOR
 )
 
 type Mech struct {
@@ -45,8 +47,8 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 			ammunition:         NewAmmoStock(),
 			hasTurret:          true,
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:        100 / r.Tonnage * 0.02, // FIXME: testing
-			maxTurretRate:      100 / r.Tonnage * 0.04, // FIXME: testing
+			maxTurnRate:        MECH_TURN_RATE_FACTOR + (100 / r.Tonnage * MECH_TURN_RATE_FACTOR),
+			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: float64(r.JumpJets) * 2.0,
 		},
