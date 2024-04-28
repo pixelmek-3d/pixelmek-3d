@@ -2,6 +2,7 @@ package render
 
 import (
 	"image"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -43,7 +44,7 @@ func (c *Crosshairs) SetOffsets(angleOffset, pitchOffset float64) {
 func (c *Crosshairs) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
 	sW, sH := screen.Bounds().Dx(), screen.Bounds().Dy()
-	bX, bY, bW := bounds.Min.X, bounds.Min.Y, bounds.Dx()
+	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
 	cScale := float64(bW) / float64(c.Width())
 
@@ -51,10 +52,14 @@ func (c *Crosshairs) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	cColorScale := ebiten.ColorScale{}
 	cColorScale.ScaleWithColor(cColor)
 
-	// render camera dot at center screen as guide for where camera is currently looking
-	midX, midY := float64(sW)/2, float64(sH)/2
-	var cT, cR float32 = 1, 4 // TODO: calculate line thickness and radius based on crosshair size
-	vector.StrokeCircle(screen, float32(midX), float32(midY), cR, cT, cColor, false)
+	// render camera reticle at center screen as guide for where camera is currently looking
+	// with dynamic reticle centered position based on angle/pitch offset
+	var glX, glY float32 = float32(bX), float32(bY) + (float32(bH) / 2)
+	var grX, grY float32 = float32(bX + bW), float32(bY) + (float32(bH) / 2)
+	var gW, gT float32 = float32(bW), 3
+	var gOffset float32 = 4 * gW * (float32(math.Abs(c.angleOffset)+math.Abs(c.pitchOffset)) / geom.Pi)
+	vector.StrokeLine(screen, glX-gW-gOffset, glY, glX-gOffset, glY, gT, cColor, false)
+	vector.StrokeLine(screen, grX+gW+gOffset, grY, grX+gOffset, grY, gT, cColor, false)
 
 	// render crosshairs at an offset as unit/turret angle/pitch catches up to camera view
 	var offX, offY float64
