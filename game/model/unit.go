@@ -539,20 +539,26 @@ func (e *UnitModel) update() {
 	turnRate := e.TurnRate()
 	turretRate := e.TurretRate()
 
+	var deltaH float64
 	if e.targetHeading != e.heading {
 		// move towards target heading amount allowed by turn rate
-		deltaH := geom.Clamp(AngleDistance(e.heading, e.targetHeading), -turnRate, turnRate)
+		deltaH = geom.Clamp(AngleDistance(e.heading, e.targetHeading), -turnRate, turnRate)
 		e.heading = ClampAngle2Pi(e.heading + deltaH)
 
 		if e.jumpJets > 0 && e.jumpJetsActive {
 			// set jump jet heading only while jumping
 			e.jumpJetHeading = e.heading
 		}
+
+		// offset turret angle so it does not have to play catch up
+		e.targetTurretAngle -= deltaH
 	}
 
 	if e.targetPitch != e.pitch {
 		// move towards target pitch amount allowed by turret rate
 		distP := AngleDistance(e.pitch, e.targetPitch)
+
+		// use logarithmic scale to smooth the approach to the target pitch angle
 		pitchRate := math.Log1p(2*math.Abs(distP)) * turretRate
 		deltaP := geom.Clamp(distP, -pitchRate, pitchRate)
 		e.pitch = ClampAngle(e.pitch + deltaP)
@@ -561,8 +567,10 @@ func (e *UnitModel) update() {
 	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
 		// move towards target turret angle amount allowed by turret rate
 		distA := AngleDistance(e.turretAngle, e.targetTurretAngle)
+
+		// use logarithmic scale to smooth the approach to the target turret angle
 		twistRate := math.Log1p(2*math.Abs(distA)) * turretRate
 		deltaA := geom.Clamp(distA, -twistRate, twistRate)
-		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA)
+		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA + deltaH)
 	}
 }
