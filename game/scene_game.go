@@ -136,9 +136,7 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	// Update camera (calculate raycast)
 	g.camera.Update(raycastSprites)
 
-	// store raycasted convergence point for next Update
-	g.player.convergenceDistance = g.camera.GetConvergenceDistance()
-	g.player.convergencePoint = g.camera.GetConvergencePoint()
+	// TODO: replace raycasted convergence for target under reticle feature
 	g.player.convergenceSprite = getSpriteFromInterface(g.camera.GetConvergenceSprite())
 
 	// Render raycast scene
