@@ -22,10 +22,10 @@ type Crosshairs struct {
 }
 
 func NewCrosshairs(
-	img *ebiten.Image, scale float64, columns, rows, crosshairIndex int,
+	img *ebiten.Image, columns, rows, crosshairIndex int,
 ) *Crosshairs {
 	c := &Crosshairs{
-		HUDSprite: NewHUDSpriteFromSheet(img, scale, columns, rows, crosshairIndex),
+		HUDSprite: NewHUDSpriteFromSheet(img, 1.0, columns, rows, crosshairIndex),
 	}
 
 	return c
