@@ -525,6 +525,43 @@ func hudPage(m Menu) *settingsPage {
 	res := m.Resources()
 	game := m.Game()
 
+	// HUD scale slider
+	scaleRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+	c.AddChild(scaleRow)
+
+	scaleLabel := widget.NewLabel(widget.LabelOpts.Text("Scale", res.label.face, res.label.text))
+	scaleRow.AddChild(scaleLabel)
+
+	var scaleValueText *widget.Label
+
+	scaleSlider := widget.NewSlider(
+		widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}), widget.WidgetOpts.MinSize(100, 6)),
+		widget.SliderOpts.MinMax(50, 100),
+		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+		widget.SliderOpts.TrackOffset(5),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			scaleValueText.Label = fmt.Sprintf("%d%%", args.Current)
+			game.hudScale = float64(float64(args.Current) / 100)
+		}),
+	)
+	scaleSlider.Current = int(math.Round(100 * float64(game.hudScale)))
+	scaleRow.AddChild(scaleSlider)
+
+	scaleValueText = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf("%d", scaleSlider.Current), res.label.face, res.label.text),
+	)
+	scaleRow.AddChild(scaleValueText)
+
 	// HUD alpha slider
 	opacityRow := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
