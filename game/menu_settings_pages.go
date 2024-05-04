@@ -6,7 +6,10 @@ import (
 	"math"
 
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 type settingsPageContainer struct {
@@ -190,7 +193,6 @@ func displayPage(m Menu) *settingsPage {
 		resolutions = append([]interface{}{r}, resolutions...)
 	}
 
-	// TODO: figure out how to make Resolution dropdown snap to currently selected entry instead of first
 	var fovSlider *widget.Slider
 	resolutionCombo := newListComboButton(
 		resolutions,
@@ -634,6 +636,94 @@ func hudPage(m Menu) *settingsPage {
 			cb.GetWidget().Disabled = true
 		}
 	}
+
+	// crosshair selection widget with graphical preview
+	var crosshairPreview *widget.Graphic
+	crosshairLabel := widget.NewLabel(widget.LabelOpts.Text("Crosshair", res.label.face, res.label.text))
+	c.AddChild(crosshairLabel)
+
+	cCrosshair := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
+			widget.GridLayoutOpts.Stretch([]bool{false, true, false}, []bool{false}),
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Left:   m.Padding(),
+				Right:  m.Padding(),
+				Top:    m.Padding(),
+				Bottom: m.Padding(),
+			}))))
+
+	crosshairSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	crosshairs := render.NewCrosshairs(
+		crosshairSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, game.hudCrosshairIndex,
+	)
+	crosshairSprite := crosshairs.Texture()
+	imageH := float64(game.screenHeight) / 8
+	spriteW, spriteH := float64(crosshairSprite.Bounds().Dx()), float64(crosshairSprite.Bounds().Dy())
+	imageScale := imageH / spriteH
+
+	unitImage := ebiten.NewImage(int(spriteW*imageScale), int(spriteH*imageScale))
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.GeoM.Scale(imageScale, imageScale)
+	unitImage.DrawImage(crosshairSprite, op)
+
+	crosshairPreview = widget.NewGraphic(
+		widget.GraphicOpts.Image(unitImage),
+	)
+
+	cPrev := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.Text("<", res.button.face, res.button.text),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			if game.hudCrosshairIndex > 0 {
+				game.hudCrosshairIndex--
+			}
+			crosshairs := render.NewCrosshairs(
+				crosshairSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, game.hudCrosshairIndex,
+			)
+			cSprite := crosshairs.Texture()
+			unitImage.Clear()
+			unitImage.DrawImage(cSprite, op)
+
+			if game.playerHUD != nil {
+				game.playerHUD[HUD_CROSSHAIRS] = crosshairs
+			}
+		}),
+	)
+
+	cNext := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.Text(">", res.button.face, res.button.text),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			if game.hudCrosshairIndex+1 < resources.CrosshairsSheet.Columns*resources.CrosshairsSheet.Rows {
+				game.hudCrosshairIndex++
+			}
+			crosshairs := render.NewCrosshairs(
+				crosshairSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, game.hudCrosshairIndex,
+			)
+			cSprite := crosshairs.Texture()
+			unitImage.Clear()
+			unitImage.DrawImage(cSprite, op)
+
+			if game.playerHUD != nil {
+				game.playerHUD[HUD_CROSSHAIRS] = crosshairs
+			}
+		}),
+	)
+
+	cCrosshair.AddChild(cPrev)
+	cCrosshair.AddChild(crosshairPreview)
+	cCrosshair.AddChild(cNext)
+	c.AddChild(cCrosshair)
 
 	return &settingsPage{
 		title:   "HUD",
