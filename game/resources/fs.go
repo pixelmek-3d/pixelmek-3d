@@ -38,7 +38,7 @@ func init() {
 	}
 }
 
-func InitFS() {
+func initFS() {
 	fsPathMap = make(map[string]map[string]*fsResource)
 
 	// load embedFS entries into fsPathMap

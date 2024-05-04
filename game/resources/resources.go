@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"embed"
 	"errors"
+	"fmt"
 	"image"
 	"io"
 	"os"
+	"path"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
@@ -19,6 +22,7 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"
+	"gopkg.in/yaml.v3"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -29,9 +33,16 @@ var (
 	UserConfigFile string
 	UserKeymapFile string
 
+	CrosshairsSheet *CrosshairsSheetConfig
+
 	//go:embed audio fonts icons maps menu missions shaders sprites textures all:units all:weapons
 	embedded embed.FS
 )
+
+type CrosshairsSheetConfig struct {
+	Columns int `yaml:"columns" validate:"gt=0"`
+	Rows    int `yaml:"rows" validate:"gt=0"`
+}
 
 func init() {
 	viper.SetConfigName("config")
@@ -53,6 +64,32 @@ func init() {
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Error(err)
+	}
+}
+
+func InitResources() {
+	// initialize resource file system handler
+	initFS()
+
+	// load crosshairs sheet configuration
+	crosshairsConfigFile := path.Join("sprites", "hud", "crosshairs_sheet.yaml")
+
+	// TODO: refactor the following into generic use function
+	fileContent, err := ReadFile(crosshairsConfigFile)
+	if err != nil {
+		log.Fatal(fmt.Errorf("[%s] %s", crosshairsConfigFile, err.Error()))
+	}
+
+	CrosshairsSheet = &CrosshairsSheetConfig{}
+	err = yaml.Unmarshal(fileContent, CrosshairsSheet)
+	if err != nil {
+		log.Fatal(fmt.Errorf("[%s] %s", crosshairsConfigFile, err.Error()))
+	}
+
+	v := validator.New()
+	err = v.Struct(CrosshairsSheet)
+	if err != nil {
+		log.Fatal(fmt.Errorf("[%s] %s", crosshairsConfigFile, err.Error()))
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 type HUDElementType int
@@ -98,7 +99,9 @@ func (g *Game) loadHUD() {
 	g.playerHUD[HUD_NAV_STATUS] = navStatus
 
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
-	crosshairs := render.NewCrosshairs(crosshairsSheet, 20, 10, 190)
+	crosshairs := render.NewCrosshairs(
+		crosshairsSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, g.hudCrosshairIndex,
+	)
 	g.playerHUD[HUD_CROSSHAIRS] = crosshairs
 
 	tgtReticleSheet := getSpriteFromFile("hud/target_reticle.png")

@@ -40,6 +40,8 @@ const (
 	CONFIG_KEY_HUD_COLOR_B      = "hud.color.blue"
 	CONFIG_KEY_HUD_COLOR_A      = "hud.color.alpha"
 
+	CONFIG_KEY_HUD_CROSSHAIR_INDEX = "hud.crosshair.index"
+
 	CONFIG_KEY_AUDIO_BGM_VOL      = "audio.bgm_volume"
 	CONFIG_KEY_AUDIO_SFX_VOL      = "audio.sfx_volume"
 	CONFIG_KEY_AUDIO_SFX_CHANNELS = "audio.sfx_channels"
@@ -93,6 +95,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault(CONFIG_KEY_HUD_COLOR_G, 255)
 	viper.SetDefault(CONFIG_KEY_HUD_COLOR_B, 230)
 	viper.SetDefault(CONFIG_KEY_HUD_COLOR_A, 255)
+	viper.SetDefault(CONFIG_KEY_HUD_CROSSHAIR_INDEX, 190)
 
 	// audio defaults
 	viper.SetDefault(CONFIG_KEY_AUDIO_BGM_VOL, 0.65)
@@ -137,6 +140,7 @@ func (g *Game) initConfig() {
 		B: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_B)),
 		A: uint8(viper.GetUint(CONFIG_KEY_HUD_COLOR_A)),
 	}
+	g.hudCrosshairIndex = viper.GetInt(CONFIG_KEY_HUD_CROSSHAIR_INDEX)
 
 	bgmVolume = viper.GetFloat64(CONFIG_KEY_AUDIO_BGM_VOL)
 	sfxVolume = viper.GetFloat64(CONFIG_KEY_AUDIO_SFX_VOL)
@@ -179,6 +183,7 @@ func (g *Game) saveConfig() error {
 	viper.Set(CONFIG_KEY_HUD_COLOR_G, g.hudRGBA.G)
 	viper.Set(CONFIG_KEY_HUD_COLOR_B, g.hudRGBA.B)
 	viper.Set(CONFIG_KEY_HUD_COLOR_A, g.hudRGBA.A)
+	viper.Set(CONFIG_KEY_HUD_CROSSHAIR_INDEX, g.hudCrosshairIndex)
 
 	viper.Set(CONFIG_KEY_CONTROL_DECAY, g.throttleDecay)
 

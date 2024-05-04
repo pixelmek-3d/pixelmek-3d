@@ -72,6 +72,7 @@ type Game struct {
 	hudScale          float64
 	hudRGBA           *color.NRGBA
 	hudUseCustomColor bool
+	hudCrosshairIndex int
 
 	//--define camera and rendering screens--//
 	camera        *raycaster.Camera
@@ -149,8 +150,8 @@ func NewGame() *Game {
 		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
 	}
 
-	// initialize resources file handler
-	resources.InitFS()
+	// initialize common resources
+	resources.InitResources()
 
 	// initialize fonts
 	var err error
