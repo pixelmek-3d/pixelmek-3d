@@ -721,7 +721,9 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 	if cScale == 0 {
 		return
 	}
-	cWidth, cHeight := cScale*float64(crosshairs.Width()), cScale*float64(crosshairs.Height())
+
+	hudH := float64(hudOpts.HudRect.Dy())
+	cWidth, cHeight := hudH/8, hudH/8
 	cX, cY := float64(g.screenWidth)/2-cWidth/2, float64(g.screenHeight)/2-cHeight/2
 
 	crosshairBounds := image.Rect(
