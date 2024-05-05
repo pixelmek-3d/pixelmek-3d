@@ -52,16 +52,16 @@ type Game struct {
 	// window resolution and scaling
 	screenWidth  int
 	screenHeight int
-	renderScale  float64
 	fullscreen   bool
 	vsync        bool
 	opengl       bool
 	fovDegrees   float64
 	fovDepth     float64
 
-	//--viewport width / height--//
-	width  int
-	height int
+	//--raycast rendered width / height--//
+	renderScale  float64
+	renderWidth  int
+	renderHeight int
 
 	player    *Player
 	playerHUD map[HUDElementType]HUDElement
@@ -251,7 +251,7 @@ func (g *Game) initMission() {
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
-	g.camera = raycaster.NewCamera(g.width, g.height, texWidth, g.mission.Map(), g.tex)
+	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, texWidth, g.mission.Map(), g.tex)
 	g.camera.SetRenderDistance(g.renderDistance)
 	g.camera.SetAlwaysSetSpriteScreenRect(true)
 

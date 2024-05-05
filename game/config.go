@@ -212,15 +212,15 @@ func (g *Game) setResolution(screenWidth, screenHeight int) {
 
 func (g *Game) setRenderScale(renderScale float64) {
 	g.renderScale = renderScale
-	g.width = int(math.Floor(float64(g.screenWidth) * g.renderScale))
-	g.height = int(math.Floor(float64(g.screenHeight) * g.renderScale))
+	g.renderWidth = int(math.Floor(float64(g.screenWidth) * g.renderScale))
+	g.renderHeight = int(math.Floor(float64(g.screenHeight) * g.renderScale))
 
-	g.rayScreen = ebiten.NewImage(g.width, g.height)
+	g.rayScreen = ebiten.NewImage(g.renderWidth, g.renderHeight)
 	g.renderScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
 	g.overlayScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
 
 	if g.camera != nil {
-		g.camera.SetViewSize(g.width, g.height)
+		g.camera.SetViewSize(g.renderWidth, g.renderHeight)
 	}
 }
 
