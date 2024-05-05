@@ -479,6 +479,29 @@ func (g *Game) handleInput() {
 		ActionWeaponFireGroup4,
 		ActionWeaponFireGroup5,
 	}
+
+	if g.player.Target() == nil {
+		// auto-target on crosshairs if just fired weapon without a target selected
+		justFired := false
+		if g.input.ActionIsJustPressed(ActionWeaponFire) {
+			justFired = true
+		} else {
+			for _, actionGroup := range weaponFireGroups {
+				if g.input.ActionIsJustPressed(actionGroup) {
+					justFired = true
+					break
+				}
+			}
+		}
+
+		if justFired {
+			targetEntity := g.targetCrosshairs()
+			if targetEntity != nil {
+				go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+			}
+		}
+	}
+
 	for weaponGroup, actionGroup := range weaponFireGroups {
 		if g.input.ActionIsPressed(actionGroup) {
 			g.firePlayerWeapon(weaponGroup)

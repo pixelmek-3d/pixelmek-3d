@@ -622,9 +622,54 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 
 func (g *Game) targetCrosshairs() model.Entity {
 	newTarget := g.player.convergenceSprite
+
+	if newTarget == nil {
+		// check for target in crosshairs bounds if not directly at the single center raycasted pixel
+		crosshairs := g.GetHUDElement(HUD_CROSSHAIRS).(*render.Crosshairs)
+		if crosshairs == nil {
+			return nil
+		}
+
+		crosshairRect := crosshairs.Rect().Add(
+			image.Point{X: (g.screenWidth / 2) - (crosshairs.Width() / 2), Y: (g.screenHeight / 2) - (crosshairs.Height() / 2)})
+
+		var newTargetArea int
+		for spriteType := range g.sprites.sprites {
+			g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+				if !g.isInteractiveType(spriteType) {
+					// only cycle on certain sprite types (skip projectiles, effects, etc.)
+					return true
+				}
+
+				s := getSpriteFromInterface(k.(raycaster.Sprite))
+				if s.IsDestroyed() {
+					return true
+				}
+
+				sBounds := s.ScreenRect(g.renderScale)
+				if sBounds == nil {
+					return true
+				}
+
+				// check if sprite bounds intersects general crosshair area
+				intersectRect := crosshairRect.Intersect(*sBounds)
+				intersectArea := intersectRect.Dx() * intersectRect.Dy()
+
+				if intersectArea > newTargetArea {
+					newTarget = s
+					newTargetArea = intersectArea
+				}
+				return true
+			})
+		}
+	}
+
 	if newTarget != nil && !newTarget.IsDestroyed() {
 		g.player.SetTarget(newTarget.Entity)
 		return newTarget.Entity
+	} else {
+		// unset target if nothing is there
+		g.player.SetTarget(nil)
 	}
 	return nil
 }
