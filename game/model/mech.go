@@ -18,7 +18,9 @@ const (
 )
 
 const (
-	MECH_POWER_ON_SECONDS float64 = 5.0
+	MECH_POWER_ON_SECONDS   float64 = 5.0
+	MECH_TURN_RATE_FACTOR   float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
+	MECH_TURRET_RATE_FACTOR float64 = 1.5 * MECH_TURN_RATE_FACTOR
 )
 
 type Mech struct {
@@ -45,7 +47,8 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 			ammunition:         NewAmmoStock(),
 			hasTurret:          true,
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:        100 / r.Tonnage * 0.02, // FIXME: testing
+			maxTurnRate:        MECH_TURN_RATE_FACTOR + (100 / r.Tonnage * MECH_TURN_RATE_FACTOR),
+			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: float64(r.JumpJets) * 2.0,
 		},
@@ -157,9 +160,11 @@ func (e *Mech) Update() bool {
 	if e.powered != POWER_ON {
 		// ensure certain values are reset when not powered on
 		e.jumpJetsActive = false
-		e.targetRelHeading = 0
 		e.targetVelocity = 0
 		e.targetVelocityZ = 0
+		e.SetTargetHeading(e.heading)
+		e.SetTargetPitch(e.pitch)
+		e.SetTargetTurretAngle(e.turretAngle)
 	}
 
 	if e.jumpJetsActive {
@@ -211,10 +216,9 @@ func (e *Mech) Update() bool {
 		}
 	}
 
-	if e.targetRelHeading == 0 && e.positionZ == 0 &&
-		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 {
-		// no position update needed
+	if e.needsUpdate() {
+		e.UnitModel.update()
+	} else {
 		return false
 	}
 
@@ -268,35 +272,6 @@ func (e *Mech) Update() bool {
 		}
 
 		e.velocityZ = zNewV
-	}
-
-	if e.targetRelHeading != 0 {
-		// move by relative heading amount allowed by calculated turn rate
-		var deltaH, maxDeltaH, newH float64
-		newH = e.Heading()
-		maxDeltaH = e.TurnRate()
-		if e.targetRelHeading > 0 {
-			deltaH = e.targetRelHeading
-			if deltaH > maxDeltaH {
-				deltaH = maxDeltaH
-			}
-		} else {
-			deltaH = e.targetRelHeading
-			if deltaH < -maxDeltaH {
-				deltaH = -maxDeltaH
-			}
-		}
-
-		newH += deltaH
-		newH = ClampAngle(newH)
-
-		e.targetRelHeading -= deltaH
-		e.heading = newH
-
-		if e.jumpJetsActive {
-			// set jump jet heading only while jumping
-			e.jumpJetHeading = e.heading
-		}
 	}
 
 	// position update needed

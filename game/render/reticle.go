@@ -15,18 +15,18 @@ type NavReticle struct {
 }
 
 // NewTargetReticle creates a target reticle from an image with 2 rows and 2 columns, representing the four corners of it
-func NewTargetReticle(scale float64, img *ebiten.Image) *TargetReticle {
+func NewTargetReticle(img *ebiten.Image) *TargetReticle {
 	r := &TargetReticle{
-		HUDSprite: NewHUDSpriteFromSheet(img, scale, 2, 2, 0),
+		HUDSprite: NewHUDSpriteFromSheet(img, 1.0, 2, 2, 0),
 	}
 
 	return r
 }
 
 // NewNavReticle creates a nav reticle from an image
-func NewNavReticle(scale float64, img *ebiten.Image) *NavReticle {
+func NewNavReticle(img *ebiten.Image) *NavReticle {
 	r := &NavReticle{
-		HUDSprite: NewHUDSprite(img, scale),
+		HUDSprite: NewHUDSprite(img, 1.0),
 	}
 
 	return r

@@ -27,29 +27,31 @@ const (
 
 type Player struct {
 	model.Unit
-	sprite              *render.Sprite
-	cameraZ             float64
-	strideDir           StrideDirection
-	strideZ             float64
-	strideStomp         bool
-	strideStompDir      int
-	moved               bool
-	convergenceDistance float64
-	convergencePoint    *geom3d.Vector3
-	convergenceSprite   *render.Sprite
-	weaponGroups        [][]model.Weapon
-	selectedWeapon      uint
-	selectedGroup       uint
-	fireMode            model.WeaponFireMode
-	currentNav          *render.NavSprite
-	ejectionPod         *render.ProjectileSprite
+	sprite            *render.Sprite
+	cameraAngle       float64
+	cameraPitch       float64
+	cameraZ           float64
+	strideDir         StrideDirection
+	strideZ           float64
+	strideStomp       bool
+	strideStompDir    int
+	moved             bool
+	convergenceSprite *render.Sprite
+	weaponGroups      [][]model.Weapon
+	selectedWeapon    uint
+	selectedGroup     uint
+	fireMode          model.WeaponFireMode
+	currentNav        *render.NavSprite
+	ejectionPod       *render.ProjectileSprite
 }
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
 	p := &Player{
-		Unit:   unit,
-		sprite: sprite,
-		moved:  false,
+		Unit:        unit,
+		sprite:      sprite,
+		cameraAngle: angle,
+		cameraPitch: pitch,
+		moved:       false,
 	}
 
 	p.SetAsPlayer(true)
@@ -57,6 +59,7 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	p.SetPos(&geom.Vector2{X: x, Y: y})
 	p.SetPosZ(z)
 	p.SetHeading(angle)
+	p.SetTurretAngle(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
 
@@ -83,16 +86,25 @@ func (p *Player) Heading() float64 {
 func (p *Player) SetHeading(angle float64) {
 	if p.ejectionPod != nil {
 		p.ejectionPod.SetHeading(angle)
+		p.cameraAngle = angle
+		return
 	}
 	p.Unit.SetHeading(angle)
 }
 
 func (p *Player) SetTargetRelativeHeading(rHeading float64) {
 	if p.ejectionPod != nil {
-		angle := model.ClampAngle(p.ejectionPod.Heading() + rHeading)
+		angle := model.ClampAngle2Pi(p.ejectionPod.Heading() + rHeading)
 		p.ejectionPod.SetHeading(angle)
+		p.cameraAngle = angle
+		return
 	}
-	p.Unit.SetTargetRelativeHeading(rHeading)
+
+	p.Unit.SetTargetHeading(model.ClampAngle2Pi(p.Heading() + rHeading))
+
+	// rotate camera view along with unit heading (limit to turn rate)
+	turnRate := p.TurnRate()
+	p.RotateCamera(geom.Clamp(rHeading, -turnRate, turnRate))
 }
 
 func (p *Player) PosZ() float64 {
@@ -116,7 +128,7 @@ func (p *Player) HasTurret() bool {
 
 func (p *Player) TurretAngle() float64 {
 	if p.ejectionPod != nil {
-		return 0
+		return p.ejectionPod.Heading()
 	}
 	return p.Unit.TurretAngle()
 }
@@ -126,6 +138,67 @@ func (p *Player) NavPoint() *model.NavPoint {
 		return nil
 	}
 	return p.currentNav.NavPoint
+}
+
+// ConvergencePoint returns the convergence point from current angle/pitch to distance of target.
+// Returns nil if no target selected.
+func (p *Player) ConvergencePoint() *geom3d.Vector3 {
+	if p.Target() == nil {
+		return nil
+	}
+	pX, pY, pZ := p.Pos().X, p.Pos().Y, p.cameraZ
+
+	t := p.Target()
+	tX, tY, tZ := t.Pos().X, t.Pos().Y, t.PosZ()
+	targetDist := (&geom3d.Line3d{
+		X1: pX, Y1: pY, Z1: pZ,
+		X2: tX, Y2: tY, Z2: tZ,
+	}).Distance()
+
+	convergenceLine := geom3d.Line3dFromAngle(pX, pY, pZ, p.TurretAngle(), p.Pitch(), targetDist)
+	convergencePoint := &geom3d.Vector3{X: convergenceLine.X2, Y: convergenceLine.Y2, Z: convergenceLine.Z2}
+
+	return convergencePoint
+}
+
+// Rotate camera, relative to current angle, by rotation speed
+func (p *Player) RotateCamera(rSpeed float64) {
+	if p.Powered() != model.POWER_ON {
+		// disallow camera rotation when shutdown
+		return
+	}
+
+	// TODO: add config option to allow 360 degree torso rotation
+	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
+
+	// restrict camera rotation to only 90 degrees offset from heading
+	var angle float64
+	heading := p.Heading()
+	aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
+	switch {
+	case aDist < -geom.HalfPi:
+		angle = model.ClampAngle2Pi(heading - geom.HalfPi)
+	case aDist > geom.HalfPi:
+		angle = model.ClampAngle2Pi(heading + geom.HalfPi)
+	default:
+		angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
+	}
+
+	p.cameraAngle = angle
+	p.moved = true
+}
+
+// Pitch camera, relative to current pitch, by rotation speed
+func (p *Player) PitchCamera(pSpeed float64) {
+	if p.Powered() != model.POWER_ON {
+		// disallow camera rotation when shutdown
+		return
+	}
+
+	// current raycasting method can only allow certain amount in either direction without graphical artifacts
+	pitch := geom.Clamp(p.cameraPitch+pSpeed, -geom.Pi/8, geom.Pi/4)
+	p.cameraPitch = pitch
+	p.moved = true
 }
 
 func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
@@ -141,10 +214,7 @@ func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
 	}
 
 	// adjust camera position to account for perpendicular horizontal cockpit offset
-	cameraHeadingAngle := p.Heading() + geom.HalfPi
-	if p.HasTurret() {
-		cameraHeadingAngle += p.TurretAngle()
-	}
+	cameraHeadingAngle := p.cameraAngle + geom.HalfPi
 	cockpitLine := geom.LineFromAngle(pos.X, pos.Y, cameraHeadingAngle, cockpitOffset.X)
 	pos = &geom.Vector2{X: cockpitLine.X2, Y: cockpitLine.Y2}
 	return
@@ -209,7 +279,18 @@ func (p *Player) Eject(g *Game) bool {
 }
 
 func (p *Player) Update() bool {
-	// handle player specific updates such as camera bobbing from movement
+	// handle player specific updates
+	if p.HasTurret() {
+		// camera angle/pitch leads turret angle/pitch
+		p.SetTargetTurretAngle(p.cameraAngle)
+		p.SetTargetPitch(p.cameraPitch)
+	} else {
+		// camera angle/pitch leads unit heading/pitch
+		p.SetTargetHeading(p.cameraAngle)
+		p.SetTargetPitch(p.cameraPitch)
+	}
+
+	// camera bobbing from mech movement
 	switch p.Unit.(type) {
 	case *model.Mech:
 		resource := p.Unit.(*model.Mech).Resource

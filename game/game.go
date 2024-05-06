@@ -52,16 +52,16 @@ type Game struct {
 	// window resolution and scaling
 	screenWidth  int
 	screenHeight int
-	renderScale  float64
 	fullscreen   bool
 	vsync        bool
 	opengl       bool
 	fovDegrees   float64
 	fovDepth     float64
 
-	//--viewport width / height--//
-	width  int
-	height int
+	//--raycast rendered width / height--//
+	renderScale  float64
+	renderWidth  int
+	renderHeight int
 
 	player    *Player
 	playerHUD map[HUDElementType]HUDElement
@@ -72,6 +72,7 @@ type Game struct {
 	hudScale          float64
 	hudRGBA           *color.NRGBA
 	hudUseCustomColor bool
+	hudCrosshairIndex int
 
 	//--define camera and rendering screens--//
 	camera        *raycaster.Camera
@@ -149,8 +150,8 @@ func NewGame() *Game {
 		os.Setenv("EBITENGINE_GRAPHICS_LIBRARY", "opengl")
 	}
 
-	// initialize resources file handler
-	resources.InitFS()
+	// initialize common resources
+	resources.InitResources()
 
 	// initialize fonts
 	var err error
@@ -231,8 +232,12 @@ func (g *Game) initMission() {
 
 	// init player at DZ
 	pX, pY, pDegrees := g.mission.DropZone.Position[0], g.mission.DropZone.Position[1], g.mission.DropZone.Heading
+	pHeading := geom.Radians(pDegrees)
 	g.player.SetPos(&geom.Vector2{X: pX, Y: pY})
-	g.player.SetHeading(geom.Radians(pDegrees))
+	g.player.SetHeading(pHeading)
+	g.player.SetTurretAngle(pHeading)
+	g.player.cameraAngle = pHeading
+	g.player.cameraPitch = 0
 
 	// init player as powered off but booting up
 	g.player.SetPowered(model.POWER_ON)
@@ -246,7 +251,7 @@ func (g *Game) initMission() {
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
-	g.camera = raycaster.NewCamera(g.width, g.height, texWidth, g.mission.Map(), g.tex)
+	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, texWidth, g.mission.Map(), g.tex)
 	g.camera.SetRenderDistance(g.renderDistance)
 	g.camera.SetAlwaysSetSpriteScreenRect(true)
 
@@ -366,47 +371,6 @@ func (g *Game) VerticalMove(vSpeed float64) {
 	pos := g.player.Pos()
 	newPosZ := g.player.PosZ() + vSpeed
 	g.updatePlayerPosition(pos.X, pos.Y, newPosZ)
-}
-
-// Rotate player heading angle by rotation speed
-func (g *Game) Rotate(rSpeed float64) {
-	angle := model.ClampAngle(g.player.Heading() + rSpeed)
-	g.player.SetHeading(angle)
-	g.player.moved = true
-}
-
-// Rotate player turret angle, relative to body heading, by rotation speed
-func (g *Game) RotateTurret(rSpeed float64) {
-	if !g.player.HasTurret() {
-		return
-	}
-	if g.player.Powered() != model.POWER_ON {
-		// disallow turret rotation when shutdown
-		return
-	}
-
-	angle := g.player.TurretAngle() + rSpeed
-
-	// currently restricting turret rotation to only 90 degrees,
-	if angle > geom.HalfPi {
-		angle = geom.HalfPi
-	} else if angle < -geom.HalfPi {
-		angle = -geom.HalfPi
-	}
-
-	g.player.SetTurretAngle(angle)
-	g.player.moved = true
-}
-
-// Update player pitch angle by pitch speed
-func (g *Game) Pitch(pSpeed float64) {
-	if g.player.Powered() != model.POWER_ON && g.player.ejectionPod == nil {
-		// disallow turret pitch when shutdown
-		return
-	}
-	// current raycasting method can only allow up to 45 degree pitch in either direction
-	g.player.SetPitch(geom.Clamp(pSpeed+g.player.Pitch(), -geom.Pi/8, geom.Pi/4))
-	g.player.moved = true
 }
 
 func (g *Game) InProgress() bool {
@@ -658,9 +622,54 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 
 func (g *Game) targetCrosshairs() model.Entity {
 	newTarget := g.player.convergenceSprite
+
+	if newTarget == nil {
+		// check for target in crosshairs bounds if not directly at the single center raycasted pixel
+		crosshairs := g.GetHUDElement(HUD_CROSSHAIRS).(*render.Crosshairs)
+		if crosshairs == nil {
+			return nil
+		}
+
+		crosshairRect := crosshairs.Rect().Add(
+			image.Point{X: (g.screenWidth / 2) - (crosshairs.Width() / 2), Y: (g.screenHeight / 2) - (crosshairs.Height() / 2)})
+
+		var newTargetArea int
+		for spriteType := range g.sprites.sprites {
+			g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+				if !g.isInteractiveType(spriteType) {
+					// only cycle on certain sprite types (skip projectiles, effects, etc.)
+					return true
+				}
+
+				s := getSpriteFromInterface(k.(raycaster.Sprite))
+				if s.IsDestroyed() {
+					return true
+				}
+
+				sBounds := s.ScreenRect(g.renderScale)
+				if sBounds == nil {
+					return true
+				}
+
+				// check if sprite bounds intersects general crosshair area
+				intersectRect := crosshairRect.Intersect(*sBounds)
+				intersectArea := intersectRect.Dx() * intersectRect.Dy()
+
+				if intersectArea > newTargetArea {
+					newTarget = s
+					newTargetArea = intersectArea
+				}
+				return true
+			})
+		}
+	}
+
 	if newTarget != nil && !newTarget.IsDestroyed() {
 		g.player.SetTarget(newTarget.Entity)
 		return newTarget.Entity
+	} else {
+		// unset target if nothing is there
+		g.player.SetTarget(nil)
 	}
 	return nil
 }
@@ -915,7 +924,7 @@ func (g *Game) updateSprites() {
 
 					// put in a tailspin
 					heading := s.Heading()
-					s.SetHeading(model.ClampAngle(heading + (geom.Pi2 / model.TICKS_PER_SECOND)))
+					s.SetHeading(model.ClampAngle2Pi(heading + (geom.Pi2 / model.TICKS_PER_SECOND)))
 
 					hasCollision := g.updateSpritePosition(s.Sprite)
 					if hasCollision {

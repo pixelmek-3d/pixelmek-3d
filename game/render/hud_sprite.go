@@ -18,6 +18,7 @@ var (
 type HUDSprite interface {
 	Width() int
 	Height() int
+	Rect() image.Rectangle
 	Scale() float64
 	SetScale(float64)
 
@@ -87,6 +88,10 @@ func (h *BasicHUD) Width() int {
 
 func (h *BasicHUD) Height() int {
 	return h.h
+}
+
+func (h *BasicHUD) Rect() image.Rectangle {
+	return image.Rect(0, 0, h.w, h.h)
 }
 
 func (h *BasicHUD) Scale() float64 {

@@ -9,6 +9,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 type HUDElementType int
@@ -98,15 +99,17 @@ func (g *Game) loadHUD() {
 	g.playerHUD[HUD_NAV_STATUS] = navStatus
 
 	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
-	crosshairs := render.NewCrosshairs(crosshairsSheet, 1.0, 20, 10, 190)
+	crosshairs := render.NewCrosshairs(
+		crosshairsSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, g.hudCrosshairIndex,
+	)
 	g.playerHUD[HUD_CROSSHAIRS] = crosshairs
 
 	tgtReticleSheet := getSpriteFromFile("hud/target_reticle.png")
-	targetReticle := render.NewTargetReticle(1.0, tgtReticleSheet)
+	targetReticle := render.NewTargetReticle(tgtReticleSheet)
 	g.playerHUD[HUD_TARGET_RETICLE] = targetReticle
 
 	navReticleSheet := getSpriteFromFile("hud/nav_reticle.png")
-	navReticle := render.NewNavReticle(1.0, navReticleSheet)
+	navReticle := render.NewNavReticle(navReticleSheet)
 	g.playerHUD[HUD_NAV_RETICLE] = navReticle
 
 	banner := render.NewMissionBanner(g.fonts.HUDFont)
@@ -718,12 +721,21 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 	if cScale == 0 {
 		return
 	}
-	cWidth, cHeight := cScale*float64(crosshairs.Width()), cScale*float64(crosshairs.Height())
+
+	hudH := float64(hudOpts.HudRect.Dy())
+	cWidth, cHeight := hudH/8, hudH/8
 	cX, cY := float64(g.screenWidth)/2-cWidth/2, float64(g.screenHeight)/2-cHeight/2
 
 	crosshairBounds := image.Rect(
 		int(cX), int(cY), int(cX+cWidth), int(cY+cHeight),
 	)
+
+	deltaAngle := model.AngleDistance(g.player.TurretAngle(), g.player.cameraAngle)
+	deltaPitch := model.AngleDistance(g.player.Pitch(), g.player.cameraPitch)
+
+	fovHorizontal, fovVertical := g.camera.FovRadians(), g.camera.FovRadiansVertical()
+	crosshairs.SetOffsets(deltaAngle, deltaPitch)
+	crosshairs.SetFocalAngles(fovHorizontal, fovVertical)
 
 	crosshairs.Draw(crosshairBounds, hudOpts)
 }

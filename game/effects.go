@@ -150,7 +150,7 @@ func (g *Game) spawnEjectionPod(s *render.Sprite) *render.ProjectileSprite {
 	podSprite.SetPitch(geom.HalfPi)
 
 	if s == g.player.sprite {
-		podHeading := model.ClampAngle(g.player.Unit.Heading() + g.player.TurretAngle())
+		podHeading := model.ClampAngle2Pi(g.player.cameraAngle)
 		podSprite.SetHeading(podHeading)
 	} else {
 		podSprite.SetHeading(s.Entity.Heading())

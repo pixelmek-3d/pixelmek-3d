@@ -457,7 +457,7 @@ func (g *Game) handleInput() {
 
 	if turretDx != 0 {
 		if g.player.HasTurret() {
-			g.RotateTurret(0.005 * turretDx / g.zoomFovDepth)
+			g.player.RotateCamera(0.005 * turretDx / g.zoomFovDepth)
 		} else {
 			turnAmount := 0.01 * turretDx / g.zoomFovDepth
 			g.player.SetTargetRelativeHeading(turnAmount)
@@ -469,7 +469,7 @@ func (g *Game) handleInput() {
 		}
 	}
 	if turretDy != 0 {
-		g.Pitch(0.005 * turretDy)
+		g.player.PitchCamera(0.005 * turretDy)
 	}
 
 	weaponFireGroups := [5]input.Action{
@@ -479,6 +479,29 @@ func (g *Game) handleInput() {
 		ActionWeaponFireGroup4,
 		ActionWeaponFireGroup5,
 	}
+
+	if g.player.Target() == nil {
+		// auto-target on crosshairs if just fired weapon without a target selected
+		justFired := false
+		if g.input.ActionIsJustPressed(ActionWeaponFire) {
+			justFired = true
+		} else {
+			for _, actionGroup := range weaponFireGroups {
+				if g.input.ActionIsJustPressed(actionGroup) {
+					justFired = true
+					break
+				}
+			}
+		}
+
+		if justFired {
+			targetEntity := g.targetCrosshairs()
+			if targetEntity != nil {
+				go g.audio.PlayButtonAudio(AUDIO_SELECT_TARGET)
+			}
+		}
+	}
+
 	for weaponGroup, actionGroup := range weaponFireGroups {
 		if g.input.ActionIsPressed(actionGroup) {
 			g.firePlayerWeapon(weaponGroup)
@@ -873,17 +896,17 @@ func (g *Game) handleInput() {
 	if lookUp {
 		// TODO: better and configurable values for dx/dy
 		dy := 2.0
-		g.Pitch(0.005 * dy)
+		g.player.PitchCamera(0.005 * dy)
 	} else if lookDown {
 		dy := -2.0
-		g.Pitch(0.005 * dy)
+		g.player.PitchCamera(0.005 * dy)
 	}
 	if lookLeft {
 		dx := 5.0
-		g.RotateTurret(0.005 * dx / g.zoomFovDepth)
+		g.player.RotateCamera(0.005 * dx / g.zoomFovDepth)
 	} else if lookRight {
 		dx := -5.0
-		g.RotateTurret(0.005 * dx / g.zoomFovDepth)
+		g.player.RotateCamera(0.005 * dx / g.zoomFovDepth)
 	}
 
 	if isStrafe {

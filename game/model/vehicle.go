@@ -29,6 +29,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 			hasTurret:       true,
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:     100 / r.Tonnage * 0.015, // FIXME: testing
+			maxTurretRate:   100 / r.Tonnage * 0.03,  // FIXME: testing
 			jumpJets:        0,
 		},
 	}
@@ -87,10 +88,9 @@ func (e *Vehicle) Update() bool {
 		}
 	}
 
-	if e.targetRelHeading == 0 &&
-		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 {
-		// no position update needed
+	if e.needsUpdate() {
+		e.UnitModel.update()
+	} else {
 		return false
 	}
 
@@ -111,30 +111,6 @@ func (e *Vehicle) Update() bool {
 		}
 
 		e.velocity = newV
-	}
-
-	if e.targetRelHeading != 0 {
-		// move by relative heading amount allowed by calculated turn rate
-		var deltaH, maxDeltaH, newH float64
-		newH = e.Heading()
-		maxDeltaH = e.TurnRate()
-		if e.targetRelHeading > 0 {
-			deltaH = e.targetRelHeading
-			if deltaH > maxDeltaH {
-				deltaH = maxDeltaH
-			}
-		} else {
-			deltaH = e.targetRelHeading
-			if deltaH < -maxDeltaH {
-				deltaH = -maxDeltaH
-			}
-		}
-
-		newH += deltaH
-		newH = ClampAngle(newH)
-
-		e.targetRelHeading -= deltaH
-		e.heading = newH
 	}
 
 	// position update needed

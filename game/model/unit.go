@@ -63,7 +63,8 @@ type Unit interface {
 	SetTargetLock(float64)
 
 	TurnRate() float64
-	SetTargetRelativeHeading(float64)
+	SetTargetHeading(float64)
+	SetTargetPitch(float64)
 	MaxVelocity() float64
 	TargetVelocity() float64
 	SetTargetVelocity(float64)
@@ -75,6 +76,8 @@ type Unit interface {
 	SetHasTurret(bool)
 	TurretAngle() float64
 	SetTurretAngle(float64)
+	TurretRate() float64
+	SetTargetTurretAngle(float64)
 
 	CockpitOffset() *geom.Vector2
 	Ammunition() *Ammo
@@ -104,11 +107,14 @@ type UnitModel struct {
 	positionZ          float64
 	anchor             raycaster.SpriteAnchor
 	heading            float64
-	targetRelHeading   float64
+	targetHeading      float64
 	maxTurnRate        float64
 	pitch              float64
+	targetPitch        float64
 	hasTurret          bool
 	turretAngle        float64
+	targetTurretAngle  float64
+	maxTurretRate      float64
 	velocity           float64
 	velocityZ          float64
 	targetVelocity     float64
@@ -275,7 +281,7 @@ func (e *UnitModel) TurretAngle() float64 {
 	if e.hasTurret {
 		return e.turretAngle
 	}
-	return 0
+	return e.heading
 }
 
 func (e *UnitModel) SetTurretAngle(angle float64) {
@@ -284,6 +290,21 @@ func (e *UnitModel) SetTurretAngle(angle float64) {
 	} else {
 		e.SetHeading(angle)
 	}
+}
+
+func (e *UnitModel) SetTargetTurretAngle(angle float64) {
+	if e.hasTurret {
+		e.targetTurretAngle = angle
+	} else {
+		e.SetTargetHeading(angle)
+	}
+}
+
+func (e *UnitModel) TurretRate() float64 {
+	if e.hasTurret {
+		return e.maxTurretRate
+	}
+	return e.maxTurnRate
 }
 
 func (e *UnitModel) Ammunition() *Ammo {
@@ -330,8 +351,16 @@ func (e *UnitModel) SetHeading(angle float64) {
 	e.heading = angle
 }
 
+func (e *UnitModel) SetTargetHeading(heading float64) {
+	e.targetHeading = heading
+}
+
 func (e *UnitModel) SetPitch(pitch float64) {
 	e.pitch = pitch
+}
+
+func (e *UnitModel) SetTargetPitch(pitch float64) {
+	e.targetPitch = pitch
 }
 
 func (e *UnitModel) TurnRate() float64 {
@@ -342,10 +371,6 @@ func (e *UnitModel) TurnRate() float64 {
 	// dynamic turn rate is half of the max turn rate when at max velocity
 	vTurnRatio := 0.5 + 0.5*(e.maxVelocity-math.Abs(e.velocity))/e.maxVelocity
 	return e.maxTurnRate * vTurnRatio
-}
-
-func (e *UnitModel) SetTargetRelativeHeading(rHeading float64) {
-	e.targetRelHeading = rHeading
 }
 
 func (e *UnitModel) Velocity() float64 {
@@ -493,4 +518,59 @@ func (e *UnitModel) SetAsPlayer(isPlayer bool) {
 
 func (e *UnitModel) IsPlayer() bool {
 	return e.isPlayer
+}
+
+func (e *UnitModel) needsUpdate() bool {
+	if e.targetHeading == e.heading && e.targetPitch == e.pitch &&
+		e.targetTurretAngle == e.turretAngle &&
+		e.targetVelocity == 0 && e.velocity == 0 &&
+		e.targetVelocityZ == 0 && e.velocityZ == 0 && e.positionZ == 0 {
+		// no position update needed
+		return false
+	}
+	return true
+}
+
+func (e *UnitModel) update() {
+	if e.powered != POWER_ON {
+		return
+	}
+
+	turnRate := e.TurnRate()
+	turretRate := e.TurretRate()
+
+	var deltaH float64
+	if e.targetHeading != e.heading {
+		// move towards target heading amount allowed by turn rate
+		deltaH = geom.Clamp(AngleDistance(e.heading, e.targetHeading), -turnRate, turnRate)
+		e.heading = ClampAngle2Pi(e.heading + deltaH)
+
+		if e.jumpJets > 0 && e.jumpJetsActive {
+			// set jump jet heading only while jumping
+			e.jumpJetHeading = e.heading
+		}
+
+		// offset turret angle so it does not have to play catch up
+		e.targetTurretAngle -= deltaH
+	}
+
+	if e.targetPitch != e.pitch {
+		// move towards target pitch amount allowed by turret rate
+		distP := AngleDistance(e.pitch, e.targetPitch)
+
+		// use logarithmic scale to smooth the approach to the target pitch angle
+		pitchRate := math.Log1p(2*math.Abs(distP)) * turretRate
+		deltaP := geom.Clamp(distP, -pitchRate, pitchRate)
+		e.pitch = ClampAngle(e.pitch + deltaP)
+	}
+
+	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
+		// move towards target turret angle amount allowed by turret rate
+		distA := AngleDistance(e.turretAngle, e.targetTurretAngle)
+
+		// use logarithmic scale to smooth the approach to the target turret angle
+		twistRate := math.Log1p(2*math.Abs(distA)) * turretRate
+		deltaA := geom.Clamp(distA, -twistRate, twistRate)
+		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA + deltaH)
+	}
 }

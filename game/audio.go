@@ -695,7 +695,7 @@ func (a *AudioHandler) PlayEffectAudio(g *Game, p *render.EffectSprite) {
 // maxVolume - the maximum volume percent to be perceived by the player
 func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPosY, extPosZ, intensityDist, maxVolume float64) {
 	playerPos := g.player.Pos()
-	playerHeading := g.player.Heading() + g.player.TurretAngle()
+	playerHeading := g.player.cameraAngle
 
 	extLine := geom3d.Line3d{
 		X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
@@ -718,7 +718,7 @@ func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPo
 // maxVolume - the maximum volume percent to be perceived by the player
 func (a *AudioHandler) PlayEntityAudioLoop(g *Game, sfxFile string, entity model.Entity, intensityDist, maxVolume float64) {
 	playerPos := g.player.Pos()
-	playerHeading := g.player.Heading() + g.player.TurretAngle()
+	playerHeading := g.player.cameraAngle
 
 	extPosX, extPosY, extPosZ := entity.Pos().X, entity.Pos().Y, entity.PosZ()
 	extLine := geom3d.Line3d{
