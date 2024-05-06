@@ -639,7 +639,14 @@ func hudPage(m Menu) *settingsPage {
 
 	// crosshair selection widget with graphical preview
 	var crosshairPreview *widget.Graphic
-	crosshairLabel := widget.NewLabel(widget.LabelOpts.Text("Crosshair", res.label.face, res.label.text))
+	numCrosshairs := resources.CrosshairsSheet.Columns * resources.CrosshairsSheet.Rows
+	crosshairLabel := widget.NewLabel(
+		widget.LabelOpts.Text(
+			fmt.Sprintf("Crosshair: %d/%d", game.hudCrosshairIndex+1, numCrosshairs),
+			res.label.face,
+			res.label.text,
+		),
+	)
 	c.AddChild(crosshairLabel)
 
 	cCrosshair := widget.NewContainer(
@@ -683,6 +690,7 @@ func hudPage(m Menu) *settingsPage {
 			if game.hudCrosshairIndex > 0 {
 				game.hudCrosshairIndex--
 			}
+			crosshairLabel.Label = fmt.Sprintf("Crosshair: %d/%d", game.hudCrosshairIndex+1, numCrosshairs)
 			crosshairs := render.NewCrosshairs(
 				crosshairSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, game.hudCrosshairIndex,
 			)
@@ -707,6 +715,7 @@ func hudPage(m Menu) *settingsPage {
 			if game.hudCrosshairIndex+1 < resources.CrosshairsSheet.Columns*resources.CrosshairsSheet.Rows {
 				game.hudCrosshairIndex++
 			}
+			crosshairLabel.Label = fmt.Sprintf("Crosshair: %d/%d", game.hudCrosshairIndex+1, numCrosshairs)
 			crosshairs := render.NewCrosshairs(
 				crosshairSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, game.hudCrosshairIndex,
 			)
