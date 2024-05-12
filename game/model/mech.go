@@ -6,6 +6,8 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type MechClass int
@@ -21,6 +23,10 @@ const (
 	MECH_POWER_ON_SECONDS   float64 = 5.0
 	MECH_TURN_RATE_FACTOR   float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
 	MECH_TURRET_RATE_FACTOR float64 = 1.5 * MECH_TURN_RATE_FACTOR
+
+	MECH_JUMP_JET_BOOST_PER_JET    float64 = 10.0 / METERS_PER_UNIT / TICKS_PER_SECOND
+	MECH_JUMP_JET_DELAY_SECONDS    float64 = 5.0
+	MECH_JUMP_JET_RECHARGE_SECONDS float64 = 5.0
 )
 
 type Mech struct {
@@ -50,7 +56,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 			maxTurnRate:        MECH_TURN_RATE_FACTOR + (100 / r.Tonnage * MECH_TURN_RATE_FACTOR),
 			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),
 			jumpJets:           r.JumpJets,
-			maxJumpJetDuration: float64(r.JumpJets) * 2.0,
+			maxJumpJetDuration: 1.0,
 		},
 	}
 
@@ -173,13 +179,18 @@ func (e *Mech) Update() bool {
 		if e.jumpJetDuration < e.maxJumpJetDuration {
 			// set jump jet heading and velocity only while active
 			e.jumpJetHeading = e.heading
-			e.jumpJetVelocity = e.velocity
+
+			// FIXME: adjust jjVelocity/jjVelocityZ amount based on directional jet
+			e.jumpJetVelocity = e.velocity + 0.5*MECH_JUMP_JET_BOOST_PER_JET*float64(e.jumpJets)
+			e.SetTargetVelocityZ(0.5 * MECH_JUMP_JET_BOOST_PER_JET * float64(e.jumpJets))
 		} else {
 			e.jumpJetDuration = e.maxJumpJetDuration
 			e.SetJumpJetsActive(false)
 			e.SetTargetVelocityZ(0)
 		}
 
+		// set jump jet recharge delay that will count down after back on solid ground
+		e.jumpJetDelay = MECH_JUMP_JET_DELAY_SECONDS
 	} else {
 		if e.positionZ > 0 {
 			if e.jumpJetVelocity != 0 {
@@ -198,12 +209,23 @@ func (e *Mech) Update() bool {
 				}
 			}
 		} else if e.jumpJetDuration > 0 {
-			// recharge jump jets when back on solid ground
-			e.jumpJetDuration -= float64(e.jumpJets) * SECONDS_PER_TICK / 10
-			if e.jumpJetDuration < 0 {
-				e.jumpJetDuration = 0
+			// recharge jump jets when back on solid ground after some delay
+			if e.jumpJetDelay > 0 {
+				e.jumpJetDelay -= SECONDS_PER_TICK
+				if e.jumpJetDelay < 0 {
+					e.jumpJetDelay = 0
+				}
+			} else {
+				e.jumpJetDuration -= SECONDS_PER_TICK / MECH_JUMP_JET_RECHARGE_SECONDS
+				if e.jumpJetDuration < 0 {
+					e.jumpJetDuration = 0
+				}
 			}
 		}
+	}
+
+	if e.jumpJetsActive || e.positionZ > 0 || e.jumpJetDelay > 0 || e.jumpJetDuration > 0 {
+		log.Debugf("[jjActive=%v] velocity=%0.3f | jjVelocity=%0.3f, jjVelocityZ=%0.3f", e.jumpJetsActive, e.velocity, e.jumpJetVelocity, e.velocityZ)
 	}
 
 	if e.heat > 0 {
@@ -239,18 +261,13 @@ func (e *Mech) Update() bool {
 		}
 
 		e.velocity = newV
-
-		if e.jumpJetsActive {
-			// set jump jet velocity only while jumping
-			e.jumpJetVelocity = e.velocity
-		}
 	}
 
 	if e.targetVelocityZ != e.velocityZ || e.positionZ > 0 {
 		// TODO: move vertical velocity toward target by amount allowed by calculated vertical acceleration
 		var zDeltaV, zNewV float64
 		if e.targetVelocityZ > 0 {
-			zDeltaV = 0.0005 // FIXME: testing
+			zDeltaV = 0.005 // FIXME: testing
 		} else if e.positionZ > 0 {
 			zDeltaV = -GRAVITY_UNITS_PTT // TODO: model gravity multiplier into map yaml
 		}

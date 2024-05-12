@@ -136,6 +136,7 @@ type UnitModel struct {
 	jumpJetsActive     bool
 	jumpJetHeading     float64
 	jumpJetVelocity    float64
+	jumpJetDelay       float64
 	jumpJetDuration    float64
 	maxJumpJetDuration float64
 	target             Entity
