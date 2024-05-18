@@ -186,7 +186,6 @@ func (e *Mech) Update() bool {
 		} else {
 			e.jumpJetDuration = e.maxJumpJetDuration
 			e.SetJumpJetsActive(false)
-			e.SetTargetVelocityZ(0)
 		}
 
 		// set jump jet recharge delay that will count down after back on solid ground

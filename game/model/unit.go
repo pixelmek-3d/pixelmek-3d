@@ -479,6 +479,9 @@ func (e *UnitModel) JumpJetsActive() bool {
 
 func (e *UnitModel) SetJumpJetsActive(active bool) {
 	e.jumpJetsActive = active
+	if !active {
+		e.SetTargetVelocityZ(0)
+	}
 }
 
 func (e *UnitModel) JumpJetHeading() float64 {

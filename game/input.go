@@ -801,15 +801,14 @@ func (g *Game) handleInput() {
 		}
 		// TODO: infantry jump (or jump jet infantry)
 
+	} else if g.player.JumpJetsActive() {
+		// make sure jump jets are set inactive
+		g.player.SetJumpJetsActive(false)
+
 	} else if g.input.ActionIsPressed(ActionDescend) {
 		if isVTOL {
 			// TODO: use unit tonnage and gravity to determine descent speed
 			g.player.SetTargetVelocityZ(-g.player.MaxVelocity() / 2)
-		}
-
-	} else if g.player.TargetVelocityZ() != 0 {
-		if !isVTOL {
-			g.player.SetJumpJetsActive(false)
 		}
 	}
 
