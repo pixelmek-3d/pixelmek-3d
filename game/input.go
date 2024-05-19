@@ -11,6 +11,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	input "github.com/quasilyte/ebitengine-input"
@@ -794,8 +795,13 @@ func (g *Game) handleInput() {
 			// TODO: use unit tonnage and gravity to determine ascent speed
 			g.player.SetTargetVelocityZ(g.player.MaxVelocity() / 2)
 		default:
+			initJumping := !g.player.JumpJetsActive()
 			canJumpJet := g.player.JumpJets() > 0 && g.player.JumpJetDuration() < g.player.MaxJumpJetDuration()
 			if canJumpJet {
+				if initJumping {
+					// initialize jump jet heading if first update with jets active
+					g.player.SetJumpJetHeading(g.player.Heading())
+				}
 				g.player.SetJumpJetsActive(true)
 			}
 		}
@@ -846,8 +852,17 @@ func (g *Game) handleInput() {
 		stop = true
 	}
 
-	switch g.throttleDecay {
-	case true:
+	switch {
+	case g.player.JumpJetsActive() && (forward || backward):
+		if forward {
+			// set forward directional jump jet heading
+			g.player.SetJumpJetHeading(g.player.cameraAngle)
+		} else if backward {
+			// set reverse directional jump jet heading
+			g.player.SetJumpJetHeading(model.ClampAngle2Pi(g.player.cameraAngle - geom.Pi))
+		}
+
+	case g.throttleDecay:
 		if forward {
 			g.player.SetTargetVelocity(g.player.MaxVelocity())
 		} else if backward {
@@ -855,7 +870,8 @@ func (g *Game) handleInput() {
 		} else {
 			g.player.SetTargetVelocity(0)
 		}
-	case false:
+
+	case !g.throttleDecay:
 		deltaV := 0.0004 // FIXME: testing
 		if math.Abs(moveDy) >= 0.2 {
 			deltaV *= math.Abs(moveDy)

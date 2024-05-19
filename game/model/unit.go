@@ -88,6 +88,7 @@ type Unit interface {
 	JumpJetsActive() bool
 	SetJumpJetsActive(bool)
 	JumpJetHeading() float64
+	SetJumpJetHeading(float64)
 	JumpJetVelocity() float64
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
@@ -486,6 +487,10 @@ func (e *UnitModel) SetJumpJetsActive(active bool) {
 
 func (e *UnitModel) JumpJetHeading() float64 {
 	return e.jumpJetHeading
+}
+
+func (e *UnitModel) SetJumpJetHeading(heading float64) {
+	e.jumpJetHeading = heading
 }
 
 func (e *UnitModel) JumpJetVelocity() float64 {

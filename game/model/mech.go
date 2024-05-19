@@ -175,9 +175,6 @@ func (e *Mech) Update() bool {
 		// consume jump jet charge
 		e.jumpJetDuration += SECONDS_PER_TICK
 		if e.jumpJetDuration < e.maxJumpJetDuration {
-			// set jump jet heading and velocity only while active
-			e.jumpJetHeading = e.heading
-
 			// FIXME: adjust jjVelocity/jjVelocityZ amount based on directional jet
 			e.jumpJetVelocity = e.velocity + 0.5*MECH_JUMP_JET_BOOST_PER_JET*float64(e.jumpJets)
 			e.SetTargetVelocityZ(0.5 * MECH_JUMP_JET_BOOST_PER_JET * float64(e.jumpJets))
