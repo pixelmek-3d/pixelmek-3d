@@ -551,8 +551,13 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 	hudRect := hudOpts.HudRect
 	hudW, hudH := hudRect.Dx(), hudRect.Dy()
 
+	velocity := g.player.Velocity()
+	if g.player.JumpJetVelocity() > 0 {
+		velocity = g.player.JumpJetVelocity()
+	}
+
 	// convert velocity from units per tick to kilometers per hour
-	kphVelocity := g.player.Velocity() * model.VELOCITY_TO_KPH
+	kphVelocity := velocity * model.VELOCITY_TO_KPH
 	kphVelocityZ := g.player.VelocityZ() * model.VELOCITY_TO_KPH
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH

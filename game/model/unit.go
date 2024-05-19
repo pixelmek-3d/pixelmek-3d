@@ -87,7 +87,10 @@ type Unit interface {
 	JumpJets() int
 	JumpJetsActive() bool
 	SetJumpJetsActive(bool)
+	JumpJetsDirectional() bool
+	SetJumpJetsDirectional(bool)
 	JumpJetHeading() float64
+	SetJumpJetHeading(float64)
 	JumpJetVelocity() float64
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
@@ -101,48 +104,50 @@ type Unit interface {
 }
 
 type UnitModel struct {
-	id                 string
-	unitType           UnitType
-	position           *geom.Vector2
-	positionZ          float64
-	anchor             raycaster.SpriteAnchor
-	heading            float64
-	targetHeading      float64
-	maxTurnRate        float64
-	pitch              float64
-	targetPitch        float64
-	hasTurret          bool
-	turretAngle        float64
-	targetTurretAngle  float64
-	maxTurretRate      float64
-	velocity           float64
-	velocityZ          float64
-	targetVelocity     float64
-	targetVelocityZ    float64
-	maxVelocity        float64
-	collisionRadius    float64
-	collisionHeight    float64
-	cockpitOffset      *geom.Vector2
-	armor              float64
-	structure          float64
-	heat               float64
-	heatDissipation    float64
-	heatSinks          int
-	heatSinkType       HeatSinkType
-	powered            UnitPowerStatus
-	armament           []Weapon
-	ammunition         *Ammo
-	jumpJets           int
-	jumpJetsActive     bool
-	jumpJetHeading     float64
-	jumpJetVelocity    float64
-	jumpJetDuration    float64
-	maxJumpJetDuration float64
-	target             Entity
-	targetLock         float64
-	objective          UnitObjective
-	parent             Entity
-	isPlayer           bool
+	id                  string
+	unitType            UnitType
+	position            *geom.Vector2
+	positionZ           float64
+	anchor              raycaster.SpriteAnchor
+	heading             float64
+	targetHeading       float64
+	maxTurnRate         float64
+	pitch               float64
+	targetPitch         float64
+	hasTurret           bool
+	turretAngle         float64
+	targetTurretAngle   float64
+	maxTurretRate       float64
+	velocity            float64
+	velocityZ           float64
+	targetVelocity      float64
+	targetVelocityZ     float64
+	maxVelocity         float64
+	collisionRadius     float64
+	collisionHeight     float64
+	cockpitOffset       *geom.Vector2
+	armor               float64
+	structure           float64
+	heat                float64
+	heatDissipation     float64
+	heatSinks           int
+	heatSinkType        HeatSinkType
+	powered             UnitPowerStatus
+	armament            []Weapon
+	ammunition          *Ammo
+	jumpJets            int
+	jumpJetsActive      bool
+	jumpJetsDirectional bool
+	jumpJetHeading      float64
+	jumpJetVelocity     float64
+	jumpJetDelay        float64
+	jumpJetDuration     float64
+	maxJumpJetDuration  float64
+	target              Entity
+	targetLock          float64
+	objective           UnitObjective
+	parent              Entity
+	isPlayer            bool
 }
 
 func EntityUnit(entity Entity) Unit {
@@ -478,10 +483,26 @@ func (e *UnitModel) JumpJetsActive() bool {
 
 func (e *UnitModel) SetJumpJetsActive(active bool) {
 	e.jumpJetsActive = active
+	if !active {
+		e.SetTargetVelocityZ(0)
+		e.SetJumpJetsDirectional(false)
+	}
+}
+
+func (e *UnitModel) JumpJetsDirectional() bool {
+	return e.jumpJetsDirectional
+}
+
+func (e *UnitModel) SetJumpJetsDirectional(isDirectional bool) {
+	e.jumpJetsDirectional = isDirectional
 }
 
 func (e *UnitModel) JumpJetHeading() float64 {
 	return e.jumpJetHeading
+}
+
+func (e *UnitModel) SetJumpJetHeading(heading float64) {
+	e.jumpJetHeading = heading
 }
 
 func (e *UnitModel) JumpJetVelocity() float64 {
@@ -521,17 +542,30 @@ func (e *UnitModel) IsPlayer() bool {
 }
 
 func (e *UnitModel) needsUpdate() bool {
-	if e.targetHeading == e.heading && e.targetPitch == e.pitch &&
-		e.targetTurretAngle == e.turretAngle &&
-		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 && e.positionZ == 0 {
-		// no position update needed
-		return false
+	if e.jumpJetsActive || e.heat > 0 ||
+		e.targetHeading != e.heading || e.targetPitch != e.pitch ||
+		e.targetTurretAngle != e.turretAngle ||
+		e.targetVelocity != 0 || e.velocity != 0 ||
+		e.targetVelocityZ != 0 || e.velocityZ != 0 || e.positionZ != 0 {
+		return true
 	}
-	return true
+	return false
 }
 
 func (e *UnitModel) update() {
+	if e.jumpJetsActive {
+		// apply heat from active jump jets
+		e.heat += 2 * float64(e.jumpJets) / TICKS_PER_SECOND
+		// for balance purposes, not allowing heat dissipation while jets enabled
+	} else if e.heat > 0 {
+		// apply heat dissipation
+		e.heat -= e.HeatDissipation()
+		if e.heat < 0 {
+			e.heat = 0
+		}
+	}
+
+	// if not powered on, no movement related updates needed
 	if e.powered != POWER_ON {
 		return
 	}

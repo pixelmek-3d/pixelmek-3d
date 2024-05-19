@@ -11,6 +11,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	input "github.com/quasilyte/ebitengine-input"
@@ -358,7 +359,7 @@ func (g *Game) handleInput() {
 	}
 
 	_, isInfantry := g.player.Unit.(*model.Infantry)
-	_, isMech := g.player.Unit.(*model.Mech)
+	//_, isMech := g.player.Unit.(*model.Mech)
 	_, isVTOL := g.player.Unit.(*model.VTOL)
 
 	if g.debug && ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
@@ -793,37 +794,28 @@ func (g *Game) handleInput() {
 		case isVTOL:
 			// TODO: use unit tonnage and gravity to determine ascent speed
 			g.player.SetTargetVelocityZ(g.player.MaxVelocity() / 2)
-		case isMech:
-			// TODO: add jump jet toggle option
-			// TODO: refactor jump jet code for use by enemy bots
-			if g.player.Unit.JumpJets() > 0 {
-				if g.player.Unit.JumpJetsActive() {
-					// continue jumping until jets run out of charge
-					if g.player.JumpJetDuration() >= g.player.Unit.MaxJumpJetDuration() {
-						g.player.Unit.SetJumpJetsActive(false)
-						g.player.SetTargetVelocityZ(0)
-					}
-				} else if g.player.JumpJetDuration() < 0.9*g.player.Unit.MaxJumpJetDuration() {
-					// only allow jump jets to reengage if not close to the max jet charge usage
-					g.player.Unit.SetJumpJetsActive(true)
-					g.player.SetTargetVelocityZ(0.05)
+		default:
+			initJumping := !g.player.JumpJetsActive()
+			canJumpJet := g.player.JumpJets() > 0 && g.player.JumpJetDuration() < g.player.MaxJumpJetDuration()
+			if canJumpJet {
+				g.player.SetJumpJetsActive(true)
+				g.player.SetJumpJetsDirectional(false)
+				if initJumping {
+					// initialize jump jet heading if first update with jets active
+					g.player.SetJumpJetHeading(g.player.Heading())
 				}
 			}
 		}
 		// TODO: infantry jump (or jump jet infantry)
 
+	} else if g.player.JumpJetsActive() {
+		// reset jump jet active status
+		g.player.SetJumpJetsActive(false)
+
 	} else if g.input.ActionIsPressed(ActionDescend) {
-		switch {
-		case isVTOL:
+		if isVTOL {
 			// TODO: use unit tonnage and gravity to determine descent speed
 			g.player.SetTargetVelocityZ(-g.player.MaxVelocity() / 2)
-		}
-
-	} else if g.player.TargetVelocityZ() != 0 {
-		g.player.SetTargetVelocityZ(0)
-		switch {
-		case isMech:
-			g.player.Unit.SetJumpJetsActive(false)
 		}
 	}
 
@@ -861,8 +853,20 @@ func (g *Game) handleInput() {
 		stop = true
 	}
 
-	switch g.throttleDecay {
-	case true:
+	switch {
+	case g.player.JumpJetsActive() && (forward || backward):
+		if forward {
+			// set forward directional jump jet heading
+			g.player.SetJumpJetsDirectional(true)
+			g.player.SetJumpJetHeading(g.player.cameraAngle)
+		} else if backward {
+			// set reverse directional jump jet heading
+			g.player.SetJumpJetsDirectional(true)
+			g.player.SetJumpJetHeading(model.ClampAngle2Pi(g.player.cameraAngle - geom.Pi))
+
+		}
+
+	case g.throttleDecay:
 		if forward {
 			g.player.SetTargetVelocity(g.player.MaxVelocity())
 		} else if backward {
@@ -870,7 +874,8 @@ func (g *Game) handleInput() {
 		} else {
 			g.player.SetTargetVelocity(0)
 		}
-	case false:
+
+	case !g.throttleDecay:
 		deltaV := 0.0004 // FIXME: testing
 		if math.Abs(moveDy) >= 0.2 {
 			deltaV *= math.Abs(moveDy)

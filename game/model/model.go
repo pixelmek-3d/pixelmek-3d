@@ -20,7 +20,7 @@ const (
 	GRAVITY_METERS_PSS float64 = 9.80665
 	GRAVITY_UNITS_PTT  float64 = GRAVITY_METERS_PSS / METERS_PER_UNIT / (TICKS_PER_SECOND * TICKS_PER_SECOND)
 
-	CEILING_JUMP float64 = 2.0
+	CEILING_JUMP float64 = 5.0
 	CEILING_VTOL float64 = 5.0 // TODO: set flight ceiling in map yaml
 )
 
