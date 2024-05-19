@@ -18,6 +18,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 
 	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
@@ -621,9 +622,20 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 }
 
 func (g *Game) targetCrosshairs() model.Entity {
-	newTarget := g.player.convergenceSprite
+	newTarget := g.spriteInCrosshairs()
+	if newTarget != nil && !newTarget.IsDestroyed() {
+		g.player.SetTarget(newTarget.Entity)
+		return newTarget.Entity
+	} else {
+		// unset target if nothing is there
+		g.player.SetTarget(nil)
+	}
+	return nil
+}
 
-	if newTarget == nil {
+func (g *Game) spriteInCrosshairs() *render.Sprite {
+	cSprite := g.player.convergenceSprite
+	if cSprite == nil {
 		// check for target in crosshairs bounds if not directly at the single center raycasted pixel
 		crosshairs := g.GetHUDElement(HUD_CROSSHAIRS).(*render.Crosshairs)
 		if crosshairs == nil {
@@ -633,7 +645,7 @@ func (g *Game) targetCrosshairs() model.Entity {
 		crosshairRect := crosshairs.Rect().Add(
 			image.Point{X: (g.screenWidth / 2) - (crosshairs.Width() / 2), Y: (g.screenHeight / 2) - (crosshairs.Height() / 2)})
 
-		var newTargetArea int
+		var cSpriteArea int
 		for spriteType := range g.sprites.sprites {
 			g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 				if !g.isInteractiveType(spriteType) {
@@ -655,23 +667,38 @@ func (g *Game) targetCrosshairs() model.Entity {
 				intersectRect := crosshairRect.Intersect(*sBounds)
 				intersectArea := intersectRect.Dx() * intersectRect.Dy()
 
-				if intersectArea > newTargetArea {
-					newTarget = s
-					newTargetArea = intersectArea
+				if intersectArea > cSpriteArea {
+					cSprite = s
+					cSpriteArea = intersectArea
 				}
 				return true
 			})
 		}
 	}
 
-	if newTarget != nil && !newTarget.IsDestroyed() {
-		g.player.SetTarget(newTarget.Entity)
-		return newTarget.Entity
-	} else {
-		// unset target if nothing is there
-		g.player.SetTarget(nil)
+	return cSprite
+}
+
+// ConvergencePoint returns the convergence point from current angle/pitch to sprite in crosshairs.
+// Returns nil if no sprite in crosshairs.
+func (g *Game) ConvergencePoint() *geom3d.Vector3 {
+	p := g.player
+	s := g.spriteInCrosshairs()
+	if s == nil {
+		return nil
 	}
-	return nil
+
+	pX, pY, pZ := p.Pos().X, p.Pos().Y, p.cameraZ
+	sX, sY, sZ := s.Pos().X, s.Pos().Y, s.PosZ()
+	targetDist := (&geom3d.Line3d{
+		X1: pX, Y1: pY, Z1: pZ,
+		X2: sX, Y2: sY, Z2: sZ,
+	}).Distance()
+
+	convergenceLine := geom3d.Line3dFromAngle(pX, pY, pZ, p.TurretAngle(), p.Pitch(), targetDist)
+	convergencePoint := &geom3d.Vector3{X: convergenceLine.X2, Y: convergenceLine.Y2, Z: convergenceLine.Z2}
+
+	return convergencePoint
 }
 
 func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {

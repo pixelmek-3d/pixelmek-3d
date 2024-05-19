@@ -7,7 +7,6 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 
 	"github.com/harbdog/raycaster-go/geom"
-	"github.com/harbdog/raycaster-go/geom3d"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -138,27 +137,6 @@ func (p *Player) NavPoint() *model.NavPoint {
 		return nil
 	}
 	return p.currentNav.NavPoint
-}
-
-// ConvergencePoint returns the convergence point from current angle/pitch to distance of target.
-// Returns nil if no target selected.
-func (p *Player) ConvergencePoint() *geom3d.Vector3 {
-	if p.Target() == nil {
-		return nil
-	}
-	pX, pY, pZ := p.Pos().X, p.Pos().Y, p.cameraZ
-
-	t := p.Target()
-	tX, tY, tZ := t.Pos().X, t.Pos().Y, t.PosZ()
-	targetDist := (&geom3d.Line3d{
-		X1: pX, Y1: pY, Z1: pZ,
-		X2: tX, Y2: tY, Z2: tZ,
-	}).Distance()
-
-	convergenceLine := geom3d.Line3dFromAngle(pX, pY, pZ, p.TurretAngle(), p.Pitch(), targetDist)
-	convergencePoint := &geom3d.Vector3{X: convergenceLine.X2, Y: convergenceLine.Y2, Z: convergenceLine.Z2}
-
-	return convergencePoint
 }
 
 // Rotate camera, relative to current angle, by rotation speed
