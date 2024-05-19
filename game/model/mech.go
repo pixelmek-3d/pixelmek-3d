@@ -6,8 +6,6 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type MechClass int
@@ -207,6 +205,10 @@ func (e *Mech) Update() bool {
 					e.jumpJetVelocity += deltaV
 				}
 			}
+		} else if e.jumpJetVelocity > 0 {
+			// reset velocity and jump jet velocity when back on solid ground
+			e.velocity = e.jumpJetVelocity
+			e.jumpJetVelocity = 0
 		} else if e.jumpJetDuration > 0 {
 			// recharge jump jets when back on solid ground after some delay
 			if e.jumpJetDelay > 0 {
@@ -221,10 +223,6 @@ func (e *Mech) Update() bool {
 				}
 			}
 		}
-	}
-
-	if e.jumpJetsActive || e.positionZ > 0 || e.jumpJetDelay > 0 || e.jumpJetDuration > 0 {
-		log.Debugf("[jjActive=%v] velocity=%0.3f | jjVelocity=%0.3f, jjVelocityZ=%0.3f", e.jumpJetsActive, e.velocity, e.jumpJetVelocity, e.velocityZ)
 	}
 
 	if e.heat > 0 {
