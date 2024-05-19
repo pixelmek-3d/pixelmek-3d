@@ -27,15 +27,19 @@ func (g *Game) initCombatVariables() {
 // firePlayerWeapon fires currently selected player weapon/weapon group or input weapon group
 func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 	// weapons test from model
-	weaponsFired := false
+	if g.player.IsDestroyed() {
+		return false
+	}
 	if g.player.Powered() != model.POWER_ON {
 		// TODO: when shutdown, show weapons as disabled and disallow cycling weapons
-		return weaponsFired
+		return false
 	}
 	armament := g.player.Armament()
 	if len(armament) == 0 {
-		return weaponsFired
+		return false
 	}
+
+	weaponsFired := false
 
 	if weaponGroupFire < 0 && g.player.fireMode == model.GROUP_FIRE {
 		// indicate firing current selected weapon group
