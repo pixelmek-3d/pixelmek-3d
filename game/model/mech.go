@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/jinzhu/copier"
 )
 
@@ -22,9 +23,10 @@ const (
 	MECH_TURN_RATE_FACTOR   float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
 	MECH_TURRET_RATE_FACTOR float64 = 1.5 * MECH_TURN_RATE_FACTOR
 
-	MECH_JUMP_JET_BOOST_PER_JET    float64 = 10.0 / METERS_PER_UNIT / TICKS_PER_SECOND
-	MECH_JUMP_JET_DELAY_SECONDS    float64 = 5.0
-	MECH_JUMP_JET_RECHARGE_SECONDS float64 = 5.0
+	MECH_JUMP_JET_BOOST_PER_JET     float64 = 10.0 / METERS_PER_UNIT / TICKS_PER_SECOND
+	MECH_JUMP_JET_DELAY_SECONDS     float64 = 5.0
+	MECH_JUMP_JET_RECHARGE_SECONDS  float64 = 5.0
+	MECH_JUMP_JET_DIRECTIONAL_ANGLE float64 = geom.Pi / 8
 )
 
 type Mech struct {
@@ -175,9 +177,19 @@ func (e *Mech) Update() bool {
 		// consume jump jet charge
 		e.jumpJetDuration += SECONDS_PER_TICK
 		if e.jumpJetDuration < e.maxJumpJetDuration {
-			// FIXME: adjust jjVelocity/jjVelocityZ amount based on directional jet
-			e.jumpJetVelocity = e.velocity + 0.5*MECH_JUMP_JET_BOOST_PER_JET*float64(e.jumpJets)
-			e.SetTargetVelocityZ(0.5 * MECH_JUMP_JET_BOOST_PER_JET * float64(e.jumpJets))
+			if e.jumpJetsDirectional {
+				// adjust jjVelocity/jjVelocityZ amount using directional jet angle
+				dVelocity := MECH_JUMP_JET_BOOST_PER_JET * float64(e.jumpJets)
+				dLine3d := geom3d.Line3dFromAngle(0, 0, 0, e.jumpJetHeading, MECH_JUMP_JET_DIRECTIONAL_ANGLE, dVelocity)
+				dLine2d := geom.Line{X1: dLine3d.X1, Y1: dLine3d.Y1, X2: dLine3d.X2, Y2: dLine3d.Y2}
+
+				e.jumpJetVelocity = e.velocity + dLine2d.Distance()
+				e.SetTargetVelocityZ(dLine3d.Z2)
+			} else {
+				// jump jets non-directional, jet straight up with current ground velocity
+				e.jumpJetVelocity = e.velocity
+				e.SetTargetVelocityZ(MECH_JUMP_JET_BOOST_PER_JET * float64(e.jumpJets))
+			}
 		} else {
 			e.jumpJetDuration = e.maxJumpJetDuration
 			e.SetJumpJetsActive(false)

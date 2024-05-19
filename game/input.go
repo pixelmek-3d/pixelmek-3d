@@ -798,17 +798,18 @@ func (g *Game) handleInput() {
 			initJumping := !g.player.JumpJetsActive()
 			canJumpJet := g.player.JumpJets() > 0 && g.player.JumpJetDuration() < g.player.MaxJumpJetDuration()
 			if canJumpJet {
+				g.player.SetJumpJetsActive(true)
+				g.player.SetJumpJetsDirectional(false)
 				if initJumping {
 					// initialize jump jet heading if first update with jets active
 					g.player.SetJumpJetHeading(g.player.Heading())
 				}
-				g.player.SetJumpJetsActive(true)
 			}
 		}
 		// TODO: infantry jump (or jump jet infantry)
 
 	} else if g.player.JumpJetsActive() {
-		// make sure jump jets are set inactive
+		// reset jump jet active status
 		g.player.SetJumpJetsActive(false)
 
 	} else if g.input.ActionIsPressed(ActionDescend) {
@@ -856,10 +857,13 @@ func (g *Game) handleInput() {
 	case g.player.JumpJetsActive() && (forward || backward):
 		if forward {
 			// set forward directional jump jet heading
+			g.player.SetJumpJetsDirectional(true)
 			g.player.SetJumpJetHeading(g.player.cameraAngle)
 		} else if backward {
 			// set reverse directional jump jet heading
+			g.player.SetJumpJetsDirectional(true)
 			g.player.SetJumpJetHeading(model.ClampAngle2Pi(g.player.cameraAngle - geom.Pi))
+
 		}
 
 	case g.throttleDecay:
