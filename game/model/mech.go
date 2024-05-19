@@ -234,16 +234,6 @@ func (e *Mech) Update() bool {
 		}
 	}
 
-	if e.heat > 0 {
-		// TODO: apply heat from movement based on velocity and/or active jump jets
-
-		// apply heat dissipation
-		e.heat -= e.HeatDissipation()
-		if e.heat < 0 {
-			e.heat = 0
-		}
-	}
-
 	if e.needsUpdate() {
 		e.UnitModel.update()
 	} else {

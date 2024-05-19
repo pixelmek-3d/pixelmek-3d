@@ -542,17 +542,30 @@ func (e *UnitModel) IsPlayer() bool {
 }
 
 func (e *UnitModel) needsUpdate() bool {
-	if e.targetHeading == e.heading && e.targetPitch == e.pitch &&
-		e.targetTurretAngle == e.turretAngle &&
-		e.targetVelocity == 0 && e.velocity == 0 &&
-		e.targetVelocityZ == 0 && e.velocityZ == 0 && e.positionZ == 0 {
-		// no position update needed
-		return false
+	if e.jumpJetsActive || e.heat > 0 ||
+		e.targetHeading != e.heading || e.targetPitch != e.pitch ||
+		e.targetTurretAngle != e.turretAngle ||
+		e.targetVelocity != 0 || e.velocity != 0 ||
+		e.targetVelocityZ != 0 || e.velocityZ != 0 || e.positionZ != 0 {
+		return true
 	}
-	return true
+	return false
 }
 
 func (e *UnitModel) update() {
+	if e.jumpJetsActive {
+		// apply heat from active jump jets
+		e.heat += 2 * float64(e.jumpJets) / TICKS_PER_SECOND
+		// for balance purposes, not allowing heat dissipation while jets enabled
+	} else if e.heat > 0 {
+		// apply heat dissipation
+		e.heat -= e.HeatDissipation()
+		if e.heat < 0 {
+			e.heat = 0
+		}
+	}
+
+	// if not powered on, no movement related updates needed
 	if e.powered != POWER_ON {
 		return
 	}
