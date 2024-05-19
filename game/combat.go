@@ -48,7 +48,7 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 
 	// in case convergence point not set, use player heading and pitch
 	pAngle, pPitch := g.player.TurretAngle(), g.player.Pitch()
-	convergencePoint := g.player.ConvergencePoint()
+	convergencePoint := g.ConvergencePoint()
 
 	// if a weapon with lock required tries but cannot fire make a sound
 	isWeaponWithLockRequiredNotFired := false
@@ -502,7 +502,7 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		spreadPitch = randFloat(-p.spread, p.spread)
 	}
 
-	convergencePoint := g.player.ConvergencePoint()
+	convergencePoint := g.ConvergencePoint()
 	if e != g.player.Unit || convergencePoint == nil {
 		projectile = w.SpawnProjectile(e.TurretAngle()+spreadAngle, e.Pitch()+spreadPitch, e)
 	} else {
