@@ -24,6 +24,12 @@ func (g *Game) initCombatVariables() {
 	g.delayedProjectiles = make(map[*DelayedProjectileSpawn]struct{}, 256)
 }
 
+func destroyEntity(e model.Entity) {
+	if e != nil {
+		e.SetStructurePoints(0)
+	}
+}
+
 // firePlayerWeapon fires currently selected player weapon/weapon group or input weapon group
 func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 	// weapons test from model

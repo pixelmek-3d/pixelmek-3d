@@ -17,13 +17,13 @@ type EntityCollision struct {
 }
 
 func (g *Game) initCollisionTypes() {
-	g.collisonSpriteTypes = map[SpriteType]struct{}{
-		MapSpriteType:         {},
-		MechSpriteType:        {},
-		VehicleSpriteType:     {},
-		VTOLSpriteType:        {},
-		InfantrySpriteType:    {},
-		EmplacementSpriteType: {},
+	g.collisonSpriteTypes = map[SpriteType]bool{
+		MapSpriteType:         true,
+		MechSpriteType:        true,
+		VehicleSpriteType:     true,
+		VTOLSpriteType:        true,
+		InfantrySpriteType:    true,
+		EmplacementSpriteType: true,
 	}
 }
 

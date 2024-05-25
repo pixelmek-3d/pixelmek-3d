@@ -338,7 +338,7 @@ func openExitWindow(m Menu) {
 
 					if game.InProgress() && game.player.ejectionPod == nil {
 						// destroy player to make them eject
-						game.player.SetStructurePoints(0)
+						destroyEntity(game.player)
 						game.closeMenu()
 					} else {
 						game.LeaveGame()

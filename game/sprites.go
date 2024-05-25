@@ -333,3 +333,23 @@ func (g *Game) getSpriteFromEntity(entity model.Entity) *render.Sprite {
 
 	return nil
 }
+
+func (g *Game) getMapSpriteFromEntity(entity model.Entity) *render.Sprite {
+	var found *render.Sprite
+
+	g.sprites.sprites[MapSpriteType].Range(func(k, _ interface{}) bool {
+		s := getSpriteFromInterface(k.(raycaster.Sprite))
+		if entity == s.Entity {
+			found = s
+			return false // found, stop Range iteration
+		}
+
+		return true
+	})
+
+	if found != nil {
+		return found
+	}
+
+	return nil
+}
