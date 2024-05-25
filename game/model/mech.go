@@ -165,9 +165,9 @@ func (e *Mech) Update() bool {
 
 	if e.powered != POWER_ON {
 		// ensure certain values are reset when not powered on
-		e.jumpJetsActive = false
-		e.targetVelocity = 0
-		e.targetVelocityZ = 0
+		e.SetJumpJetsActive(false)
+		e.SetTargetVelocity(0)
+		e.SetTargetVelocityZ(0)
 		e.SetTargetHeading(e.heading)
 		e.SetTargetPitch(e.pitch)
 		e.SetTargetTurretAngle(e.turretAngle)
