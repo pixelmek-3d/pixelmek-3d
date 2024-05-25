@@ -368,12 +368,12 @@ func (g *Game) handleInput() {
 		alt_test := ebiten.IsKeyPressed(ebiten.KeyAlt)
 		switch {
 		case ctrl_test && alt_test:
-			g.player.SetStructurePoints(0)
+			destroyEntity(g.player)
 
 		case ctrl_test:
 			target := model.EntityUnit(g.player.Target())
 			if target != nil {
-				target.SetStructurePoints(0)
+				destroyEntity(target)
 			}
 
 		case alt_test:

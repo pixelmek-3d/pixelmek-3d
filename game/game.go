@@ -107,8 +107,8 @@ type Game struct {
 
 	sprites                *SpriteHandler
 	clutter                *ClutterHandler
-	collisonSpriteTypes    map[SpriteType]struct{}
-	interactiveSpriteTypes map[SpriteType]struct{}
+	collisonSpriteTypes    map[SpriteType]bool
+	interactiveSpriteTypes map[SpriteType]bool
 	delayedProjectiles     map[*DelayedProjectileSpawn]struct{}
 
 	// Gameplay
@@ -574,11 +574,19 @@ func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
 		// apply damage to the first sprite entity that was hit
 		collisionEntity := collisions[0]
 
-		collisionDamage := 0.1 // TODO: determine collision damage based on player mech and speed
+		// TODO: collision damage based on player unit type, size, speed, and collision entity type
+		collisionDamage := 0.01
+
+		// apply more damage if it is a tree or foliage (MapSprite)
+		mapSprite := g.getMapSpriteFromEntity(collisionEntity.entity)
+		if mapSprite != nil {
+			collisionDamage = 0.1
+		}
+
 		collisionEntity.entity.ApplyDamage(collisionDamage)
 		if g.debug {
 			hp, maxHP := collisionEntity.entity.ArmorPoints()+collisionEntity.entity.StructurePoints(), collisionEntity.entity.MaxArmorPoints()+collisionEntity.entity.MaxStructurePoints()
-			log.Debugf("collided for %0.1f (HP: %0.1f/%0.0f)", collisionDamage, hp, maxHP)
+			log.Debugf("collided for %0.1f (HP: %0.1f/%0.1f)", collisionDamage, hp, maxHP)
 		}
 	}
 }

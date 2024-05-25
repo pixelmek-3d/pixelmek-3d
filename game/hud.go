@@ -49,12 +49,12 @@ func (g *Game) GetHUDElement(t HUDElementType) HUDElement {
 }
 
 func (g *Game) initInteractiveTypes() {
-	g.interactiveSpriteTypes = map[SpriteType]struct{}{
-		MechSpriteType:        {},
-		VehicleSpriteType:     {},
-		VTOLSpriteType:        {},
-		InfantrySpriteType:    {},
-		EmplacementSpriteType: {},
+	g.interactiveSpriteTypes = map[SpriteType]bool{
+		MechSpriteType:        true,
+		VehicleSpriteType:     true,
+		VTOLSpriteType:        true,
+		InfantrySpriteType:    true,
+		EmplacementSpriteType: true,
 	}
 }
 
