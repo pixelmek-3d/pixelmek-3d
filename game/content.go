@@ -260,7 +260,7 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionMech := range g.mission.Mechs {
-		modelMech := g.createModelMech(missionMech.Unit, missionMech.ID)
+		modelMech := g.createModelMech(missionMech.Unit, missionMech.ID, missionMech.Team)
 		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
 
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
@@ -274,7 +274,7 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVehicle := range g.mission.Vehicles {
-		modelVehicle := g.createModelVehicle(missionVehicle.Unit, missionVehicle.ID)
+		modelVehicle := g.createModelVehicle(missionVehicle.Unit, missionVehicle.ID, missionVehicle.Team)
 		vehicle := g.createUnitSprite(modelVehicle).(*render.VehicleSprite)
 
 		posX, posY := missionVehicle.Position[0], missionVehicle.Position[1]
@@ -288,7 +288,7 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVTOL := range g.mission.VTOLs {
-		modelVTOL := g.createModelVTOL(missionVTOL.Unit, missionVTOL.ID)
+		modelVTOL := g.createModelVTOL(missionVTOL.Unit, missionVTOL.ID, missionVTOL.Team)
 		vtol := g.createUnitSprite(modelVTOL).(*render.VTOLSprite)
 
 		posX, posY, posZ := missionVTOL.Position[0], missionVTOL.Position[1], missionVTOL.ZPosition
@@ -303,7 +303,7 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionInfantry := range g.mission.Infantry {
-		modelInfantry := g.createModelInfantry(missionInfantry.Unit, missionInfantry.ID)
+		modelInfantry := g.createModelInfantry(missionInfantry.Unit, missionInfantry.ID, missionInfantry.Team)
 		infantry := g.createUnitSprite(modelInfantry).(*render.InfantrySprite)
 
 		posX, posY := missionInfantry.Position[0], missionInfantry.Position[1]
@@ -317,7 +317,7 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionEmplacement := range g.mission.Emplacements {
-		modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit, missionEmplacement.ID)
+		modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit, missionEmplacement.ID, missionEmplacement.Team)
 		emplacement := g.createUnitSprite(modelEmplacement).(*render.EmplacementSprite)
 
 		posX, posY := missionEmplacement.Position[0], missionEmplacement.Position[1]
@@ -327,10 +327,11 @@ func (g *Game) loadMissionSprites() {
 	}
 }
 
-func (g *Game) createModelMech(unit, id string) *model.Mech {
+func (g *Game) createModelMech(unit, id string, team int) *model.Mech {
 	mechResource := g.resources.GetMechResource(unit)
 	modelMech := g.createModelMechFromResource(mechResource)
 	modelMech.SetID(id)
+	modelMech.SetTeam(team)
 	return modelMech
 }
 
@@ -356,7 +357,7 @@ func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource
 	return modelMech
 }
 
-func (g *Game) createModelVehicle(unit, id string) *model.Vehicle {
+func (g *Game) createModelVehicle(unit, id string, team int) *model.Vehicle {
 	vehicleResource := g.resources.GetVehicleResource(unit)
 	vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
 	vehicleImg := getSpriteFromFile(vehicleRelPath)
@@ -382,10 +383,11 @@ func (g *Game) createModelVehicle(unit, id string) *model.Vehicle {
 	g.loadUnitAmmo(modelVehicle, vehicleResource.Ammo)
 
 	modelVehicle.SetID(id)
+	modelVehicle.SetTeam(team)
 	return modelVehicle
 }
 
-func (g *Game) createModelVTOL(unit, id string) *model.VTOL {
+func (g *Game) createModelVTOL(unit, id string, team int) *model.VTOL {
 	vtolResource := g.resources.GetVTOLResource(unit)
 	vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
 	vtolImg := getSpriteFromFile(vtolRelPath)
@@ -411,10 +413,11 @@ func (g *Game) createModelVTOL(unit, id string) *model.VTOL {
 	g.loadUnitAmmo(modelVTOL, vtolResource.Ammo)
 
 	modelVTOL.SetID(id)
+	modelVTOL.SetTeam(team)
 	return modelVTOL
 }
 
-func (g *Game) createModelInfantry(unit, id string) *model.Infantry {
+func (g *Game) createModelInfantry(unit, id string, team int) *model.Infantry {
 	infantryResource := g.resources.GetInfantryResource(unit)
 	infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
 	infantryImg := getSpriteFromFile(infantryRelPath)
@@ -440,10 +443,11 @@ func (g *Game) createModelInfantry(unit, id string) *model.Infantry {
 	g.loadUnitAmmo(modelInfantry, infantryResource.Ammo)
 
 	modelInfantry.SetID(id)
+	modelInfantry.SetTeam(team)
 	return modelInfantry
 }
 
-func (g *Game) createModelEmplacement(unit, id string) *model.Emplacement {
+func (g *Game) createModelEmplacement(unit, id string, team int) *model.Emplacement {
 	emplacementResource := g.resources.GetEmplacementResource(unit)
 	emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
 	emplacementImg := getSpriteFromFile(emplacementRelPath)
@@ -469,6 +473,7 @@ func (g *Game) createModelEmplacement(unit, id string) *model.Emplacement {
 	g.loadUnitAmmo(modelEmplacement, emplacementResource.Ammo)
 
 	modelEmplacement.SetID(id)
+	modelEmplacement.SetTeam(team)
 	return modelEmplacement
 }
 

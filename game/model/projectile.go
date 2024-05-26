@@ -28,6 +28,7 @@ type Projectile struct {
 	damage          float64
 	weapon          Weapon
 	lockOnOffset    *geom3d.Vector3
+	team            int
 	parent          Entity
 }
 
@@ -81,6 +82,14 @@ func (e *Projectile) Clone() Entity {
 	eClone := &Projectile{}
 	copier.Copy(eClone, e)
 	return eClone
+}
+
+func (e *Projectile) Team() int {
+	return e.team
+}
+
+func (e *Projectile) SetTeam(team int) {
+	e.team = team
 }
 
 func (e *Projectile) Damage() float64 {

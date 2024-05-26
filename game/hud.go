@@ -761,6 +761,12 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
+	if s.Team() < 0 {
+		targetReticle.Friendly = true
+	} else {
+		targetReticle.Friendly = false
+	}
+
 	targetReticle.Draw(*targetBounds, hudOpts)
 }
 
