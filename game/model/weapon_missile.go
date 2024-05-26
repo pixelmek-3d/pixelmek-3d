@@ -231,6 +231,7 @@ func (w *MissileWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) *P
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
 	pSpawn.SetWeapon(w)
+	pSpawn.SetTeam(spawnedBy.Team())
 
 	w.missileTube++
 
