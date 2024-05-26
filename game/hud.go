@@ -346,7 +346,11 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		targetUnit = g.getSpriteFromEntity(targetEntity)
 	}
 
-	if targetUnit != nil {
+	if targetUnit == nil || targetUnit.Team() < 0 || g.player.Powered() != model.POWER_ON {
+		// do not show target lock indicator if no target, target is friendly, or player not full powered on
+		targetStatus.ShowTargetLock(false)
+		targetStatus.SetTargetLock(0)
+	} else {
 		targetDistance := model.EntityDistance(g.player, targetUnit.Entity) - targetUnit.CollisionRadius() - g.player.CollisionRadius()
 		distanceMeters := targetDistance * model.METERS_PER_UNIT
 
@@ -363,9 +367,6 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		}
 		targetStatus.ShowTargetLock(hasLockOns)
 		targetStatus.SetTargetLock(g.player.TargetLock())
-	} else {
-		targetStatus.ShowTargetLock(false)
-		targetStatus.SetTargetLock(0)
 	}
 
 	targetReticle := g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
@@ -470,6 +471,7 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 
 		compass.SetTargetEnabled(true)
 		compass.SetTargetHeading(tAngle)
+		compass.SetTargetFriendly(g.player.Target().Team() < 0)
 	}
 
 	if g.player.currentNav == nil {
@@ -685,6 +687,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 				X2: unitPos.X, Y2: unitPos.Y,
 			}
 
+			unitIsFriendly := entity.Team() < 0
 			unitIsTarget := playerTarget == entity
 			unitDistance := unitLine.Distance()
 			if unitDistance > maxDistanceUnits {
@@ -699,7 +702,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			// determine angle of unit relative from player heading
 			relAngle := playerAngle - unitLine.Angle()
 			blip := &render.RadarBlip{
-				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: unitIsTarget,
+				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: unitIsTarget, IsFriendly: unitIsFriendly,
 			}
 
 			radarBlips = append(radarBlips, blip)
