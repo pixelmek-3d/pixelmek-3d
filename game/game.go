@@ -724,6 +724,11 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 				return true
 			}
 
+			if s.Team() < 0 {
+				// skip friendly units
+				return true
+			}
+
 			targetables = append(targetables, s)
 
 			return true
