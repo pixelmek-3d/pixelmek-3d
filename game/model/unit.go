@@ -44,6 +44,8 @@ type Unit interface {
 	Entity
 	ID() string
 	SetID(string)
+	Team() int
+	SetTeam(int)
 	Name() string
 	Variant() string
 	Tonnage() float64
@@ -105,6 +107,7 @@ type Unit interface {
 
 type UnitModel struct {
 	id                  string
+	team                int
 	unitType            UnitType
 	position            *geom.Vector2
 	positionZ           float64
@@ -179,6 +182,14 @@ func (e *UnitModel) ID() string {
 
 func (e *UnitModel) SetID(id string) {
 	e.id = id
+}
+
+func (e *UnitModel) Team() int {
+	return e.team
+}
+
+func (e *UnitModel) SetTeam(team int) {
+	e.team = team
 }
 
 func (e *UnitModel) UnitType() UnitType {

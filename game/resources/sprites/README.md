@@ -31,7 +31,7 @@
 
 ## ./hud
 
-- `crosshairs_sheet`: Kenney - https://www.kenney.nl/
+- `crosshairs_sheet`, `*_reticle`: Kenney - https://www.kenney.nl/
 
 ## ./infantry
 

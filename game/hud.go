@@ -27,6 +27,7 @@ const (
 	HUD_NAV_STATUS
 	HUD_PLAYER_STATUS
 	HUD_RADAR
+	HUD_FRIENDLY_RETICLE
 	HUD_TARGET_RETICLE
 	HUD_TARGET_STATUS
 	HUD_THROTTLE
@@ -107,6 +108,10 @@ func (g *Game) loadHUD() {
 	tgtReticleSheet := getSpriteFromFile("hud/target_reticle.png")
 	targetReticle := render.NewTargetReticle(tgtReticleSheet)
 	g.playerHUD[HUD_TARGET_RETICLE] = targetReticle
+
+	friendlyReticleSheet := getSpriteFromFile("hud/friendly_reticle.png")
+	friendlyReticle := render.NewTargetReticle(friendlyReticleSheet)
+	g.playerHUD[HUD_FRIENDLY_RETICLE] = friendlyReticle
 
 	navReticleSheet := getSpriteFromFile("hud/nav_reticle.png")
 	navReticle := render.NewNavReticle(navReticleSheet)
@@ -346,7 +351,11 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		targetUnit = g.getSpriteFromEntity(targetEntity)
 	}
 
-	if targetUnit != nil {
+	if targetUnit == nil || targetUnit.Team() < 0 || g.player.Powered() != model.POWER_ON {
+		// do not show target lock indicator if no target, target is friendly, or player not full powered on
+		targetStatus.ShowTargetLock(false)
+		targetStatus.SetTargetLock(0)
+	} else {
 		targetDistance := model.EntityDistance(g.player, targetUnit.Entity) - targetUnit.CollisionRadius() - g.player.CollisionRadius()
 		distanceMeters := targetDistance * model.METERS_PER_UNIT
 
@@ -363,12 +372,15 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		}
 		targetStatus.ShowTargetLock(hasLockOns)
 		targetStatus.SetTargetLock(g.player.TargetLock())
-	} else {
-		targetStatus.ShowTargetLock(false)
-		targetStatus.SetTargetLock(0)
 	}
 
-	targetReticle := g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
+	// show different target reticle if target is friendly
+	var targetReticle *render.TargetReticle
+	if targetUnit != nil && targetUnit.Team() < 0 {
+		targetReticle = g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle)
+	} else {
+		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
+	}
 
 	targetStatus.SetTargetReticle(targetReticle)
 	targetStatus.SetUnit(targetUnit)
@@ -470,6 +482,7 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 
 		compass.SetTargetEnabled(true)
 		compass.SetTargetHeading(tAngle)
+		compass.SetTargetFriendly(g.player.Target().Team() < 0)
 	}
 
 	if g.player.currentNav == nil {
@@ -685,6 +698,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 				X2: unitPos.X, Y2: unitPos.Y,
 			}
 
+			unitIsFriendly := entity.Team() < 0
 			unitIsTarget := playerTarget == entity
 			unitDistance := unitLine.Distance()
 			if unitDistance > maxDistanceUnits {
@@ -699,7 +713,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			// determine angle of unit relative from player heading
 			relAngle := playerAngle - unitLine.Angle()
 			blip := &render.RadarBlip{
-				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: unitIsTarget,
+				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: unitIsTarget, IsFriendly: unitIsFriendly,
 			}
 
 			radarBlips = append(radarBlips, blip)
@@ -746,7 +760,12 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 }
 
 func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
-	targetReticle := g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
+	var targetReticle *render.TargetReticle
+	if g.player.Target() != nil && g.player.Target().Team() < 0 {
+		targetReticle = g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle)
+	} else {
+		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
+	}
 	if targetReticle == nil || g.player.Target() == nil {
 		return
 	}
@@ -759,6 +778,12 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 	targetBounds := s.ScreenRect(g.renderScale)
 	if targetBounds == nil {
 		return
+	}
+
+	if s.Team() < 0 {
+		targetReticle.Friendly = true
+	} else {
+		targetReticle.Friendly = false
 	}
 
 	targetReticle.Draw(*targetBounds, hudOpts)

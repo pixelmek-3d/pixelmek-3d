@@ -16,21 +16,21 @@ import (
 
 type Mission struct {
 	missionMap   *Map
-	Title        string               `yaml:"title" validate:"required"`
-	Briefing     string               `yaml:"briefing" validate:"required"`
-	MapPath      string               `yaml:"map" validate:"required"`
-	MusicPath    string               `yaml:"music"`
-	DropZone     *MissionDropZone     `yaml:"dropZone" validate:"required"`
-	Lighting     *MapLighting         `yaml:"lighting,omitempty"`
-	FloorBox     *MapTexture          `yaml:"floorBox,omitempty"`
-	SkyBox       *MapTexture          `yaml:"skyBox,omitempty"`
-	NavPoints    []*NavPoint          `yaml:"navPoints"`
-	Objectives   *MissionObjectives   `yaml:"objectives" validate:"required"`
-	Mechs        []MissionMech        `yaml:"mechs"`
-	Vehicles     []MissionVehicle     `yaml:"vehicles"`
-	VTOLs        []MissionVTOL        `yaml:"vtols"`
-	Infantry     []MissionInfantry    `yaml:"infantry"`
-	Emplacements []MissionEmplacement `yaml:"emplacements"`
+	Title        string              `yaml:"title" validate:"required"`
+	Briefing     string              `yaml:"briefing" validate:"required"`
+	MapPath      string              `yaml:"map" validate:"required"`
+	MusicPath    string              `yaml:"music"`
+	DropZone     *MissionDropZone    `yaml:"dropZone" validate:"required"`
+	Lighting     *MapLighting        `yaml:"lighting,omitempty"`
+	FloorBox     *MapTexture         `yaml:"floorBox,omitempty"`
+	SkyBox       *MapTexture         `yaml:"skyBox,omitempty"`
+	NavPoints    []*NavPoint         `yaml:"navPoints"`
+	Objectives   *MissionObjectives  `yaml:"objectives" validate:"required"`
+	Mechs        []MissionUnit       `yaml:"mechs"`
+	Vehicles     []MissionUnit       `yaml:"vehicles"`
+	Infantry     []MissionUnit       `yaml:"infantry"`
+	VTOLs        []MissionFlyingUnit `yaml:"vtols"`
+	Emplacements []MissionStaticUnit `yaml:"emplacements"`
 }
 
 func (m *Mission) Map() *Map {
@@ -70,37 +70,26 @@ type MissionNavDustoff struct {
 	Name string `yaml:"name" validate:"required"`
 }
 
-type MissionMech struct {
+type MissionUnit struct {
 	ID         string       `yaml:"id"`
+	Team       int          `yaml:"team"`
 	Unit       string       `yaml:"unit" validate:"required"`
 	Position   [2]float64   `yaml:"position" validate:"required"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
-type MissionVehicle struct {
+type MissionFlyingUnit struct {
 	ID         string       `yaml:"id"`
-	Unit       string       `yaml:"unit" validate:"required"`
-	Position   [2]float64   `yaml:"position" validate:"required"`
-	PatrolPath [][2]float64 `yaml:"patrolPath"`
-}
-
-type MissionVTOL struct {
-	ID         string       `yaml:"id"`
+	Team       int          `yaml:"team"`
 	Unit       string       `yaml:"unit" validate:"required"`
 	Position   [2]float64   `yaml:"position" validate:"required"`
 	ZPosition  float64      `yaml:"zPosition" validate:"required"`
 	PatrolPath [][2]float64 `yaml:"patrolPath"`
 }
 
-type MissionInfantry struct {
-	ID         string       `yaml:"id"`
-	Unit       string       `yaml:"unit" validate:"required"`
-	Position   [2]float64   `yaml:"position" validate:"required"`
-	PatrolPath [][2]float64 `yaml:"patrolPath"`
-}
-
-type MissionEmplacement struct {
+type MissionStaticUnit struct {
 	ID       string     `yaml:"id"`
+	Team     int        `yaml:"team"`
 	Unit     string     `yaml:"unit" validate:"required"`
 	Position [2]float64 `yaml:"position" validate:"required"`
 }

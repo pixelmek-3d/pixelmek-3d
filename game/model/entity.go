@@ -40,6 +40,8 @@ type Entity interface {
 	SetStructurePoints(float64)
 	MaxStructurePoints() float64
 	IsDestroyed() bool
+	Team() int
+	SetTeam(int)
 
 	Clone() Entity
 	Parent() Entity
@@ -69,6 +71,7 @@ type BasicEntity struct {
 	collisionHeight         float64
 	armor, maxArmor         float64
 	structure, maxStructure float64
+	team                    int
 	parent                  Entity
 }
 
@@ -102,6 +105,14 @@ func (e *BasicEntity) Clone() Entity {
 	eClone := &BasicEntity{}
 	copier.Copy(eClone, e)
 	return eClone
+}
+
+func (e *BasicEntity) Team() int {
+	return e.team
+}
+
+func (e *BasicEntity) SetTeam(team int) {
+	e.team = team
 }
 
 func (e *BasicEntity) Pos() *geom.Vector2 {

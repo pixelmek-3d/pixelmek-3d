@@ -30,10 +30,11 @@ type Radar struct {
 }
 
 type RadarBlip struct {
-	Unit     model.Unit
-	Angle    float64
-	Distance float64
-	IsTarget bool
+	Unit       model.Unit
+	Angle      float64
+	Distance   float64
+	IsTarget   bool
+	IsFriendly bool
 }
 
 type RadarNavPoint struct {
@@ -200,7 +201,8 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	}
 
 	// Draw radar blips
-	bColor := hudOpts.HudColor(_colorEnemy)
+	eColor := hudOpts.HudColor(_colorEnemy)
+	fColor := hudOpts.HudColor(_colorFriendly)
 
 	for _, blip := range r.radarBlips {
 		// convert heading angle into relative radar angle where "up" is forward
@@ -209,6 +211,13 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		radarDistancePx := blip.Distance * radarHudSizeFactor
 		bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
 
+		var bColor color.NRGBA
+		if blip.IsFriendly {
+			bColor = fColor
+		} else {
+			bColor = eColor
+		}
+
 		if blip.IsTarget {
 			// draw target square around lighter colored blip
 			tAlpha := uint8(int(bColor.A) / 3)
@@ -216,6 +225,11 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			vector.DrawFilledRect(screen, float32(bLine.X2-6), float32(bLine.Y2-6), 12, 12, tColor, false) // TODO: calculate thickness based on image size
 		}
 
-		vector.DrawFilledRect(screen, float32(bLine.X2)-2, float32(bLine.Y2-2), 4, 4, bColor, false) // TODO: calculate thickness based on image size
+		if blip.IsFriendly {
+			// differentiate friendly by not filling in the radar blip box
+			vector.StrokeRect(screen, float32(bLine.X2)-2, float32(bLine.Y2-2), 4, 4, 2, bColor, false)
+		} else {
+			vector.DrawFilledRect(screen, float32(bLine.X2)-2, float32(bLine.Y2-2), 4, 4, bColor, false) // TODO: calculate thickness based on image size
+		}
 	}
 }

@@ -13,6 +13,7 @@ var (
 	_colorDefaultBlue   = color.NRGBA{R: 0, G: 0, B: 203, A: 255}
 	_colorDefaultYellow = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
 	_colorEnemy         = color.NRGBA{R: 255, G: 0, B: 12, A: 255}
+	_colorFriendly      = color.NRGBA{R: 0, G: 255, B: 12, A: 255}
 )
 
 type HUDSprite interface {

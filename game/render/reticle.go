@@ -2,12 +2,14 @@ package render
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type TargetReticle struct {
 	HUDSprite
+	Friendly bool
 }
 
 type NavReticle struct {
@@ -56,7 +58,13 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	minX, minY, maxX, maxY := float64(bounds.Min.X), float64(bounds.Min.Y), float64(bounds.Max.X), float64(bounds.Max.Y)
 
-	rColor := hudOpts.HudColor(_colorEnemy)
+	var rColor color.NRGBA
+	if t.Friendly {
+		// TODO: friendly reticle needs to look different in case custom HUD color is used
+		rColor = hudOpts.HudColor(_colorFriendly)
+	} else {
+		rColor = hudOpts.HudColor(_colorEnemy)
+	}
 
 	// setup some common draw modifications
 	var op *ebiten.DrawImageOptions

@@ -522,8 +522,12 @@ func (g *Game) updatePlayer() {
 	target := g.player.Target()
 	if target != nil && target.IsDestroyed() {
 		g.player.SetTarget(nil)
+	}
 
-	} else if target != nil {
+	if target == nil || target.Team() < 0 || g.player.Powered() != model.POWER_ON {
+		// clear target lock if no target, friendly target, or player is not fully powered on
+		g.player.SetTargetLock(0)
+	} else {
 		// only increment lock percent on target if reticle near target area and in weapon range
 		s := g.getSpriteFromEntity(target)
 		if s != nil {
@@ -721,6 +725,11 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 
 			s := getSpriteFromInterface(k.(raycaster.Sprite))
 			if s.IsDestroyed() {
+				return true
+			}
+
+			if s.Team() < 0 {
+				// skip friendly units
 				return true
 			}
 

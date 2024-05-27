@@ -28,8 +28,9 @@ type Compass struct {
 }
 
 type compassIndicator struct {
-	heading float64
-	enabled bool
+	heading  float64
+	enabled  bool
+	friendly bool
 }
 
 // NewCompass creates a compass image to be rendered on demand
@@ -63,6 +64,10 @@ func (c *Compass) updateFontSize(_, height int) {
 
 func (c *Compass) SetTargetEnabled(b bool) {
 	c.targetIndicator.enabled = b
+}
+
+func (c *Compass) SetTargetFriendly(friendly bool) {
+	c.targetIndicator.friendly = friendly
 }
 
 func (c *Compass) SetTargetHeading(heading float64) {
@@ -215,7 +220,12 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		iHeading := c.targetIndicator.heading
 		iDeg := int(geom.Degrees(iHeading))
 
-		iColor := hudOpts.HudColor(_colorEnemy)
+		var iColor color.NRGBA
+		if c.targetIndicator.friendly {
+			iColor = hudOpts.HudColor(_colorFriendly)
+		} else {
+			iColor = hudOpts.HudColor(_colorEnemy)
+		}
 
 		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
@@ -226,11 +236,17 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				actualDeg -= 360
 			}
 			if iDeg == actualDeg {
-				iRadius := float32(bH) / 8
+				iRadius := float32(bH) / 4
 				iRatio := float32(-i) / float32(maxTurretDeg)
 				iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 
-				vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
+				//vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
+				if c.targetIndicator.friendly {
+					// differentiate friendly by not filling in the radar blip box
+					vector.StrokeRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, 2, iColor, false)
+				} else {
+					vector.DrawFilledRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, iColor, false) // TODO: calculate thickness based on image size
+				}
 				iRendered = true
 				break
 			}
@@ -248,9 +264,15 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				iRatio = 1
 			}
 
-			iRadius := float32(bH) / 12
+			iRadius := float32(bH) / 8
 			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
-			vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
+			//vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
+			if c.targetIndicator.friendly {
+				// differentiate friendly by not filling in the radar blip box
+				vector.StrokeRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, 2, iColor, false)
+			} else {
+				vector.DrawFilledRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, iColor, false) // TODO: calculate thickness based on image size
+			}
 		}
 	}
 }

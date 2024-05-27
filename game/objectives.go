@@ -127,7 +127,6 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 	for _, modelObjective := range objectives.Destroy {
 		all := modelObjective.All
 		unitID := modelObjective.Unit
-
 		if all || len(unitID) > 0 {
 			for _, unit := range all_units {
 				if all || (len(unitID) > 0 && unitID == unit.ID()) {
@@ -135,6 +134,13 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 						// prevent protected units from also being a destroy objective
 						if !all {
 							log.Errorf("same unit ID found in protect and destroy objectives: %s", unit.ID())
+						}
+						continue
+					}
+					if unit.Team() < 0 {
+						// prevent units on player team from being a destroy objective
+						if !all {
+							log.Errorf("unit ID found on player team as destroy objective: %s", unit.ID())
 						}
 						continue
 					}

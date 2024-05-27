@@ -172,7 +172,12 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		tUnit := model.EntityUnit(u.unit.Entity)
 		if tUnit != nil {
 			// target chassis name
-			eColor := hudOpts.HudColor(_colorEnemy)
+			var eColor color.NRGBA
+			if tUnit.Team() < 0 {
+				eColor = hudOpts.HudColor(_colorFriendly)
+			} else {
+				eColor = hudOpts.HudColor(_colorEnemy)
+			}
 			u.fontRenderer.SetColor(eColor)
 
 			chassisVariant := strings.ToUpper(tUnit.Variant())
@@ -204,6 +209,12 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	if u.targetReticle != nil {
 		// render target reticles on outer corners of status display
+		if u.unit.Team() < 0 {
+			// TODO: friendly reticle needs to look different in case custom HUD color is used
+			u.targetReticle.Friendly = true
+		} else {
+			u.targetReticle.Friendly = false
+		}
 		u.targetReticle.Draw(bounds, hudOpts)
 	}
 }
