@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"image/color"
-	_ "image/png"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
