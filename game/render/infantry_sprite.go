@@ -1,8 +1,6 @@
 package render
 
 import (
-	_ "image/png"
-
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 

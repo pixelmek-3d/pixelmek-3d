@@ -1,8 +1,6 @@
 package render
 
 import (
-	_ "image/png"
-
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 
 	"github.com/hajimehoshi/ebiten/v2"

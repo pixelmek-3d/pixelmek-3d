@@ -2,7 +2,6 @@ package render
 
 import (
 	"image"
-	_ "image/png"
 	"math"
 	"sort"
 
