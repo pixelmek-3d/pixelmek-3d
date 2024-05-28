@@ -151,6 +151,8 @@ github.com/hajimehoshi/go-mp3 v0.3.4/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRS
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
 github.com/harbdog/raycaster-go v1.11.0 h1:Nvv5cRM8MXdIuGsnxnoxkYgZuWtCAq/PjmxZ0TF5I4s=
 github.com/harbdog/raycaster-go v1.11.0/go.mod h1:uF1fW8vVsFcWE7jrA9nUE0LPqwJzG34t3a1fNWDuGwg=
+github.com/harbdog/stagehand v0.0.0-20240528200240-5d5f883b3da8 h1:p3jHumDdIrhRpzYuICF0vu5iL/TN1PElQ+A9em7kWcY=
+github.com/harbdog/stagehand v0.0.0-20240528200240-5d5f883b3da8/go.mod h1:0xFVVeIsfW4PyajxhPc+dWZBlBE3xt6eDT89R/ihst8=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=

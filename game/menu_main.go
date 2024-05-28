@@ -89,7 +89,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			game.scene = NewInstantActionScene(game)
+			game.sm.ProcessTrigger(InstantActionTrigger)
 		}),
 	)
 	c.AddChild(instantAction)
@@ -102,8 +102,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.Text("Settings", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			mScene, ok := game.scene.(*MenuScene)
-			if ok {
+			if mScene, ok := game.scene.(*MenuScene); ok {
 				mScene.SetMenu(mScene.settings)
 			}
 		}),

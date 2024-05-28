@@ -2,17 +2,38 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 )
 
 type GameScene struct {
-	Game *Game
+	BaseScene
 
 	transition SceneTransition
 }
 
 func NewGameScene(g *Game) *GameScene {
+	// transition in to start game
+	tOpts := &transitions.TransitionOptions{
+		InDuration:   5.0,
+		HoldDuration: 0,
+		OutDuration:  0,
+	}
+	transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
+
+	return &GameScene{
+		BaseScene: BaseScene{
+			game: g,
+		},
+		transition: transition,
+	}
+}
+
+func (s *GameScene) Load(st SceneState, sm stagehand.SceneController[SceneState]) {
+	s.BaseScene.Load(st, sm)
+
 	// load mission resources and launch
+	g := s.game
 	g.initMission()
 
 	// prepare for battle
@@ -31,19 +52,6 @@ func NewGameScene(g *Game) *GameScene {
 
 	// start engine ambience
 	g.audio.PlayPowerOnSequence()
-
-	// transition in to start game
-	tOpts := &transitions.TransitionOptions{
-		InDuration:   5.0,
-		HoldDuration: 0,
-		OutDuration:  0,
-	}
-	transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
-
-	return &GameScene{
-		Game:       g,
-		transition: transition,
-	}
 }
 
 func (g *Game) LeaveGame() {
@@ -52,11 +60,11 @@ func (g *Game) LeaveGame() {
 	g.audio.StopMusic()
 
 	// go to mission debrief
-	g.scene = NewMissionDebriefScene(g)
+	g.sm.ProcessTrigger(MissionDebriefTrigger)
 }
 
 func (s *GameScene) Update() error {
-	g := s.Game
+	g := s.game
 
 	if g.osType == osTypeBrowser && ebiten.CursorMode() == ebiten.CursorModeVisible && !g.menu.Active() && !g.menu.Closing() {
 		// capture not working sometimes (https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API#iframe_limitations):
@@ -116,6 +124,7 @@ func (s *GameScene) Update() error {
 				s.transition.Update()
 				if s.transition.Completed() {
 					g.LeaveGame()
+					return nil
 				}
 			}
 		}
@@ -128,7 +137,7 @@ func (s *GameScene) Update() error {
 }
 
 func (s *GameScene) Draw(screen *ebiten.Image) {
-	g := s.Game
+	g := s.game
 
 	// Put projectiles together with sprites for raycasting both as sprites
 	raycastSprites := g.getRaycastSprites()

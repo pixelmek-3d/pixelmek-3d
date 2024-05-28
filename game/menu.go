@@ -208,8 +208,7 @@ func (g *Game) closeMenu() {
 		g.paused = false
 		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
 	case settingsMenu != nil:
-		menuScene, ok := g.scene.(*MenuScene)
-		if ok {
+		if menuScene, ok := g.scene.(*MenuScene); ok {
 			menuScene.SetMenu(menuScene.main)
 		}
 	}

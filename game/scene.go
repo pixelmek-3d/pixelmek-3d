@@ -1,10 +1,55 @@
 package game
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"image"
+	"time"
 
-type Scene interface {
-	Update() error
-	Draw(screen *ebiten.Image)
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/joelschutz/stagehand"
+)
+
+const (
+	SplashTrigger stagehand.SceneTransitionTrigger = iota
+	LaunchGameTrigger
+	MissionDebriefTrigger
+	MainMenuTrigger
+	InstantActionTrigger
+)
+
+type SceneState struct {
+	Timer        float64
+	OnTransition bool
+}
+
+type BaseScene struct {
+	game   *Game
+	bounds image.Rectangle
+	state  SceneState
+	sm     *stagehand.SceneDirector[SceneState]
+}
+
+func (s *BaseScene) Layout(w, h int) (int, int) {
+	s.bounds = image.Rect(0, 0, w, h)
+	return w, h
+}
+
+func (s *BaseScene) Load(st SceneState, sm stagehand.SceneController[SceneState]) {
+	s.state = st
+	s.sm = sm.(*stagehand.SceneDirector[SceneState])
+}
+
+func (s *BaseScene) Unload() SceneState {
+	return s.state
+}
+
+func (s *BaseScene) PreTransition(toScene stagehand.Scene[SceneState]) SceneState {
+	s.state.OnTransition = true
+	s.game.scene = toScene
+	return s.state
+}
+
+func (s *BaseScene) PostTransition(state SceneState, fromScene stagehand.Scene[SceneState]) {
+	s.state.OnTransition = false
 }
 
 type SceneEffect interface {
@@ -22,4 +67,79 @@ type SceneTransition interface {
 	SetImage(img *ebiten.Image)
 	Update() error
 	Draw(screen *ebiten.Image)
+}
+
+func (g *Game) initScenes() {
+	// create scene director, scenes, triggers, and transitions
+	state := SceneState{Timer: SPLASH_TIMEOUT}
+	//preScene := NewInterstitialScene(color.NRGBA{0, 0, 0, 255}, SplashTrigger, 0.5)
+	ebitenSplashScene := NewEbitengineSplashScene(g)
+	gopherSplashScene := NewGopherSplashScene(g)
+
+	mainMenuScene := NewMenuScene(g)
+	instantActionScene := NewInstantActionScene(g)
+	gameScene := NewGameScene(g)
+	debriefScene := NewMissionDebriefScene(g)
+
+	transFade := stagehand.NewDurationTimedFadeTransition[SceneState](time.Millisecond * time.Duration(750))
+	transSlideUp := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.BottomToTop, time.Millisecond*time.Duration(750))
+	transSlideDown := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.TopToBottom, time.Millisecond*time.Duration(750))
+	rs := map[stagehand.Scene[SceneState]][]stagehand.Directive[SceneState]{
+		// preScene: {
+		// 	stagehand.Directive[SceneState]{
+		// 		Dest:       ebitenSplashScene,
+		// 		Trigger:    SplashTrigger,
+		// 		Transition: transFade,
+		// 	},
+		// },
+		ebitenSplashScene: {
+			stagehand.Directive[SceneState]{
+				Dest:       gopherSplashScene,
+				Trigger:    SplashTrigger,
+				Transition: transFade,
+			},
+		},
+		gopherSplashScene: {
+			stagehand.Directive[SceneState]{
+				Dest:       mainMenuScene,
+				Trigger:    SplashTrigger,
+				Transition: transSlideUp,
+			},
+		},
+		mainMenuScene: {
+			stagehand.Directive[SceneState]{
+				Dest:       instantActionScene,
+				Trigger:    InstantActionTrigger,
+				Transition: transSlideDown,
+			},
+		},
+		instantActionScene: {
+			stagehand.Directive[SceneState]{
+				Dest:       gameScene,
+				Trigger:    LaunchGameTrigger,
+				Transition: transFade,
+			},
+			stagehand.Directive[SceneState]{
+				Dest:       mainMenuScene,
+				Trigger:    MainMenuTrigger,
+				Transition: transSlideUp,
+			},
+		},
+		gameScene: {
+			stagehand.Directive[SceneState]{
+				Dest:       debriefScene,
+				Trigger:    MissionDebriefTrigger,
+				Transition: transSlideDown,
+			},
+		},
+		debriefScene: {
+			stagehand.Directive[SceneState]{
+				Dest:       mainMenuScene,
+				Trigger:    MainMenuTrigger,
+				Transition: transSlideUp,
+			},
+		},
+	}
+
+	g.sm = stagehand.NewSceneDirector[SceneState](ebitenSplashScene, state, rs)
 }

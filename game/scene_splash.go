@@ -3,8 +3,8 @@ package game
 import (
 	"image"
 
+	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,77 +12,88 @@ import (
 )
 
 const (
-	SPLASH_TIMEOUT = 5.0
+	SPLASH_TIMEOUT = 2.0
 )
 
-type IntroScene struct {
-	Game         *Game
-	splashes     []*SplashScreen
+type SplashScene struct {
+	BaseScene
+	splash       *SplashScreen
 	splashRect   image.Rectangle
-	splashIndex  int
-	splashTimer  float64
 	bufferScreen *ebiten.Image
 }
 
 type SplashScreen struct {
-	img        *ebiten.Image
-	screen     *ebiten.Image
-	geoM       ebiten.GeoM
-	effect     SceneEffect
-	shader     SceneShader
-	transition SceneTransition
+	img    *ebiten.Image
+	screen *ebiten.Image
+	geoM   ebiten.GeoM
+	effect SceneEffect
+	shader SceneShader
 }
 
-func NewIntroScene(g *Game) *IntroScene {
-	// load intro splash images
-	var splashes = make([]*SplashScreen, 0)
+func NewEbitengineSplashScene(g *Game) *SplashScene {
+	// Ebitengine splash
+	var splash *SplashScreen
 	splashRect := g.uiRect()
 
-	// Ebitengine splash
 	im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
-		tOpts := &transitions.TransitionOptions{
-			InDuration:   SPLASH_TIMEOUT * 2 / 5,
-			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
-			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
-		}
+		// tOpts := &transitions.TransitionOptions{
+		// 	InDuration:   SPLASH_TIMEOUT * 2 / 5,
+		// 	HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
+		// 	OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
+		// }
 
-		splash := NewSplashScreen(g)
+		splash = newSplashScreen(g)
 		splash.img = im
-		splash.transition = transitions.NewDissolve(splash.screen, tOpts, ebiten.GeoM{})
+		//splash.transition = transitions.NewDissolve(splash.screen, tOpts, ebiten.GeoM{})
 		splash.geoM = geoM
-		splashes = append(splashes, splash)
 	}
 
-	// Golang Gopher splash
-	im, _, err = resources.NewImageFromFile("textures/gopher_space.png")
-	if err == nil {
-		geoM := splashGeoM(im, splashRect)
-		tOpts := &transitions.TransitionOptions{
-			InDuration:   SPLASH_TIMEOUT * 2 / 5,
-			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
-			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
-		}
-
-		splash := NewSplashScreen(g)
-		splash.img = im
-		splash.effect = effects.NewStars(g.screenWidth, g.screenHeight)
-		splash.transition = transitions.NewFade(splash.screen, tOpts, ebiten.GeoM{})
-		splash.geoM = geoM
-		splashes = append(splashes, splash)
-	}
-
-	return &IntroScene{
-		Game:         g,
-		splashes:     splashes,
-		splashRect:   splashRect,
-		splashTimer:  SPLASH_TIMEOUT,
+	return &SplashScene{
+		BaseScene: BaseScene{
+			game: g,
+		},
+		splash:     splash,
+		splashRect: splashRect,
+		//splashTimer:  SPLASH_TIMEOUT,
 		bufferScreen: ebiten.NewImage(g.screenWidth, g.screenHeight),
 	}
 }
 
-func NewSplashScreen(g *Game) *SplashScreen {
+func NewGopherSplashScene(g *Game) *SplashScene {
+	// Golang Gopher splash
+	var splash *SplashScreen
+	splashRect := g.uiRect()
+
+	im, _, err := resources.NewImageFromFile("textures/gopher_space.png")
+	if err == nil {
+		geoM := splashGeoM(im, splashRect)
+		// tOpts := &transitions.TransitionOptions{
+		// 	InDuration:   SPLASH_TIMEOUT * 2 / 5,
+		// 	HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
+		// 	OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
+		// }
+
+		splash = newSplashScreen(g)
+		splash.img = im
+		splash.effect = effects.NewStars(g.screenWidth, g.screenHeight)
+		//splash.transition = transitions.NewFade(splash.screen, tOpts, ebiten.GeoM{})
+		splash.geoM = geoM
+	}
+
+	return &SplashScene{
+		BaseScene: BaseScene{
+			game: g,
+		},
+		splash:     splash,
+		splashRect: splashRect,
+		//splashTimer:  SPLASH_TIMEOUT,
+		bufferScreen: ebiten.NewImage(g.screenWidth, g.screenHeight),
+	}
+}
+
+func newSplashScreen(g *Game) *SplashScreen {
 	return &SplashScreen{
 		screen: ebiten.NewImage(g.screenWidth, g.screenHeight),
 	}
@@ -103,23 +114,33 @@ func splashGeoM(splash *ebiten.Image, splashRect image.Rectangle) ebiten.GeoM {
 	return geoM
 }
 
-func (s *IntroScene) currentSplash() *SplashScreen {
-	if s.splashIndex < 0 || s.splashIndex >= len(s.splashes) {
-		return nil
-	}
-	return s.splashes[s.splashIndex]
+func (s *SplashScene) PreTransition(toScene stagehand.Scene[SceneState]) SceneState {
+	return s.BaseScene.PreTransition(toScene)
 }
 
-func (s *IntroScene) Update() error {
-	splash := s.currentSplash()
+func (s *SplashScene) PostTransition(state SceneState, fromScene stagehand.Scene[SceneState]) {
+	s.state.Timer = SPLASH_TIMEOUT
+	s.BaseScene.PostTransition(state, fromScene)
+}
+
+func (s *SplashScene) Update() error {
+	splash := s.splash
+	if splash == nil {
+		return nil
+	}
 	if splash.effect != nil {
 		splash.effect.Update()
 	}
 	if splash.shader != nil {
 		splash.shader.Update()
 	}
-	if splash.transition != nil {
-		splash.transition.Update()
+	// if splash.transition != nil {
+	// 	splash.transition.Update()
+	// }
+
+	if s.state.OnTransition {
+		// no further updates during transition
+		return nil
 	}
 
 	keys := inpututil.AppendJustPressedKeys(nil)
@@ -138,29 +159,20 @@ func (s *IntroScene) Update() error {
 	}
 
 	skip := keyPressed || buttonPressed || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
-	if skip {
-		s.splashIndex += 1
-		s.splashTimer = SPLASH_TIMEOUT
-	}
-
-	// use timer to move on if no input
-	s.splashTimer -= 1 / float64(ebiten.TPS())
-	if s.splashTimer <= 0 {
-		s.splashIndex += 1
-		s.splashTimer = SPLASH_TIMEOUT
-	}
-
-	if s.splashIndex >= len(s.splashes) {
-		// TODO: make a last splash that requires key/button press to move on to main menu
-		s.Game.scene = NewMenuScene(s.Game)
+	s.state.Timer -= 1 / float64(ebiten.TPS())
+	if skip || s.state.Timer <= 0 {
+		s.sm.ProcessTrigger(SplashTrigger)
 	}
 
 	return nil
 }
 
-func (s *IntroScene) Draw(screen *ebiten.Image) {
+func (s *SplashScene) Draw(screen *ebiten.Image) {
 	// draw effect as splash image background
-	splash := s.currentSplash()
+	splash := s.splash
+	if splash == nil {
+		return
+	}
 	splash.screen.Clear()
 	s.bufferScreen.Clear()
 
@@ -185,12 +197,12 @@ func (s *IntroScene) Draw(screen *ebiten.Image) {
 		s.bufferScreen.DrawImage(splash.screen, nil)
 	}
 
-	if splash.transition != nil {
-		// draw transition from buffer
-		splash.transition.SetImage(s.bufferScreen)
-		splash.transition.Draw(screen)
-	} else {
-		// draw buffer directly to screen
-		screen.DrawImage(s.bufferScreen, nil)
-	}
+	// if splash.transition != nil {
+	// 	// draw transition from buffer
+	// 	splash.transition.SetImage(s.bufferScreen)
+	// 	splash.transition.Draw(screen)
+	// } else {
+
+	// draw buffer directly to screen
+	screen.DrawImage(s.bufferScreen, nil)
 }

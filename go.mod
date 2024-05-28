@@ -9,6 +9,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
 	github.com/harbdog/raycaster-go v1.11.0
 	github.com/jinzhu/copier v0.4.0
+	github.com/joelschutz/stagehand v1.1.0
 	github.com/nlepage/go-tarfs v1.2.1
 	github.com/quasilyte/ebitengine-input v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -64,3 +65,5 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
+
+replace github.com/joelschutz/stagehand v1.1.0 => github.com/harbdog/stagehand v0.0.0-20240528200240-5d5f883b3da8
