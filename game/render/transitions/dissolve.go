@@ -45,7 +45,7 @@ func (t *DissolveTransition[T]) Start(fromScene stagehand.Scene[T], toScene stag
 	t.time = 0
 	t.direction = -1
 
-	// these have to be redefined and set since they are private fields in stagehand.BaseTransition (need to open an Issue on this
+	// these have to be redefined and set since they are private fields in stagehand.BaseTransition
 	t.fromScene = fromScene
 	t.toScene = toScene
 }

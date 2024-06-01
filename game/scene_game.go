@@ -14,18 +14,18 @@ type GameScene struct {
 
 func NewGameScene(g *Game) *GameScene {
 	// transition in to start game
-	tOpts := &transitions.TransitionOptions{
-		InDuration:   5.0,
-		HoldDuration: 0,
-		OutDuration:  0,
-	}
-	transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
+	// tOpts := &transitions.TransitionOptions{
+	// 	InDuration:   5.0,
+	// 	HoldDuration: 0,
+	// 	OutDuration:  0,
+	// }
+	//transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
 
 	return &GameScene{
 		BaseScene: BaseScene{
 			game: g,
 		},
-		transition: transition,
+		//transition: transition,
 	}
 }
 
@@ -118,7 +118,8 @@ func (s *GameScene) Update() error {
 					HoldDuration: 4.0,
 					OutDuration:  3.0,
 				}
-				s.transition = transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
+				// TODO: switch to stagehand transition
+				s.transition = transitions.NewPixelize(g.overlayScreen, tOpts, ebiten.GeoM{})
 			} else {
 				// update transition about to leave game
 				s.transition.Update()

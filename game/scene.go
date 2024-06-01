@@ -82,7 +82,7 @@ func (g *Game) initScenes() {
 	debriefScene := NewMissionDebriefScene(g)
 
 	transDissolve := transitions.NewDissolveTransition[SceneState](3.0)
-	transFade := stagehand.NewDurationTimedFadeTransition[SceneState](time.Millisecond * time.Duration(500))
+	transFade := transitions.NewFadeTransition[SceneState](4.0)
 	transSlideUp := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.BottomToTop, time.Millisecond*time.Duration(500))
 	transSlideDown := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.TopToBottom, time.Millisecond*time.Duration(500))
 	rs := map[stagehand.Scene[SceneState]][]stagehand.Directive[SceneState]{
