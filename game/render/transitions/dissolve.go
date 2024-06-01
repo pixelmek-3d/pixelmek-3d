@@ -1,6 +1,8 @@
 package transitions
 
 import (
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -24,7 +26,7 @@ type DissolveTransition[T any] struct {
 	_noise     *ebiten.Image
 }
 
-func NewDissolveTransition[T any](duration float64) *DissolveTransition[T] {
+func NewDissolveTransition[T any](duration time.Duration) *DissolveTransition[T] {
 	shader, err := resources.NewShaderFromFile(SHADER_DISSOLVE)
 	if err != nil {
 		log.Errorf("error loading shader: %s", SHADER_DISSOLVE)
@@ -34,7 +36,7 @@ func NewDissolveTransition[T any](duration float64) *DissolveTransition[T] {
 	return &DissolveTransition[T]{
 		shader:     shader,
 		noiseImage: noise,
-		duration:   float32(duration / 2),
+		duration:   float32(duration.Seconds() / 2),
 		tickDelta:  1 / float32(ebiten.TPS()),
 	}
 }

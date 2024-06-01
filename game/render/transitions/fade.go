@@ -1,6 +1,8 @@
 package transitions
 
 import (
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -21,7 +23,7 @@ type FadeTransition[T any] struct {
 	direction float32
 }
 
-func NewFadeTransition[T any](duration float64) *FadeTransition[T] {
+func NewFadeTransition[T any](duration time.Duration) *FadeTransition[T] {
 	shader, err := resources.NewShaderFromFile(SHADER_FADE)
 	if err != nil {
 		log.Errorf("error loading shader: %s", SHADER_FADE)
@@ -30,7 +32,7 @@ func NewFadeTransition[T any](duration float64) *FadeTransition[T] {
 
 	return &FadeTransition[T]{
 		shader:    shader,
-		duration:  float32(duration / 2),
+		duration:  float32(duration.Seconds() / 2),
 		tickDelta: 1 / float32(ebiten.TPS()),
 	}
 }
