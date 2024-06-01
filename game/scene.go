@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/joelschutz/stagehand"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 )
 
 const (
@@ -72,7 +73,6 @@ type SceneTransition interface {
 func (g *Game) initScenes() {
 	// create scene director, scenes, triggers, and transitions
 	state := SceneState{Timer: SPLASH_TIMEOUT}
-	//preScene := NewInterstitialScene(color.NRGBA{0, 0, 0, 255}, SplashTrigger, 0.5)
 	ebitenSplashScene := NewEbitengineSplashScene(g)
 	gopherSplashScene := NewGopherSplashScene(g)
 
@@ -81,22 +81,16 @@ func (g *Game) initScenes() {
 	gameScene := NewGameScene(g)
 	debriefScene := NewMissionDebriefScene(g)
 
-	transFade := stagehand.NewDurationTimedFadeTransition[SceneState](time.Millisecond * time.Duration(750))
-	transSlideUp := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.BottomToTop, time.Millisecond*time.Duration(750))
-	transSlideDown := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.TopToBottom, time.Millisecond*time.Duration(750))
+	transDissolve := transitions.NewDissolveTransition[SceneState](3.0)
+	transFade := stagehand.NewDurationTimedFadeTransition[SceneState](time.Millisecond * time.Duration(500))
+	transSlideUp := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.BottomToTop, time.Millisecond*time.Duration(500))
+	transSlideDown := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.TopToBottom, time.Millisecond*time.Duration(500))
 	rs := map[stagehand.Scene[SceneState]][]stagehand.Directive[SceneState]{
-		// preScene: {
-		// 	stagehand.Directive[SceneState]{
-		// 		Dest:       ebitenSplashScene,
-		// 		Trigger:    SplashTrigger,
-		// 		Transition: transFade,
-		// 	},
-		// },
 		ebitenSplashScene: {
 			stagehand.Directive[SceneState]{
 				Dest:       gopherSplashScene,
 				Trigger:    SplashTrigger,
-				Transition: transFade,
+				Transition: transDissolve,
 			},
 		},
 		gopherSplashScene: {
