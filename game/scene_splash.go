@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	SPLASH_TIMEOUT = 2.0
+	SPLASH_TIMEOUT = 2.5
 )
 
 type SplashScene struct {
