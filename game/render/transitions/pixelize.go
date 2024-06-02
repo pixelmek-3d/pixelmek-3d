@@ -11,13 +11,15 @@ const SHADER_PIXELIZE = "shaders/pixelize.kage"
 
 type Pixelize struct {
 	pixelizeImage *ebiten.Image
-	bufferImage   *ebiten.Image
 	shader        *ebiten.Shader
+	noiseImage    *ebiten.Image
 	geoM          ebiten.GeoM
 	tOptions      *TransitionOptions
 	time          float32
 	tickDelta     float32
 	completed     bool
+	_blank        *ebiten.Image
+	_noise        *ebiten.Image
 }
 
 func NewPixelize(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.GeoM) *Pixelize {
@@ -27,11 +29,14 @@ func NewPixelize(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 		log.Fatal(err)
 	}
 
+	noise, _, _ := resources.NewImageFromFile("shaders/gray_noise_small.png")
+
 	t := &Pixelize{
-		shader:    shader,
-		geoM:      geoM,
-		tOptions:  tOptions,
-		tickDelta: 1 / float32(ebiten.TPS()),
+		shader:     shader,
+		noiseImage: noise,
+		geoM:       geoM,
+		tOptions:   tOptions,
+		tickDelta:  1 / float32(ebiten.TPS()),
 	}
 	t.SetImage(img)
 
@@ -44,22 +49,29 @@ func (t *Pixelize) Completed() bool {
 
 func (t *Pixelize) SetImage(img *ebiten.Image) {
 	t.pixelizeImage = img
-}
 
-func (t *Pixelize) screenBuffer(w, h int) {
-	createBuffer := false
-	if t.bufferImage == nil {
-		createBuffer = true
+	// scale noise image to match dissolve image size
+	if t._noise == nil {
+		t.updateInternalImages()
 	} else {
-		bW, bH := t.bufferImage.Bounds().Dx(), t.bufferImage.Bounds().Dy()
-		if w != bW || h != bH {
-			createBuffer = true
+		dW, dH := img.Bounds().Dx(), img.Bounds().Dy()
+		nW, nH := t._noise.Bounds().Dx(), t._noise.Bounds().Dy()
+		if dW != nW || dH != nH {
+			t.updateInternalImages()
 		}
 	}
+}
 
-	if createBuffer {
-		t.bufferImage = ebiten.NewImage(w, h)
-	}
+func (t *Pixelize) updateInternalImages() {
+	dW, dH := t.pixelizeImage.Bounds().Dx(), t.pixelizeImage.Bounds().Dy()
+	nW, nH := t.noiseImage.Bounds().Dx(), t.noiseImage.Bounds().Dy()
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.GeoM.Scale(float64(dW)/float64(nW), float64(dH)/float64(nH))
+	scaledImage := ebiten.NewImage(dW, dH)
+	scaledImage.DrawImage(t.noiseImage, op)
+	t._noise = scaledImage
+	t._blank = ebiten.NewImage(dW, dH)
 }
 
 func (t *Pixelize) Update() error {
@@ -99,17 +111,17 @@ func (t *Pixelize) Draw(screen *ebiten.Image) {
 	}
 
 	// draw image to buffer with translation first (since this shader does not like any post-GeoM)
-	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
-	t.screenBuffer(w, h)
-	t.bufferImage.DrawImage(t.pixelizeImage, &ebiten.DrawImageOptions{GeoM: t.geoM})
-
+	w, h := t.pixelizeImage.Bounds().Dx(), t.pixelizeImage.Bounds().Dy()
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
 		"Direction": direction,
 		"Duration":  duration,
 		"Time":      time,
 	}
-	op.Images[0] = t.bufferImage
+	op.Images[0] = t.pixelizeImage
+	op.Images[1] = t._blank
+	op.Images[2] = t._noise
+	op.GeoM = t.geoM
 
 	// draw shader from buffer image
 	screen.DrawRectShader(w, h, t.shader, op)
