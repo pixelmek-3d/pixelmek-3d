@@ -63,18 +63,12 @@ type SceneShader interface {
 	Draw(screen, img *ebiten.Image)
 }
 
-type SceneTransition interface {
-	Completed() bool
-	SetImage(img *ebiten.Image)
-	Update() error
-	Draw(screen *ebiten.Image)
-}
-
 func (g *Game) initScenes() {
 	// create scene director, scenes, triggers, and transitions
 	state := SceneState{Timer: SPLASH_TIMEOUT}
 	ebitenSplashScene := NewEbitengineSplashScene(g)
 	gopherSplashScene := NewGopherSplashScene(g)
+	introScene := NewIntroScene(g)
 
 	mainMenuScene := NewMenuScene(g)
 	instantActionScene := NewInstantActionScene(g)
@@ -95,6 +89,13 @@ func (g *Game) initScenes() {
 			},
 		},
 		gopherSplashScene: {
+			stagehand.Directive[SceneState]{
+				Dest:       introScene,
+				Trigger:    SplashTrigger,
+				Transition: transPixelize,
+			},
+		},
+		introScene: {
 			stagehand.Directive[SceneState]{
 				Dest:       mainMenuScene,
 				Trigger:    SplashTrigger,

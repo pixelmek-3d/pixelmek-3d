@@ -37,17 +37,9 @@ func NewEbitengineSplashScene(g *Game) *SplashScene {
 
 	im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
 	if err == nil {
-		geoM := splashGeoM(im, splashRect)
-		// tOpts := &transitions.TransitionOptions{
-		// 	InDuration:   SPLASH_TIMEOUT * 2 / 5,
-		// 	HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
-		// 	OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
-		// }
-
 		splash = newSplashScreen(g)
 		splash.img = im
-		//splash.transition = transitions.NewDissolve(splash.screen, tOpts, ebiten.GeoM{})
-		splash.geoM = geoM
+		splash.geoM = splashGeoM(im, splashRect)
 	}
 
 	return &SplashScene{
@@ -68,18 +60,10 @@ func NewGopherSplashScene(g *Game) *SplashScene {
 
 	im, _, err := resources.NewImageFromFile("textures/gopher_space.png")
 	if err == nil {
-		geoM := splashGeoM(im, splashRect)
-		// tOpts := &transitions.TransitionOptions{
-		// 	InDuration:   SPLASH_TIMEOUT * 2 / 5,
-		// 	HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
-		// 	OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
-		// }
-
 		splash = newSplashScreen(g)
 		splash.img = im
 		splash.effect = effects.NewStars(g.screenWidth, g.screenHeight)
-		//splash.transition = transitions.NewFade(splash.screen, tOpts, ebiten.GeoM{})
-		splash.geoM = geoM
+		splash.geoM = splashGeoM(im, splashRect)
 	}
 
 	return &SplashScene{
