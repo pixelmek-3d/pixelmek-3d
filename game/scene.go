@@ -83,6 +83,7 @@ func (g *Game) initScenes() {
 
 	transDissolve := transitions.NewDissolveTransition[SceneState](time.Second * time.Duration(3))
 	transFade := transitions.NewFadeTransition[SceneState](time.Second * time.Duration(4))
+	transPixelize := transitions.NewPixelizeTransition[SceneState](time.Second * time.Duration(2))
 	transSlideUp := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.BottomToTop, time.Millisecond*time.Duration(500))
 	transSlideDown := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.TopToBottom, time.Millisecond*time.Duration(500))
 	rs := map[stagehand.Scene[SceneState]][]stagehand.Directive[SceneState]{
@@ -97,7 +98,7 @@ func (g *Game) initScenes() {
 			stagehand.Directive[SceneState]{
 				Dest:       mainMenuScene,
 				Trigger:    SplashTrigger,
-				Transition: transSlideUp,
+				Transition: transPixelize,
 			},
 		},
 		mainMenuScene: {

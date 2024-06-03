@@ -3,34 +3,29 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/joelschutz/stagehand"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 )
+
+const TRANSITION_OUT_SECONDS float64 = 4.0
 
 type GameScene struct {
 	BaseScene
 
-	transition SceneTransition
+	transitionOutTimer float64
 }
 
 func NewGameScene(g *Game) *GameScene {
-	// transition in to start game
-	// tOpts := &transitions.TransitionOptions{
-	// 	InDuration:   5.0,
-	// 	HoldDuration: 0,
-	// 	OutDuration:  0,
-	// }
-	//transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
-
 	return &GameScene{
 		BaseScene: BaseScene{
 			game: g,
 		},
-		//transition: transition,
 	}
 }
 
 func (s *GameScene) Load(st SceneState, sm stagehand.SceneController[SceneState]) {
 	s.BaseScene.Load(st, sm)
+
+	// init scene variables
+	s.transitionOutTimer = TRANSITION_OUT_SECONDS
 
 	// load mission resources and launch
 	g := s.game
@@ -102,31 +97,13 @@ func (s *GameScene) Update() error {
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 
-		if g.InProgress() {
-			if s.transition != nil {
-				// update transition at start of game
-				s.transition.Update()
-				if s.transition.Completed() {
-					s.transition = nil
-				}
-			}
-		} else {
-			if s.transition == nil {
-				// transition out to leave game
-				tOpts := &transitions.TransitionOptions{
-					InDuration:   0.0,
-					HoldDuration: 4.0,
-					OutDuration:  3.0,
-				}
-				// TODO: switch to stagehand transition
-				s.transition = transitions.NewPixelize(g.overlayScreen, tOpts, ebiten.GeoM{})
+		if !g.InProgress() {
+			if s.transitionOutTimer > 0 {
+				// short wait before starting transition to leave game
+				s.transitionOutTimer -= 1 / float64(ebiten.TPS())
 			} else {
-				// update transition about to leave game
-				s.transition.Update()
-				if s.transition.Completed() {
-					g.LeaveGame()
-					return nil
-				}
+				g.LeaveGame()
+				return nil
 			}
 		}
 	}
@@ -173,14 +150,8 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	// draw HUD elements to overlay screen
 	g.drawHUD(g.overlayScreen)
 
-	if s.transition != nil {
-		// draw transition shader to screen
-		s.transition.SetImage(g.overlayScreen)
-		s.transition.Draw(screen)
-	} else {
-		// draw HUD overlayed elements directly to screen
-		screen.DrawImage(g.overlayScreen, nil)
-	}
+	// draw HUD overlayed elements directly to screen
+	screen.DrawImage(g.overlayScreen, nil)
 
 	// draw menu (if active)
 	g.menu.Draw(screen)
