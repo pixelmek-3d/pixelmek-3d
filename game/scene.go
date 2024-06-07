@@ -11,6 +11,7 @@ import (
 
 const (
 	SplashTrigger stagehand.SceneTransitionTrigger = iota
+	PostIntroTrigger
 	LaunchGameTrigger
 	MissionDebriefTrigger
 	MainMenuTrigger
@@ -18,8 +19,8 @@ const (
 )
 
 type SceneState struct {
-	Timer        float64
-	OnTransition bool
+	timer        float64
+	onTransition bool
 }
 
 type BaseScene struct {
@@ -44,13 +45,13 @@ func (s *BaseScene) Unload() SceneState {
 }
 
 func (s *BaseScene) PreTransition(toScene stagehand.Scene[SceneState]) SceneState {
-	s.state.OnTransition = true
+	s.state.onTransition = true
 	s.game.scene = toScene
 	return s.state
 }
 
 func (s *BaseScene) PostTransition(state SceneState, fromScene stagehand.Scene[SceneState]) {
-	s.state.OnTransition = false
+	s.state.onTransition = false
 }
 
 type SceneEffect interface {
@@ -65,7 +66,7 @@ type SceneShader interface {
 
 func (g *Game) initScenes() {
 	// create scene director, scenes, triggers, and transitions
-	state := SceneState{Timer: SPLASH_TIMEOUT}
+	state := SceneState{timer: SPLASH_TIMEOUT}
 	ebitenSplashScene := NewEbitengineSplashScene(g)
 	gopherSplashScene := NewGopherSplashScene(g)
 	introScene := NewIntroScene(g)
@@ -98,7 +99,7 @@ func (g *Game) initScenes() {
 		introScene: {
 			stagehand.Directive[SceneState]{
 				Dest:       mainMenuScene,
-				Trigger:    SplashTrigger,
+				Trigger:    PostIntroTrigger,
 				Transition: transPixelize,
 			},
 		},

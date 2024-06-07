@@ -31,7 +31,7 @@ type SplashScreen struct {
 }
 
 func NewEbitengineSplashScene(g *Game) *SplashScene {
-	// Ebitengine splash
+	// Ebitengine logo splash
 	var splash *SplashScreen
 	splashRect := g.uiRect()
 
@@ -46,9 +46,8 @@ func NewEbitengineSplashScene(g *Game) *SplashScene {
 		BaseScene: BaseScene{
 			game: g,
 		},
-		splash:     splash,
-		splashRect: splashRect,
-		//splashTimer:  SPLASH_TIMEOUT,
+		splash:       splash,
+		splashRect:   splashRect,
 		bufferScreen: ebiten.NewImage(g.screenWidth, g.screenHeight),
 	}
 }
@@ -70,9 +69,8 @@ func NewGopherSplashScene(g *Game) *SplashScene {
 		BaseScene: BaseScene{
 			game: g,
 		},
-		splash:     splash,
-		splashRect: splashRect,
-		//splashTimer:  SPLASH_TIMEOUT,
+		splash:       splash,
+		splashRect:   splashRect,
 		bufferScreen: ebiten.NewImage(g.screenWidth, g.screenHeight),
 	}
 }
@@ -103,7 +101,7 @@ func (s *SplashScene) PreTransition(toScene stagehand.Scene[SceneState]) SceneSt
 }
 
 func (s *SplashScene) PostTransition(state SceneState, fromScene stagehand.Scene[SceneState]) {
-	s.state.Timer = SPLASH_TIMEOUT
+	s.state.timer = SPLASH_TIMEOUT
 	s.BaseScene.PostTransition(state, fromScene)
 }
 
@@ -118,11 +116,8 @@ func (s *SplashScene) Update() error {
 	if splash.shader != nil {
 		splash.shader.Update()
 	}
-	// if splash.transition != nil {
-	// 	splash.transition.Update()
-	// }
 
-	if s.state.OnTransition {
+	if s.state.onTransition {
 		// no further updates during transition
 		return nil
 	}
@@ -143,8 +138,8 @@ func (s *SplashScene) Update() error {
 	}
 
 	skip := keyPressed || buttonPressed || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
-	s.state.Timer -= 1 / float64(ebiten.TPS())
-	if skip || s.state.Timer <= 0 {
+	s.state.timer -= 1 / float64(ebiten.TPS())
+	if skip || s.state.timer <= 0 {
 		s.sm.ProcessTrigger(SplashTrigger)
 	}
 
@@ -180,12 +175,6 @@ func (s *SplashScene) Draw(screen *ebiten.Image) {
 		// draw splash screen to buffer
 		s.bufferScreen.DrawImage(splash.screen, nil)
 	}
-
-	// if splash.transition != nil {
-	// 	// draw transition from buffer
-	// 	splash.transition.SetImage(s.bufferScreen)
-	// 	splash.transition.Draw(screen)
-	// } else {
 
 	// draw buffer directly to screen
 	screen.DrawImage(s.bufferScreen, nil)

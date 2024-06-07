@@ -123,7 +123,7 @@ func (s *IntroScene) Update() error {
 		s.shader.Update()
 	}
 
-	if s.state.OnTransition {
+	if s.state.onTransition {
 		// no further updates during transition
 		return nil
 	}
@@ -145,7 +145,7 @@ func (s *IntroScene) Update() error {
 
 	skip := keyPressed || buttonPressed || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
 	if skip {
-		s.sm.ProcessTrigger(SplashTrigger)
+		s.sm.ProcessTrigger(PostIntroTrigger)
 	}
 
 	return nil

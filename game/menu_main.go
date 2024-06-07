@@ -63,7 +63,7 @@ func mainMenuTitleContainer(m *MainMenu) *widget.Container {
 			widget.GridLayoutOpts.Padding(widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
-				Top:    m.Padding() / 2,
+				Top:    0,
 				Bottom: m.Padding(),
 			}))))
 
