@@ -1,13 +1,16 @@
 package game
 
 import (
+	"image/color"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/joelschutz/stagehand"
+	renderFx "github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	log "github.com/sirupsen/logrus"
@@ -15,6 +18,9 @@ import (
 
 type IntroScene struct {
 	BaseScene
+	textFace      *text.GoTextFaceSource
+	shader        SceneShader
+	bufferScreen  *ebiten.Image
 	animation     []*ebiten.Image
 	geoM          ebiten.GeoM
 	animationRate int
@@ -58,8 +64,8 @@ func NewIntroScene(g *Game) *IntroScene {
 				sW, sH := float64(g.screenWidth), float64(g.screenHeight)
 				iW, iH := float64(img.Bounds().Dx()), float64(img.Bounds().Dy())
 
-				iScale := sW / iW
-				iX, iY := 0.0, (sH-iH*iScale)/2
+				iScale := sH / iH
+				iX, iY := (sW-iW*iScale)/2, (sH-iH*iScale)/2
 
 				geoM = &ebiten.GeoM{}
 				geoM.Scale(iScale, iScale)
@@ -68,10 +74,23 @@ func NewIntroScene(g *Game) *IntroScene {
 		}
 	}
 
+	// load font
+	fontFile, err := resources.FileAt("fonts/pixeloid.otf")
+	if err != nil {
+		panic(err)
+	}
+	textFace, err := text.NewGoTextFaceSource(fontFile)
+	if err != nil {
+		panic(err)
+	}
+
 	return &IntroScene{
 		BaseScene: BaseScene{
 			game: g,
 		},
+		textFace:      textFace,
+		shader:        renderFx.NewCRT(),
+		bufferScreen:  ebiten.NewImage(g.screenWidth, g.screenHeight),
 		animation:     images,
 		animationRate: 5, // TODO: define intro animation rate in a file that can be modded
 		numFrames:     len(images),
@@ -98,6 +117,10 @@ func (s *IntroScene) Update() error {
 		} else {
 			s.animCounter++
 		}
+	}
+
+	if s.shader != nil {
+		s.shader.Update()
 	}
 
 	if s.state.OnTransition {
@@ -130,8 +153,35 @@ func (s *IntroScene) Update() error {
 
 func (s *IntroScene) Draw(screen *ebiten.Image) {
 	// draw current animation frame to screen
-	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest, GeoM: s.geoM}
-	screen.DrawImage(s.animation[s.animIndex], op)
+	w, h := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
+	s.bufferScreen.Clear()
 
-	// TODO: draw PixelMek 3D intro text on top
+	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest, GeoM: s.geoM}
+	s.bufferScreen.DrawImage(s.animation[s.animIndex], op)
+
+	// draw PixelMek 3D title
+	title := "PixelMek 3D"
+	titleFace := &text.GoTextFace{
+		Source: s.textFace,
+		Size:   72,
+	}
+	tW, tH := text.Measure(title, titleFace, titleFace.Size*1.2)
+	tScale := h / 500
+
+	textOp := &text.DrawOptions{}
+	textOp.Filter = ebiten.FilterNearest
+	textOp.GeoM.Scale(tScale, tScale)
+	textOp.GeoM.Translate((w-tW*tScale)/2, tH*tScale/12)
+	textOp.ColorScale.ScaleWithColor(color.Black)
+	text.Draw(s.bufferScreen, title, titleFace, textOp)
+
+	// TODO: draw press any button text
+
+	if s.shader != nil {
+		// draw shader effect with buffer to screen
+		s.shader.Draw(screen, s.bufferScreen)
+	} else {
+		// draw buffer directly to screen
+		screen.DrawImage(s.bufferScreen, nil)
+	}
 }
