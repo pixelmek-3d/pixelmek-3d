@@ -75,7 +75,7 @@ func NewIntroScene(g *Game) *IntroScene {
 	}
 
 	// load font
-	fontFile, err := resources.FileAt("fonts/pixeloid.otf")
+	fontFile, err := resources.FileAt("fonts/broken-machine.ttf")
 	if err != nil {
 		panic(err)
 	}
@@ -159,23 +159,37 @@ func (s *IntroScene) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest, GeoM: s.geoM}
 	s.bufferScreen.DrawImage(s.animation[s.animIndex], op)
 
-	// draw PixelMek 3D title
-	title := "PixelMek 3D"
+	// draw PixelMek 3D title at top center
+	title := "PIXELMEK 3D"
 	titleFace := &text.GoTextFace{
 		Source: s.textFace,
-		Size:   72,
+		Size:   68,
 	}
-	tW, tH := text.Measure(title, titleFace, titleFace.Size*1.2)
+	tW, _ := text.Measure(title, titleFace, titleFace.Size*1.2)
 	tScale := h / 500
 
 	textOp := &text.DrawOptions{}
 	textOp.Filter = ebiten.FilterNearest
 	textOp.GeoM.Scale(tScale, tScale)
-	textOp.GeoM.Translate((w-tW*tScale)/2, tH*tScale/12)
+	textOp.GeoM.Translate((w-(tW*tScale))/2, 0)
 	textOp.ColorScale.ScaleWithColor(color.Black)
 	text.Draw(s.bufferScreen, title, titleFace, textOp)
 
-	// TODO: draw press any button text
+	// draw press any key at bottom center
+	pressText := "<press any key>"
+	pressFace := &text.GoTextFace{
+		Source: s.textFace,
+		Size:   32,
+	}
+	pW, pH := text.Measure(pressText, pressFace, pressFace.Size*1.2)
+	pScale := h / 500
+
+	textOp = &text.DrawOptions{}
+	textOp.Filter = ebiten.FilterNearest
+	textOp.GeoM.Scale(pScale, pScale)
+	textOp.GeoM.Translate((w-(pW*pScale))/2, h-(pH*pScale))
+	textOp.ColorScale.ScaleWithColor(color.Black)
+	text.Draw(s.bufferScreen, pressText, pressFace, textOp)
 
 	if s.shader != nil {
 		// draw shader effect with buffer to screen

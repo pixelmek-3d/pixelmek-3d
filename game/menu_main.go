@@ -57,18 +57,18 @@ func mainMenuTitleContainer(m *MainMenu) *widget.Container {
 	res := m.Resources()
 
 	c := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		//widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
 			widget.GridLayoutOpts.Padding(widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
-				Top:    m.Padding(),
+				Top:    m.Padding() / 2,
 				Bottom: m.Padding(),
 			}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text(title, res.text.bigTitleFace, res.text.idleColor),
+		widget.TextOpts.Text(title, res.fonts.pixelmekFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 

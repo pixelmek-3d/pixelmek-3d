@@ -36,9 +36,10 @@ const (
 )
 
 const (
-	fontFaceRegular = "fonts/pixeloid-sans.otf"
-	fontFaceBold    = "fonts/pixeloid-bold.otf"
-	fontFaceMono    = "fonts/pixeloid.otf"
+	fontFacePixelmek = "fonts/broken-machine.ttf"
+	fontFaceRegular  = "fonts/pixeloid-sans.otf"
+	fontFaceBold     = "fonts/pixeloid-bold.otf"
+	fontFaceMono     = "fonts/pixeloid.otf"
 )
 
 type uiResources struct {
@@ -157,6 +158,7 @@ type fonts struct {
 	bigTitleFace font.Face
 	toolTipFace  font.Face
 	toolTipMono  font.Face
+	pixelmekFace font.Face
 }
 
 func NewUIResources(fonts *fonts) (*uiResources, error) {
@@ -241,6 +243,11 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 }
 
 func loadFonts(fontScale float64) (*fonts, error) {
+	pixelmekFace, err := resources.LoadFont(fontFacePixelmek, 32.0*fontScale)
+	if err != nil {
+		return nil, err
+	}
+
 	fontFace, err := resources.LoadFont(fontFaceRegular, 20.0*fontScale)
 	if err != nil {
 		return nil, err
@@ -268,6 +275,7 @@ func loadFonts(fontScale float64) (*fonts, error) {
 
 	return &fonts{
 		scale:        fontScale,
+		pixelmekFace: pixelmekFace,
 		face:         fontFace,
 		titleFace:    titleFontFace,
 		bigTitleFace: bigTitleFontFace,
