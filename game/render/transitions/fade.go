@@ -1,7 +1,10 @@
 package transitions
 
 import (
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	log "github.com/sirupsen/logrus"
@@ -9,90 +12,73 @@ import (
 
 const SHADER_FADE = "shaders/fade.kage"
 
-type Fade struct {
-	fadeImage *ebiten.Image
+type FadeTransition[T any] struct {
+	stagehand.BaseTransition[T]
+	fromScene stagehand.Scene[T]
+	toScene   stagehand.Scene[T]
 	shader    *ebiten.Shader
-	geoM      ebiten.GeoM
-	tOptions  *TransitionOptions
-	time      float32
+	duration  float32
 	tickDelta float32
-	completed bool
+	time      float32
+	direction float32
 }
 
-func NewFade(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.GeoM) *Fade {
+func NewFadeTransition[T any](duration time.Duration) *FadeTransition[T] {
 	shader, err := resources.NewShaderFromFile(SHADER_FADE)
 	if err != nil {
 		log.Errorf("error loading shader: %s", SHADER_FADE)
 		log.Fatal(err)
 	}
 
-	t := &Fade{
+	return &FadeTransition[T]{
 		shader:    shader,
-		geoM:      geoM,
-		tOptions:  tOptions,
+		duration:  float32(duration.Seconds() / 2),
 		tickDelta: 1 / float32(ebiten.TPS()),
 	}
-	t.SetImage(img)
-
-	return t
 }
 
-func (t *Fade) Completed() bool {
-	return t.completed
+// Start starts the transition from the given "from" scene to the given "to" scene
+func (t *FadeTransition[T]) Start(fromScene stagehand.Scene[T], toScene stagehand.Scene[T], sm stagehand.SceneController[T]) {
+	t.BaseTransition.Start(fromScene, toScene, sm)
+	t.time = 0
+	t.direction = -1
+
+	// these have to be redefined and set since they are private fields in stagehand.BaseTransition
+	t.fromScene = fromScene
+	t.toScene = toScene
 }
 
-func (t *Fade) SetImage(img *ebiten.Image) {
-	t.fadeImage = img
-}
-
-func (t *Fade) Update() error {
-	if t.completed {
-		return nil
-	}
-
-	duration := t.tOptions.Duration()
-	if t.time+t.tickDelta < duration {
+func (t *FadeTransition[T]) Update() error {
+	switch {
+	case t.time+t.tickDelta < t.duration:
 		t.time += t.tickDelta
-	} else {
-		// move to next transition direction and reset timer
-		t.tOptions.CurrentDirection += 1
+	case t.direction < 0:
+		t.direction = 1
 		t.time = 0
+	default:
+		t.End()
 	}
 
-	if t.tOptions.CurrentDirection == TransitionCompleted {
-		t.completed = true
-	} else if t.time == 0 && t.tOptions.Duration() == 0 {
-		// if the next transition unused, update to move on to the next
-		t.Update()
-	}
-
-	return nil
+	// Update the scenes
+	return t.BaseTransition.Update()
 }
 
-func (t *Fade) Draw(screen *ebiten.Image) {
-	time := t.time
-	duration := t.tOptions.Duration()
-	direction := 1.0
-	switch t.tOptions.CurrentDirection {
-	case TransitionOut:
-		direction = -1.0
-	case TransitionHold:
-		direction = 0.0
-		time = 0
-	}
-
+func (t *FadeTransition[T]) Draw(screen *ebiten.Image) {
+	toImg, fromImg := stagehand.PreDraw(screen.Bounds(), t.fromScene, t.toScene)
 	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
+
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
-		"Direction": direction,
-		"Duration":  duration,
-		"Time":      time,
+		"Direction": t.direction,
+		"Duration":  t.duration,
+		"Time":      t.time,
 	}
-	op.Images[0] = t.fadeImage
-	op.GeoM = t.geoM
-	screen.DrawRectShader(w, h, t.shader, op)
-}
 
-func (t *Fade) SetGeoM(geoM ebiten.GeoM) {
-	t.geoM = geoM
+	if t.direction < 0 {
+		op.Images[0] = fromImg
+	} else {
+		op.Images[0] = toImg
+	}
+
+	screen.DrawRectShader(w, h, t.shader, op)
 }

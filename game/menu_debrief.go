@@ -108,8 +108,9 @@ func debriefMenuFooterContainer(m *DebriefMenu) *widget.Container {
 		widget.ButtonOpts.Text("Back", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*MissionDebriefScene)
-			iScene.back()
+			if iScene, ok := game.scene.(*MissionDebriefScene); ok {
+				iScene.back()
+			}
 		}),
 	)
 	c.AddChild(back)

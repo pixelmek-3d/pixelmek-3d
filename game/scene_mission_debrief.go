@@ -2,51 +2,57 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/joelschutz/stagehand"
 )
 
 type MissionDebriefScene struct {
-	Game           *Game
+	BaseScene
+	activeMenu     Menu
 	missionDebrief *DebriefMenu
 }
 
 func NewMissionDebriefScene(g *Game) *MissionDebriefScene {
-	missionDebrief := createDebriefMenu(g)
-
 	scene := &MissionDebriefScene{
-		Game:           g,
-		missionDebrief: missionDebrief,
+		BaseScene: BaseScene{
+			game: g,
+		},
 	}
-	scene.SetMenu(missionDebrief)
 	return scene
 }
 
 func (s *MissionDebriefScene) SetMenu(m Menu) {
-	s.Game.menu = m
+	s.activeMenu = m
+	s.game.menu = m
+}
+
+func (s *MissionDebriefScene) Load(st SceneState, sm stagehand.SceneController[SceneState]) {
+	s.BaseScene.Load(st, sm)
+
+	s.missionDebrief = createDebriefMenu(s.game)
+	s.SetMenu(s.missionDebrief)
 }
 
 func (s *MissionDebriefScene) Update() error {
-	g := s.Game
+	g := s.game
 
 	if g.input.ActionIsJustPressed(ActionBack) {
 		s.back()
 	}
 
 	// update the menu
-	g.menu.Update()
+	s.activeMenu.Update()
 
 	return nil
 }
 
 func (s *MissionDebriefScene) Draw(screen *ebiten.Image) {
-	g := s.Game
-
 	// draw menu
-	g.menu.Draw(screen)
+	s.activeMenu.Draw(screen)
 }
 
 func (s *MissionDebriefScene) back() {
-	g := s.Game
+	g := s.game
 
 	// back to main menu
-	g.scene = NewMenuScene(g)
+	g.sm.ProcessTrigger(MainMenuTrigger)
 }

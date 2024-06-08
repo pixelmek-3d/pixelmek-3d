@@ -2,11 +2,13 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
 type InstantActionScene struct {
-	Game           *Game
+	BaseScene
+	activeMenu     Menu
 	missionSelect  *MissionMenu
 	unitSelect     *UnitMenu
 	launchBriefing *LaunchMenu
@@ -18,41 +20,45 @@ func NewInstantActionScene(g *Game) *InstantActionScene {
 	launchBriefing := createLaunchMenu(g)
 
 	scene := &InstantActionScene{
-		Game:           g,
+		BaseScene: BaseScene{
+			game: g,
+		},
 		missionSelect:  missionSelect,
 		unitSelect:     unitSelect,
 		launchBriefing: launchBriefing,
 	}
-	scene.SetMenu(missionSelect)
 	return scene
 }
 
 func (s *InstantActionScene) SetMenu(m Menu) {
-	s.Game.menu = m
+	s.activeMenu = m
+	s.game.menu = m
+}
+
+func (s *InstantActionScene) Load(st SceneState, sm stagehand.SceneController[SceneState]) {
+	s.BaseScene.Load(st, sm)
+	s.SetMenu(s.missionSelect)
 }
 
 func (s *InstantActionScene) Update() error {
-	g := s.Game
-
+	g := s.game
 	if g.input.ActionIsJustPressed(ActionBack) {
 		s.back()
 	}
 
 	// update the menu
-	g.menu.Update()
+	s.activeMenu.Update()
 
 	return nil
 }
 
 func (s *InstantActionScene) Draw(screen *ebiten.Image) {
-	g := s.Game
-
 	// draw menu
-	g.menu.Draw(screen)
+	s.activeMenu.Draw(screen)
 }
 
 func (s *InstantActionScene) back() {
-	g := s.Game
+	g := s.game
 
 	switch g.menu {
 	case s.launchBriefing:
@@ -67,12 +73,12 @@ func (s *InstantActionScene) back() {
 		fallthrough
 	default:
 		// back to main menu
-		g.scene = NewMenuScene(g)
+		g.sm.ProcessTrigger(MainMenuTrigger)
 	}
 }
 
 func (s *InstantActionScene) next() {
-	g := s.Game
+	g := s.game
 
 	switch g.menu {
 	case s.launchBriefing:
@@ -82,7 +88,7 @@ func (s *InstantActionScene) next() {
 			g.SetPlayerUnit(g.randomUnit(model.MechResourceType))
 		}
 
-		g.scene = NewGameScene(g)
+		g.sm.ProcessTrigger(LaunchGameTrigger)
 
 	case s.unitSelect:
 		// to pre-launch briefing after setting player unit and mission
@@ -104,6 +110,6 @@ func (s *InstantActionScene) next() {
 
 	default:
 		// back to main menu
-		g.scene = NewMenuScene(g)
+		g.sm.ProcessTrigger(MainMenuTrigger)
 	}
 }
