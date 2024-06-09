@@ -139,7 +139,7 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 		g.renderScreen.DrawImage(g.rayScreen, rayOp)
 	}
 
-	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
+	if g.shadersEnabled && (g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil) {
 		// use CRT shader over raycasted scene when in ejection pod
 		crtShader.DrawWithOptions(g.overlayScreen, g.renderScreen, true)
 	} else {

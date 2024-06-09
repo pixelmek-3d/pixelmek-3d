@@ -84,12 +84,17 @@ func NewIntroScene(g *Game) *IntroScene {
 		panic(err)
 	}
 
+	var shader SceneShader
+	if g.shadersEnabled {
+		shader = renderFx.NewCRT()
+	}
+
 	return &IntroScene{
 		BaseScene: BaseScene{
 			game: g,
 		},
 		textFace:      textFace,
-		shader:        renderFx.NewCRT(),
+		shader:        shader,
 		bufferScreen:  ebiten.NewImage(g.screenWidth, g.screenHeight),
 		animation:     images,
 		animationRate: 5, // TODO: define intro animation rate in a file that can be modded

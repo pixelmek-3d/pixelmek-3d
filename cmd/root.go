@@ -27,9 +27,11 @@ func init() {
 	cobra.OnInitialize(resources.InitConfig)
 
 	// global flags that are not persisted in config file
-	rootCmd.PersistentFlags().Bool(game.CONFIG_KEY_DEBUG, false, "developer debug mode")
+	rootCmd.PersistentFlags().Bool(game.PARAM_KEY_DEBUG, false, "developer debug mode")
+	rootCmd.PersistentFlags().Bool(game.PARAM_KEY_DISABLE_SHADERS, false, "disable shaders")
 
-	globalViper.BindPFlag(game.CONFIG_KEY_DEBUG, rootCmd.PersistentFlags().Lookup(game.CONFIG_KEY_DEBUG))
-	globalViper.SetDefault(game.CONFIG_KEY_DEBUG, false)
-
+	globalViper.BindPFlag(game.PARAM_KEY_DEBUG, rootCmd.PersistentFlags().Lookup(game.PARAM_KEY_DEBUG))
+	globalViper.BindPFlag(game.PARAM_KEY_DISABLE_SHADERS, rootCmd.PersistentFlags().Lookup(game.PARAM_KEY_DISABLE_SHADERS))
+	globalViper.SetDefault(game.PARAM_KEY_DEBUG, false)
+	globalViper.SetDefault(game.PARAM_KEY_DISABLE_SHADERS, false)
 }

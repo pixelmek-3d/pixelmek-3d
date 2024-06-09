@@ -27,7 +27,6 @@ type SplashScreen struct {
 	screen *ebiten.Image
 	geoM   ebiten.GeoM
 	effect SceneEffect
-	shader SceneShader
 }
 
 func NewEbitengineSplashScene(g *Game) *SplashScene {
@@ -113,9 +112,6 @@ func (s *SplashScene) Update() error {
 	if splash.effect != nil {
 		splash.effect.Update()
 	}
-	if splash.shader != nil {
-		splash.shader.Update()
-	}
 
 	if s.state.onTransition {
 		// no further updates during transition
@@ -168,13 +164,8 @@ func (s *SplashScene) Draw(screen *ebiten.Image) {
 		splash.screen.DrawImage(splash.img, op)
 	}
 
-	if splash.shader != nil {
-		// draw shader effect with splash screen to buffer
-		splash.shader.Draw(s.bufferScreen, splash.screen)
-	} else {
-		// draw splash screen to buffer
-		s.bufferScreen.DrawImage(splash.screen, nil)
-	}
+	// draw splash screen to buffer
+	s.bufferScreen.DrawImage(splash.screen, nil)
 
 	// draw buffer directly to screen
 	screen.DrawImage(s.bufferScreen, nil)

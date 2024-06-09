@@ -118,9 +118,10 @@ type Game struct {
 	// control options
 	throttleDecay bool
 
-	osType     osType
-	debug      bool
-	fpsEnabled bool
+	osType         osType
+	debug          bool
+	fpsEnabled     bool
+	shadersEnabled bool
 }
 
 type osType int

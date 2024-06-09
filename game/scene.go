@@ -76,9 +76,20 @@ func (g *Game) initScenes() {
 	gameScene := NewGameScene(g)
 	debriefScene := NewMissionDebriefScene(g)
 
-	transDissolve := transitions.NewDissolveTransition[SceneState](time.Second * time.Duration(3))
-	transFade := transitions.NewFadeTransition[SceneState](time.Second * time.Duration(4))
-	transPixelize := transitions.NewPixelizeTransition[SceneState](time.Second * time.Duration(2))
+	var transDissolve stagehand.SceneTransition[SceneState]
+	var transFade stagehand.SceneTransition[SceneState]
+	var transPixelize stagehand.SceneTransition[SceneState]
+
+	if g.shadersEnabled {
+		transDissolve = transitions.NewDissolveTransition[SceneState](time.Second * time.Duration(3))
+		transFade = transitions.NewFadeTransition[SceneState](time.Second * time.Duration(4))
+		transPixelize = transitions.NewPixelizeTransition[SceneState](time.Second * time.Duration(2))
+	} else {
+		transDissolve = stagehand.NewDurationTimedFadeTransition[SceneState](time.Second * time.Duration(3))
+		transFade = stagehand.NewDurationTimedFadeTransition[SceneState](time.Second * time.Duration(4))
+		transPixelize = stagehand.NewDurationTimedFadeTransition[SceneState](time.Second * time.Duration(2))
+	}
+
 	transSlideUp := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.BottomToTop, time.Millisecond*time.Duration(500))
 	transSlideDown := stagehand.NewDurationTimedSlideTransition[SceneState](stagehand.TopToBottom, time.Millisecond*time.Duration(500))
 	rs := map[stagehand.Scene[SceneState]][]stagehand.Directive[SceneState]{

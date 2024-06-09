@@ -16,7 +16,9 @@ import (
 )
 
 const (
-	CONFIG_KEY_DEBUG   = "debug"
+	PARAM_KEY_DEBUG           = "debug"
+	PARAM_KEY_DISABLE_SHADERS = "disable-shaders"
+
 	CONFIG_KEY_SHOWFPS = "show_fps"
 
 	CONFIG_KEY_SCREEN_WIDTH     = "screen.width"
@@ -52,7 +54,8 @@ const (
 
 func (g *Game) initConfig() {
 	// handle global flag values
-	g.debug = globalViper.GetBool(CONFIG_KEY_DEBUG)
+	g.debug = globalViper.GetBool(PARAM_KEY_DEBUG)
+	g.shadersEnabled = !globalViper.GetBool(PARAM_KEY_DISABLE_SHADERS)
 	if g.debug {
 		log.SetLevel(log.DebugLevel)
 	}
