@@ -10,8 +10,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	globalViper "github.com/spf13/viper"
 )
 
 const (
@@ -50,6 +51,12 @@ const (
 )
 
 func (g *Game) initConfig() {
+	// handle global flag values
+	g.debug = globalViper.GetBool(CONFIG_KEY_DEBUG)
+	if g.debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	// special behavior needed for wasm play
 	switch runtime.GOOS {
 	case "js":
@@ -59,7 +66,8 @@ func (g *Game) initConfig() {
 	}
 
 	// set default config values
-	viper.SetDefault(CONFIG_KEY_DEBUG, false)
+	viper := resources.Viper
+
 	viper.SetDefault(CONFIG_KEY_SHOWFPS, false)
 
 	viper.SetDefault(CONFIG_KEY_FOV_DEGREES, 70)
@@ -106,12 +114,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault(CONFIG_KEY_CONTROL_DECAY, false)
 
 	// get config values
-	g.debug = viper.GetBool(CONFIG_KEY_DEBUG)
 	g.fpsEnabled = viper.GetBool(CONFIG_KEY_SHOWFPS)
-
-	if g.debug {
-		log.SetLevel(log.DebugLevel)
-	}
 
 	g.screenWidth = viper.GetInt(CONFIG_KEY_SCREEN_WIDTH)
 	g.screenHeight = viper.GetInt(CONFIG_KEY_SCREEN_HEIGHT)
@@ -151,6 +154,7 @@ func (g *Game) initConfig() {
 
 func (g *Game) saveConfig() error {
 	log.Debug("saving config file ", resources.UserConfigFile)
+	viper := resources.Viper
 
 	userConfigPath := filepath.Dir(resources.UserConfigFile)
 	if _, err := os.Stat(userConfigPath); os.IsNotExist(err) {
