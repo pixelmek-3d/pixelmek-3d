@@ -90,7 +90,7 @@ func NewIntroScene(g *Game) *IntroScene {
 		HoldDuration: -1,
 		OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
 	}
-	splash.transition = transitions.NewDissolve(splash.screen, splash.transitionOpts, ebiten.GeoM{})
+	splash.transition = transitions.NewPixelize(splash.screen, splash.transitionOpts, ebiten.GeoM{})
 
 	splash.geoM = *geoM
 
