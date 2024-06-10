@@ -67,9 +67,13 @@ func (t *Dissolve) Update() error {
 	}
 
 	duration := t.tOptions.Duration()
-	if t.time+t.tickDelta < duration {
+	switch {
+	case t.tOptions.CurrentDirection == TransitionHold && duration < 0:
+		// keep at transition held state when duration less than zero
+		t.time = 0
+	case t.time+t.tickDelta < duration:
 		t.time += t.tickDelta
-	} else {
+	default:
 		// move to next transition direction and reset timer
 		t.tOptions.CurrentDirection += 1
 		t.time = 0

@@ -1,123 +1,130 @@
 package game
 
 import (
-	"image"
-
-	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
-	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+	"image/color"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-)
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	renderFx "github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
-const (
-	SPLASH_TIMEOUT = 5.0
+	log "github.com/sirupsen/logrus"
 )
 
 type IntroScene struct {
-	Game         *Game
-	splashes     []*SplashScreen
-	splashRect   image.Rectangle
-	splashIndex  int
-	splashTimer  float64
-	bufferScreen *ebiten.Image
-}
-
-type SplashScreen struct {
-	img        *ebiten.Image
-	screen     *ebiten.Image
-	geoM       ebiten.GeoM
-	effect     SceneEffect
-	shader     SceneShader
-	transition SceneTransition
+	Game          *Game
+	textFace      *text.GoTextFaceSource
+	splash        *SplashScreen
+	animation     []*ebiten.Image
+	animationRate int
+	numFrames     int
+	animIndex     int
+	animCounter   int
+	loopCounter   int
+	bufferScreen  *ebiten.Image
 }
 
 func NewIntroScene(g *Game) *IntroScene {
-	// load intro splash images
-	var splashes = make([]*SplashScreen, 0)
-	splashRect := g.uiRect()
+	// PixelMek 3D intro animation
 
-	// Ebitengine splash
-	im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
-	if err == nil {
-		geoM := splashGeoM(im, splashRect)
-		tOpts := &transitions.TransitionOptions{
-			InDuration:   SPLASH_TIMEOUT * 2 / 5,
-			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
-			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
-		}
-
-		splash := NewSplashScreen(g)
-		splash.img = im
-		splash.transition = transitions.NewDissolve(splash.screen, tOpts, ebiten.GeoM{})
-		splash.geoM = geoM
-		splashes = append(splashes, splash)
+	// load all intro image frames
+	introPath := "textures/intro"
+	introFiles, err := resources.ReadDir(introPath)
+	if err != nil {
+		panic(err)
 	}
 
-	// Golang Gopher splash
-	im, _, err = resources.NewImageFromFile("textures/gopher_space.png")
-	if err == nil {
-		geoM := splashGeoM(im, splashRect)
-		tOpts := &transitions.TransitionOptions{
-			InDuration:   SPLASH_TIMEOUT * 2 / 5,
-			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
-			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
-		}
+	var geoM *ebiten.GeoM
 
-		splash := NewSplashScreen(g)
-		splash.img = im
-		splash.effect = effects.NewStars(g.screenWidth, g.screenHeight)
-		splash.transition = transitions.NewFade(splash.screen, tOpts, ebiten.GeoM{})
-		splash.geoM = geoM
-		splashes = append(splashes, splash)
+	// import files into image array
+	images := make([]*ebiten.Image, 0, 10)
+	for _, f := range introFiles {
+		if f.IsDir() {
+			continue
+		}
+		fName := f.Name()
+		if strings.HasPrefix(fName, "intro") && filepath.Ext(fName) == ".png" {
+			// load image and scale to fit screen
+			fPath := path.Join(introPath, fName)
+			img, _, err := resources.NewImageFromFile(fPath)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+
+			images = append(images, img)
+
+			if geoM == nil {
+				sW, sH := float64(g.screenWidth), float64(g.screenHeight)
+				iW, iH := float64(img.Bounds().Dx()), float64(img.Bounds().Dy())
+
+				iScale := sH / iH
+				iX, iY := (sW-iW*iScale)/2, (sH-iH*iScale)/2
+
+				geoM = &ebiten.GeoM{}
+				geoM.Scale(iScale, iScale)
+				geoM.Translate(iX, iY)
+			}
+		}
 	}
+
+	// load font
+	fontFile, err := resources.FileAt("fonts/broken-machine.ttf")
+	if err != nil {
+		panic(err)
+	}
+	textFace, err := text.NewGoTextFaceSource(fontFile)
+	if err != nil {
+		panic(err)
+	}
+
+	splash := NewSplashScreen(g)
+	splash.shader = renderFx.NewCRT()
+	splash.transitionOpts = &transitions.TransitionOptions{
+		InDuration:   SPLASH_TIMEOUT * 2 / 5,
+		HoldDuration: -1,
+		OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
+	}
+	splash.transition = transitions.NewDissolve(splash.screen, splash.transitionOpts, ebiten.GeoM{})
+
+	splash.geoM = *geoM
 
 	return &IntroScene{
-		Game:         g,
-		splashes:     splashes,
-		splashRect:   splashRect,
-		splashTimer:  SPLASH_TIMEOUT,
-		bufferScreen: ebiten.NewImage(g.screenWidth, g.screenHeight),
+		Game:          g,
+		textFace:      textFace,
+		bufferScreen:  ebiten.NewImage(g.screenWidth, g.screenHeight),
+		animation:     images,
+		animationRate: 5, // TODO: define intro animation rate in a file that can be modded
+		numFrames:     len(images),
+		splash:        splash,
 	}
-}
-
-func NewSplashScreen(g *Game) *SplashScreen {
-	return &SplashScreen{
-		screen: ebiten.NewImage(g.screenWidth, g.screenHeight),
-	}
-}
-
-func splashGeoM(splash *ebiten.Image, splashRect image.Rectangle) ebiten.GeoM {
-	sW, sH := float64(splash.Bounds().Dx()), float64(splash.Bounds().Dy())
-	bX, bY, bW, bH := splashRect.Min.X, splashRect.Min.Y, splashRect.Dx(), splashRect.Dy()
-
-	// scale image to only take up a portion of the space
-	sScale := 0.75 * float64(bH) / sH
-	sW, sH = sW*sScale, sH*sScale
-	sX, sY := float64(bX)+float64(bW)/2-sW/2, float64(bY)+float64(bH)/2-sH/2
-
-	geoM := ebiten.GeoM{}
-	geoM.Scale(sScale, sScale)
-	geoM.Translate(sX, sY)
-	return geoM
-}
-
-func (s *IntroScene) currentSplash() *SplashScreen {
-	if s.splashIndex < 0 || s.splashIndex >= len(s.splashes) {
-		return nil
-	}
-	return s.splashes[s.splashIndex]
 }
 
 func (s *IntroScene) Update() error {
-	splash := s.currentSplash()
-	if splash.effect != nil {
-		splash.effect.Update()
+	// determine when to move to next animation frame
+	if s.animationRate > 0 {
+		if s.animCounter >= s.animationRate {
+			s.animCounter = 0
+			s.animIndex++
+			if s.animIndex >= s.numFrames {
+				s.animIndex = 0
+				s.loopCounter++
+			}
+		} else {
+			s.animCounter++
+		}
 	}
+
+	splash := s.splash
 	if splash.shader != nil {
 		splash.shader.Update()
 	}
+
 	if splash.transition != nil {
 		splash.transition.Update()
 	}
@@ -137,21 +144,12 @@ func (s *IntroScene) Update() error {
 		}
 	}
 
-	skip := keyPressed || buttonPressed || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
-	if skip {
-		s.splashIndex += 1
-		s.splashTimer = SPLASH_TIMEOUT
-	}
-
-	// use timer to move on if no input
-	s.splashTimer -= 1 / float64(ebiten.TPS())
-	if s.splashTimer <= 0 {
-		s.splashIndex += 1
-		s.splashTimer = SPLASH_TIMEOUT
-	}
-
-	if s.splashIndex >= len(s.splashes) {
-		// TODO: make a last splash that requires key/button press to move on to main menu
+	skip := splash.transition.Completed() || keyPressed || buttonPressed || inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
+	if skip && splash.transitionOpts.HoldDuration < 0 {
+		// first key press starts transition out
+		splash.transitionOpts.HoldDuration = 0
+	} else if skip && splash.transitionOpts.HoldDuration >= 0 {
+		// second key press skips transition to go straight to menu
 		s.Game.scene = NewMenuScene(s.Game)
 	}
 
@@ -159,23 +157,46 @@ func (s *IntroScene) Update() error {
 }
 
 func (s *IntroScene) Draw(screen *ebiten.Image) {
-	// draw effect as splash image background
-	splash := s.currentSplash()
+	// draw current animation frame to screen
+	w, h := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
+	splash := s.splash
 	splash.screen.Clear()
 	s.bufferScreen.Clear()
 
-	if splash.effect != nil {
-		// draw effect
-		splash.effect.Draw(splash.screen)
-	}
+	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest, GeoM: splash.geoM}
+	splash.screen.DrawImage(s.animation[s.animIndex], op)
 
-	if splash.img != nil {
-		// draw splash image
-		op := &ebiten.DrawImageOptions{}
-		op.Filter = ebiten.FilterNearest
-		op.GeoM = splash.geoM
-		splash.screen.DrawImage(splash.img, op)
+	// draw PixelMek 3D title at top center
+	title := "PIXELMEK 3D"
+	titleFace := &text.GoTextFace{
+		Source: s.textFace,
+		Size:   68,
 	}
+	tW, _ := text.Measure(title, titleFace, titleFace.Size*1.2)
+	tScale := h / 500
+
+	textOp := &text.DrawOptions{}
+	textOp.Filter = ebiten.FilterNearest
+	textOp.GeoM.Scale(tScale, tScale)
+	textOp.GeoM.Translate((w-(tW*tScale))/2, 0)
+	textOp.ColorScale.ScaleWithColor(color.Black)
+	text.Draw(splash.screen, title, titleFace, textOp)
+
+	// draw press any key at bottom center
+	pressText := "<press any key>"
+	pressFace := &text.GoTextFace{
+		Source: s.textFace,
+		Size:   32,
+	}
+	pW, pH := text.Measure(pressText, pressFace, pressFace.Size*1.2)
+	pScale := h / 500
+
+	textOp = &text.DrawOptions{}
+	textOp.Filter = ebiten.FilterNearest
+	textOp.GeoM.Scale(pScale, pScale)
+	textOp.GeoM.Translate((w-(pW*pScale))/2, h-(pH*pScale))
+	textOp.ColorScale.ScaleWithColor(color.Black)
+	text.Draw(splash.screen, pressText, pressFace, textOp)
 
 	if splash.shader != nil {
 		// draw shader effect with splash screen to buffer
