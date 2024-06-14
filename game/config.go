@@ -10,14 +10,15 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	globalViper "github.com/spf13/viper"
 )
 
 const (
-	CONFIG_KEY_DEBUG   = "debug"
-	CONFIG_KEY_SHOWFPS = "show_fps"
+	PARAM_KEY_DEBUG = "debug"
 
+	CONFIG_KEY_SHOW_FPS         = "show_fps"
 	CONFIG_KEY_SCREEN_WIDTH     = "screen.width"
 	CONFIG_KEY_SCREEN_HEIGHT    = "screen.height"
 	CONFIG_KEY_RENDER_SCALE     = "screen.render_scale"
@@ -50,6 +51,12 @@ const (
 )
 
 func (g *Game) initConfig() {
+	// handle global flag values
+	g.debug = globalViper.GetBool(PARAM_KEY_DEBUG)
+	if g.debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	// special behavior needed for wasm play
 	switch runtime.GOOS {
 	case "js":
@@ -59,8 +66,9 @@ func (g *Game) initConfig() {
 	}
 
 	// set default config values
-	viper.SetDefault(CONFIG_KEY_DEBUG, false)
-	viper.SetDefault(CONFIG_KEY_SHOWFPS, false)
+	viper := resources.Viper
+
+	viper.SetDefault(CONFIG_KEY_SHOW_FPS, false)
 
 	viper.SetDefault(CONFIG_KEY_FOV_DEGREES, 70)
 	viper.SetDefault(CONFIG_KEY_FULLSCREEN, false)
@@ -106,12 +114,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault(CONFIG_KEY_CONTROL_DECAY, false)
 
 	// get config values
-	g.debug = viper.GetBool(CONFIG_KEY_DEBUG)
-	g.fpsEnabled = viper.GetBool(CONFIG_KEY_SHOWFPS)
-
-	if g.debug {
-		log.SetLevel(log.DebugLevel)
-	}
+	g.fpsEnabled = viper.GetBool(CONFIG_KEY_SHOW_FPS)
 
 	g.screenWidth = viper.GetInt(CONFIG_KEY_SCREEN_WIDTH)
 	g.screenHeight = viper.GetInt(CONFIG_KEY_SCREEN_HEIGHT)
@@ -151,6 +154,7 @@ func (g *Game) initConfig() {
 
 func (g *Game) saveConfig() error {
 	log.Debug("saving config file ", resources.UserConfigFile)
+	viper := resources.Viper
 
 	userConfigPath := filepath.Dir(resources.UserConfigFile)
 	if _, err := os.Stat(userConfigPath); os.IsNotExist(err) {
@@ -162,7 +166,7 @@ func (g *Game) saveConfig() error {
 	}
 
 	// update stored values in viper in case any may have changed since last written
-	viper.Set(CONFIG_KEY_SHOWFPS, g.fpsEnabled)
+	viper.Set(CONFIG_KEY_SHOW_FPS, g.fpsEnabled)
 	viper.Set(CONFIG_KEY_SCREEN_WIDTH, g.screenWidth)
 	viper.Set(CONFIG_KEY_SCREEN_HEIGHT, g.screenHeight)
 	viper.Set(CONFIG_KEY_RENDER_SCALE, g.renderScale)

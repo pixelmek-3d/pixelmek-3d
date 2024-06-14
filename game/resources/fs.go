@@ -30,7 +30,7 @@ type fsResource struct {
 	fs    fs.FS
 }
 
-func init() {
+func initConfigFS() {
 	ignoreLocal := viper.GetBool("ignoreLocalResources")
 	if !ignoreLocal {
 		info, err := os.Stat(modsPath)

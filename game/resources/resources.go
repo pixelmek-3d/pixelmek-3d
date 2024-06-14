@@ -17,7 +17,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/spf13/viper"
 	"github.com/tinne26/etxt"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -25,11 +24,13 @@ import (
 	"gopkg.in/yaml.v3"
 
 	log "github.com/sirupsen/logrus"
+	v "github.com/spf13/viper"
 )
 
 const SampleRate = 44100
 
 var (
+	Viper          *v.Viper
 	UserConfigFile string
 	UserKeymapFile string
 
@@ -44,12 +45,13 @@ type CrosshairsSheetConfig struct {
 	Rows    int `yaml:"rows" validate:"gt=0"`
 }
 
-func init() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("json")
-	viper.SetEnvPrefix("pixelmek")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
+func InitConfig() {
+	Viper = v.New()
+	Viper.SetConfigName("config")
+	Viper.SetConfigType("json")
+	Viper.SetEnvPrefix("pixelmek")
+	Viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	Viper.AutomaticEnv()
 
 	userConfigPath, _ := os.UserHomeDir()
 	if userConfigPath == "" {
@@ -59,12 +61,14 @@ func init() {
 	UserConfigFile = userConfigPath + "/config.json"
 	UserKeymapFile = userConfigPath + "/keymap.json"
 
-	viper.AddConfigPath(userConfigPath)
+	Viper.AddConfigPath(userConfigPath)
 
-	err := viper.ReadInConfig()
+	err := Viper.ReadInConfig()
 	if err != nil {
 		log.Error(err)
 	}
+
+	initConfigFS()
 }
 
 func InitResources() {

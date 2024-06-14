@@ -19,6 +19,7 @@ package main
 import (
 	"os"
 
+	"github.com/pixelmek-3d/pixelmek-3d/cmd"
 	"github.com/pixelmek-3d/pixelmek-3d/game"
 	log "github.com/sirupsen/logrus"
 )
@@ -32,7 +33,5 @@ func main() {
 	formatter.TimestampFormat = "2006-01-02 15:04:05"
 	log.SetFormatter(&formatter)
 
-	// run the game
-	g := game.NewGame()
-	g.Run()
+	cmd.Execute()
 }
