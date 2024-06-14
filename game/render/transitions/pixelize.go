@@ -1,10 +1,7 @@
 package transitions
 
 import (
-	"time"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	log "github.com/sirupsen/logrus"
@@ -12,101 +9,112 @@ import (
 
 const SHADER_PIXELIZE = "shaders/pixelize.kage"
 
-type PixelizeTransition[T any] struct {
-	stagehand.BaseTransition[T]
-	fromScene  stagehand.Scene[T]
-	toScene    stagehand.Scene[T]
-	shader     *ebiten.Shader
-	noiseImage *ebiten.Image
-	duration   float32
-	tickDelta  float32
-	time       float32
-	_noise     *ebiten.Image
+type Pixelize struct {
+	pixelizeImage *ebiten.Image
+	bufferImage   *ebiten.Image
+	shader        *ebiten.Shader
+	geoM          ebiten.GeoM
+	tOptions      *TransitionOptions
+	time          float32
+	tickDelta     float32
+	completed     bool
 }
 
-func NewPixelizeTransition[T any](duration time.Duration) *PixelizeTransition[T] {
+func NewPixelize(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.GeoM) *Pixelize {
 	shader, err := resources.NewShaderFromFile(SHADER_PIXELIZE)
 	if err != nil {
 		log.Errorf("error loading shader: %s", SHADER_PIXELIZE)
 		log.Fatal(err)
 	}
 
-	noise, _, _ := resources.NewImageFromFile("shaders/gray_noise_small.png")
-
-	t := &PixelizeTransition[T]{
-		shader:     shader,
-		noiseImage: noise,
-		duration:   float32(duration.Seconds()),
-		tickDelta:  1 / float32(ebiten.TPS()),
+	t := &Pixelize{
+		shader:    shader,
+		geoM:      geoM,
+		tOptions:  tOptions,
+		tickDelta: 1 / float32(ebiten.TPS()),
 	}
+	t.SetImage(img)
 
 	return t
 }
 
-// Start starts the transition from the given "from" scene to the given "to" scene
-func (t *PixelizeTransition[T]) Start(fromScene stagehand.Scene[T], toScene stagehand.Scene[T], sm stagehand.SceneController[T]) {
-	t.BaseTransition.Start(fromScene, toScene, sm)
-	t.time = 0
-
-	// these have to be redefined and set since they are private fields in stagehand.BaseTransition
-	t.fromScene = fromScene
-	t.toScene = toScene
+func (t *Pixelize) Completed() bool {
+	return t.completed
 }
 
-func (t *PixelizeTransition[T]) _updateNoiseImage(sceneImage *ebiten.Image) {
-	update := false
+func (t *Pixelize) SetImage(img *ebiten.Image) {
+	t.pixelizeImage = img
+}
 
-	dW, dH := sceneImage.Bounds().Dx(), sceneImage.Bounds().Dy()
-	if t._noise == nil {
-		update = true
+func (t *Pixelize) screenBuffer(w, h int) {
+	createBuffer := false
+	if t.bufferImage == nil {
+		createBuffer = true
 	} else {
-		nW, nH := t._noise.Bounds().Dx(), t._noise.Bounds().Dy()
-		if dW != nW || dH != nH {
-			update = true
+		bW, bH := t.bufferImage.Bounds().Dx(), t.bufferImage.Bounds().Dy()
+		if w != bW || h != bH {
+			createBuffer = true
 		}
 	}
 
-	if update {
-		nW, nH := t.noiseImage.Bounds().Dx(), t.noiseImage.Bounds().Dy()
-		op := &ebiten.DrawImageOptions{}
-		op.Filter = ebiten.FilterNearest
-		op.GeoM.Scale(float64(dW)/float64(nW), float64(dH)/float64(nH))
-		scaledImage := ebiten.NewImage(dW, dH)
-		scaledImage.DrawImage(t.noiseImage, op)
-		t._noise = scaledImage
+	if createBuffer {
+		t.bufferImage = ebiten.NewImage(w, h)
 	}
 }
 
-func (t *PixelizeTransition[T]) Update() error {
-	if t.time+t.tickDelta < t.duration {
+func (t *Pixelize) Update() error {
+	if t.completed {
+		return nil
+	}
+
+	duration := t.tOptions.Duration()
+	if t.time+t.tickDelta < duration {
 		t.time += t.tickDelta
 	} else {
-		t.End()
+		// move to next transition direction and reset timer
+		t.tOptions.CurrentDirection += 1
+		t.time = 0
 	}
 
-	// Update the scenes
-	return t.BaseTransition.Update()
+	if t.tOptions.CurrentDirection == TransitionCompleted {
+		t.completed = true
+	} else if t.time == 0 && t.tOptions.Duration() == 0 {
+		// if the next transition unused, update to move on to the next
+		t.Update()
+	}
+
+	return nil
 }
 
-func (t *PixelizeTransition[T]) Draw(screen *ebiten.Image) {
-	toImg, fromImg := stagehand.PreDraw(screen.Bounds(), t.fromScene, t.toScene)
+func (t *Pixelize) Draw(screen *ebiten.Image) {
+	time := t.time
+	duration := t.tOptions.Duration()
+	direction := 1.0
+	switch t.tOptions.CurrentDirection {
+	case TransitionOut:
+		direction = -1.0
+	case TransitionHold:
+		direction = 0.0
+		time = 0
+	}
+
+	// draw image to buffer with translation first (since this shader does not like any post-GeoM)
 	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
-
-	t._updateNoiseImage(toImg)
-
-	// TODO: implement direction up or down transition
-	//direction := 1.0
+	t.screenBuffer(w, h)
+	t.bufferImage.DrawImage(t.pixelizeImage, &ebiten.DrawImageOptions{GeoM: t.geoM})
 
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
-		//"Direction": direction,
-		"Duration": t.duration,
-		"Time":     t.time,
+		"Direction": direction,
+		"Duration":  duration,
+		"Time":      time,
 	}
-	op.Images[0] = fromImg
-	op.Images[1] = toImg
-	op.Images[2] = t._noise
+	op.Images[0] = t.bufferImage
 
 	// draw shader from buffer image
 	screen.DrawRectShader(w, h, t.shader, op)
+}
+
+func (t *Pixelize) SetGeoM(geoM ebiten.GeoM) {
+	t.geoM = geoM
 }

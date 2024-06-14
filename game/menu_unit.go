@@ -142,9 +142,8 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ButtonOpts.Text("Back", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			if iScene, ok := game.scene.(*InstantActionScene); ok {
-				iScene.back()
-			}
+			iScene, _ := game.scene.(*InstantActionScene)
+			iScene.back()
 		}),
 	)
 	c.AddChild(back)
@@ -161,9 +160,8 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ButtonOpts.Text("Next", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			if iScene, ok := game.scene.(*InstantActionScene); ok {
-				iScene.next()
-			}
+			iScene, _ := game.scene.(*InstantActionScene)
+			iScene.next()
 		}),
 	)
 	c.AddChild(next)

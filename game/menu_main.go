@@ -57,18 +57,18 @@ func mainMenuTitleContainer(m *MainMenu) *widget.Container {
 	res := m.Resources()
 
 	c := widget.NewContainer(
-		//widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
 			widget.GridLayoutOpts.Padding(widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
-				Top:    0,
+				Top:    m.Padding(),
 				Bottom: m.Padding(),
 			}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text(title, res.fonts.pixelmekFace, res.text.idleColor),
+		widget.TextOpts.Text(title, res.text.bigTitleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
@@ -89,7 +89,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			game.sm.ProcessTrigger(InstantActionTrigger)
+			game.scene = NewInstantActionScene(game)
 		}),
 	)
 	c.AddChild(instantAction)
@@ -102,7 +102,8 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.Text("Settings", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			if mScene, ok := game.scene.(*MenuScene); ok {
+			mScene, ok := game.scene.(*MenuScene)
+			if ok {
 				mScene.SetMenu(mScene.settings)
 			}
 		}),
