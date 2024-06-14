@@ -79,7 +79,7 @@ func (s *InstantActionScene) next() {
 		// launch mission scene
 		if g.player == nil {
 			// pick player unit at random
-			g.SetPlayerUnit(g.randomUnit(model.MechResourceType))
+			g.SetPlayerUnit(g.RandomUnit(model.MechResourceType))
 		}
 
 		g.scene = NewGameScene(g)

@@ -204,6 +204,23 @@ func NewGame() *Game {
 	return g
 }
 
+func (g *Game) Resources() *model.ModelResources {
+	return g.resources
+}
+
+func (g *Game) SetScene(scene Scene) {
+	g.scene = scene
+}
+
+func (g *Game) LoadMission(missionFile string) (*model.Mission, error) {
+	mission, err := model.LoadMission(missionFile)
+	if err != nil {
+		return nil, err
+	}
+	g.mission = mission
+	return mission, err
+}
+
 func (g *Game) initMission() {
 	if g.mission == nil {
 		panic("g.mission must be set before initMission!")
@@ -1315,7 +1332,20 @@ func (g *Game) updateWeaponCooldowns(unit model.Unit) {
 	}
 }
 
-func (g *Game) randomUnit(unitResourceType string) model.Unit {
+func (g *Game) LoadUnit(unitResourceType, unitFile string) model.Unit {
+	// TODO: make it useful for unit of any unit type
+	switch unitResourceType {
+	case model.MechResourceType:
+		if resource, ok := g.resources.Mechs[unitFile]; ok {
+			return g.createModelMechFromResource(resource)
+		}
+	default:
+		panic(fmt.Errorf("currently unable to handle load model.Unit for resource type %v", unitResourceType))
+	}
+	return nil
+}
+
+func (g *Game) RandomUnit(unitResourceType string) model.Unit {
 	// TODO: make it useful for random unit of any unit type, or within some tonnage range
 	switch unitResourceType {
 	case model.MechResourceType:
