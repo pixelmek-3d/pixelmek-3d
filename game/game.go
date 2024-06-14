@@ -10,7 +10,6 @@ import (
 
 	"image/color"
 
-	"github.com/joelschutz/stagehand"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -37,8 +36,7 @@ const (
 
 // Game - This is the main type for your game.
 type Game struct {
-	sm     *stagehand.SceneDirector[SceneState]
-	scene  stagehand.Scene[SceneState]
+	scene  Scene
 	menu   Menu
 	paused bool
 
@@ -191,8 +189,8 @@ func NewGame() *Game {
 	g.tex.renderFloorTex = g.initRenderFloorTex
 	g.sprites = NewSpriteHandler()
 
-	// init scene director
-	g.initScenes()
+	// setup initial scene
+	g.scene = NewIntroScene(g)
 
 	// set window icon
 	_, icon, err := resources.NewImageFromFile("icons/pixelmek_icon.png")
@@ -299,20 +297,20 @@ func (g *Game) Run() {
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	w, h := g.screenWidth, g.screenHeight
-	return g.sm.Layout(w, h)
+	return w, h
 }
 
 // Update - Allows the game to run logic such as updating the world, gathering input, and playing audio.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
 	g.inputSystem.Update()
-	return g.sm.Update()
+	return g.scene.Update()
 }
 
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.sm.Draw(screen)
+	g.scene.Draw(screen)
 }
 
 // Gets the inner screen rect for UI space to account for ultra-wide resolutions

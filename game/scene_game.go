@@ -2,33 +2,17 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/joelschutz/stagehand"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 )
 
-const TRANSITION_OUT_SECONDS float64 = 4.0
-
 type GameScene struct {
-	BaseScene
+	Game *Game
 
-	transitionOutTimer float64
+	transition SceneTransition
 }
 
 func NewGameScene(g *Game) *GameScene {
-	return &GameScene{
-		BaseScene: BaseScene{
-			game: g,
-		},
-	}
-}
-
-func (s *GameScene) Load(st SceneState, sm stagehand.SceneController[SceneState]) {
-	s.BaseScene.Load(st, sm)
-
-	// init scene variables
-	s.transitionOutTimer = TRANSITION_OUT_SECONDS
-
 	// load mission resources and launch
-	g := s.game
 	g.initMission()
 
 	// prepare for battle
@@ -47,6 +31,19 @@ func (s *GameScene) Load(st SceneState, sm stagehand.SceneController[SceneState]
 
 	// start engine ambience
 	g.audio.PlayPowerOnSequence()
+
+	// transition in to start game
+	tOpts := &transitions.TransitionOptions{
+		InDuration:   5.0,
+		HoldDuration: 0,
+		OutDuration:  0,
+	}
+	transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
+
+	return &GameScene{
+		Game:       g,
+		transition: transition,
+	}
 }
 
 func (g *Game) LeaveGame() {
@@ -55,11 +52,11 @@ func (g *Game) LeaveGame() {
 	g.audio.StopMusic()
 
 	// go to mission debrief
-	g.sm.ProcessTrigger(MissionDebriefTrigger)
+	g.scene = NewMissionDebriefScene(g)
 }
 
 func (s *GameScene) Update() error {
-	g := s.game
+	g := s.Game
 
 	if g.osType == osTypeBrowser && ebiten.CursorMode() == ebiten.CursorModeVisible && !g.menu.Active() && !g.menu.Closing() {
 		// capture not working sometimes (https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API#iframe_limitations):
@@ -97,13 +94,29 @@ func (s *GameScene) Update() error {
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 
-		if !g.InProgress() {
-			if s.transitionOutTimer > 0 {
-				// short wait before starting transition to leave game
-				s.transitionOutTimer -= 1 / float64(ebiten.TPS())
+		if g.InProgress() {
+			if s.transition != nil {
+				// update transition at start of game
+				s.transition.Update()
+				if s.transition.Completed() {
+					s.transition = nil
+				}
+			}
+		} else {
+			if s.transition == nil {
+				// transition out to leave game
+				tOpts := &transitions.TransitionOptions{
+					InDuration:   0.0,
+					HoldDuration: 4.0,
+					OutDuration:  3.0,
+				}
+				s.transition = transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
 			} else {
-				g.LeaveGame()
-				return nil
+				// update transition about to leave game
+				s.transition.Update()
+				if s.transition.Completed() {
+					g.LeaveGame()
+				}
 			}
 		}
 	}
@@ -115,7 +128,7 @@ func (s *GameScene) Update() error {
 }
 
 func (s *GameScene) Draw(screen *ebiten.Image) {
-	g := s.game
+	g := s.Game
 
 	// Put projectiles together with sprites for raycasting both as sprites
 	raycastSprites := g.getRaycastSprites()
@@ -141,7 +154,8 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 
 	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
 		// use CRT shader over raycasted scene when in ejection pod
-		crtShader.DrawWithOptions(g.overlayScreen, g.renderScreen, true)
+		showCurve := (g.lightAmpEngaged || g.player.ejectionPod != nil)
+		crtShader.DrawWithOptions(g.overlayScreen, g.renderScreen, showCurve)
 	} else {
 		g.overlayScreen.DrawImage(g.renderScreen, nil)
 	}
@@ -149,8 +163,14 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 	// draw HUD elements to overlay screen
 	g.drawHUD(g.overlayScreen)
 
-	// draw HUD overlayed elements directly to screen
-	screen.DrawImage(g.overlayScreen, nil)
+	if s.transition != nil {
+		// draw transition shader to screen
+		s.transition.SetImage(g.overlayScreen)
+		s.transition.Draw(screen)
+	} else {
+		// draw HUD overlayed elements directly to screen
+		screen.DrawImage(g.overlayScreen, nil)
+	}
 
 	// draw menu (if active)
 	g.menu.Draw(screen)

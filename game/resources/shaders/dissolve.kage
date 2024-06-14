@@ -19,16 +19,16 @@ func Fragment(dst vec4, src vec2, color vec4) vec4 {
 	dirOffset := 0.0
 	if Direction > 0 {
 		dirOffset = 1.0
-	}
+	} 
 
 	limit := abs(fract(iTime/Duration)-dirOffset)
-	noise := imageSrc1UnsafeAt(src).x
+	level := imageSrc1UnsafeAt(src).x
 
 	// Add a white border
-	if limit < noise && noise < limit {
+	if limit < level && level < limit {
 		alpha := imageSrc0UnsafeAt(src).w
 		return vec4(alpha)
 	}
 
-	return step(limit, noise) * imageSrc0UnsafeAt(src)
+	return step(limit, level) * imageSrc0UnsafeAt(src)
 }

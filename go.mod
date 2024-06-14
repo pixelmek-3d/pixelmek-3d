@@ -9,7 +9,6 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
 	github.com/harbdog/raycaster-go v1.11.0
 	github.com/jinzhu/copier v0.4.0
-	github.com/joelschutz/stagehand v1.1.1
 	github.com/nlepage/go-tarfs v1.2.1
 	github.com/quasilyte/ebitengine-input v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -23,7 +22,9 @@ require (
 require (
 	github.com/ebitengine/gomobile v0.0.0-20240518074828-e86332849895 // indirect
 	github.com/ebitengine/hideconsole v1.0.0 // indirect
-	github.com/go-text/typesetting v0.1.1-0.20240325125605-c7936fe59984 // indirect
+)
+
+require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/ebitengine/oto/v3 v3.2.0 // indirect
