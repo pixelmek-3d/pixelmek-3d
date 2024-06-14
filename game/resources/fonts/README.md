@@ -1,7 +1,7 @@
 # Font Resource Attribution
 
-- `pixeloid`: https://fontesk.com/pixeloid-font/
+- `broken-machine`: https://www.fontsaddict.com/font/brokenmachine.html
 
-- `transcends_games`: https://fontlibrary.org/en/font/transcends-games
+- `pixeloid`: https://fontesk.com/pixeloid-font/
 
 - `x3270`: https://fontesk.com/3270-font/

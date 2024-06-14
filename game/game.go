@@ -190,7 +190,7 @@ func NewGame() *Game {
 	g.sprites = NewSpriteHandler()
 
 	// setup initial scene
-	g.scene = NewIntroScene(g)
+	g.scene = NewSplashScene(g)
 
 	// set window icon
 	_, icon, err := resources.NewImageFromFile("icons/pixelmek_icon.png")

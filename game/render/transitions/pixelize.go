@@ -11,7 +11,8 @@ const SHADER_PIXELIZE = "shaders/pixelize.kage"
 
 type Pixelize struct {
 	pixelizeImage *ebiten.Image
-	bufferImage   *ebiten.Image
+	noiseImage    *ebiten.Image
+	blankImage    *ebiten.Image
 	shader        *ebiten.Shader
 	geoM          ebiten.GeoM
 	tOptions      *TransitionOptions
@@ -27,11 +28,14 @@ func NewPixelize(img *ebiten.Image, tOptions *TransitionOptions, geoM ebiten.Geo
 		log.Fatal(err)
 	}
 
+	noise, _, _ := resources.NewImageFromFile("shaders/gray_noise_small.png")
+
 	t := &Pixelize{
-		shader:    shader,
-		geoM:      geoM,
-		tOptions:  tOptions,
-		tickDelta: 1 / float32(ebiten.TPS()),
+		noiseImage: noise,
+		shader:     shader,
+		geoM:       geoM,
+		tOptions:   tOptions,
+		tickDelta:  1 / float32(ebiten.TPS()),
 	}
 	t.SetImage(img)
 
@@ -44,21 +48,20 @@ func (t *Pixelize) Completed() bool {
 
 func (t *Pixelize) SetImage(img *ebiten.Image) {
 	t.pixelizeImage = img
-}
 
-func (t *Pixelize) screenBuffer(w, h int) {
-	createBuffer := false
-	if t.bufferImage == nil {
-		createBuffer = true
-	} else {
-		bW, bH := t.bufferImage.Bounds().Dx(), t.bufferImage.Bounds().Dy()
-		if w != bW || h != bH {
-			createBuffer = true
-		}
-	}
+	// scale noise image to match pixelize image size
+	dW, dH := img.Bounds().Dx(), img.Bounds().Dy()
+	nW, nH := t.noiseImage.Bounds().Dx(), t.noiseImage.Bounds().Dy()
+	if dW != nW || dH != nH {
+		op := &ebiten.DrawImageOptions{}
+		op.Filter = ebiten.FilterNearest
+		op.GeoM.Scale(float64(dW)/float64(nW), float64(dH)/float64(nH))
+		scaledImage := ebiten.NewImage(dW, dH)
+		scaledImage.DrawImage(t.noiseImage, op)
+		t.noiseImage = scaledImage
 
-	if createBuffer {
-		t.bufferImage = ebiten.NewImage(w, h)
+		// also scale blank image used to transition with
+		t.blankImage = ebiten.NewImage(dW, dH)
 	}
 }
 
@@ -68,9 +71,13 @@ func (t *Pixelize) Update() error {
 	}
 
 	duration := t.tOptions.Duration()
-	if t.time+t.tickDelta < duration {
+	switch {
+	case t.tOptions.CurrentDirection == TransitionHold && duration < 0:
+		// keep at transition held state when duration less than zero
+		t.time = 0
+	case t.time+t.tickDelta < duration:
 		t.time += t.tickDelta
-	} else {
+	default:
 		// move to next transition direction and reset timer
 		t.tOptions.CurrentDirection += 1
 		t.time = 0
@@ -89,32 +96,27 @@ func (t *Pixelize) Update() error {
 func (t *Pixelize) Draw(screen *ebiten.Image) {
 	time := t.time
 	duration := t.tOptions.Duration()
-	direction := 1.0
-	switch t.tOptions.CurrentDirection {
-	case TransitionOut:
-		direction = -1.0
-	case TransitionHold:
-		direction = 0.0
+	if t.tOptions.CurrentDirection == TransitionHold {
 		time = 0
 	}
 
-	// draw image to buffer with translation first (since this shader does not like any post-GeoM)
-	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
-	t.screenBuffer(w, h)
-	t.bufferImage.DrawImage(t.pixelizeImage, &ebiten.DrawImageOptions{GeoM: t.geoM})
-
+	w, h := t.pixelizeImage.Bounds().Dx(), t.pixelizeImage.Bounds().Dy()
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{
-		"Direction": direction,
-		"Duration":  duration,
-		"Time":      time,
+		"Duration": duration,
+		"Time":     time,
 	}
-	op.Images[0] = t.bufferImage
 
-	// draw shader from buffer image
+	switch t.tOptions.CurrentDirection {
+	case TransitionOut:
+		op.Images[0] = t.pixelizeImage
+		op.Images[1] = t.blankImage
+	default:
+		op.Images[0] = t.blankImage
+		op.Images[1] = t.pixelizeImage
+	}
+
+	op.Images[2] = t.noiseImage
+	op.GeoM = t.geoM
 	screen.DrawRectShader(w, h, t.shader, op)
-}
-
-func (t *Pixelize) SetGeoM(geoM ebiten.GeoM) {
-	t.geoM = geoM
 }
