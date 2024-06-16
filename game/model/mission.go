@@ -189,7 +189,7 @@ func ListMissionFilenames() ([]string, error) {
 
 	for _, f := range missionFiles {
 		if f.IsDir() {
-			// only folders with unit type name expected
+			// only folder with mission files expected
 			continue
 		}
 
