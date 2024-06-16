@@ -79,6 +79,7 @@ func (s *GameScene) Update() error {
 
 	if !g.paused {
 		// Perform logical updates
+		g.updateAI()
 		g.updatePlayer()
 		g.updateProjectiles()
 		g.updateSprites()

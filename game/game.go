@@ -40,6 +40,7 @@ type Game struct {
 	menu   Menu
 	paused bool
 
+	ai          *AIHandler
 	resources   *model.ModelResources
 	audio       *AudioHandler
 	input       *input.Handler
@@ -299,6 +300,9 @@ func (g *Game) initMission() {
 	if g.clutter != nil {
 		g.clutter.Update(g, true)
 	}
+
+	// initialize AI
+	g.ai = NewAIHandler(g)
 }
 
 // Run is the Ebiten Run loop caller
@@ -407,6 +411,13 @@ func (g *Game) updateObjectives() {
 			log.Debugf("all objectives completed")
 		}
 	}
+}
+
+func (g *Game) updateAI() {
+	if g.ai == nil {
+		return
+	}
+	g.ai.Update()
 }
 
 func (g *Game) updatePlayer() {
