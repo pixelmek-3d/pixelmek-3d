@@ -1068,37 +1068,9 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 		return
 	}
 
-	// TODO: give mechs a bit more of a brain than this
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateMechPosition(s)
-			return
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
 	if s.Mech().Update() {
 		// TODO: refactor to use same update function as g.updatePlayer()
-
+		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		posZ, velocityZ := s.PosZ(), s.VelocityZ()
@@ -1125,7 +1097,6 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 }
 
 func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
-	// TODO: give units a bit more of a brain than this
 	if s.Vehicle().Powered() != model.POWER_ON {
 		// TODO: refactor to use same update logic from player shutdown
 		s.SetVelocity(0)
@@ -1138,44 +1109,15 @@ func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
 		return
 	}
 
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateVehiclePosition(s)
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
-	if s.Velocity() != 0 {
+	if s.Vehicle().Update() {
+		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
 		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if isCollision {
-			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
-			s.SetVelocity(randFloat(0.005, 0.009))
-		} else {
+		if !isCollision {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
 		}
@@ -1183,7 +1125,6 @@ func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
 }
 
 func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
-	// TODO: give units a bit more of a brain than this
 	if s.VTOL().Powered() != model.POWER_ON {
 		// TODO: refactor to use same update logic from player shutdown
 		s.SetVelocity(0)
@@ -1196,44 +1137,20 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 		return
 	}
 
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateVTOLPosition(s)
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
-	if s.Velocity() != 0 {
+	if s.VTOL().Update() {
+		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
+
+		posZ, velocityZ := s.PosZ(), s.VelocityZ()
+		if velocityZ != 0 {
+			posZ += velocityZ
+		}
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
 		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if isCollision {
-			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
-			s.SetVelocity(randFloat(0.005, 0.009))
-		} else {
+		if !isCollision {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
 		}
@@ -1254,44 +1171,15 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 		return
 	}
 
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateInfantryPosition(s)
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
-	if s.Velocity() != 0 {
+	if s.Infantry().Update() {
+		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
 		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if isCollision {
-			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
-			s.SetVelocity(randFloat(0.005, 0.009))
-		} else {
+		if !isCollision {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
 		}
@@ -1307,6 +1195,7 @@ func (g *Game) updateEmplacementPosition(s *render.EmplacementSprite) {
 		}
 		return
 	}
+	s.Emplacement().Update()
 }
 
 func (g *Game) updateSpritePosition(s *render.Sprite) bool {
