@@ -1158,7 +1158,6 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 }
 
 func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
-	// TODO: give units a bit more of a brain than this
 	if s.Infantry().Powered() != model.POWER_ON {
 		// TODO: refactor to use same update logic from player shutdown
 		s.SetVelocity(0)
@@ -1187,7 +1186,6 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 }
 
 func (g *Game) updateEmplacementPosition(s *render.EmplacementSprite) {
-	// TODO: give turrets a bit more of a brain than this
 	if s.Emplacement().Powered() != model.POWER_ON {
 		// TODO: refactor to use same update logic from player shutdown
 		if s.Emplacement().Heat() < 0.7*s.Emplacement().MaxHeat() {

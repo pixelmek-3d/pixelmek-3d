@@ -201,42 +201,8 @@ func (g *Game) fireTestWeaponAtPlayer() {
 
 			weaponFired := false
 			for _, weapon := range unit.Armament() {
-				if weapon.Cooldown() > 0 {
-					continue
-				}
-
-				ammoBin := weapon.AmmoBin()
-				if ammoBin != nil {
-					// perform ammo check
-					ammoCount := ammoBin.AmmoCount()
-					if ammoCount == 0 {
-						continue
-					}
-				}
-
-				if unit.TriggerWeapon(weapon) {
+				if g.fireUnitWeapon(unit, weapon) {
 					weaponFired = true
-					projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
-					if projectile != nil {
-						pTemplate := projectileSpriteForWeapon(weapon)
-						pSprite := pTemplate.Clone()
-						pSprite.Projectile = projectile
-						pSprite.Entity = projectile
-						g.sprites.addProjectile(pSprite)
-
-						// queue creation of multiple projectiles after time delay
-						if weapon.ProjectileCount() > 1 {
-							for i := 1; i < weapon.ProjectileCount(); i++ {
-								g.queueDelayedProjectile(i, weapon, unit)
-							}
-						}
-					}
-
-					// consume ammo
-					if ammoBin != nil {
-						ammoBin.ConsumeAmmo(weapon, 1)
-						log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
-					}
 				}
 			}
 
@@ -248,6 +214,60 @@ func (g *Game) fireTestWeaponAtPlayer() {
 			return true
 		})
 	}
+}
+
+func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
+	if unit == nil || weapon == nil {
+		return false
+	}
+
+	// TODO: make sure the weapon is mounted on the unit
+
+	if weapon.Cooldown() > 0 {
+		return false
+	}
+
+	ammoBin := weapon.AmmoBin()
+	if ammoBin != nil {
+		// perform ammo check
+		ammoCount := ammoBin.AmmoCount()
+		if ammoCount == 0 {
+			return false
+		}
+	}
+
+	pHeading, pPitch := unit.Heading(), unit.Pitch()
+	if unit.HasTurret() {
+		pHeading = unit.TurretAngle()
+	}
+
+	weaponFired := false
+	if unit.TriggerWeapon(weapon) {
+		weaponFired = true
+		projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
+		if projectile != nil {
+			pTemplate := projectileSpriteForWeapon(weapon)
+			pSprite := pTemplate.Clone()
+			pSprite.Projectile = projectile
+			pSprite.Entity = projectile
+			g.sprites.addProjectile(pSprite)
+
+			// queue creation of multiple projectiles after time delay
+			if weapon.ProjectileCount() > 1 {
+				for i := 1; i < weapon.ProjectileCount(); i++ {
+					g.queueDelayedProjectile(i, weapon, unit)
+				}
+			}
+		}
+
+		// consume ammo
+		if ammoBin != nil {
+			ammoBin.ConsumeAmmo(weapon, 1)
+			log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
+		}
+	}
+
+	return weaponFired
 }
 
 // updateProjectiles updates the state of all projectiles in play
