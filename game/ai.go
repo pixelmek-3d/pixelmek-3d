@@ -71,7 +71,40 @@ func (a *AIBehavior) ChaseTarget() bt.Node {
 	return bt.New(
 		bt.Sequence,
 		a.determineTargetStatus(),
-		//a.moveToTarget(),
+		a.moveToTarget(),
+	)
+}
+
+func (a *AIBehavior) moveToTarget() bt.Node {
+	return bt.New(
+		bt.Sequence,
+		a.turnToTarget(),
+		a.velocityToMax(),
+	)
+}
+
+func (a *AIBehavior) turnToTarget() bt.Node {
+	return bt.New(
+		func(children []bt.Node) (bt.Status, error) {
+			target := model.EntityUnit(a.u.Target())
+			if target == nil {
+				return bt.Failure, nil
+			}
+
+			// calculate heading from unit to target
+			pLine := geom3d.Line3d{
+				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
+				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ(),
+			}
+			pHeading := pLine.Heading()
+			if a.u.Heading() == pHeading {
+				return bt.Success, nil
+			}
+
+			log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
+			a.u.SetTargetHeading(pHeading)
+			return bt.Success, nil
+		},
 	)
 }
 
@@ -103,7 +136,7 @@ func (a *AIBehavior) turretToTarget() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s]%s-%s: turretToTarget -> %0.1f|%0.1f", a.u.ID(), a.u.Name(), a.u.Variant(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch))
+			log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
 			a.u.SetTargetPitch(pPitch)
 			// TODO: return failure if not even close to target angle
@@ -131,7 +164,7 @@ func (a *AIBehavior) fireWeapons() bt.Node {
 			if weaponFired {
 				// TODO: // illuminate source sprite unit firing the weapon
 				// combat.go: sprite.SetIlluminationPeriod(5000, 0.35)
-				log.Debugf("[%s]%s-%s: fireWeapons @ %s", a.u.ID(), a.u.Name(), a.u.Variant(), target.ID())
+				log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
 			}
 			return bt.Success, nil
 		},
@@ -159,7 +192,7 @@ func (a *AIBehavior) hasTarget() bt.Node {
 			// TODO: enemy units need to be able to target player unit
 			for _, t := range units {
 				if t.Team() != a.u.Team() {
-					log.Debugf("[%s]%s-%s: hasTarget == %s", a.u.ID(), a.u.Name(), a.u.Variant(), t.ID())
+					log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
 					a.u.SetTarget(t)
 					return bt.Success, nil
 				}
@@ -201,7 +234,7 @@ func (a *AIBehavior) turnToWithdraw() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s]%s-%s: %0.1f -> turnToWithdraw", a.u.ID(), a.u.Name(), a.u.Variant(), geom.Degrees(a.u.Heading()))
+			log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
 			a.u.SetTargetHeading(withdrawHeading)
 			return bt.Success, nil
 		},
@@ -215,7 +248,7 @@ func (a *AIBehavior) velocityToMax() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s]%s-%s: %0.1f -> velocityMax", a.u.ID(), a.u.Name(), a.u.Variant(), a.u.Velocity()*model.VELOCITY_TO_KPH)
+			log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
 			a.u.SetTargetVelocity(a.u.MaxVelocity())
 			return bt.Success, nil
 		},
@@ -232,7 +265,7 @@ func (a *AIBehavior) inWithdrawArea() bt.Node {
 				return bt.Failure, nil
 			}
 
-			log.Debugf("[%s]%s-%s: %v -> inWithdrawArea", a.u.ID(), a.u.Name(), a.u.Variant(), a.u.Pos())
+			log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
 			return bt.Success, nil
 		},
 	)
@@ -241,7 +274,7 @@ func (a *AIBehavior) inWithdrawArea() bt.Node {
 func (a *AIBehavior) withdraw() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			log.Debugf("[%s]%s-%s: -> withdraw", a.u.ID(), a.u.Name(), a.u.Variant())
+			log.Debugf("[%s] -> withdraw", a.u.ID())
 
 			// TODO: unit safely escapes
 			a.u.SetStructurePoints(0)
