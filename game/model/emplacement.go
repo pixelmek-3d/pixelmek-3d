@@ -15,6 +15,8 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 	m := &Emplacement{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:            r.Name,
+			variant:         r.Variant,
 			unitType:        EmplacementUnitType,
 			anchor:          raycaster.AnchorBottom,
 			collisionRadius: collisionRadius,
@@ -47,14 +49,6 @@ func (e *Emplacement) CloneUnit() Unit {
 
 func (e *Emplacement) Clone() Entity {
 	return e.CloneUnit()
-}
-
-func (e *Emplacement) Name() string {
-	return e.Resource.Name
-}
-
-func (e *Emplacement) Variant() string {
-	return e.Resource.Variant
 }
 
 func (e *Emplacement) Tonnage() float64 {

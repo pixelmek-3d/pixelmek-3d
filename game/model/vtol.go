@@ -15,6 +15,8 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 	m := &VTOL{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:            r.Name,
+			variant:         r.Variant,
 			unitType:        VTOLUnitType,
 			anchor:          raycaster.AnchorCenter,
 			collisionRadius: collisionRadius,
@@ -54,14 +56,6 @@ func (e *VTOL) CloneUnit() Unit {
 
 func (e *VTOL) Clone() Entity {
 	return e.CloneUnit()
-}
-
-func (e *VTOL) Name() string {
-	return e.Resource.Name
-}
-
-func (e *VTOL) Variant() string {
-	return e.Resource.Variant
 }
 
 func (e *VTOL) Tonnage() float64 {

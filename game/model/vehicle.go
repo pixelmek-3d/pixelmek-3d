@@ -15,6 +15,8 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 	m := &Vehicle{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:            r.Name,
+			variant:         r.Variant,
 			unitType:        VehicleUnitType,
 			anchor:          raycaster.AnchorBottom,
 			collisionRadius: collisionRadius,
@@ -55,14 +57,6 @@ func (e *Vehicle) CloneUnit() Unit {
 
 func (e *Vehicle) Clone() Entity {
 	return e.CloneUnit()
-}
-
-func (e *Vehicle) Name() string {
-	return e.Resource.Name
-}
-
-func (e *Vehicle) Variant() string {
-	return e.Resource.Variant
 }
 
 func (e *Vehicle) Tonnage() float64 {

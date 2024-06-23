@@ -40,6 +40,8 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 	m := &Mech{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:               r.Name,
+			variant:            r.Variant,
 			unitType:           MechUnitType,
 			anchor:             raycaster.AnchorBottom,
 			collisionRadius:    collisionRadius,
@@ -94,14 +96,6 @@ func (e *Mech) Class() MechClass {
 	default:
 		return MECH_ASSAULT
 	}
-}
-
-func (e *Mech) Name() string {
-	return e.Resource.Name
-}
-
-func (e *Mech) Variant() string {
-	return e.Resource.Variant
 }
 
 func (e *Mech) Tonnage() float64 {

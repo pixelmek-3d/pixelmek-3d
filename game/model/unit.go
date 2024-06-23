@@ -2,7 +2,9 @@ package model
 
 import (
 	"math"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -107,6 +109,8 @@ type Unit interface {
 
 type UnitModel struct {
 	id                  string
+	name                string
+	variant             string
 	team                int
 	unitType            UnitType
 	position            *geom.Vector2
@@ -181,7 +185,20 @@ func (e *UnitModel) ID() string {
 }
 
 func (e *UnitModel) SetID(id string) {
+	if len(id) == 0 {
+		// use random uuid if not given static id reference
+		e.id = strings.ReplaceAll(strings.ToLower(e.variant), " ", "-") + "_" + uuid.NewString()
+		return
+	}
 	e.id = id
+}
+
+func (e *UnitModel) Name() string {
+	return e.name
+}
+
+func (e *UnitModel) Variant() string {
+	return e.variant
 }
 
 func (e *UnitModel) Team() int {

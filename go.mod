@@ -6,6 +6,7 @@ require (
 	github.com/adrianbrad/queue v1.3.0
 	github.com/ebitenui/ebitenui v0.5.6
 	github.com/go-playground/validator/v10 v10.16.0
+	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
 	github.com/harbdog/raycaster-go v1.11.0
 	github.com/jinzhu/copier v0.4.0

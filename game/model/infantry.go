@@ -15,6 +15,8 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 	m := &Infantry{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:               r.Name,
+			variant:            r.Variant,
 			unitType:           InfantryUnitType,
 			anchor:             raycaster.AnchorBottom,
 			collisionRadius:    collisionRadius,
@@ -49,14 +51,6 @@ func (e *Infantry) CloneUnit() Unit {
 
 func (e *Infantry) Clone() Entity {
 	return e.CloneUnit()
-}
-
-func (e *Infantry) Name() string {
-	return e.Resource.Name
-}
-
-func (e *Infantry) Variant() string {
-	return e.Resource.Variant
 }
 
 func (e *Infantry) Tonnage() float64 {
