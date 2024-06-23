@@ -1,7 +1,7 @@
 package game
 
 import (
-	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 
@@ -101,7 +101,7 @@ func (a *AIBehavior) turnToTarget() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
+			//log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
 			a.u.SetTargetHeading(pHeading)
 			return bt.Success, nil
 		},
@@ -126,17 +126,27 @@ func (a *AIBehavior) turretToTarget() bt.Node {
 				return bt.Failure, nil
 			}
 
+			var zTargetOffset float64
+			switch target.Anchor() {
+			case raycaster.AnchorBottom:
+				zTargetOffset = randFloat(target.CollisionHeight()/10, 4*target.CollisionHeight()/5)
+			case raycaster.AnchorTop:
+				zTargetOffset = -randFloat(target.CollisionHeight()/10, 4*target.CollisionHeight()/5)
+			case raycaster.AnchorCenter:
+				zTargetOffset = randFloat(-target.CollisionHeight()/2, target.CollisionHeight()/2)
+			}
+
 			// calculate angle/pitch from unit to target
 			pLine := geom3d.Line3d{
-				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
-				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ() + randFloat(target.CollisionHeight()/10, 4*target.CollisionHeight()/5),
+				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
+				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ() + zTargetOffset,
 			}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 			if a.u.TurretAngle() == pHeading && a.u.Pitch() == pPitch {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
+			//log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
 			a.u.SetTargetPitch(pPitch)
 			// TODO: return failure if not even close to target angle
@@ -155,18 +165,21 @@ func (a *AIBehavior) fireWeapons() bt.Node {
 
 			weaponFired := false
 			for _, w := range a.u.Armament() {
+				// TODO: only fire weapons within range
+				// TODO: only fire some weapons, try not to overheat (much)
+				// TODO: weapon convergence toward target
 				if a.g.fireUnitWeapon(a.u, w) {
 					weaponFired = true
 				}
 			}
 
-			// TODO: return failure if no weapons could be fired?
 			if weaponFired {
 				// TODO: // illuminate source sprite unit firing the weapon
 				// combat.go: sprite.SetIlluminationPeriod(5000, 0.35)
-				log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
+				//log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
+				return bt.Success, nil
 			}
-			return bt.Success, nil
+			return bt.Failure, nil
 		},
 	)
 }
@@ -195,7 +208,7 @@ func (a *AIBehavior) hasTarget() bt.Node {
 					continue
 				}
 
-				log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
+				//log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
 				a.u.SetTarget(t)
 				return bt.Success, nil
 			}
@@ -250,7 +263,7 @@ func (a *AIBehavior) turnToWithdraw() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
+			//log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
 			a.u.SetTargetHeading(withdrawHeading)
 			return bt.Success, nil
 		},
@@ -264,7 +277,7 @@ func (a *AIBehavior) velocityToMax() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
+			//log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
 			a.u.SetTargetVelocity(a.u.MaxVelocity())
 			return bt.Success, nil
 		},
@@ -281,7 +294,7 @@ func (a *AIBehavior) inWithdrawArea() bt.Node {
 				return bt.Failure, nil
 			}
 
-			log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
+			//log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
 			return bt.Success, nil
 		},
 	)
@@ -290,7 +303,7 @@ func (a *AIBehavior) inWithdrawArea() bt.Node {
 func (a *AIBehavior) withdraw() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			log.Debugf("[%s] -> withdraw", a.u.ID())
+			//log.Debugf("[%s] -> withdraw", a.u.ID())
 
 			// TODO: unit safely escapes
 			a.u.SetStructurePoints(0)
