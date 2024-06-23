@@ -175,7 +175,7 @@ func (a *AIBehavior) determineTargetStatus() bt.Node {
 	return bt.New(
 		bt.Sequence,
 		a.hasTarget(),
-		// a.targetIsAlive(),
+		a.targetIsAlive(),
 		// a.targetInRange(),
 	)
 }
@@ -191,11 +191,27 @@ func (a *AIBehavior) hasTarget() bt.Node {
 			units := a.g.getSpriteUnits()
 			// TODO: enemy units need to be able to target player unit
 			for _, t := range units {
-				if t.Team() != a.u.Team() {
-					log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
-					a.u.SetTarget(t)
+				if t.IsDestroyed() || t.Team() == a.u.Team() {
+					continue
+				}
+
+				log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
+				a.u.SetTarget(t)
+				return bt.Success, nil
+			}
+			return bt.Failure, nil
+		},
+	)
+}
+
+func (a *AIBehavior) targetIsAlive() bt.Node {
+	return bt.New(
+		func(children []bt.Node) (bt.Status, error) {
+			if a.u.Target() != nil {
+				if !a.u.Target().IsDestroyed() {
 					return bt.Success, nil
 				}
+				a.u.SetTarget(nil)
 			}
 			return bt.Failure, nil
 		},
