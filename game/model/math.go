@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/harbdog/raycaster-go/geom3d"
 )
 
 func PointInProximity(distance, srcX, srcY, tgtX, tgtY float64) bool {
@@ -73,4 +74,24 @@ func IsBetweenRadians(start, end, mid float64) bool {
 	}
 
 	return mid < end
+}
+
+// ConvergencePoint returns the convergence point from current unit angle/pitch to unit target
+// Returns nil if unit does not have a target.
+func ConvergencePoint(u Unit, t Entity) *geom3d.Vector3 {
+	if t == nil {
+		return nil
+	}
+
+	uX, uY, uZ := u.Pos().X, u.Pos().Y, u.PosZ()+u.CockpitOffset().Y
+	tX, tY, tZ := t.Pos().X, t.Pos().Y, t.PosZ()
+	targetDist := (&geom3d.Line3d{
+		X1: uX, Y1: uY, Z1: uZ,
+		X2: tX, Y2: tY, Z2: tZ,
+	}).Distance()
+
+	convergenceLine := geom3d.Line3dFromAngle(uX, uY, uZ, u.TurretAngle(), u.Pitch(), targetDist)
+	convergencePoint := &geom3d.Vector3{X: convergenceLine.X2, Y: convergenceLine.Y2, Z: convergenceLine.Z2}
+
+	return convergencePoint
 }

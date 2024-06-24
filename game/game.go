@@ -17,7 +17,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
-	"github.com/harbdog/raycaster-go/geom3d"
 
 	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
@@ -716,28 +715,6 @@ func (g *Game) spriteInCrosshairs() *render.Sprite {
 	}
 
 	return cSprite
-}
-
-// ConvergencePoint returns the convergence point from current angle/pitch to sprite in crosshairs.
-// Returns nil if no sprite in crosshairs.
-func (g *Game) ConvergencePoint() *geom3d.Vector3 {
-	p := g.player
-	s := g.spriteInCrosshairs()
-	if s == nil {
-		return nil
-	}
-
-	pX, pY, pZ := p.Pos().X, p.Pos().Y, p.cameraZ
-	sX, sY, sZ := s.Pos().X, s.Pos().Y, s.PosZ()
-	targetDist := (&geom3d.Line3d{
-		X1: pX, Y1: pY, Z1: pZ,
-		X2: sX, Y2: sY, Z2: sZ,
-	}).Distance()
-
-	convergenceLine := geom3d.Line3dFromAngle(pX, pY, pZ, p.TurretAngle(), p.Pitch(), targetDist)
-	convergencePoint := &geom3d.Vector3{X: convergenceLine.X2, Y: convergenceLine.Y2, Z: convergenceLine.Z2}
-
-	return convergencePoint
 }
 
 func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {

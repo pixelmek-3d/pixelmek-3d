@@ -54,7 +54,11 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 
 	// in case convergence point not set, use player heading and pitch
 	pAngle, pPitch := g.player.TurretAngle(), g.player.Pitch()
-	convergencePoint := g.ConvergencePoint()
+	var convergencePoint *geom3d.Vector3
+	convergenceSprite := g.spriteInCrosshairs()
+	if convergenceSprite != nil {
+		convergencePoint = model.ConvergencePoint(g.player, convergenceSprite.Entity)
+	}
 
 	// if a weapon with lock required tries but cannot fire make a sound
 	isWeaponWithLockRequiredNotFired := false
@@ -82,6 +86,7 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 			}
 		}
 
+		// TODO: replace with call to general use fireUnitWeapon function
 		if g.player.TriggerWeapon(weapon) {
 			weaponsFired = true
 
@@ -109,7 +114,7 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 			// consume ammo
 			if ammoBin != nil {
 				ammoBin.ConsumeAmmo(weapon, 1)
-				log.Debugf("[player] %s: %d", weapon.ShortName(), ammoBin.AmmoCount())
+				//log.Debugf("[player] %s: %d", weapon.ShortName(), ammoBin.AmmoCount())
 			}
 
 			// play sound effect
@@ -236,6 +241,18 @@ func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
 		}
 	}
 
+	var convergencePoint *geom3d.Vector3
+	if g.player == unit {
+		cSprite := g.spriteInCrosshairs()
+		var cEntity model.Entity
+		if cSprite != nil {
+			cEntity = cSprite.Entity
+		}
+		convergencePoint = model.ConvergencePoint(unit, cEntity)
+	} else {
+		convergencePoint = model.ConvergencePoint(unit, unit.Target())
+	}
+
 	pHeading, pPitch := unit.Heading(), unit.Pitch()
 	if unit.HasTurret() {
 		pHeading = unit.TurretAngle()
@@ -244,7 +261,14 @@ func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
 	weaponFired := false
 	if unit.TriggerWeapon(weapon) {
 		weaponFired = true
-		projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
+
+		var projectile *model.Projectile
+		if convergencePoint == nil {
+			projectile = weapon.SpawnProjectile(pHeading, pPitch, unit)
+		} else {
+			projectile = weapon.SpawnProjectileToward(convergencePoint, unit)
+		}
+
 		if projectile != nil {
 			pTemplate := projectileSpriteForWeapon(weapon)
 			pSprite := pTemplate.Clone()
@@ -263,7 +287,7 @@ func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
 		// consume ammo
 		if ammoBin != nil {
 			ammoBin.ConsumeAmmo(weapon, 1)
-			log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
+			//log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
 		}
 	}
 
@@ -411,15 +435,16 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				entity.ApplyDamage(damage)
 
 				if g.debug {
+					unit := model.EntityUnit(entity)
 					hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
 					percentHP := 100 * (hp / maxHP)
 
-					if entity == g.player.Unit {
+					if unit == g.player.Unit {
 						// TODO: visual response to player being hit
-						log.Debugf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
-					} else {
+						log.Debugf("[player] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", damage, hp, maxHP, percentHP)
+					} else if unit != nil {
 						// TODO: ui indicator for showing damage was done
-						log.Debugf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
+						log.Debugf("[%s] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", unit.ID(), damage, hp, maxHP, percentHP)
 					}
 				}
 			}
@@ -514,8 +539,8 @@ func (g *Game) updateDelayedProjectiles() {
 func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 	delete(g.delayedProjectiles, p)
 
-	w, e := p.weapon, model.EntityUnit(p.parent)
-	if e == nil {
+	w, u := p.weapon, model.EntityUnit(p.parent)
+	if u == nil {
 		return
 	}
 
@@ -528,11 +553,22 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		spreadPitch = randFloat(-p.spread, p.spread)
 	}
 
-	convergencePoint := g.ConvergencePoint()
-	if e != g.player.Unit || convergencePoint == nil {
-		projectile = w.SpawnProjectile(e.TurretAngle()+spreadAngle, e.Pitch()+spreadPitch, e)
+	var convergencePoint *geom3d.Vector3
+	if g.player == u {
+		cSprite := g.spriteInCrosshairs()
+		var cEntity model.Entity
+		if cSprite != nil {
+			cEntity = cSprite.Entity
+		}
+		convergencePoint = model.ConvergencePoint(u, cEntity)
 	} else {
-		projectile = w.SpawnProjectileToward(convergencePoint, e)
+		convergencePoint = model.ConvergencePoint(u, u.Target())
+	}
+
+	if u != g.player.Unit || convergencePoint == nil {
+		projectile = w.SpawnProjectile(u.TurretAngle()+spreadAngle, u.Pitch()+spreadPitch, u)
+	} else {
+		projectile = w.SpawnProjectileToward(convergencePoint, u)
 		if p.spread > 0 {
 			projectile.SetHeading(projectile.Heading() + spreadAngle)
 			projectile.SetPitch(projectile.Pitch() + spreadPitch)
@@ -547,10 +583,10 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		g.sprites.addProjectile(pSprite)
 
 		if p.sfxEnabled {
-			if e == g.player.Unit {
+			if u == g.player.Unit {
 				g.audio.PlayLocalWeaponFireAudio(w)
 			} else {
-				g.audio.PlayExternalWeaponFireAudio(g, w, e)
+				g.audio.PlayExternalWeaponFireAudio(g, w, u)
 			}
 		}
 
