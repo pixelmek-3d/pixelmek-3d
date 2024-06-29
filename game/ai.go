@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/harbdog/raycaster-go"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 
@@ -28,11 +29,7 @@ func NewAIHandler(g *Game) *AIHandler {
 	}
 
 	for _, u := range units {
-		if u.Team() < 0 {
-			unitAI = append(unitAI, aiHandler.NewFriendlyAI(u))
-		} else {
-			unitAI = append(unitAI, aiHandler.NewAI(u))
-		}
+		unitAI = append(unitAI, aiHandler.NewAI(u))
 	}
 	aiHandler.ai = unitAI
 
@@ -41,16 +38,10 @@ func NewAIHandler(g *Game) *AIHandler {
 
 func (h *AIHandler) NewAI(u model.Unit) *AIBehavior {
 	a := &AIBehavior{g: h.g, u: u}
-	a.Node = a.ForcedWithdrawal()
-	return a
-}
-
-func (h *AIHandler) NewFriendlyAI(u model.Unit) *AIBehavior {
-	a := &AIBehavior{g: h.g, u: u}
 	a.Node = bt.New(
-		bt.Sequence,
-		a.ChaseTarget(),
-		a.ShootTarget(),
+		bt.Selector,
+		a.ForcedWithdrawal(),
+		a.EngageTarget(),
 	)
 	return a
 }
@@ -65,6 +56,14 @@ func (h *AIHandler) Update() {
 			log.Error(err)
 		}
 	}
+}
+
+func (a *AIBehavior) EngageTarget() bt.Node {
+	return bt.New(
+		bt.Sequence,
+		a.ChaseTarget(),
+		a.ShootTarget(),
+	)
 }
 
 func (a *AIBehavior) ChaseTarget() bt.Node {
@@ -101,7 +100,7 @@ func (a *AIBehavior) turnToTarget() bt.Node {
 				return bt.Success, nil
 			}
 
-			//log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
+			log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
 			a.u.SetTargetHeading(pHeading)
 			return bt.Success, nil
 		},
@@ -146,7 +145,7 @@ func (a *AIBehavior) turretToTarget() bt.Node {
 				return bt.Success, nil
 			}
 
-			//log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
+			log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
 			a.u.SetTargetPitch(pPitch)
 			// TODO: return failure if not even close to target angle
@@ -208,7 +207,7 @@ func (a *AIBehavior) hasTarget() bt.Node {
 					continue
 				}
 
-				//log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
+				log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
 				a.u.SetTarget(t)
 				return bt.Success, nil
 			}
@@ -233,9 +232,25 @@ func (a *AIBehavior) targetIsAlive() bt.Node {
 
 func (a *AIBehavior) ForcedWithdrawal() bt.Node {
 	return bt.New(
-		bt.Selector,
-		a.attemptWithdraw(),
-		a.moveToWithdrawArea(),
+		bt.Sequence,
+		a.determineForcedWithdrawal(),
+		bt.New(
+			bt.Selector,
+			a.attemptWithdraw(),
+			a.moveToWithdrawArea(),
+		),
+	)
+}
+
+func (a *AIBehavior) determineForcedWithdrawal() bt.Node {
+	return bt.New(
+		func(children []bt.Node) (bt.Status, error) {
+			if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
+				return bt.Failure, nil
+			}
+			log.Debugf("[%s] -> determineForcedWithdrawal", a.u.ID())
+			return bt.Success, nil
+		},
 	)
 }
 
@@ -263,7 +278,7 @@ func (a *AIBehavior) turnToWithdraw() bt.Node {
 				return bt.Success, nil
 			}
 
-			//log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
+			log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
 			a.u.SetTargetHeading(withdrawHeading)
 			return bt.Success, nil
 		},
@@ -277,7 +292,7 @@ func (a *AIBehavior) velocityToMax() bt.Node {
 				return bt.Success, nil
 			}
 
-			//log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
+			log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
 			a.u.SetTargetVelocity(a.u.MaxVelocity())
 			return bt.Success, nil
 		},
