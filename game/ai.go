@@ -1,13 +1,23 @@
 package game
 
 import (
+	"encoding/json"
+	"path"
+	"path/filepath"
+	"reflect"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	bt "github.com/joeycumines/go-behaviortree"
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	aiResourcesDir = "ai"
 )
 
 type AIHandler struct {
@@ -21,6 +31,26 @@ type AIBehavior struct {
 	u model.Unit
 }
 
+type NodeID string
+
+type AIResource struct {
+	Trees []AIResourceTree `json:"trees" validate:"required"`
+}
+
+type AIResourceTree struct {
+	Title string                    `json:"title" validate:"required"`
+	Root  NodeID                    `json:"root" validate:"required"`
+	Nodes map[NodeID]AIResourceNode `json:"nodes" validate:"required"`
+}
+
+type AIResourceNode struct {
+	ID       NodeID   `json:"id" validate:"required"`
+	Name     string   `json:"name" validate:"required"`
+	Title    string   `json:"title" validate:"required"`
+	Child    NodeID   `json:"child"`
+	Children []NodeID `json:"children"`
+}
+
 func NewAIHandler(g *Game) *AIHandler {
 	units := g.getSpriteUnits()
 	unitAI := make([]*AIBehavior, 0, len(units))
@@ -28,21 +58,107 @@ func NewAIHandler(g *Game) *AIHandler {
 		g: g,
 	}
 
+	aiFiles, err := resources.ReadDir(aiResourcesDir)
+	if err != nil {
+		log.Fatal(aiResourcesDir, err)
+	}
+
+	var aiRes AIResource
+
+	for _, a := range aiFiles {
+		if a.IsDir() {
+			// TODO: support recursive directory structure?
+			continue
+		}
+
+		fileName := a.Name()
+		filePath := path.Join(aiResourcesDir, fileName)
+		fileExt := filepath.Ext(filePath)
+		if fileExt != ".json" {
+			continue
+		}
+
+		aiJson, err := resources.ReadFile(filePath)
+		if err != nil {
+			log.Fatal(filePath, err)
+		}
+
+		err = json.Unmarshal(aiJson, &aiRes)
+		if err != nil {
+			log.Fatal(filePath, err)
+		}
+
+		// TODO: support more than one root AI Resource
+		break
+	}
+
 	for _, u := range units {
-		unitAI = append(unitAI, aiHandler.NewAI(u))
+		unitAI = append(unitAI, aiHandler.NewAI(u, aiRes.Trees[0]))
 	}
 	aiHandler.ai = unitAI
 
 	return aiHandler
 }
 
-func (h *AIHandler) NewAI(u model.Unit) *AIBehavior {
+func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
+	actions := make(map[NodeID]bt.Node)
+	composites := make(map[NodeID]bt.Node)
+	compositeTicks := make(map[NodeID]bt.Tick)
+	// TODO: decorators := make(map[string]bt.Tick)
+
+	for id, n := range aiTree.Nodes {
+		comp := getComposite(n.Name)
+		if comp != nil {
+			// store composite for post-processing after all nodes are captured
+			compositeTicks[id] = comp
+			continue
+		}
+
+		aFunc := reflect.ValueOf(a).MethodByName(n.Name)
+		aValues := aFunc.Call(nil) // FIXME: handle non-existent method name
+
+		var aNode bt.Node = aValues[0].Interface().(bt.Node)
+		if aNode == nil {
+			log.Fatalf("behavior tree action function not found or incorrectly defined: %s", n.Name)
+		}
+		actions[id] = aNode
+	}
+
+	// process composites into nodes with child nodes
+	for id, t := range compositeTicks {
+		cRes := aiTree.Nodes[id]
+
+		childNodes := make([]bt.Node, 0, len(cRes.Children))
+		for _, childId := range cRes.Children {
+			child := actions[childId]
+			childNodes = append(childNodes, child)
+		}
+
+		cNode := bt.New(t, childNodes...)
+		composites[id] = cNode
+	}
+
+	root, ok := composites[aiTree.Root]
+	if !ok {
+		log.Fatalf("root behavior tree node not generated: %s", aiTree.Root)
+	}
+
+	return root
+}
+
+func getComposite(nodeName string) bt.Tick {
+	switch nodeName {
+	case "select":
+		return bt.Selector
+	case "sequence":
+		return bt.Sequence
+	}
+	return nil
+}
+
+func (h *AIHandler) NewAI(u model.Unit, ai AIResourceTree) *AIBehavior {
 	a := &AIBehavior{g: h.g, u: u}
-	a.Node = bt.New(
-		bt.Selector,
-		a.ForcedWithdrawal(),
-		a.EngageTarget(),
-	)
+	a.Node = a.LoadBehaviorTree(ai)
 	return a
 }
 

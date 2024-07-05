@@ -36,7 +36,7 @@ var (
 
 	CrosshairsSheet *CrosshairsSheetConfig
 
-	//go:embed audio fonts icons maps menu missions shaders sprites textures all:units all:weapons
+	//go:embed ai audio fonts icons maps menu missions shaders sprites textures all:units all:weapons
 	embedded embed.FS
 )
 
