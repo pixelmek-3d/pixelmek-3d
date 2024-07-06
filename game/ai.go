@@ -2,13 +2,11 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"path"
 	"path/filepath"
 	"reflect"
 
-	"github.com/harbdog/raycaster-go"
-	"github.com/harbdog/raycaster-go/geom"
-	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
@@ -21,8 +19,9 @@ const (
 )
 
 type AIHandler struct {
-	g  *Game
-	ai []*AIBehavior
+	g         *Game
+	ai        []*AIBehavior
+	resources AIResources
 }
 
 type AIBehavior struct {
@@ -33,8 +32,8 @@ type AIBehavior struct {
 
 type NodeID string
 
-type AIResource struct {
-	Trees []AIResourceTree `json:"trees" validate:"required"`
+type AIResources struct {
+	Trees []AIResourceTree
 }
 
 type AIResourceTree struct {
@@ -63,7 +62,10 @@ func NewAIHandler(g *Game) *AIHandler {
 		log.Fatal(aiResourcesDir, err)
 	}
 
-	var aiRes AIResource
+	aiRes := AIResources{
+		Trees: make([]AIResourceTree, 0, len(aiFiles)),
+	}
+	aiHandler.resources = aiRes
 
 	for _, a := range aiFiles {
 		if a.IsDir() {
@@ -83,16 +85,17 @@ func NewAIHandler(g *Game) *AIHandler {
 			log.Fatal(filePath, err)
 		}
 
-		err = json.Unmarshal(aiJson, &aiRes)
+		var aiTree AIResourceTree
+		err = json.Unmarshal(aiJson, &aiTree)
 		if err != nil {
 			log.Fatal(filePath, err)
 		}
 
-		// TODO: support more than one root AI Resource
-		break
+		aiRes.Trees = append(aiRes.Trees, aiTree)
 	}
 
 	for _, u := range units {
+		// TODO: support more than one root AI Resource tree
 		unitAI = append(unitAI, aiHandler.NewAI(u, aiRes.Trees[0]))
 	}
 	aiHandler.ai = unitAI
@@ -100,9 +103,17 @@ func NewAIHandler(g *Game) *AIHandler {
 	return aiHandler
 }
 
+func (h *AIHandler) NewAI(u model.Unit, ai AIResourceTree) *AIBehavior {
+	a := &AIBehavior{g: h.g, u: u}
+	a.Node = a.LoadBehaviorTree(ai)
+	if h.g.debug {
+		fmt.Printf("--- %s\n%s\n", u.ID(), a.Node)
+	}
+	return a
+}
+
 func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
 	actions := make(map[NodeID]bt.Node)
-	composites := make(map[NodeID]bt.Node)
 	compositeTicks := make(map[NodeID]bt.Tick)
 	// TODO: decorators := make(map[string]bt.Tick)
 
@@ -124,25 +135,38 @@ func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
 		actions[id] = aNode
 	}
 
-	// process composites into nodes with child nodes
-	for id, t := range compositeTicks {
-		cRes := aiTree.Nodes[id]
-
-		childNodes := make([]bt.Node, 0, len(cRes.Children))
-		for _, childId := range cRes.Children {
-			child := actions[childId]
-			childNodes = append(childNodes, child)
+	// recursive function to create nodes starting from children to work back up to root
+	var loadBehaviorNode func(res AIResourceNode) bt.Node
+	loadBehaviorNode = func(res AIResourceNode) bt.Node {
+		log.Debugf("loading node %s <%s>", res.Name, res.ID)
+		tick, ok := compositeTicks[res.ID]
+		if !ok {
+			log.Fatalf("behavior tree composite not found or incorrectly defined: %s", res.ID)
 		}
 
-		cNode := bt.New(t, childNodes...)
-		composites[id] = cNode
+		childNodes := make([]bt.Node, 0, len(res.Children))
+		for _, childId := range res.Children {
+			childRes := aiTree.Nodes[childId]
+			log.Debugf("[%s] processing child %s <%s>", res.Name, childRes.Name, childId)
+			if child, ok := actions[childId]; ok {
+				childNodes = append(childNodes, child)
+			} else if _, ok := compositeTicks[childId]; ok {
+				childNodes = append(childNodes, loadBehaviorNode(childRes))
+			} else {
+				log.Fatalf("[%s] behavior tree child not found or incorrectly defined: %s", res.ID, childId)
+			}
+		}
+
+		return bt.New(tick, childNodes...)
 	}
 
-	root, ok := composites[aiTree.Root]
+	// load nodes starting from the root
+	rootRes, ok := aiTree.Nodes[aiTree.Root]
 	if !ok {
-		log.Fatalf("root behavior tree node not generated: %s", aiTree.Root)
+		log.Fatalf("behavior tree root resource not found or incorrectly defined: %s", aiTree.Root)
 	}
 
+	root := loadBehaviorNode(rootRes)
 	return root
 }
 
@@ -154,12 +178,6 @@ func getComposite(nodeName string) bt.Tick {
 		return bt.Sequence
 	}
 	return nil
-}
-
-func (h *AIHandler) NewAI(u model.Unit, ai AIResourceTree) *AIBehavior {
-	a := &AIBehavior{g: h.g, u: u}
-	a.Node = a.LoadBehaviorTree(ai)
-	return a
 }
 
 func (h *AIHandler) Update() {
@@ -190,255 +208,28 @@ func (a *AIBehavior) ChaseTarget() bt.Node {
 	)
 }
 
-func (a *AIBehavior) moveToTarget() bt.Node {
-	return bt.New(
-		bt.Sequence,
-		a.turnToTarget(),
-		a.velocityToMax(),
-	)
-}
-
-func (a *AIBehavior) turnToTarget() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			target := model.EntityUnit(a.u.Target())
-			if target == nil {
-				return bt.Failure, nil
-			}
-
-			// calculate heading from unit to target
-			pLine := geom3d.Line3d{
-				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
-				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ(),
-			}
-			pHeading := pLine.Heading()
-			if a.u.Heading() == pHeading {
-				return bt.Success, nil
-			}
-
-			log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
-			a.u.SetTargetHeading(pHeading)
-			return bt.Success, nil
-		},
-	)
-}
-
 func (a *AIBehavior) ShootTarget() bt.Node {
 	return bt.New(
 		bt.Sequence,
 		a.determineTargetStatus(),
 		a.turretToTarget(),
-		a.fireWeapons(),
-	)
-}
-
-func (a *AIBehavior) turretToTarget() bt.Node {
-	// TODO: handle units without turrets
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			target := model.EntityUnit(a.u.Target())
-			if target == nil {
-				return bt.Failure, nil
-			}
-
-			var zTargetOffset float64
-			switch target.Anchor() {
-			case raycaster.AnchorBottom:
-				zTargetOffset = randFloat(target.CollisionHeight()/10, 4*target.CollisionHeight()/5)
-			case raycaster.AnchorTop:
-				zTargetOffset = -randFloat(target.CollisionHeight()/10, 4*target.CollisionHeight()/5)
-			case raycaster.AnchorCenter:
-				zTargetOffset = randFloat(-target.CollisionHeight()/2, target.CollisionHeight()/2)
-			}
-
-			// calculate angle/pitch from unit to target
-			pLine := geom3d.Line3d{
-				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
-				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ() + zTargetOffset,
-			}
-			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
-			if a.u.TurretAngle() == pHeading && a.u.Pitch() == pPitch {
-				return bt.Success, nil
-			}
-
-			log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
-			a.u.SetTargetTurretAngle(pHeading)
-			a.u.SetTargetPitch(pPitch)
-			// TODO: return failure if not even close to target angle
-			return bt.Success, nil
-		},
-	)
-}
-
-func (a *AIBehavior) fireWeapons() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			target := model.EntityUnit(a.u.Target())
-			if target == nil {
-				return bt.Failure, nil
-			}
-
-			weaponFired := false
-			for _, w := range a.u.Armament() {
-				// TODO: only fire weapons within range
-				// TODO: only fire some weapons, try not to overheat (much)
-				// TODO: weapon convergence toward target
-				if a.g.fireUnitWeapon(a.u, w) {
-					weaponFired = true
-				}
-			}
-
-			if weaponFired {
-				// TODO: // illuminate source sprite unit firing the weapon
-				// combat.go: sprite.SetIlluminationPeriod(5000, 0.35)
-				//log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
-				return bt.Success, nil
-			}
-			return bt.Failure, nil
-		},
+		a.FireWeapons(),
 	)
 }
 
 func (a *AIBehavior) determineTargetStatus() bt.Node {
 	return bt.New(
 		bt.Sequence,
-		a.hasTarget(),
-		a.targetIsAlive(),
+		a.HasTarget(),
+		a.TargetIsAlive(),
 		// a.targetInRange(),
 	)
 }
 
-func (a *AIBehavior) hasTarget() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			if a.u.Target() != nil {
-				return bt.Success, nil
-			}
-
-			// TODO: create separate node for selecting a new target based on some criteria
-			units := a.g.getSpriteUnits()
-			// TODO: enemy units need to be able to target player unit
-			for _, t := range units {
-				if t.IsDestroyed() || t.Team() == a.u.Team() {
-					continue
-				}
-
-				log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
-				a.u.SetTarget(t)
-				return bt.Success, nil
-			}
-			return bt.Failure, nil
-		},
-	)
-}
-
-func (a *AIBehavior) targetIsAlive() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			if a.u.Target() != nil {
-				if !a.u.Target().IsDestroyed() {
-					return bt.Success, nil
-				}
-				a.u.SetTarget(nil)
-			}
-			return bt.Failure, nil
-		},
-	)
-}
-
-func (a *AIBehavior) ForcedWithdrawal() bt.Node {
+func (a *AIBehavior) moveToTarget() bt.Node {
 	return bt.New(
 		bt.Sequence,
-		a.determineForcedWithdrawal(),
-		bt.New(
-			bt.Selector,
-			a.attemptWithdraw(),
-			a.moveToWithdrawArea(),
-		),
-	)
-}
-
-func (a *AIBehavior) determineForcedWithdrawal() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
-				return bt.Failure, nil
-			}
-			log.Debugf("[%s] -> determineForcedWithdrawal", a.u.ID())
-			return bt.Success, nil
-		},
-	)
-}
-
-func (a *AIBehavior) attemptWithdraw() bt.Node {
-	return bt.New(
-		bt.Sequence,
-		a.inWithdrawArea(),
-		a.withdraw(),
-	)
-}
-
-func (a *AIBehavior) moveToWithdrawArea() bt.Node {
-	return bt.New(
-		bt.Sequence,
-		a.turnToWithdraw(),
-		a.velocityToMax(),
-	)
-}
-
-func (a *AIBehavior) turnToWithdraw() bt.Node {
-	var withdrawHeading float64 = 1.57
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			if a.u.Heading() == withdrawHeading {
-				return bt.Success, nil
-			}
-
-			log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
-			a.u.SetTargetHeading(withdrawHeading)
-			return bt.Success, nil
-		},
-	)
-}
-
-func (a *AIBehavior) velocityToMax() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			if a.u.Velocity() == a.u.MaxVelocity() {
-				return bt.Success, nil
-			}
-
-			log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
-			a.u.SetTargetVelocity(a.u.MaxVelocity())
-			return bt.Success, nil
-		},
-	)
-}
-
-func (a *AIBehavior) inWithdrawArea() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			posX, posY := a.u.Pos().X, a.u.Pos().Y
-			delta := 1.5
-			if posX > delta && posX < float64(a.g.mapWidth)-delta &&
-				posY > delta && posY < float64(a.g.mapHeight)-delta {
-				return bt.Failure, nil
-			}
-
-			//log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
-			return bt.Success, nil
-		},
-	)
-}
-
-func (a *AIBehavior) withdraw() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			//log.Debugf("[%s] -> withdraw", a.u.ID())
-
-			// TODO: unit safely escapes
-			a.u.SetStructurePoints(0)
-			return bt.Success, nil
-		},
+		a.turnToTarget(),
+		a.VelocityToMax(),
 	)
 }
