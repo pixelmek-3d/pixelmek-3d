@@ -6,7 +6,9 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
@@ -30,32 +32,58 @@ type AIBehavior struct {
 	u model.Unit
 }
 
-type NodeID string
+type AINodeID string
+
+type AINodeType int
+
+const (
+	AI_NODE_DEFAULT AINodeType = iota
+	AI_NODE_TREE
+)
 
 type AIResources struct {
-	Trees []AIResourceTree
+	Trees map[string]AIResourceTree
 }
 
 type AIResourceTree struct {
-	Title string                    `json:"title" validate:"required"`
-	Root  NodeID                    `json:"root" validate:"required"`
-	Nodes map[NodeID]AIResourceNode `json:"nodes" validate:"required"`
+	Title string                      `json:"title" validate:"required"`
+	Root  AINodeID                    `json:"root" validate:"required"`
+	Nodes map[AINodeID]AIResourceNode `json:"nodes" validate:"required"`
 }
 
 type AIResourceNode struct {
-	ID       NodeID   `json:"id" validate:"required"`
-	Name     string   `json:"name" validate:"required"`
-	Title    string   `json:"title" validate:"required"`
-	Child    NodeID   `json:"child"`
-	Children []NodeID `json:"children"`
+	ID         AINodeID             `json:"id" validate:"required"`
+	Name       string               `json:"name" validate:"required"`
+	Title      string               `json:"title" validate:"required"`
+	Child      AINodeID             `json:"child"`
+	Children   []AINodeID           `json:"children"`
+	Properties AIResourceProperties `json:"properties"`
+}
+
+type AIResourceProperties struct {
+	Type AINodeType
+}
+
+// Unmarshals into AINodeType
+func (t *AINodeType) UnmarshalText(b []byte) error {
+	str := strings.Trim(string(b), `"`)
+
+	empty, tree := "", "tree"
+
+	switch str {
+	case empty:
+		*t = AI_NODE_DEFAULT
+	case tree:
+		*t = AI_NODE_TREE
+	default:
+		return fmt.Errorf("unknown node property type value '%s', must be one of: [%s, %s]", str, empty, tree)
+	}
+
+	return nil
 }
 
 func NewAIHandler(g *Game) *AIHandler {
 	units := g.getSpriteUnits()
-	unitAI := make([]*AIBehavior, 0, len(units))
-	aiHandler := &AIHandler{
-		g: g,
-	}
 
 	aiFiles, err := resources.ReadDir(aiResourcesDir)
 	if err != nil {
@@ -63,9 +91,10 @@ func NewAIHandler(g *Game) *AIHandler {
 	}
 
 	aiRes := AIResources{
-		Trees: make([]AIResourceTree, 0, len(aiFiles)),
+		Trees: make(map[string]AIResourceTree, len(aiFiles)),
 	}
-	aiHandler.resources = aiRes
+
+	v := validator.New()
 
 	for _, a := range aiFiles {
 		if a.IsDir() {
@@ -91,33 +120,57 @@ func NewAIHandler(g *Game) *AIHandler {
 			log.Fatal(filePath, err)
 		}
 
-		aiRes.Trees = append(aiRes.Trees, aiTree)
+		err = v.Struct(aiTree)
+		if err != nil {
+			log.Fatalf(filePath, err)
+		}
+
+		aiKey := resources.BaseNameWithoutExtension(filePath)
+		aiRes.Trees[aiKey] = aiTree
+	}
+
+	aiHandler := &AIHandler{
+		g:         g,
+		ai:        make([]*AIBehavior, 0, len(units)),
+		resources: aiRes,
 	}
 
 	for _, u := range units {
-		// TODO: support more than one root AI Resource tree
-		unitAI = append(unitAI, aiHandler.NewAI(u, aiRes.Trees[0]))
+		aiHandler.ai = append(aiHandler.ai, aiHandler.NewAI(u, "unit", aiRes))
 	}
-	aiHandler.ai = unitAI
 
 	return aiHandler
 }
 
-func (h *AIHandler) NewAI(u model.Unit, ai AIResourceTree) *AIBehavior {
+func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavior {
 	a := &AIBehavior{g: h.g, u: u}
-	a.Node = a.LoadBehaviorTree(ai)
+	a.Node = a.LoadBehaviorTree(ai, aiRes)
 	if h.g.debug {
 		fmt.Printf("--- %s\n%s\n", u.ID(), a.Node)
 	}
 	return a
 }
 
-func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
-	actions := make(map[NodeID]bt.Node)
-	compositeTicks := make(map[NodeID]bt.Tick)
+func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
+	aiTree, ok := aiRes.Trees[ai]
+	if !ok {
+		log.Fatalf("behavior tree does not exist: %s", ai)
+	}
+
+	log.Debugf("[%s] loading behavior tree '%s'", aiTree.Title, ai)
+
+	actions := make(map[AINodeID]bt.Node)
+	compositeTicks := make(map[AINodeID]bt.Tick)
 	// TODO: decorators := make(map[string]bt.Tick)
 
 	for id, n := range aiTree.Nodes {
+		if n.Properties.Type == AI_NODE_TREE {
+			log.Debugf("[%s] loading node as tree: '%s' <%s>", aiTree.Title, n.Name, n.ID)
+			tNode := a.LoadBehaviorTree(n.Name, aiRes)
+			actions[id] = tNode
+			continue
+		}
+
 		comp := getComposite(n.Name)
 		if comp != nil {
 			// store composite for post-processing after all nodes are captured
@@ -126,11 +179,14 @@ func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
 		}
 
 		aFunc := reflect.ValueOf(a).MethodByName(n.Name)
-		aValues := aFunc.Call(nil) // FIXME: handle non-existent method name
+		if aFunc.Kind() == reflect.Invalid || resources.IsNil(aFunc) {
+			log.Fatalf("[%s] behavior tree function does not exist with name: '%s' <%s>", aiTree.Title, n.Name, n.ID)
+		}
+		aValues := aFunc.Call(nil)
 
 		var aNode bt.Node = aValues[0].Interface().(bt.Node)
 		if aNode == nil {
-			log.Fatalf("behavior tree action function not found or incorrectly defined: %s", n.Name)
+			log.Fatalf("[%s] behavior tree action function incorrectly defined: '%s' <%s>", aiTree.Title, n.Name, n.ID)
 		}
 		actions[id] = aNode
 	}
@@ -141,7 +197,7 @@ func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
 		log.Debugf("loading node %s <%s>", res.Name, res.ID)
 		tick, ok := compositeTicks[res.ID]
 		if !ok {
-			log.Fatalf("behavior tree composite not found or incorrectly defined: %s", res.ID)
+			log.Fatalf("[%s] behavior node composite not found or incorrectly defined: %s", aiTree.Title, res.ID)
 		}
 
 		childNodes := make([]bt.Node, 0, len(res.Children))
@@ -153,7 +209,7 @@ func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
 			} else if _, ok := compositeTicks[childId]; ok {
 				childNodes = append(childNodes, loadBehaviorNode(childRes))
 			} else {
-				log.Fatalf("[%s] behavior tree child not found or incorrectly defined: %s", res.ID, childId)
+				log.Fatalf("[%s][%s] behavior node child not found or incorrectly defined: %s", aiTree.Title, res.ID, childId)
 			}
 		}
 
@@ -163,7 +219,7 @@ func (a *AIBehavior) LoadBehaviorTree(aiTree AIResourceTree) bt.Node {
 	// load nodes starting from the root
 	rootRes, ok := aiTree.Nodes[aiTree.Root]
 	if !ok {
-		log.Fatalf("behavior tree root resource not found or incorrectly defined: %s", aiTree.Root)
+		log.Fatalf("[%s] behavior tree root resource not found or incorrectly defined: %s", aiTree.Title, aiTree.Root)
 	}
 
 	root := loadBehaviorNode(rootRes)

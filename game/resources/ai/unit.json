@@ -2,7 +2,7 @@
   "version": "0.3.0",
   "scope": "tree",
   "id": "a1c99bf9-4d8c-4613-9197-8d0060831399",
-  "title": "UnitAI",
+  "title": "unit",
   "description": "Basic Unit AI",
   "root": "e5f2187c-ee9b-474b-83d0-65f5d58f0175",
   "properties": {},
@@ -18,20 +18,20 @@
         "y": -384
       },
       "children": [
-        "e5d6f3ba-a721-4a14-9b6d-5b835daa0807",
+        "530ad45c-5695-4883-8355-5517a20dd490",
         "1023b51f-d332-44f5-8064-c25fc090017c"
       ]
     },
-    "e5d6f3ba-a721-4a14-9b6d-5b835daa0807": {
-      "id": "e5d6f3ba-a721-4a14-9b6d-5b835daa0807",
-      "name": "ForcedWithdrawal",
-      "title": "ForcedWithdrawal",
-      "description": null,
+    "530ad45c-5695-4883-8355-5517a20dd490": {
+      "id": "530ad45c-5695-4883-8355-5517a20dd490",
+      "name": "forced_withdrawal",
+      "title": "forced_withdrawal",
+      "description": "",
       "properties": {
         "type": "tree"
       },
       "display": {
-        "x": -144,
+        "x": -96,
         "y": -252
       }
     },
@@ -42,7 +42,7 @@
       "description": "",
       "properties": {},
       "display": {
-        "x": 168,
+        "x": 108,
         "y": -252
       }
     }
@@ -67,7 +67,52 @@
     {
       "version": "0.3.0",
       "scope": "node",
-      "name": "ForcedWithdrawal",
+      "name": "DetermineForcedWithdrawal",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "InWithdrawArea",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "Withdraw",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "TurnToWithdraw",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "VelocityToMax",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "forced_withdrawal",
       "category": "action",
       "title": null,
       "description": null,

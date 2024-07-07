@@ -9,6 +9,8 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -204,4 +206,19 @@ func NewShaderFromFile(path string) (*ebiten.Shader, error) {
 		return nil, err
 	}
 	return ebiten.NewShader(shaderData)
+}
+
+func BaseNameWithoutExtension(file string) string {
+	return strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
+}
+
+func IsNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	switch reflect.TypeOf(i).Kind() {
+	case reflect.Invalid, reflect.Pointer, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+		return reflect.ValueOf(i).IsNil()
+	}
+	return false
 }

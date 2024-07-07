@@ -2,7 +2,7 @@
   "version": "0.3.0",
   "scope": "tree",
   "id": "258d0efc-b79d-416c-8db6-7ba21e86ef3b",
-  "title": "ForcedWithdrawal",
+  "title": "forced_withdrawal",
   "description": "Behavior of a unit forced to withdraw.",
   "root": "3936007d-8b79-42da-872f-eac4844ab89b",
   "properties": {},
@@ -143,17 +143,6 @@
     {
       "version": "0.3.0",
       "scope": "node",
-      "name": "ForcedWithdrawal",
-      "category": "action",
-      "title": null,
-      "description": null,
-      "properties": {
-        "type": "tree"
-      }
-    },
-    {
-      "version": "0.3.0",
-      "scope": "node",
       "name": "DetermineForcedWithdrawal",
       "category": "action",
       "title": null,
@@ -195,6 +184,17 @@
       "title": null,
       "description": null,
       "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "forced_withdrawal",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {
+        "type": "tree"
+      }
     }
   ]
 }

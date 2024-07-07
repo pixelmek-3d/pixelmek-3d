@@ -90,9 +90,9 @@ func (a *AIBehavior) VelocityToMax() bt.Node {
 func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			// if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
-			// 	return bt.Failure, nil
-			// }
+			if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
+				return bt.Failure, nil
+			}
 			log.Debugf("[%s] -> determineForcedWithdrawal", a.u.ID())
 			return bt.Success, nil
 		},
