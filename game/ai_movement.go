@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (a *AIBehavior) turnToTarget() bt.Node {
+func (a *AIBehavior) TurnToTarget() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
 			target := model.EntityUnit(a.u.Target())
@@ -35,7 +35,7 @@ func (a *AIBehavior) turnToTarget() bt.Node {
 	)
 }
 
-func (a *AIBehavior) turretToTarget() bt.Node {
+func (a *AIBehavior) TurretToTarget() bt.Node {
 	// TODO: handle units without turrets
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {

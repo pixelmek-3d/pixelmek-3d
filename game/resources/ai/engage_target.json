@@ -1,0 +1,312 @@
+{
+    "version": "0.3.0",
+    "scope": "tree",
+    "id": "236baa53-f946-46f4-ac00-2fb6bd23b366",
+    "title": "engage_target",
+    "description": "Behavior of a unit engaging with a an enemy target.",
+    "root": "63e03f05-b5ba-4f99-a771-761c9713cffb",
+    "properties": {},
+    "nodes": {
+      "63e03f05-b5ba-4f99-a771-761c9713cffb": {
+        "id": "63e03f05-b5ba-4f99-a771-761c9713cffb",
+        "name": "sequence",
+        "title": "Sequence",
+        "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+        "properties": {},
+        "display": {
+          "x": 0,
+          "y": -288
+        },
+        "children": [
+          "56af0273-7d14-4f3d-8066-7f8f3aec6b7c",
+          "71fc9e38-470b-4da0-b3fc-7ca82d39ac93"
+        ]
+      },
+      "56af0273-7d14-4f3d-8066-7f8f3aec6b7c": {
+        "id": "56af0273-7d14-4f3d-8066-7f8f3aec6b7c",
+        "name": "sequence",
+        "title": "Sequence",
+        "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+        "properties": {},
+        "display": {
+          "x": -456,
+          "y": -156
+        },
+        "children": [
+          "49f5034c-ad07-458a-887b-e3dbdd195f0c",
+          "79dcf613-fef4-44ef-82ba-b7775d6e1be0"
+        ]
+      },
+      "71fc9e38-470b-4da0-b3fc-7ca82d39ac93": {
+        "id": "71fc9e38-470b-4da0-b3fc-7ca82d39ac93",
+        "name": "sequence",
+        "title": "Sequence",
+        "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+        "properties": {},
+        "display": {
+          "x": 444,
+          "y": -156
+        },
+        "children": [
+          "c215177c-5d98-4b07-b2eb-c298a8613a4e",
+          "f81e6753-d37f-4135-b14c-d50f349fe680",
+          "a5d5863d-2173-45b7-8603-d508263026d8"
+        ]
+      },
+      "49f5034c-ad07-458a-887b-e3dbdd195f0c": {
+        "id": "49f5034c-ad07-458a-887b-e3dbdd195f0c",
+        "name": "sequence",
+        "title": "Sequence",
+        "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+        "properties": {},
+        "display": {
+          "x": -660,
+          "y": -24
+        },
+        "children": [
+          "d24ab917-9629-4596-99d4-fa7b5fdf4d3f",
+          "3a447998-0766-4904-a32f-4e3b0f6257ae"
+        ]
+      },
+      "d24ab917-9629-4596-99d4-fa7b5fdf4d3f": {
+        "id": "d24ab917-9629-4596-99d4-fa7b5fdf4d3f",
+        "name": "HasTarget",
+        "title": "HasTarget",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": -768,
+          "y": 108
+        }
+      },
+      "3a447998-0766-4904-a32f-4e3b0f6257ae": {
+        "id": "3a447998-0766-4904-a32f-4e3b0f6257ae",
+        "name": "TargetIsAlive",
+        "title": "TargetIsAlive",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": -564,
+          "y": 108
+        }
+      },
+      "79dcf613-fef4-44ef-82ba-b7775d6e1be0": {
+        "id": "79dcf613-fef4-44ef-82ba-b7775d6e1be0",
+        "name": "sequence",
+        "title": "Sequence",
+        "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+        "properties": {},
+        "display": {
+          "x": -252,
+          "y": -24
+        },
+        "children": [
+          "d71d5805-e4dd-4ace-83e7-08a227aa2b70",
+          "32fa3664-c520-43b0-b288-d05d6dc28f6c"
+        ]
+      },
+      "d71d5805-e4dd-4ace-83e7-08a227aa2b70": {
+        "id": "d71d5805-e4dd-4ace-83e7-08a227aa2b70",
+        "name": "TurnToTarget",
+        "title": "TurnToTarget",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": -348,
+          "y": 108
+        }
+      },
+      "32fa3664-c520-43b0-b288-d05d6dc28f6c": {
+        "id": "32fa3664-c520-43b0-b288-d05d6dc28f6c",
+        "name": "VelocityToMax",
+        "title": "VelocityToMax",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": -144,
+          "y": 108
+        }
+      },
+      "c215177c-5d98-4b07-b2eb-c298a8613a4e": {
+        "id": "c215177c-5d98-4b07-b2eb-c298a8613a4e",
+        "name": "sequence",
+        "title": "Sequence",
+        "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+        "properties": {},
+        "display": {
+          "x": 168,
+          "y": -24
+        },
+        "children": [
+          "c69e0c29-bc5b-424e-85e8-1b5810cee0f3",
+          "5bcc57ab-8fa4-4dfc-97a6-086585d0973d"
+        ]
+      },
+      "c69e0c29-bc5b-424e-85e8-1b5810cee0f3": {
+        "id": "c69e0c29-bc5b-424e-85e8-1b5810cee0f3",
+        "name": "HasTarget",
+        "title": "HasTarget",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": 60,
+          "y": 108
+        }
+      },
+      "5bcc57ab-8fa4-4dfc-97a6-086585d0973d": {
+        "id": "5bcc57ab-8fa4-4dfc-97a6-086585d0973d",
+        "name": "TargetIsAlive",
+        "title": "TargetIsAlive",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": 276,
+          "y": 108
+        }
+      },
+      "f81e6753-d37f-4135-b14c-d50f349fe680": {
+        "id": "f81e6753-d37f-4135-b14c-d50f349fe680",
+        "name": "TurretToTarget",
+        "title": "TurretToTarget",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": 480,
+          "y": -24
+        }
+      },
+      "a5d5863d-2173-45b7-8603-d508263026d8": {
+        "id": "a5d5863d-2173-45b7-8603-d508263026d8",
+        "name": "FireWeapons",
+        "title": "FireWeapons",
+        "description": "",
+        "properties": {},
+        "display": {
+          "x": 684,
+          "y": -24
+        }
+      }
+    },
+    "display": {
+      "camera_x": 810.5,
+      "camera_y": 685.5,
+      "camera_z": 0.75,
+      "x": 0,
+      "y": -408
+    },
+    "custom_nodes": [
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "DetermineForcedWithdrawal",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "InWithdrawArea",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "Withdraw",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "TurnToWithdraw",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "VelocityToMax",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "forced_withdrawal",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {
+          "type": "tree"
+        }
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "engage_target",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {
+          "type": "tree"
+        }
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "HasTarget",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "TargetIsAlive",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "TurnToTarget",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "TurretToTarget",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      },
+      {
+        "version": "0.3.0",
+        "scope": "node",
+        "name": "FireWeapons",
+        "category": "action",
+        "title": null,
+        "description": null,
+        "properties": {}
+      }
+    ]
+  }
+  
