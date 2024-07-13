@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"sort"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
@@ -32,6 +33,7 @@ type Radar struct {
 type RadarBlip struct {
 	Unit       model.Unit
 	Angle      float64
+	Heading    float64
 	Distance   float64
 	IsTarget   bool
 	IsFriendly bool
@@ -76,10 +78,25 @@ func (r *Radar) SetMapLines(lines []*geom.Line) {
 }
 
 func (r *Radar) SetNavPoints(radarNavPoints []*RadarNavPoint) {
+	// sort nav points from furthest to closest from player position
+	sort.Slice(radarNavPoints, func(i, j int) bool {
+		return radarNavPoints[i].Distance > radarNavPoints[j].Distance
+	})
 	r.navPoints = radarNavPoints
 }
 
 func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
+	// sort blips from furthest to closest from player position to draw on top
+	sort.Slice(blips, func(i, j int) bool {
+		// player target blip always comes last
+		switch {
+		case blips[i].IsTarget:
+			return false
+		case blips[j].IsTarget:
+			return true
+		}
+		return blips[i].Distance > blips[j].Distance
+	})
 	r.radarBlips = blips
 }
 
@@ -205,7 +222,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	fColor := hudOpts.HudColor(_colorFriendly)
 
 	for _, blip := range r.radarBlips {
-		// convert heading angle into relative radar angle where "up" is forward
+		// convert direction angle into relative radar angle where "up" is forward
 		radarAngle := blip.Angle - geom.HalfPi
 
 		radarDistancePx := blip.Distance * radarHudSizeFactor
@@ -218,11 +235,20 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			bColor = eColor
 		}
 
+		// convert blip unit heading into relative radar angle
+		radarHeading := blip.Heading - geom.HalfPi
+
 		if blip.IsTarget {
 			// draw target square around lighter colored blip
 			tAlpha := uint8(int(bColor.A) / 3)
 			tColor := color.NRGBA{R: bColor.R, G: bColor.G, B: bColor.B, A: tAlpha}
 			vector.DrawFilledRect(screen, float32(bLine.X2-6), float32(bLine.Y2-6), 12, 12, tColor, false) // TODO: calculate thickness based on image size
+
+			hLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarHeading, 10)
+			vector.StrokeLine(screen, float32(hLine.X1), float32(hLine.Y1), float32(hLine.X2), float32(hLine.Y2), 3, bColor, false)
+		} else {
+			hLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarHeading, 8)
+			vector.StrokeLine(screen, float32(hLine.X1), float32(hLine.Y1), float32(hLine.X2), float32(hLine.Y2), 2, bColor, false)
 		}
 
 		if blip.IsFriendly {

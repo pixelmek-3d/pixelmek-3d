@@ -712,8 +712,16 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 			// determine angle of unit relative from player heading
 			relAngle := playerAngle - unitLine.Angle()
+			// determine heading of unit relative from player heading
+			relHeading := playerAngle - unit.Heading()
+
 			blip := &render.RadarBlip{
-				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: unitIsTarget, IsFriendly: unitIsFriendly,
+				Unit:       unit,
+				Distance:   unitDistance,
+				Angle:      relAngle,
+				Heading:    relHeading,
+				IsTarget:   unitIsTarget,
+				IsFriendly: unitIsFriendly,
 			}
 
 			radarBlips = append(radarBlips, blip)
@@ -722,11 +730,12 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		})
 	}
 
+	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
+	radar.SetValues(g.player.Pos(), g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
+
 	radar.SetNavPoints(rNavPoints[:navCount])
 	radar.SetRadarBlips(radarBlips[:blipCount])
 
-	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
-	radar.SetValues(g.player.Pos(), g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
 	radar.Draw(radarBounds, hudOpts)
 }
 
