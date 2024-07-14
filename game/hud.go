@@ -351,16 +351,17 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		targetUnit = g.getSpriteFromEntity(targetEntity)
 	}
 
+	if targetUnit != nil {
+		targetDistance := model.EntityDistance(g.player, targetUnit.Entity) - targetUnit.CollisionRadius() - g.player.CollisionRadius()
+		distanceMeters := targetDistance * model.METERS_PER_UNIT
+		targetStatus.SetUnitDistance(distanceMeters)
+	}
+
 	if targetUnit == nil || targetUnit.Team() < 0 || g.player.Powered() != model.POWER_ON {
 		// do not show target lock indicator if no target, target is friendly, or player not full powered on
 		targetStatus.ShowTargetLock(false)
 		targetStatus.SetTargetLock(0)
 	} else {
-		targetDistance := model.EntityDistance(g.player, targetUnit.Entity) - targetUnit.CollisionRadius() - g.player.CollisionRadius()
-		distanceMeters := targetDistance * model.METERS_PER_UNIT
-
-		targetStatus.SetUnitDistance(distanceMeters)
-
 		// determine if lock percent should show
 		hasLockOns := false
 		for _, w := range g.player.Armament() {
