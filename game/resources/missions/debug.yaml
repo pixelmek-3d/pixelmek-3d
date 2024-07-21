@@ -10,9 +10,9 @@ dropZone:
   heading: 45
 objectives:
   destroy:
-      - unit: "destroy_me"
-  protect:
-    - unit: "do_not_hurt_me"
+    - unit: "destroy_me"
+  # protect:
+  #   - unit: "do_not_hurt_me"
   nav:
     visit:
       - name: "Debug"
@@ -31,10 +31,10 @@ mechs:
     unit: "fire_moth_prime.yaml"
     position: [60, 60]
 vehicles:
-  - id: "do_not_hurt_me"
-    team: -1
-    unit: "srm_carrier.yaml"
-    position: [57, 55]
+  # - id: "do_not_hurt_me"
+  #   team: -1
+  #   unit: "srm_carrier.yaml"
+  #   position: [57, 55]
 vtols: []
 infantry: []
 emplacements: []

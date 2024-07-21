@@ -14,13 +14,26 @@ skyBox:
 textures:
   0:
     image: ""
+  1:
+    image: "walls/tech_0e.png"
+  3:
+    image: "walls/tech_3i.png"
 numRaycastLevels: 1
 levels: [] # Using generated map levels
 generateLevels:
   mapSize: [100, 100]
   boundaryWall:
     image: "walls/boundary_teal.png"
-  prefabs: []
+  prefabs:
+  - name: "Wall"
+    levels:
+    -
+      - [1]
+      - [3]
+      - [1]
+    positions:
+    - [56, 60]
+    - [60, 70]
 flooring:
   default: "floors/desert_rough.png"
   pathing: []

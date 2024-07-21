@@ -237,9 +237,7 @@ func (g *Game) initMission() {
 	g.sprites.clear()
 
 	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
-	worldMap := g.mission.Map().Level(0)
-	g.mapWidth = len(worldMap)
-	g.mapHeight = len(worldMap[0])
+	g.mapWidth, g.mapHeight = g.mission.Map().Size()
 
 	// load map and mission content
 	g.loadContent()

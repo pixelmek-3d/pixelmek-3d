@@ -90,9 +90,11 @@ func (a *AIBehavior) VelocityToMax() bt.Node {
 func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
-				return bt.Failure, nil
-			}
+			// TESTING: pathfinding
+
+			// if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
+			// 	return bt.Failure, nil
+			// }
 			log.Debugf("[%s] -> determineForcedWithdrawal", a.u.ID())
 			return bt.Success, nil
 		},
@@ -100,15 +102,23 @@ func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 }
 
 func (a *AIBehavior) TurnToWithdraw() bt.Node {
-	var withdrawHeading float64 = 1.57
+	var withdrawPosition = &geom.Vector2{X: 60, Y: 99}
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			if a.u.Heading() == withdrawHeading {
+			// TODO: pathfinding does not need to be recalculated every tick
+			path := a.g.mission.Pathing.FindPath(a.u.Pos(), withdrawPosition)
+			if len(path) == 0 {
 				return bt.Success, nil
 			}
 
+			pos := a.u.Pos()
+			nextPos := path[0]
+			moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
+
+			log.Debugf("[%s] @(%0.2f,%0.2f) path: %s", a.u.ID(), pos.X, pos.Y, model.PathToString(path))
+
 			log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
-			a.u.SetTargetHeading(withdrawHeading)
+			a.u.SetTargetHeading(moveLine.Angle())
 			return bt.Success, nil
 		},
 	)

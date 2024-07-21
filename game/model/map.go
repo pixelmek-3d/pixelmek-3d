@@ -163,6 +163,14 @@ type MapGeneratePrefabs struct {
 	Positions [][2]int  `yaml:"positions"`
 }
 
+func (m *Map) Size() (width int, height int) {
+	if len(m.Levels) == 0 || len(m.Levels[0]) == 0 {
+		return 0, 0
+	}
+	width, height = len(m.Levels[0]), len(m.Levels[0][0])
+	return
+}
+
 func (m *Map) NumLevels() int {
 	return m.NumRaycastLevels
 }

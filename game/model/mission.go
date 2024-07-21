@@ -16,6 +16,7 @@ import (
 
 type Mission struct {
 	missionMap   *Map
+	Pathing      *Pathing            `yaml:"-"`
 	Title        string              `yaml:"title" validate:"required"`
 	Briefing     string              `yaml:"briefing" validate:"required"`
 	MapPath      string              `yaml:"map" validate:"required"`
@@ -164,6 +165,9 @@ func LoadMission(missionFile string) (*Mission, error) {
 		log.Error("Error loading map", m.MapPath)
 		return nil, err
 	}
+
+	// initialize map pathing
+	m.Pathing = initPathing(m)
 
 	// apply optional overrides to map
 	if m.Lighting != nil {
