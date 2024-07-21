@@ -1056,17 +1056,14 @@ func (g *Game) updateMechPosition(s *render.MechSprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, posZ, false)
-		if isCollision {
-			// TODO: collision damage against units based on mech and speed
-
-			// if mech is falling to the ground, let it land!
-			if velocityZ < 0 && posZ <= 0 && newPosZ == 0 {
-				s.SetPosZ(newPosZ)
-			}
-		} else {
+		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
+		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
+		}
+
+		if isCollision && len(collisions) > 0 {
+			// TODO: apply damage to the first sprite entity that was hit
 		}
 	}
 }
@@ -1085,16 +1082,26 @@ func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
 	}
 
 	if s.Vehicle().Update() {
+		// TODO: refactor to use same update function as g.updatePlayer()
 		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
+
+		posZ, velocityZ := s.PosZ(), s.VelocityZ()
+		if velocityZ != 0 {
+			posZ += velocityZ
+		}
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if !isCollision {
+		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
+		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
+		}
+
+		if isCollision && len(collisions) > 0 {
+			// TODO: apply damage to the first sprite entity that was hit
 		}
 	}
 }
@@ -1113,6 +1120,7 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 	}
 
 	if s.VTOL().Update() {
+		// TODO: refactor to use same update function as g.updatePlayer()
 		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
 
@@ -1124,10 +1132,14 @@ func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if !isCollision {
+		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
+		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
+		}
+
+		if isCollision && len(collisions) > 0 {
+			// TODO: apply damage to the first sprite entity that was hit
 		}
 	}
 }
@@ -1146,16 +1158,26 @@ func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
 	}
 
 	if s.Infantry().Update() {
+		// TODO: refactor to use same update function as g.updatePlayer()
 		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
+
+		posZ, velocityZ := s.PosZ(), s.VelocityZ()
+		if velocityZ != 0 {
+			posZ += velocityZ
+		}
 
 		xCheck := vLine.X2
 		yCheck := vLine.Y2
 
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if !isCollision {
+		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
+		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
 			s.SetPos(newPos)
 			s.SetPosZ(newPosZ)
+		}
+
+		if isCollision && len(collisions) > 0 {
+			// TODO: apply damage to the first sprite entity that was hit
 		}
 	}
 }

@@ -179,60 +179,40 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 
 	if isCollision {
 		if checkAlternate {
-			// find the point closest to the start position
-			min := math.Inf(1)
-			minI := -1
-			for i, p := range intersectPoints {
-				d2 := geom.Distance2(posX, posY, p.X, p.Y)
-				if d2 < min {
-					min = d2
-					minI = i
+			zDiff := math.Abs(moveZ - posZ)
+			if zDiff > 0 {
+				// if some Z movement, try to move only in Z (useful vs. walls)
+				zP, zZ, zCollide, _ := g.getValidMove(entity, posX, posY, moveZ, false)
+				if !zCollide {
+					return zP, zZ, isCollision, collisionEntities
+				} else {
+					// Z-only resulted in collision, try without any Z (useful when on top of something)
+					zP, zZ, _, _ = g.getValidMove(entity, moveX, moveY, posZ, true)
+					return zP, zZ, isCollision, collisionEntities
 				}
 			}
 
-			// use the closest intersecting point to determine a safe distance to make the move
-			moveLine = geom.Line{X1: posX, Y1: posY, X2: intersectPoints[minI].X, Y2: intersectPoints[minI].Y}
-			dist := math.Sqrt(min)
-			angle := moveLine.Angle()
-
-			// generate new move line using calculated angle and safe distance from intersecting point
-			moveLine = geom.LineFromAngle(posX, posY, angle, dist-0.01)
-
-			newX, newY = moveLine.X2, moveLine.Y2
-
-			// if either X or Y direction was already intersecting, attempt move only in the adjacent direction
-			xDiff := math.Abs(newX - posX)
-			yDiff := math.Abs(newY - posY)
-			zDiff := math.Abs(moveZ - posZ)
-			if xDiff > 0.001 || yDiff > 0.001 || zDiff > 0 {
-				switch {
-				case zDiff > 0:
-					// if some Z movement, try to move only in Z (useful vs. walls)
-					zP, zZ, zCollide, zE := g.getValidMove(entity, posX, posY, moveZ, false)
-					if !zCollide {
-						return zP, zZ, zCollide, zE
-					} else {
-						// Z-only resulted in collision, try without any Z (useful when on top of something)
-						return g.getValidMove(entity, moveX, moveY, posZ, true)
-					}
-				case xDiff <= 0.001:
-					// no more room to move in X, try to move only Y
-					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
-					// 	c.pos.X, c.pos.Y, moveX, moveY, posX, moveY)
-					return g.getValidMove(entity, posX, moveY, moveZ, false)
-				case yDiff <= 0.001:
-					// no more room to move in Y, try to move only X
-					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
-					// 	c.pos.X, c.pos.Y, moveX, moveY, moveX, posY)
-					return g.getValidMove(entity, moveX, posY, moveZ, false)
-				default:
-					// try the new position
-					// TODO: need some way to try a potentially valid shorter move without checkAlternate while also avoiding infinite loop
-					return g.getValidMove(entity, newX, newY, moveZ, false)
+			// based on heading, check move in most favored direction, then the other, to attempt escaping a wall
+			identityLine := geom.LineFromAngle(0.0, 0.0, entity.Heading(), 1.0)
+			identityX, identityY := math.Abs(identityLine.X2), math.Abs(identityLine.Y2)
+			if identityX >= identityY {
+				// try to move only X, then only Y
+				nP, nZ, xCollide, _ := g.getValidMove(entity, moveX, posY, moveZ, false)
+				if !xCollide {
+					return nP, nZ, isCollision, collisionEntities
+				} else {
+					nP, nZ, _, _ = g.getValidMove(entity, posX, moveY, moveZ, false)
+					return nP, nZ, isCollision, collisionEntities
 				}
 			} else {
-				// looks like it cannot move
-				return &geom.Vector2{X: posX, Y: posY}, posZ, isCollision, collisionEntities
+				// try to move only Y, then only X
+				nP, nZ, yCollide, _ := g.getValidMove(entity, posX, moveY, moveZ, false)
+				if !yCollide {
+					return nP, nZ, isCollision, collisionEntities
+				} else {
+					nP, nZ, _, _ = g.getValidMove(entity, moveX, posY, moveZ, false)
+					return nP, nZ, isCollision, collisionEntities
+				}
 			}
 		} else {
 			// looks like it cannot move

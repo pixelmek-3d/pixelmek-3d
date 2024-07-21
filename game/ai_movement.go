@@ -115,8 +115,6 @@ func (a *AIBehavior) TurnToWithdraw() bt.Node {
 			nextPos := path[0]
 			moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
 
-			log.Debugf("[%s] @(%0.2f,%0.2f) path: %s", a.u.ID(), pos.X, pos.Y, model.PathToString(path))
-
 			log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
 			a.u.SetTargetHeading(moveLine.Angle())
 			return bt.Success, nil
