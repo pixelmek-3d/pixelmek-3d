@@ -366,13 +366,6 @@ func (g *Game) uiRect() image.Rectangle {
 	)
 }
 
-// Move player by move speed in the forward/backward direction
-func (g *Game) Move(mSpeed float64) {
-	playerPosition := g.player.Pos()
-	moveLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading(), mSpeed)
-	g.updatePlayerPosition(moveLine.X2, moveLine.Y2, g.player.PosZ())
-}
-
 // Move player by strafe speed in the left/right direction
 func (g *Game) Strafe(sSpeed float64) {
 	strafeAngle := geom.HalfPi
@@ -382,13 +375,6 @@ func (g *Game) Strafe(sSpeed float64) {
 	playerPosition := g.player.Pos()
 	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading()-strafeAngle, math.Abs(sSpeed))
 	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2, g.player.PosZ())
-}
-
-// Move player by vertical speed in the up/down direction
-func (g *Game) VerticalMove(vSpeed float64) {
-	pos := g.player.Pos()
-	newPosZ := g.player.PosZ() + vSpeed
-	g.updatePlayerPosition(pos.X, pos.Y, newPosZ)
 }
 
 func (g *Game) InProgress() bool {
