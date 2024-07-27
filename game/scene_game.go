@@ -82,7 +82,7 @@ func (s *GameScene) Update() error {
 		g.updateAI()
 		g.updatePlayer()
 		g.updateProjectiles()
-		g.updateSprites()
+		g.UpdateSprites()
 		g.updateObjectives()
 
 		if g.clutter != nil {

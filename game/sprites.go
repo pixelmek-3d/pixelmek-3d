@@ -258,53 +258,78 @@ func (g *Game) getSpriteUnits() []model.Unit {
 	return units
 }
 
+func getSpriteType(sInterface raycaster.Sprite) SpriteType {
+	switch interfaceType := sInterface.(type) {
+	case *render.Sprite:
+		return MapSpriteType
+	case *render.MechSprite:
+		return MechSpriteType
+	case *render.VehicleSprite:
+		return VehicleSpriteType
+	case *render.VTOLSprite:
+		return VTOLSpriteType
+	case *render.InfantrySprite:
+		return InfantrySpriteType
+	case *render.EmplacementSprite:
+		return EmplacementSpriteType
+	case *render.ProjectileSprite:
+		return ProjectileSpriteType
+	case *render.EffectSprite:
+		return EffectSpriteType
+	default:
+		panic(fmt.Errorf("unable to get SpriteType from sprite interface type %v", interfaceType))
+	}
+}
+
 func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
 	if sInterface == nil {
 		return nil
 	}
 
-	switch interfaceType := sInterface.(type) {
-	case *render.Sprite:
+	sType := getSpriteType(sInterface)
+	switch sType {
+	case MapSpriteType:
 		return sInterface.(*render.Sprite)
-	case *render.MechSprite:
+	case MechSpriteType:
 		return sInterface.(*render.MechSprite).Sprite
-	case *render.VehicleSprite:
+	case VehicleSpriteType:
 		return sInterface.(*render.VehicleSprite).Sprite
-	case *render.VTOLSprite:
+	case VTOLSpriteType:
 		return sInterface.(*render.VTOLSprite).Sprite
-	case *render.InfantrySprite:
+	case InfantrySpriteType:
 		return sInterface.(*render.InfantrySprite).Sprite
-	case *render.EmplacementSprite:
+	case EmplacementSpriteType:
 		return sInterface.(*render.EmplacementSprite).Sprite
-	case *render.ProjectileSprite:
+	case ProjectileSpriteType:
 		return sInterface.(*render.ProjectileSprite).Sprite
-	case *render.EffectSprite:
+	case EffectSpriteType:
 		return sInterface.(*render.EffectSprite).Sprite
 	default:
-		panic(fmt.Errorf("unable to get model.Sprite from type %v", interfaceType))
+		panic(fmt.Errorf("unable to get model.Sprite from type %v", sType))
 	}
 }
 
 func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
-	switch interfaceType := sInterface.(type) {
-	case *render.Sprite:
+	sType := getSpriteType(sInterface)
+	switch sType {
+	case MapSpriteType:
 		return sInterface.(*render.Sprite).Entity
-	case *render.MechSprite:
+	case MechSpriteType:
 		return sInterface.(*render.MechSprite).Entity
-	case *render.VehicleSprite:
+	case VehicleSpriteType:
 		return sInterface.(*render.VehicleSprite).Entity
-	case *render.VTOLSprite:
+	case VTOLSpriteType:
 		return sInterface.(*render.VTOLSprite).Entity
-	case *render.InfantrySprite:
+	case InfantrySpriteType:
 		return sInterface.(*render.InfantrySprite).Entity
-	case *render.EmplacementSprite:
+	case EmplacementSpriteType:
 		return sInterface.(*render.EmplacementSprite).Entity
-	case *render.ProjectileSprite:
+	case ProjectileSpriteType:
 		return sInterface.(*render.ProjectileSprite).Entity
-	case *render.EffectSprite:
+	case EffectSpriteType:
 		return sInterface.(*render.EffectSprite).Entity
 	default:
-		panic(fmt.Errorf("unable to get model.Entity from type %v", interfaceType))
+		panic(fmt.Errorf("unable to get model.Entity from type %v", sType))
 	}
 }
 
