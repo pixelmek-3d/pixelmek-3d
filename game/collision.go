@@ -192,62 +192,96 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 				}
 			}
 
-			// based on heading, check move in most favored direction, then the other, to attempt escaping a wall
-			identityLine := geom.LineFromAngle(0.0, 0.0, entity.Heading(), 1.0)
-			identityX, identityY := math.Abs(identityLine.X2), math.Abs(identityLine.Y2)
-			if identityX >= identityY {
-				// try to move only X, then only Y
-				// log.Debugf("[%0.3f, %0.3f] first, trying only X (%0.3f)", posX, posY, moveX)
-				nP, nZ, xCollide, _ := g.getValidMove(entity, moveX, posY, moveZ, false)
-				if !xCollide {
-					return nP, nZ, isCollision, collisionEntities
-				} else {
-					if geom.NearlyEqual(posY, moveY, 0.001) {
-						// try very small moveY offset to avoid getting stuck in head-on collision
-						dY := moveY - posY
-						if dY == 0 {
-							dY = 0.01
-							if math.Signbit(moveX) {
-								dY *= -1
-							}
-						} else {
-							dY = 0.01
-							if math.Signbit(moveY - posY) {
-								dY *= -1
-							}
-						}
-						moveY = posY + dY
+			if len(collisionEntities) > 0 {
+				// attempt escaping stuck on an entity: find the closest intersection point and angle away from it
+				min := math.Inf(1)
+				minI := -1
+				for i, p := range intersectPoints {
+					d2 := geom.Distance2(posX, posY, p.X, p.Y)
+					if d2 < min {
+						min = d2
+						minI = i
 					}
-					// log.Debugf("[%0.3f, %0.3f] second, trying only Y (%0.3f)", posX, posY, moveY)
-					nP, nZ, _, _ = g.getValidMove(entity, posX, moveY, moveZ, false)
-					return nP, nZ, isCollision, collisionEntities
 				}
-			} else {
-				// try to move only Y, then only X
-				// log.Debugf("[%0.3f, %0.3f] first, trying only Y (%0.3f)", posX, posY, moveY)
-				nP, nZ, yCollide, _ := g.getValidMove(entity, posX, moveY, moveZ, false)
-				if !yCollide {
-					return nP, nZ, isCollision, collisionEntities
+
+				// use the closest intersecting point to determine a safe distance to make the move
+				intersectLine := geom.Line{X1: posX, Y1: posY, X2: intersectPoints[minI].X, Y2: intersectPoints[minI].Y}
+				intersectAngle := intersectLine.Angle()
+
+				// generate new move line using calculated angle and safe distance from intersecting point
+				var escapeAngle float64
+				escapeDist := geom.Clamp(checkDist, 0, entityCollisionRadius-0.001)
+				if model.AngleDistance(entity.Heading(), intersectAngle) >= 0 {
+					escapeAngle = intersectAngle - geom.HalfPi
 				} else {
-					if geom.NearlyEqual(posX, moveX, 0.001) {
-						// try very small moveX offset to avoid getting stuck in head-on collision
-						dX := moveX - posX
-						if dX == 0 {
-							dX = 0.01
-							if math.Signbit(moveY) {
-								dX *= -1
+					escapeAngle = intersectAngle + geom.HalfPi
+				}
+
+				escapeLine := geom.LineFromAngle(posX, posY, escapeAngle, escapeDist)
+				escapeX, escapeY := escapeLine.X2, escapeLine.Y2
+				//log.Debugf("[%0.3f, %0.3f] escape entity collision (%0.3f@%0.2f)", escapeY, escapeY, escapeDist, geom.Degrees(escapeAngle))
+
+				nP, nZ, _, _ := g.getValidMove(entity, escapeX, escapeY, moveZ, false)
+				return nP, nZ, isCollision, collisionEntities
+
+			} else {
+				// attempt escaping stuck on a wall: check move in most favored direction, then the other, based on heading
+				identityLine := geom.LineFromAngle(0.0, 0.0, entity.Heading(), 1.0)
+				identityX, identityY := math.Abs(identityLine.X2), math.Abs(identityLine.Y2)
+				if identityX >= identityY {
+					// try to move only X, then only Y
+					// log.Debugf("[%0.3f, %0.3f] first, trying only X (%0.3f)", posX, posY, moveX)
+					nP, nZ, xCollide, _ := g.getValidMove(entity, moveX, posY, moveZ, false)
+					if !xCollide {
+						return nP, nZ, isCollision, collisionEntities
+					} else {
+						if geom.NearlyEqual(posY, moveY, 0.001) {
+							// try very small moveY offset to avoid getting stuck in head-on collision
+							dY := moveY - posY
+							if dY == 0 {
+								dY = 0.01
+								if math.Signbit(moveX) {
+									dY *= -1
+								}
+							} else {
+								dY = 0.01
+								if math.Signbit(moveY - posY) {
+									dY *= -1
+								}
 							}
-						} else {
-							dX = 0.01
-							if math.Signbit(moveX - posX) {
-								dX *= -1
-							}
+							moveY = posY + dY
 						}
-						moveX = posX + dX
+						// log.Debugf("[%0.3f, %0.3f] second, trying only Y (%0.3f)", posX, posY, moveY)
+						nP, nZ, _, _ = g.getValidMove(entity, posX, moveY, moveZ, false)
+						return nP, nZ, isCollision, collisionEntities
 					}
-					// log.Debugf("[%0.3f, %0.3f] second, trying only X (%0.3f)", posX, posY, moveX)
-					nP, nZ, _, _ = g.getValidMove(entity, moveX, posY, moveZ, false)
-					return nP, nZ, isCollision, collisionEntities
+				} else {
+					// try to move only Y, then only X
+					// log.Debugf("[%0.3f, %0.3f] first, trying only Y (%0.3f)", posX, posY, moveY)
+					nP, nZ, yCollide, _ := g.getValidMove(entity, posX, moveY, moveZ, false)
+					if !yCollide {
+						return nP, nZ, isCollision, collisionEntities
+					} else {
+						if geom.NearlyEqual(posX, moveX, 0.001) {
+							// try very small moveX offset to avoid getting stuck in head-on collision
+							dX := moveX - posX
+							if dX == 0 {
+								dX = 0.01
+								if math.Signbit(moveY) {
+									dX *= -1
+								}
+							} else {
+								dX = 0.01
+								if math.Signbit(moveX - posX) {
+									dX *= -1
+								}
+							}
+							moveX = posX + dX
+						}
+						// log.Debugf("[%0.3f, %0.3f] second, trying only X (%0.3f)", posX, posY, moveX)
+						nP, nZ, _, _ = g.getValidMove(entity, moveX, posY, moveZ, false)
+						return nP, nZ, isCollision, collisionEntities
+					}
 				}
 			}
 		} else {
