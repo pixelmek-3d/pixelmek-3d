@@ -29,7 +29,7 @@ navPoints:
 mechs:
   - id: "destroy_me"
     unit: "fire_moth_prime.yaml"
-    position: [60, 60]
+    position: [57, 65]
 vehicles:
   - id: "do_not_hurt_me"
     team: -1

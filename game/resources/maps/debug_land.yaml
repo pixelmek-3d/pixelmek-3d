@@ -44,6 +44,6 @@ sprites:
 - image: "shrubbery/tree_0.png"
   collisionRadius: 60
   collisionHeight: 190
-  hitPoints: 100
+  hitPoints: 0.1
   positions:
-  - [10, 10]
+  - [60, 60]

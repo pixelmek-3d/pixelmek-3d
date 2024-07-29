@@ -19,17 +19,29 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 			}
 
 			// calculate heading from unit to target
-			pLine := geom3d.Line3d{
-				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
-				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ(),
+			var targetHeading float64
+
+			// TODO: pathfinding does not need to be recalculated every tick
+			path := a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos())
+			if len(path) > 0 {
+				pos := a.u.Pos()
+				nextPos := path[0]
+				moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
+				targetHeading = moveLine.Angle()
+			} else {
+				targetLine := geom3d.Line3d{
+					X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
+					X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ(),
+				}
+				targetHeading = targetLine.Heading()
 			}
-			pHeading := pLine.Heading()
-			if a.u.Heading() == pHeading {
+
+			if a.u.Heading() == targetHeading {
 				return bt.Success, nil
 			}
 
 			log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
-			a.u.SetTargetHeading(pHeading)
+			a.u.SetTargetHeading(targetHeading)
 			return bt.Success, nil
 		},
 	)
@@ -90,11 +102,10 @@ func (a *AIBehavior) VelocityToMax() bt.Node {
 func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			// TESTING: pathfinding
-
-			// if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
-			// 	return bt.Failure, nil
-			// }
+			// TODO: check if no weapons usable
+			if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
+				return bt.Failure, nil
+			}
 			log.Debugf("[%s] -> determineForcedWithdrawal", a.u.ID())
 			return bt.Success, nil
 		},
