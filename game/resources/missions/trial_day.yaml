@@ -20,45 +20,54 @@ navPoints: # https://en.wikipedia.org/wiki/NATO_phonetic_alphabet
   position: [60, 10]
 mechs:
 - unit: "jenner_iic.yaml"
-  position: [10, 10]
-  team: -1
+  position: [80, 20]
 - unit: "warhawk_prime.yaml"
-  position: [13, 14]
+  position: [83, 24]
 - unit: "executioner_prime.yaml"
-  position: [17, 14]
+  position: [87, 22]
 - unit: "nova_prime.yaml"
-  position: [9, 23]
+  position: [79, 33]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 - unit: "adder_prime.yaml"
-  position: [12, 21]
+  position: [72, 31]
   patrolPath: [[18, 21], [18, 16], [3, 16], [3, 21], [18, 21]]
 - unit: "timber_wolf_prime.yaml"
-  position: [15, 23]
+  position: [85, 35]
   patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 vehicles:
 - unit: "srm_carrier.yaml"
-  position: [18, 22.5]
+  position: [12, 20]
+  team: -1
 - unit: "srm_carrier.yaml"
-  position: [15, 22.5]
+  position: [15, 18]
+  team: -1
 vtols:
 - unit: "donar.yaml"
-  position: [13, 15]
+  position: [13, 55]
   zPosition: 3.0
+  team: -1
 - unit: "donar.yaml"
-  position: [17, 15]
+  position: [17, 57]
   zPosition: 3.0
+  team: -1
 infantry:
 - unit: "heavy_foot.yaml"
-  position: [13, 13.5]
+  position: [14, 19]
+  team: -1
 - unit: "heavy_foot.yaml"
-  position: [14, 14]
+  position: [14, 18]
   patrolPath: [[12, 14], [9, 14], [12, 14]]
+  team: -1
 emplacements:
 - unit: "laser_turret.yaml"
-  position: [12, 8]
-- unit: "srm_turret.yaml"
-  position: [12, 10]
-- unit: "sniper_tower.yaml"
   position: [14, 10]
+  team: -1
+- unit: "srm_turret.yaml"
+  position: [14, 14]
+  team: -1
+- unit: "sniper_tower.yaml"
+  position: [10, 14]
+  team: -1
 - unit: "lrm_tower.yaml"
-  position: [16, 10]
+  position: [10, 10]
+  team: -1
