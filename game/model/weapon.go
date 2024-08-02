@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -72,6 +73,14 @@ type Weapon interface {
 	Audio() string
 	Clone() Weapon
 	Parent() Entity
+}
+
+func WeaponAmmoCount(w Weapon) int {
+	ammoBin := w.AmmoBin()
+	if ammoBin == nil {
+		return math.MaxInt
+	}
+	return ammoBin.AmmoCount()
 }
 
 func weaponSummary(w Weapon) string {

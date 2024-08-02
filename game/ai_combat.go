@@ -11,6 +11,7 @@ func (a *AIBehavior) HasTarget() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
 			if a.u.Target() != nil {
+				// TODO: criteria for when to change to another target
 				return bt.Success, nil
 			}
 
@@ -53,19 +54,45 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 				return bt.Failure, nil
 			}
 
-			weaponFired := false
+			targetDist := model.EntityDistance(a.u, target) * model.METERS_PER_UNIT
+
+			readyWeapons := make([]model.Weapon, 0, len(a.u.Armament()))
 			for _, w := range a.u.Armament() {
-				// TODO: only fire weapons within range
-				// TODO: only fire some weapons, try not to overheat (much)
+				if w.Cooldown() > 0 {
+					// only weapons not on cooldown
+					continue
+				}
+				if model.WeaponAmmoCount(w) <= 0 {
+					// only weapons with ammo remaining
+					continue
+				}
+				if targetDist > 1.2*w.Distance() {
+					// only weapons within range
+					continue
+				}
+
+				readyWeapons = append(readyWeapons, w)
+			}
+
+			unitHeat := a.u.Heat()
+
+			weaponFired := false
+			for _, w := range readyWeapons {
+				if unitHeat+w.Heat() >= a.u.MaxHeat() {
+					// only fire the weapon if it will not lead to overheating
+					continue
+				}
+
+				// TODO: instead of alpha striking or firing each weapon as soon as it is ready, have a small random delay (except for machine guns)?
+
 				// TODO: weapon convergence toward target
 				if a.g.fireUnitWeapon(a.u, w) {
 					weaponFired = true
+					unitHeat = a.u.Heat()
 				}
 			}
 
 			if weaponFired {
-				// TODO: // illuminate source sprite unit firing the weapon
-				// combat.go: sprite.SetIlluminationPeriod(5000, 0.35)
 				//log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
 				return bt.Success, nil
 			}
