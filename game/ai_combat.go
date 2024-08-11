@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	AI_FIRE_WEAPONS_COUNTER_MIN = 30
-	AI_FIRE_WEAPONS_COUNTER_MAX = 300
+	AI_FIRE_WEAPONS_COUNTER_MIN = 20
+	AI_FIRE_WEAPONS_COUNTER_MAX = 60
 )
 
 func (a *AIBehavior) HasTarget() bt.Node {
@@ -78,7 +78,7 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 					// only weapons with ammo remaining
 					continue
 				}
-				if targetDist > 1.1*w.Distance() {
+				if targetDist > 1.25*w.Distance() {
 					// only weapons within range
 					continue
 				}

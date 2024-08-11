@@ -13,6 +13,11 @@ import (
 func (a *AIBehavior) TurnToTarget() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
+			if a.u.UnitType() == model.EmplacementUnitType {
+				// emplacements only have turrets
+				return bt.Success, nil
+			}
+
 			target := model.EntityUnit(a.u.Target())
 			if target == nil {
 				return bt.Failure, nil
@@ -66,10 +71,26 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 				zTargetOffset = randFloat(-target.CollisionHeight()/2, target.CollisionHeight()/2)
 			}
 
+			// calculate distance from unit to target
+			tLine := geom3d.Line3d{
+				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
+				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ() + zTargetOffset,
+			}
+			tDist := tLine.Distance()
+
+			// determine approximate lead time needed for weapon projectile
+			tWeapon := a.idealWeaponForDistance(tDist)
+			if tWeapon != nil {
+				// approximate position of target based on its current heading and speed for projectile flight time
+				tProjectile := tWeapon.Projectile()
+				tDelta := tDist / tProjectile.MaxVelocity()
+				tLine = geom3d.Line3dFromAngle(target.Pos().X, target.Pos().Y, target.PosZ()+zTargetOffset, target.Heading(), 0, tDelta*target.Velocity())
+			}
+
 			// calculate angle/pitch from unit to target
 			pLine := geom3d.Line3d{
 				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
-				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ() + zTargetOffset,
+				X2: tLine.X2, Y2: tLine.Y2, Z2: tLine.Z2,
 			}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 			if a.u.TurretAngle() == pHeading && a.u.Pitch() == pPitch {
@@ -83,6 +104,36 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 			return bt.Success, nil
 		},
 	)
+}
+
+func (a *AIBehavior) idealWeaponForDistance(dist float64) model.Weapon {
+	realDist := dist * model.METERS_PER_UNIT
+
+	var idealWeapon model.Weapon
+	var idealDist float64
+	for _, w := range a.u.Armament() {
+		if model.WeaponAmmoCount(w) <= 0 {
+			// only weapons with ammo remaining
+			continue
+		}
+		weaponDist := w.Distance()
+		if realDist > weaponDist {
+			// only weapons within range
+			continue
+		}
+
+		switch {
+		case idealWeapon == nil:
+			fallthrough
+		case idealWeapon.Cooldown() > 0 && w.Cooldown() == 0:
+			fallthrough
+		case weaponDist < idealDist:
+			idealWeapon = w
+			idealDist = weaponDist
+		}
+
+	}
+	return idealWeapon
 }
 
 func (a *AIBehavior) VelocityToMax() bt.Node {
@@ -102,6 +153,11 @@ func (a *AIBehavior) VelocityToMax() bt.Node {
 func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
+			if a.u.UnitType() == model.EmplacementUnitType {
+				// emplacements cannot withdraw
+				return bt.Failure, nil
+			}
+
 			// TODO: check if no weapons usable
 			if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
 				return bt.Failure, nil

@@ -102,6 +102,10 @@ func (w *EnergyWeapon) AmmoBin() *AmmoBin {
 
 func (w *EnergyWeapon) SetAmmoBin(ammoBin *AmmoBin) {}
 
+func (w *EnergyWeapon) Projectile() Projectile {
+	return w.projectile
+}
+
 func (w *EnergyWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }

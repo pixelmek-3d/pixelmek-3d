@@ -64,6 +64,7 @@ type Weapon interface {
 	AmmoPerTon() int
 	AmmoBin() *AmmoBin
 	SetAmmoBin(ammoBin *AmmoBin)
+	Projectile() Projectile
 	ProjectileCount() int
 	ProjectileDelay() float64
 	ProjectileSpread() float64

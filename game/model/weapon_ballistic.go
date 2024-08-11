@@ -104,6 +104,10 @@ func (w *BallisticWeapon) SetAmmoBin(ammoBin *AmmoBin) {
 	w.ammoBin = ammoBin
 }
 
+func (w *BallisticWeapon) Projectile() Projectile {
+	return w.projectile
+}
+
 func (w *BallisticWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }
