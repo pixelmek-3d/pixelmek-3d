@@ -334,7 +334,6 @@ func (g *Game) updateProjectiles() {
 func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	_, isBallistic := p.Projectile.Weapon().(*model.BallisticWeapon)
 	_, isEnergy := p.Projectile.Weapon().(*model.EnergyWeapon)
 	missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
 
@@ -406,7 +405,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 		trajectory := geom3d.Line3dFromAngle(pPos.X, pPos.Y, p.PosZ(), p.Heading(), p.Pitch(), p.Velocity())
 
-		if isBallistic || (p.Projectile.InExtremeRange() && !isEnergy) {
+		if p.Projectile.InExtremeRange() && !isEnergy {
 			// make projectile trajectory start to fall (except for energy weapons)
 			extremeTrajectory := &trajectory
 			extremeTrajectory.Z2 -= model.GRAVITY_UNITS_PTT
