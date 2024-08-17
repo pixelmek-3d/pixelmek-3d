@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
-	github.com/harbdog/raycaster-go v1.11.0
+	github.com/harbdog/raycaster-go v1.11.1
 	github.com/jinzhu/copier v0.4.0
 	github.com/joeycumines/go-behaviortree v1.8.1-0.20240127010207-f46a6748b8c0
 	github.com/nlepage/go-tarfs v1.2.1

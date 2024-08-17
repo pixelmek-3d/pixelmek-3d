@@ -46,8 +46,8 @@ github.com/hajimehoshi/ebiten/v2 v2.7.4/go.mod h1:H2pHVgq29rfm5yeQ7jzWOM3VHsjo7/
 github.com/hajimehoshi/go-mp3 v0.3.4 h1:NUP7pBYH8OguP4diaTZ9wJbUbk3tC0KlfzsEpWmYj68=
 github.com/hajimehoshi/go-mp3 v0.3.4/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRSVop0eemFmo=
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
-github.com/harbdog/raycaster-go v1.11.0 h1:Nvv5cRM8MXdIuGsnxnoxkYgZuWtCAq/PjmxZ0TF5I4s=
-github.com/harbdog/raycaster-go v1.11.0/go.mod h1:uF1fW8vVsFcWE7jrA9nUE0LPqwJzG34t3a1fNWDuGwg=
+github.com/harbdog/raycaster-go v1.11.1 h1:M+Qw4Cy+hzsxhimOm8VGqZHHU/NjPHs4t2nSWuarQk8=
+github.com/harbdog/raycaster-go v1.11.1/go.mod h1:uF1fW8vVsFcWE7jrA9nUE0LPqwJzG34t3a1fNWDuGwg=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
