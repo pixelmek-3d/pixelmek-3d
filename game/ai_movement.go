@@ -41,10 +41,6 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 				targetHeading = targetLine.Heading()
 			}
 
-			if a.u.Heading() == targetHeading {
-				return bt.Success, nil
-			}
-
 			log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
 			a.u.SetTargetHeading(targetHeading)
 			return bt.Success, nil
@@ -97,7 +93,7 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
+			//log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
 			a.u.SetTargetPitch(pPitch)
 			// TODO: return failure if not even close to target angle
@@ -143,7 +139,7 @@ func (a *AIBehavior) VelocityToMax() bt.Node {
 				return bt.Success, nil
 			}
 
-			log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
+			//log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
 			a.u.SetTargetVelocity(a.u.MaxVelocity())
 			return bt.Success, nil
 		},

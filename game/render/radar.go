@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"sort"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
@@ -24,10 +25,12 @@ type Radar struct {
 	mapLines     []*geom.Line
 	radarBlips   []*RadarBlip
 	navPoints    []*RadarNavPoint
+	navLines     []*geom.Line
 	position     *geom.Vector2
 	heading      float64
 	turretAngle  float64
 	fovDegrees   float64
+	radarRange   float64
 }
 
 type RadarBlip struct {
@@ -58,6 +61,7 @@ func NewRadar(font *Font) *Radar {
 	r := &Radar{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
 		fontRenderer: renderer,
+		radarRange:   radarRangeMeters / model.METERS_PER_UNIT,
 	}
 
 	return r
@@ -75,6 +79,10 @@ func (r *Radar) updateFontSize(_, height int) {
 
 func (r *Radar) SetMapLines(lines []*geom.Line) {
 	r.mapLines = lines
+}
+
+func (r *Radar) SetNavLines(lines []*geom.Line) {
+	r.navLines = lines
 }
 
 func (r *Radar) SetNavPoints(radarNavPoints []*RadarNavPoint) {
@@ -144,35 +152,10 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	vector.StrokeCircle(screen, float32(midX), float32(midY), float32(radius), oT, color.NRGBA{oColor.R, oColor.G, oColor.B, oAlpha}, false)
 
 	// Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
-	posX, posY := r.position.X, r.position.Y
-	radarRange := radarRangeMeters / model.METERS_PER_UNIT
-	radarHudSizeFactor := radius / radarRange
+	radarHudSizeFactor := radius / r.radarRange
+	wColor := hudOpts.HudColor(_colorRadarOutline)
 	for _, borderLine := range r.mapLines {
-		// quick range check for nearby wall cells
-		if !(model.PointInProximity(radarRange, posX, posY, borderLine.X1, borderLine.Y1) ||
-			model.PointInProximity(radarRange, posX, posY, borderLine.X2, borderLine.Y2)) {
-			continue
-		}
-
-		wColor := hudOpts.HudColor(_colorRadarOutline)
-
-		// determine distance to wall line, convert to relative radar angle and draw
-		line1 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X1, Y2: borderLine.Y1}
-		angle1 := r.heading - line1.Angle() - geom.HalfPi
-		dist1 := line1.Distance()
-
-		line2 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X2, Y2: borderLine.Y2}
-		angle2 := r.heading - line2.Angle() - geom.HalfPi
-		dist2 := line2.Distance()
-
-		if dist1 > radarRange || dist2 > radarRange {
-			continue
-		}
-
-		rLine1 := geom.LineFromAngle(midX, midY, angle1, dist1*radarHudSizeFactor)
-		rLine2 := geom.LineFromAngle(midX, midY, angle2, dist2*radarHudSizeFactor)
-
-		vector.StrokeLine(screen, float32(rLine1.X2), float32(rLine1.Y2), float32(rLine2.X2), float32(rLine2.Y2), oT, wColor, false)
+		r.drawRadarLine(screen, borderLine, midX, midY, radarHudSizeFactor, oT, wColor)
 	}
 
 	// Draw turret angle reference lines
@@ -258,4 +241,31 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			vector.DrawFilledRect(screen, float32(bLine.X2)-2, float32(bLine.Y2-2), 4, 4, bColor, false) // TODO: calculate thickness based on image size
 		}
 	}
+}
+
+func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, centerY, hudSizeFactor float64, lineWidth float32, clr color.Color) {
+	posX, posY := r.position.X, r.position.Y
+	// quick range check for nearby wall cells
+	if !(model.PointInProximity(r.radarRange, posX, posY, line.X1, line.Y1) ||
+		model.PointInProximity(r.radarRange, posX, posY, line.X2, line.Y2)) {
+		return
+	}
+
+	// determine distance to wall line, convert to relative radar angle and draw
+	line1 := geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
+	angle1 := r.heading - line1.Angle() - geom.HalfPi
+	dist1 := line1.Distance()
+
+	line2 := geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
+	angle2 := r.heading - line2.Angle() - geom.HalfPi
+	dist2 := line2.Distance()
+
+	if dist1 > r.radarRange || dist2 > r.radarRange {
+		return
+	}
+
+	rLine1 := geom.LineFromAngle(centerX, centerY, angle1, dist1*hudSizeFactor)
+	rLine2 := geom.LineFromAngle(centerX, centerY, angle2, dist2*hudSizeFactor)
+
+	vector.StrokeLine(dst, float32(rLine1.X2), float32(rLine1.Y2), float32(rLine2.X2), float32(rLine2.Y2), lineWidth, clr, false)
 }
