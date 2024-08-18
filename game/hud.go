@@ -737,10 +737,10 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		targetUnit := model.EntityUnit(playerTarget)
 		if targetUnit != nil {
 			unitBehavior := g.ai.UnitAI(targetUnit)
-			if len(unitBehavior.pathing) > 0 {
-				navLines = make([]*geom.Line, 0, len(unitBehavior.pathing))
+			if unitBehavior.pathing.Len() > 0 {
+				navLines = make([]*geom.Line, 0, unitBehavior.pathing.Len())
 				prevPathPos := targetUnit.Pos()
-				for _, pathPos := range unitBehavior.pathing {
+				for _, pathPos := range unitBehavior.pathing.path {
 					navLines = append(navLines, &geom.Line{X1: prevPathPos.X, Y1: prevPathPos.Y, X2: pathPos.X, Y2: pathPos.Y})
 					prevPathPos = pathPos
 				}

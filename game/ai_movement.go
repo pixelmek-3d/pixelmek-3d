@@ -10,7 +10,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	AI_PATH_FINDING_COUNTER_MIN = 10
+	AI_PATH_FINDING_COUNTER_MAX = 30
+)
+
 func (a *AIBehavior) TurnToTarget() bt.Node {
+	// randomly skip a number of ticks to not attempt path finding every tick
+	counter := AI_PATH_FINDING_COUNTER_MIN + model.Randish.Intn(AI_PATH_FINDING_COUNTER_MAX-AI_PATH_FINDING_COUNTER_MIN)
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
 			if a.u.UnitType() == model.EmplacementUnitType {
@@ -24,14 +31,43 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 			}
 
 			// calculate heading from unit to target
-			var targetHeading float64
+			var targetHeading float64 = a.u.Heading()
 
-			// TODO: pathfinding does not need to be recalculated every tick
-			a.pathing = a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos())
-			log.Debugf("[%s] found path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), target.Pos(), a.pathing)
-			if len(a.pathing) > 0 {
+			findNewPath := false
+			if counter > 0 {
+				counter--
+			} else {
+				counter = AI_PATH_FINDING_COUNTER_MIN + model.Randish.Intn(AI_PATH_FINDING_COUNTER_MAX-AI_PATH_FINDING_COUNTER_MIN)
+
+				switch {
+				case a.pathing.Len() == 0:
+					findNewPath = true
+				case int(target.Pos().X) != int(a.pathing.pos.X) || int(target.Pos().Y) != int(a.pathing.pos.Y):
+					findNewPath = true
+				}
+			}
+
+			if findNewPath {
+				// find new path to reach target position
+				a.pathing = &AIPathing{
+					pos:  target.Pos(),
+					path: a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos()),
+				}
+				//log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
+			} else if a.pathing.Len() > 0 {
+				// determine if need to move to next position in path
 				pos := a.u.Pos()
-				nextPos := a.pathing[0]
+				nextPos := a.pathing.Next()
+				targetPos := a.pathing.pos
+				if geom.Distance2(pos.X, pos.Y, targetPos.X, targetPos.Y) < geom.Distance2(nextPos.X, nextPos.Y, targetPos.X, targetPos.Y) {
+					// unit distance is closer than next path position
+					a.pathing.Pop()
+				}
+			}
+
+			if a.pathing.Len() > 0 {
+				pos := a.u.Pos()
+				nextPos := a.pathing.Next()
 				moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
 				targetHeading = moveLine.Angle()
 			} else {
