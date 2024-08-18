@@ -58,6 +58,7 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	p.SetPos(&geom.Vector2{X: x, Y: y})
 	p.SetPosZ(z)
 	p.SetHeading(angle)
+	p.SetTargetHeading(angle)
 	p.SetTurretAngle(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)

@@ -250,6 +250,7 @@ func (g *Game) initMission() {
 	pHeading := geom.Radians(pDegrees)
 	g.player.SetPos(&geom.Vector2{X: pX, Y: pY})
 	g.player.SetHeading(pHeading)
+	g.player.SetTargetHeading(pHeading)
 	g.player.SetTurretAngle(pHeading)
 	g.player.cameraAngle = pHeading
 	g.player.cameraPitch = 0
