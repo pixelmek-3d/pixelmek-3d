@@ -731,6 +731,24 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		})
 	}
 
+	if g.debug && playerTarget != nil {
+		// TODO: draw debug nav lines for AI pathing of player target
+		var navLines []*geom.Line
+		targetUnit := model.EntityUnit(playerTarget)
+		if targetUnit != nil {
+			unitBehavior := g.ai.UnitAI(targetUnit)
+			if len(unitBehavior.pathing) > 0 {
+				navLines = make([]*geom.Line, 0, len(unitBehavior.pathing))
+				prevPathPos := targetUnit.Pos()
+				for _, pathPos := range unitBehavior.pathing {
+					navLines = append(navLines, &geom.Line{X1: prevPathPos.X, Y1: prevPathPos.Y, X2: pathPos.X, Y2: pathPos.Y})
+					prevPathPos = pathPos
+				}
+			}
+		}
+		radar.SetNavLines(navLines)
+	}
+
 	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
 	radar.SetValues(g.player.Pos(), g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
@@ -28,8 +29,9 @@ type AIHandler struct {
 
 type AIBehavior struct {
 	bt.Node
-	g *Game
-	u model.Unit
+	g       *Game
+	u       model.Unit
+	pathing []*geom.Vector2
 }
 
 type AINodeID string
@@ -149,6 +151,18 @@ func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavio
 		fmt.Printf("--- %s\n%s\n", u.ID(), a.Node)
 	}
 	return a
+}
+
+func (h *AIHandler) UnitAI(u model.Unit) *AIBehavior {
+	if u == nil {
+		return nil
+	}
+	for _, ai := range h.ai {
+		if ai.u == u {
+			return ai
+		}
+	}
+	return nil
 }
 
 func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {

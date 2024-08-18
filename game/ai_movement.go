@@ -27,10 +27,11 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 			var targetHeading float64
 
 			// TODO: pathfinding does not need to be recalculated every tick
-			path := a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos())
-			if len(path) > 0 {
+			a.pathing = a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos())
+			log.Debugf("[%s] found path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), target.Pos(), a.pathing)
+			if len(a.pathing) > 0 {
 				pos := a.u.Pos()
-				nextPos := path[0]
+				nextPos := a.pathing[0]
 				moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
 				targetHeading = moveLine.Angle()
 			} else {
@@ -41,7 +42,7 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 				targetHeading = targetLine.Heading()
 			}
 
-			log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
+			//log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
 			a.u.SetTargetHeading(targetHeading)
 			return bt.Success, nil
 		},

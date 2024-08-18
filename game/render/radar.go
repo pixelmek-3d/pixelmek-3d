@@ -154,8 +154,13 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	// Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
 	radarHudSizeFactor := radius / r.radarRange
 	wColor := hudOpts.HudColor(_colorRadarOutline)
-	for _, borderLine := range r.mapLines {
-		r.drawRadarLine(screen, borderLine, midX, midY, radarHudSizeFactor, oT, wColor)
+	for _, wallLine := range r.mapLines {
+		r.drawRadarLine(screen, wallLine, midX, midY, radarHudSizeFactor, oT, wColor)
+	}
+
+	// Draw navigation lines
+	for _, nLine := range r.navLines {
+		r.drawRadarLine(screen, nLine, midX, midY, radarHudSizeFactor, 1, wColor)
 	}
 
 	// Draw turret angle reference lines
