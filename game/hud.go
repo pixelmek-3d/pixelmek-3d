@@ -732,7 +732,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	}
 
 	if g.debug && playerTarget != nil {
-		// TODO: draw debug nav lines for AI pathing of player target
+		// draw debug nav lines for AI pathing of player target
 		var navLines []*geom.Line
 		targetUnit := model.EntityUnit(playerTarget)
 		if targetUnit != nil {

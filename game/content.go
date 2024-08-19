@@ -788,8 +788,10 @@ func convertHeightToScale(unitHeight float64, imageHeight, heightPxGap int) floa
 	return pxRatio * unitHeight / model.METERS_PER_UNIT
 }
 
-func convertOffsetFromPx(xPx, yPx float64, width, height int, scale float64) (offX float64, offY float64) {
-	offX = (scale * xPx) / float64(width)
-	offY = (scale * yPx) / float64(height)
+func convertOffsetFromPx(xPx, yPx float64, width, height int, scaleY float64) (offX float64, offY float64) {
+	// scale given based on height, calculate scale for width for images that are not 1:1
+	scaleX := scaleY * float64(width) / float64(height)
+	offX = (scaleX * xPx) / float64(width)
+	offY = (scaleY * yPx) / float64(height)
 	return
 }
