@@ -46,7 +46,7 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 	uSize := uWidth
 	if uHeight > uWidth {
 		// adjust size to square it off as needed by the raycasting of sprites
-		uSize = uHeight
+		uSize = uHeight + 1
 	}
 
 	// determine offsets for center/bottom within each frame
