@@ -53,15 +53,15 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 					pos:  target.Pos(),
 					path: a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos()),
 				}
-				//log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
+				// log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
 			} else if a.pathing.Len() > 0 {
 				// determine if need to move to next position in path
 				pos := a.u.Pos()
 				nextPos := a.pathing.Next()
-				targetPos := a.pathing.pos
-				if geom.Distance2(pos.X, pos.Y, targetPos.X, targetPos.Y) < geom.Distance2(nextPos.X, nextPos.Y, targetPos.X, targetPos.Y) {
-					// unit distance is closer than next path position
+				if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
+					// unit is close to next path position
 					a.pathing.Pop()
+					// log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
 				}
 			}
 
@@ -78,7 +78,7 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 				targetHeading = targetLine.Heading()
 			}
 
-			//log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
+			// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
 			a.u.SetTargetHeading(targetHeading)
 			return bt.Success, nil
 		},
@@ -130,7 +130,7 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 				return bt.Success, nil
 			}
 
-			//log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
+			// log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
 			a.u.SetTargetPitch(pPitch)
 			// TODO: return failure if not even close to target angle
@@ -176,7 +176,7 @@ func (a *AIBehavior) VelocityToMax() bt.Node {
 				return bt.Success, nil
 			}
 
-			//log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
+			// log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
 			a.u.SetTargetVelocity(a.u.MaxVelocity())
 			return bt.Success, nil
 		},
@@ -195,7 +195,7 @@ func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 			if a.u.StructurePoints() > 0.2*a.u.MaxStructurePoints() {
 				return bt.Failure, nil
 			}
-			log.Debugf("[%s] -> determineForcedWithdrawal", a.u.ID())
+			// log.Debugf("[%s] -> determineForcedWithdrawal", a.u.ID())
 			return bt.Success, nil
 		},
 	)
@@ -206,6 +206,7 @@ func (a *AIBehavior) TurnToWithdraw() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
 			// TODO: pathfinding does not need to be recalculated every tick
+			// TODO: refactor to use similar method used for pathing TurnToTarget
 			path := a.g.mission.Pathing.FindPath(a.u.Pos(), withdrawPosition)
 			if len(path) == 0 {
 				return bt.Success, nil
@@ -215,7 +216,7 @@ func (a *AIBehavior) TurnToWithdraw() bt.Node {
 			nextPos := path[0]
 			moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
 
-			log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
+			// log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
 			a.u.SetTargetHeading(moveLine.Angle())
 			return bt.Success, nil
 		},
@@ -232,7 +233,7 @@ func (a *AIBehavior) InWithdrawArea() bt.Node {
 				return bt.Failure, nil
 			}
 
-			//log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
+			// log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
 			return bt.Success, nil
 		},
 	)
@@ -241,7 +242,7 @@ func (a *AIBehavior) InWithdrawArea() bt.Node {
 func (a *AIBehavior) Withdraw() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			//log.Debugf("[%s] -> withdraw", a.u.ID())
+			log.Debugf("[%s] -> withdraw", a.u.ID())
 
 			// TODO: unit safely escapes
 			a.u.SetStructurePoints(0)
