@@ -1,6 +1,8 @@
 package game
 
 import (
+	"math"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -43,7 +45,16 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 				case a.pathing.Len() == 0:
 					findNewPath = true
 				case int(target.Pos().X) != int(a.pathing.pos.X) || int(target.Pos().Y) != int(a.pathing.pos.Y):
-					findNewPath = true
+					// if still some distance from target, do not recalc path to target until further
+					targetDist := geom.Distance(a.u.Pos().X, a.u.Pos().Y, target.Pos().X, target.Pos().Y)
+					if targetDist <= 8 {
+						findNewPath = true
+					} else {
+						deltaX, deltaY := math.Abs(target.Pos().X-a.pathing.pos.X), math.Abs(target.Pos().Y-a.pathing.pos.Y)
+						if deltaX > targetDist/4 || deltaY > targetDist/4 {
+							findNewPath = true
+						}
+					}
 				}
 			}
 

@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model/bezier"
 	"github.com/quasilyte/pathing"
 )
 
@@ -87,8 +88,6 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 		direction := path.Steps.Next()
 
 		nextStep := prevStep.Copy()
-
-		// FIXME: units snagging on corner due to collision handling, fix collision to let units slide one way or the other until they escape?
 		nextStep.X = math.Floor(nextStep.X) + 0.5
 		nextStep.Y = math.Floor(nextStep.Y) + 0.5
 
@@ -110,5 +109,13 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 		prevStep = nextStep
 	}
 
-	return steps
+	if len(steps) < 2 {
+		// not enough steps for a curve, return as-is
+		return steps
+	}
+
+	// convert square grid path into a curve for smoother movement
+	curvePath := make([]*geom.Vector2, len(steps))
+	bezier.New(steps...).Curve(curvePath)
+	return curvePath
 }
