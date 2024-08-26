@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image"
 	"math"
 	"sort"
 
@@ -32,6 +33,34 @@ func (g *Game) isCollisionType(spriteType SpriteType) bool {
 		return true
 	}
 	return false
+}
+
+// checks walls for line of sight from source to target entity
+func (g *Game) lineOfSight(source, target model.Entity) bool {
+	if source == nil || target == nil {
+		return false
+	}
+
+	srcX, srcY := source.Pos().X, source.Pos().Y
+	tgtX, tgtY := target.Pos().X, target.Pos().Y
+
+	line := geom.Line{X1: srcX, Y1: srcY, X2: tgtX, Y2: tgtY}
+	lRect := image.Rect(int(srcX), int(srcY), int(tgtX), int(tgtY))
+	for _, borderLine := range g.collisionMap {
+		// quick check for nearby wall cells instead of all of them
+		bRect := image.Rect(int(borderLine.X1), int(borderLine.Y1), int(borderLine.X2), int(borderLine.Y2))
+		if (bRect.Min.X > lRect.Max.X && bRect.Min.Y > lRect.Max.Y) ||
+			(bRect.Max.X < lRect.Min.X && bRect.Max.Y < lRect.Min.Y) {
+			continue
+		}
+
+		_, _, intersects := geom.LineIntersection(line, *borderLine)
+		if intersects {
+			return false
+		}
+	}
+
+	return true
 }
 
 // checks for valid move from current position, returns valid (x, y) position, whether a collision

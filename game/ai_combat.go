@@ -24,6 +24,8 @@ func (a *AIBehavior) HasTarget() bt.Node {
 			units := a.g.getSpriteUnits()
 
 			// TODO: enemy units need to be able to target player unit
+			// units = append(units, a.g.player)
+
 			for _, t := range units {
 				if t.IsDestroyed() || t.Team() == a.u.Team() {
 					continue
@@ -65,6 +67,14 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 			if target == nil {
 				return bt.Failure, nil
 			}
+
+			// check for line of sight
+			if !a.g.lineOfSight(a.u, target) {
+				counter = AI_FIRE_WEAPONS_COUNTER_MIN
+				return bt.Failure, nil
+			}
+
+			// TODO: check for friendly units in line of sight
 
 			targetDist := model.EntityDistance(a.u, target) * model.METERS_PER_UNIT
 
