@@ -46,7 +46,7 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 					findNewPath = true
 				case int(target.Pos().X) != int(a.pathing.pos.X) || int(target.Pos().Y) != int(a.pathing.pos.Y):
 					// if still some distance from target, do not recalc path to target until further
-					targetDist := geom.Distance(a.u.Pos().X, a.u.Pos().Y, target.Pos().X, target.Pos().Y)
+					targetDist := model.EntityDistance2D(a.u, target)
 					if targetDist <= 8 {
 						findNewPath = true
 					} else {

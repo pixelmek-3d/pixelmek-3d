@@ -50,11 +50,18 @@ type Entity interface {
 
 func EntityDistance(e1, e2 Entity) float64 {
 	pos1, pos2 := e1.Pos(), e2.Pos()
-	x1, y1, z1 := pos1.X, pos1.Y, e1.PosZ()
-	x2, y2, z2 := pos2.X, pos2.Y, e2.PosZ()
 	line := geom3d.Line3d{
-		X1: x1, Y1: y1, Z1: z1,
-		X2: x2, Y2: y2, Z2: z2,
+		X1: pos1.X, Y1: pos1.Y, Z1: e1.PosZ(),
+		X2: pos2.X, Y2: pos2.Y, Z2: e2.PosZ(),
+	}
+	return line.Distance()
+}
+
+func EntityDistance2D(e1, e2 Entity) float64 {
+	pos1, pos2 := e1.Pos(), e2.Pos()
+	line := geom.Line{
+		X1: pos1.X, Y1: pos1.Y,
+		X2: pos2.X, Y2: pos2.Y,
 	}
 	return line.Distance()
 }
