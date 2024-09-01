@@ -42,15 +42,15 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 				counter = AI_PATH_FINDING_COUNTER_MIN + model.Randish.Intn(AI_PATH_FINDING_COUNTER_MAX-AI_PATH_FINDING_COUNTER_MIN)
 
 				switch {
-				case a.pathing.Len() == 0:
+				case a.piloting.Len() == 0:
 					findNewPath = true
-				case int(target.Pos().X) != int(a.pathing.pos.X) || int(target.Pos().Y) != int(a.pathing.pos.Y):
+				case int(target.Pos().X) != int(a.piloting.destPos.X) || int(target.Pos().Y) != int(a.piloting.destPos.Y):
 					// if still some distance from target, do not recalc path to target until further
 					targetDist := model.EntityDistance2D(a.u, target)
 					if targetDist <= 8 {
 						findNewPath = true
 					} else {
-						deltaX, deltaY := math.Abs(target.Pos().X-a.pathing.pos.X), math.Abs(target.Pos().Y-a.pathing.pos.Y)
+						deltaX, deltaY := math.Abs(target.Pos().X-a.piloting.destPos.X), math.Abs(target.Pos().Y-a.piloting.destPos.Y)
 						if deltaX > targetDist/4 || deltaY > targetDist/4 {
 							findNewPath = true
 						}
@@ -60,25 +60,25 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 
 			if findNewPath {
 				// find new path to reach target position
-				a.pathing = &AIPathing{
-					pos:  target.Pos(),
-					path: a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos()),
+				a.piloting = &AIPiloting{
+					destPos:  target.Pos(),
+					destPath: a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos()),
 				}
 				// log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
-			} else if a.pathing.Len() > 0 {
+			} else if a.piloting.Len() > 0 {
 				// determine if need to move to next position in path
 				pos := a.u.Pos()
-				nextPos := a.pathing.Next()
+				nextPos := a.piloting.Next()
 				if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
 					// unit is close to next path position
-					a.pathing.Pop()
+					a.piloting.Pop()
 					// log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
 				}
 			}
 
-			if a.pathing.Len() > 0 {
+			if a.piloting.Len() > 0 {
 				pos := a.u.Pos()
-				nextPos := a.pathing.Next()
+				nextPos := a.piloting.Next()
 				moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
 				targetHeading = moveLine.Angle()
 			} else {
@@ -122,7 +122,7 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 			}
 			tDist := tLine.Distance()
 
-			// determine approximate lead time needed for weapon projectile
+			// determine approximate lead distance needed for weapon projectile
 			tWeapon := a.idealWeaponForDistance(tDist)
 			if tWeapon != nil {
 				// approximate position of target based on its current heading and speed for projectile flight time
@@ -130,6 +130,9 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 				tDelta := tDist / tProjectile.MaxVelocity()
 				tLine = geom3d.Line3dFromAngle(target.Pos().X, target.Pos().Y, target.PosZ()+zTargetOffset, target.Heading(), 0, tDelta*target.Velocity())
 			}
+
+			// set intended target lead position for weapons fire decision
+			a.gunnery.targetLeadPos = &geom.Vector2{X: tLine.X2, Y: tLine.Y2}
 
 			// calculate angle/pitch from unit to target
 			pLine := geom3d.Line3d{
@@ -144,7 +147,6 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 			// log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
 			a.u.SetTargetPitch(pPitch)
-			// TODO: return failure if not even close to target angle
 			return bt.Success, nil
 		},
 	)

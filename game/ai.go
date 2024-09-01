@@ -29,14 +29,19 @@ type AIHandler struct {
 
 type AIBehavior struct {
 	bt.Node
-	g       *Game
-	u       model.Unit
-	pathing *AIPathing
+	g        *Game
+	u        model.Unit
+	gunnery  *AIGunnery
+	piloting *AIPiloting
 }
 
-type AIPathing struct {
-	pos  *geom.Vector2
-	path []*geom.Vector2
+type AIGunnery struct {
+	targetLeadPos *geom.Vector2
+}
+
+type AIPiloting struct {
+	destPos  *geom.Vector2
+	destPath []*geom.Vector2
 }
 
 type AINodeID string
@@ -150,8 +155,9 @@ func NewAIHandler(g *Game) *AIHandler {
 }
 
 func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavior {
-	a := &AIBehavior{g: h.g, u: u, pathing: &AIPathing{}}
-	a.pathing.Reset()
+	a := &AIBehavior{g: h.g, u: u, gunnery: &AIGunnery{}, piloting: &AIPiloting{}}
+	a.gunnery.Reset()
+	a.piloting.Reset()
 	a.Node = a.LoadBehaviorTree(ai, aiRes)
 	if h.g.debug {
 		fmt.Printf("--- %s\n%s\n", u.ID(), a.Node)
@@ -268,22 +274,26 @@ func (h *AIHandler) Update() {
 	}
 }
 
-func (p *AIPathing) Reset() {
-	p.pos = &geom.Vector2{}
-	p.path = make([]*geom.Vector2, 0)
+func (n *AIGunnery) Reset() {
+	n.targetLeadPos = nil
 }
 
-func (p *AIPathing) Len() int {
-	return len(p.path)
+func (p *AIPiloting) Reset() {
+	p.destPos = nil
+	p.destPath = make([]*geom.Vector2, 0)
 }
 
-func (p *AIPathing) Next() *geom.Vector2 {
-	if len(p.path) == 0 {
+func (p *AIPiloting) Len() int {
+	return len(p.destPath)
+}
+
+func (p *AIPiloting) Next() *geom.Vector2 {
+	if len(p.destPath) == 0 {
 		return nil
 	}
-	return p.path[0]
+	return p.destPath[0]
 }
 
-func (p *AIPathing) Pop() {
-	p.path = p.path[1:]
+func (p *AIPiloting) Pop() {
+	p.destPath = p.destPath[1:]
 }

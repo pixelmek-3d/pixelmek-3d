@@ -9,7 +9,6 @@ import (
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
-	log "github.com/sirupsen/logrus"
 )
 
 type DelayedProjectileSpawn struct {
@@ -136,89 +135,6 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 	}
 
 	return weaponsFired
-}
-
-func (g *Game) fireTestWeaponAtPlayer() {
-	// Just for testing! Firing test projectiles at player
-	playerPosition := g.player.Unit.Pos()
-	playerPositionZ := g.player.Unit.PosZ()
-	var playerTarget model.Unit
-	if g.player.Target() != nil {
-		// if player has a target, only it shoots at the player
-		playerTarget = model.EntityUnit(g.player.Target())
-	}
-	for spriteType := range g.sprites.sprites {
-		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-			var pX, pY, pZ float64
-			var unit model.Unit
-			var sprite *render.Sprite
-
-			switch spriteType {
-			case MechSpriteType:
-				s := k.(*render.MechSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				unit = model.EntityUnit(s.Entity)
-
-			case VehicleSpriteType:
-				s := k.(*render.VehicleSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.2
-				unit = model.EntityUnit(s.Entity)
-
-			case VTOLSpriteType:
-				s := k.(*render.VTOLSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()
-				unit = model.EntityUnit(s.Entity)
-
-			case InfantrySpriteType:
-				s := k.(*render.InfantrySprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
-				unit = model.EntityUnit(s.Entity)
-
-			case EmplacementSpriteType:
-				s := k.(*render.EmplacementSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
-				unit = model.EntityUnit(s.Entity)
-			}
-
-			if unit == nil || (playerTarget != nil && playerTarget != unit) {
-				return true
-			}
-
-			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: playerPositionZ + randFloat(0.1, 0.7)}
-			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
-
-			if unit.HasTurret() {
-				unit.SetTurretAngle(pHeading)
-			} else {
-				unit.SetHeading(pHeading)
-			}
-			unit.SetPitch(pPitch)
-
-			weaponFired := false
-			for _, weapon := range unit.Armament() {
-				if g.fireUnitWeapon(unit, weapon) {
-					weaponFired = true
-				}
-			}
-
-			if weaponFired {
-				// illuminate source sprite unit firing the weapon
-				sprite.SetIlluminationPeriod(5000, 0.35)
-			}
-
-			return true
-		})
-	}
 }
 
 func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
@@ -433,19 +349,19 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				damage := p.Damage()
 				entity.ApplyDamage(damage)
 
-				if g.debug {
-					unit := model.EntityUnit(entity)
-					hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
-					percentHP := 100 * (hp / maxHP)
+				// if g.debug {
+				// 	unit := model.EntityUnit(entity)
+				// 	hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
+				// 	percentHP := 100 * (hp / maxHP)
 
-					if unit == g.player.Unit {
-						// TODO: visual response to player being hit
-						log.Debugf("[player] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", damage, hp, maxHP, percentHP)
-					} else if unit != nil {
-						// TODO: ui indicator for showing damage was done
-						log.Debugf("[%s] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", unit.ID(), damage, hp, maxHP, percentHP)
-					}
-				}
+				// 	if unit == g.player.Unit {
+				// 		// TODO: visual response to player being hit
+				// 		log.Debugf("[player] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", damage, hp, maxHP, percentHP)
+				// 	} else if unit != nil {
+				// 		// TODO: ui indicator for showing damage was done
+				// 		log.Debugf("[%s] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", unit.ID(), damage, hp, maxHP, percentHP)
+				// 	}
+				// }
 			}
 
 			// destroy projectile after applying damage so it can calculate dropoff if needed

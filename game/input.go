@@ -382,9 +382,6 @@ func (g *Game) handleInput() {
 				target.SetJumpJetsActive(true)
 				target.SetTargetVelocityZ(0.05)
 			}
-
-		default:
-			g.fireTestWeaponAtPlayer()
 		}
 	}
 
