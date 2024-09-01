@@ -357,7 +357,9 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		targetStatus.SetUnitDistance(distanceMeters)
 	}
 
-	if targetUnit == nil || targetUnit.Team() < 0 || g.player.Powered() != model.POWER_ON {
+	targetIsFriendly := g.IsFriendly(g.player, targetEntity)
+
+	if targetUnit == nil || targetIsFriendly || g.player.Powered() != model.POWER_ON {
 		// do not show target lock indicator if no target, target is friendly, or player not full powered on
 		targetStatus.ShowTargetLock(false)
 		targetStatus.SetTargetLock(0)
@@ -377,7 +379,7 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 
 	// show different target reticle if target is friendly
 	var targetReticle *render.TargetReticle
-	if targetUnit != nil && targetUnit.Team() < 0 {
+	if targetUnit != nil && targetIsFriendly {
 		targetReticle = g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle)
 	} else {
 		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
@@ -483,7 +485,7 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 
 		compass.SetTargetEnabled(true)
 		compass.SetTargetHeading(tAngle)
-		compass.SetTargetFriendly(g.player.Target().Team() < 0)
+		compass.SetTargetFriendly(g.IsFriendly(g.player, g.player.Target()))
 	}
 
 	if g.player.currentNav == nil {
@@ -699,7 +701,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 				X2: unitPos.X, Y2: unitPos.Y,
 			}
 
-			unitIsFriendly := entity.Team() < 0
+			unitIsFriendly := g.IsFriendly(g.player, entity)
 			unitIsTarget := playerTarget == entity
 			unitDistance := unitLine.Distance()
 			if unitDistance > maxDistanceUnits {
@@ -715,14 +717,16 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			relAngle := playerAngle - unitLine.Angle()
 			// determine heading of unit relative from player heading
 			relHeading := playerAngle - unit.Heading()
+			relTurretHeading := playerAngle - unit.TurretAngle()
 
 			blip := &render.RadarBlip{
-				Unit:       unit,
-				Distance:   unitDistance,
-				Angle:      relAngle,
-				Heading:    relHeading,
-				IsTarget:   unitIsTarget,
-				IsFriendly: unitIsFriendly,
+				Unit:          unit,
+				Distance:      unitDistance,
+				Angle:         relAngle,
+				Heading:       relHeading,
+				TurretHeading: relTurretHeading,
+				IsTarget:      unitIsTarget,
+				IsFriendly:    unitIsFriendly,
 			}
 
 			radarBlips = append(radarBlips, blip)
@@ -789,7 +793,7 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 
 func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 	var targetReticle *render.TargetReticle
-	if g.player.Target() != nil && g.player.Target().Team() < 0 {
+	if g.player.Target() != nil && g.IsFriendly(g.player, g.player.Target()) {
 		targetReticle = g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle)
 	} else {
 		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
@@ -808,11 +812,7 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
-	if s.Team() < 0 {
-		targetReticle.Friendly = true
-	} else {
-		targetReticle.Friendly = false
-	}
+	targetReticle.Friendly = g.IsFriendly(g.player, g.player.Target())
 
 	targetReticle.Draw(*targetBounds, hudOpts)
 }

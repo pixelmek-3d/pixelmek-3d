@@ -35,7 +35,7 @@ func (a *AIBehavior) HasTarget() bt.Node {
 			// units = append(units, a.g.player)
 
 			for _, t := range units {
-				if t == a.u || t.IsDestroyed() || t.Team() == a.u.Team() {
+				if t == a.u || t.IsDestroyed() || a.g.IsFriendly(a.u, t) {
 					continue
 				}
 
@@ -105,8 +105,8 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 			// check for friendly units in line of fire to target position
 			units := a.g.getSpriteUnits()
 			for _, s := range units {
-				// TODO: make sure player unit is checked when same team as AI unit
-				if s == a.u || s.IsDestroyed() || s.Team() != a.u.Team() {
+				// make sure player unit is checked when same team as AI unit
+				if s == a.u || s.IsDestroyed() || a.g.IsFriendly(a.u, s) {
 					continue
 				}
 

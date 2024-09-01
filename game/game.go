@@ -535,7 +535,7 @@ func (g *Game) updatePlayer() {
 		g.player.SetTarget(nil)
 	}
 
-	if target == nil || target.Team() < 0 || g.player.Powered() != model.POWER_ON {
+	if target == nil || g.IsFriendly(g.player, target) || g.player.Powered() != model.POWER_ON {
 		// clear target lock if no target, friendly target, or player is not fully powered on
 		g.player.SetTargetLock(0)
 	} else {
@@ -717,7 +717,7 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 				return true
 			}
 
-			if s.Team() < 0 {
+			if g.IsFriendly(g.player, s.Entity) {
 				// skip friendly units
 				return true
 			}
@@ -817,6 +817,16 @@ func (g *Game) RandomUnit(unitResourceType string) model.Unit {
 	default:
 		panic(fmt.Errorf("currently unable to handle random model.Unit for resource type %v", unitResourceType))
 	}
+}
+
+func (g *Game) IsFriendly(e1, e2 model.Entity) bool {
+	if e1 == nil || e2 == nil {
+		return false
+	}
+	if e1 == g.player || e2 == g.player {
+		return e1.Team() < 0 && e2.Team() < 0
+	}
+	return e1.Team() == e2.Team()
 }
 
 func randFloat(min, max float64) float64 {

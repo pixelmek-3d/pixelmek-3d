@@ -54,6 +54,7 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	}
 
 	p.SetAsPlayer(true)
+	p.SetTeam(-1)
 
 	p.SetPos(&geom.Vector2{X: x, Y: y})
 	p.SetPosZ(z)

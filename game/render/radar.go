@@ -34,12 +34,13 @@ type Radar struct {
 }
 
 type RadarBlip struct {
-	Unit       model.Unit
-	Angle      float64
-	Heading    float64
-	Distance   float64
-	IsTarget   bool
-	IsFriendly bool
+	Unit          model.Unit
+	Angle         float64
+	Heading       float64
+	TurretHeading float64
+	Distance      float64
+	IsTarget      bool
+	IsFriendly    bool
 }
 
 type RadarNavPoint struct {
@@ -225,6 +226,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 		// convert blip unit heading into relative radar angle
 		radarHeading := blip.Heading - geom.HalfPi
+		radarTurretHeading := blip.TurretHeading - geom.HalfPi
 
 		if blip.IsTarget {
 			// draw target square around lighter colored blip
@@ -234,6 +236,10 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 			hLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarHeading, 10)
 			vector.StrokeLine(screen, float32(hLine.X1), float32(hLine.Y1), float32(hLine.X2), float32(hLine.Y2), 3, bColor, false)
+
+			// only draw turret heading for current target
+			thLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarTurretHeading, 6)
+			vector.StrokeLine(screen, float32(thLine.X1), float32(thLine.Y1), float32(thLine.X2), float32(thLine.Y2), 2, bColor, false)
 		} else {
 			hLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarHeading, 8)
 			vector.StrokeLine(screen, float32(hLine.X1), float32(hLine.Y1), float32(hLine.X2), float32(hLine.Y2), 2, bColor, false)

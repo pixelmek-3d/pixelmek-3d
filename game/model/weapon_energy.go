@@ -139,6 +139,7 @@ func (w *EnergyWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) *Pr
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
 	pSpawn.SetWeapon(w)
+	pSpawn.SetTeam(spawnedBy.Team())
 
 	return pSpawn
 }

@@ -140,6 +140,7 @@ func (w *BallisticWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) 
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
 	pSpawn.SetWeapon(w)
+	pSpawn.SetTeam(spawnedBy.Team())
 
 	return pSpawn
 }
