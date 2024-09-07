@@ -3,6 +3,7 @@ package model
 import (
 	"math"
 
+	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 )
@@ -79,7 +80,7 @@ func IsBetweenRadians(start, end, mid float64) bool {
 // ConvergencePoint returns the convergence point from current unit angle/pitch to unit target
 // Returns nil if unit does not have a target.
 func ConvergencePoint(u Unit, t Entity) *geom3d.Vector3 {
-	if t == nil {
+	if u == nil || t == nil {
 		return nil
 	}
 
@@ -94,4 +95,37 @@ func ConvergencePoint(u Unit, t Entity) *geom3d.Vector3 {
 	convergencePoint := &geom3d.Vector3{X: convergenceLine.X2, Y: convergenceLine.Y2, Z: convergenceLine.Z2}
 
 	return convergencePoint
+}
+
+// TargetLeadPosition returns the approximate lead position from current unit to target with given weapon
+// Return nil if unit does not have a target
+func TargetLeadPosition(u, t Unit, w Weapon) *geom3d.Vector3 {
+	if u == nil || t == nil {
+		return nil
+	}
+
+	var zTargetOffset float64
+	switch t.Anchor() {
+	case raycaster.AnchorBottom:
+		zTargetOffset = t.CollisionHeight() / 2
+	case raycaster.AnchorTop:
+		zTargetOffset = -t.CollisionHeight() / 2
+	}
+
+	// calculate distance from unit to target
+	tLine := geom3d.Line3d{
+		X1: u.Pos().X, Y1: u.Pos().Y, Z1: u.PosZ() + u.CockpitOffset().Y,
+		X2: t.Pos().X, Y2: t.Pos().Y, Z2: t.PosZ() + zTargetOffset,
+	}
+	tDist := tLine.Distance()
+
+	// determine approximate lead distance needed for weapon projectile
+	if w != nil {
+		// approximate position of target based on its current heading and speed for projectile flight time
+		tProjectile := w.Projectile()
+		tDelta := tDist / tProjectile.MaxVelocity()
+		tLine = geom3d.Line3dFromAngle(t.Pos().X, t.Pos().Y, t.PosZ()+zTargetOffset, t.Heading(), 0, tDelta*t.Velocity())
+	}
+
+	return &geom3d.Vector3{X: tLine.X2, Y: tLine.Y2, Z: tLine.Z2}
 }

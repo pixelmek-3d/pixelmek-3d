@@ -3,7 +3,6 @@ package game
 import (
 	"math"
 
-	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
@@ -105,39 +104,24 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 				return bt.Failure, nil
 			}
 
-			var zTargetOffset float64
-			switch target.Anchor() {
-			case raycaster.AnchorBottom:
-				zTargetOffset = randFloat(target.CollisionHeight()/10, 4*target.CollisionHeight()/5)
-			case raycaster.AnchorTop:
-				zTargetOffset = -randFloat(target.CollisionHeight()/10, 4*target.CollisionHeight()/5)
-			case raycaster.AnchorCenter:
-				zTargetOffset = randFloat(-target.CollisionHeight()/2, target.CollisionHeight()/2)
-			}
-
 			// calculate distance from unit to target
 			tLine := geom3d.Line3d{
-				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
-				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ() + zTargetOffset,
+				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
+				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ(),
 			}
 			tDist := tLine.Distance()
 
 			// determine approximate lead distance needed for weapon projectile
-			tWeapon := a.idealWeaponForDistance(tDist)
-			if tWeapon != nil {
-				// approximate position of target based on its current heading and speed for projectile flight time
-				tProjectile := tWeapon.Projectile()
-				tDelta := tDist / tProjectile.MaxVelocity()
-				tLine = geom3d.Line3dFromAngle(target.Pos().X, target.Pos().Y, target.PosZ()+zTargetOffset, target.Heading(), 0, tDelta*target.Velocity())
-			}
+			iWeapon := a.idealWeaponForDistance(tDist)
+			iPos := model.TargetLeadPosition(a.u, target, iWeapon)
 
 			// set intended target lead position for weapons fire decision
-			a.gunnery.targetLeadPos = &geom.Vector2{X: tLine.X2, Y: tLine.Y2}
+			a.gunnery.targetLeadPos = &geom.Vector2{X: iPos.X, Y: iPos.Y}
 
 			// calculate angle/pitch from unit to target
 			pLine := geom3d.Line3d{
 				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
-				X2: tLine.X2, Y2: tLine.Y2, Z2: tLine.Z2,
+				X2: iPos.X, Y2: iPos.Y, Z2: iPos.Z,
 			}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 			if a.u.TurretAngle() == pHeading && a.u.Pitch() == pPitch {
