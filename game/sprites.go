@@ -232,6 +232,12 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 		count++
 	}
 
+	// add the reticle lead indicator as sprite for raycast location
+	if g.player.reticleLead != nil {
+		raycastSprites = append(raycastSprites, g.player.reticleLead)
+		count++
+	}
+
 	// add the currently selected nav point as sprite
 	if g.player.currentNav != nil {
 		raycastSprites = append(raycastSprites, g.player.currentNav)

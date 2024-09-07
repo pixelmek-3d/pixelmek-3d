@@ -40,6 +40,7 @@ type Player struct {
 	selectedWeapon    uint
 	selectedGroup     uint
 	fireMode          model.WeaponFireMode
+	reticleLead       *render.ReticleLead
 	currentNav        *render.NavSprite
 	ejectionPod       *render.ProjectileSprite
 }
@@ -249,6 +250,24 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 	}
 }
 
+func (p *Player) getSelectedWeapons() []model.Weapon {
+	selected := make([]model.Weapon, 0, len(p.Armament()))
+	for i, w := range p.Armament() {
+		switch p.fireMode {
+		case model.CHAIN_FIRE:
+			if i == int(p.selectedWeapon) {
+				selected = append(selected, p.Armament()[i])
+			}
+
+		case model.GROUP_FIRE:
+			if model.IsWeaponInGroup(w, p.selectedGroup, p.weaponGroups) {
+				selected = append(selected, p.Armament()[i])
+			}
+		}
+	}
+	return selected
+}
+
 func (p *Player) Eject(g *Game) bool {
 	if p.ejectionPod != nil {
 		return false
@@ -337,6 +356,24 @@ func (p *Player) Update() bool {
 		}
 
 		// TODO: stomp foot when coming to full stop
+	}
+
+	// update reticle lead position to be raycasted for its projected screen location
+	target := model.EntityUnit(p.Target())
+	if target == nil {
+		p.reticleLead = nil
+	} else {
+		var iWeapon model.Weapon
+		selectedWeapons := p.getSelectedWeapons()
+		if len(selectedWeapons) > 0 {
+			iWeapon = selectedWeapons[0]
+		}
+		iPos := model.TargetLeadPosition(p, target, iWeapon)
+		if p.reticleLead == nil {
+			p.reticleLead = render.NewReticleLead(*iPos)
+		} else {
+			p.reticleLead.SetPosition(*iPos)
+		}
 	}
 
 	return p.Unit.Update()
