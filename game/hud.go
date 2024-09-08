@@ -384,6 +384,7 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 	} else {
 		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
 	}
+	targetReticle.ReticleLeadBounds = nil
 
 	targetStatus.SetTargetReticle(targetReticle)
 	targetStatus.SetUnit(targetUnit)
@@ -812,6 +813,11 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
+	var targetLeadBounds *image.Rectangle
+	if g.player.reticleLead != nil {
+		targetLeadBounds = g.player.reticleLead.ScreenRect(g.renderScale)
+	}
+	targetReticle.ReticleLeadBounds = targetLeadBounds
 	targetReticle.Friendly = g.IsFriendly(g.player, g.player.Target())
 
 	targetReticle.Draw(*targetBounds, hudOpts)
