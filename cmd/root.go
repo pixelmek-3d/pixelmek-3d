@@ -24,6 +24,7 @@ func Execute() error {
 }
 
 func init() {
+	cobra.MousetrapHelpText = "" // enable application to be run with double-click
 	cobra.OnInitialize(resources.InitConfig)
 
 	// global flags that are not persisted in config file
