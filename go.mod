@@ -9,6 +9,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
 	github.com/harbdog/raycaster-go v1.11.0
 	github.com/jinzhu/copier v0.4.0
+	github.com/mattn/go-isatty v0.0.20
 	github.com/nlepage/go-tarfs v1.2.1
 	github.com/quasilyte/ebitengine-input v0.9.1
 	github.com/sirupsen/logrus v1.9.3
