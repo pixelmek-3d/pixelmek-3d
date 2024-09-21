@@ -17,8 +17,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/mattn/go-isatty"
 	"github.com/pixelmek-3d/pixelmek-3d/cmd"
 	"github.com/pixelmek-3d/pixelmek-3d/game"
 	log "github.com/sirupsen/logrus"
@@ -26,8 +28,22 @@ import (
 
 func main() {
 	// setup logging
-	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
+	if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+		log.SetOutput(os.Stdout)
+	} else {
+		f, err := os.OpenFile("pixelmek-3d.log", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			fmt.Printf("error opening log file: %v\n", err)
+		} else {
+			fmt.Printf("writing log to file: %s\n", f.Name())
+		}
+		defer f.Close()
+
+		os.Stdout = f
+		os.Stderr = f
+		log.SetOutput(f)
+	}
 
 	formatter := game.LogFormat{}
 	formatter.TimestampFormat = "2006-01-02 15:04:05"
