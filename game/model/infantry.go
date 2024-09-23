@@ -31,6 +31,7 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 			maxTurretRate:      0.05, // FIXME: testing
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: 1.0,
+			powered:            POWER_ON,
 		},
 	}
 	return m

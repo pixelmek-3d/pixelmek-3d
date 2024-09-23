@@ -68,7 +68,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 		}
 
 		mech := s.Mech()
-		g.updateMechPosition(s)
+		g.updateUnitPosition(mech)
 		s.Update(g.player.Pos())
 		g.updateWeaponCooldowns(sUnit)
 
@@ -160,7 +160,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 			break
 		}
 
-		g.updateVehiclePosition(s)
+		g.updateUnitPosition(s.Vehicle())
 		s.Update(g.player.Pos())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
@@ -206,7 +206,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 			break
 		}
 
-		g.updateVTOLPosition(s)
+		g.updateUnitPosition(s.VTOL())
 		s.Update(g.player.Pos())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
@@ -220,7 +220,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 			break
 		}
 
-		g.updateInfantryPosition(s)
+		g.updateUnitPosition(s.Infantry())
 		s.Update(g.player.Pos())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
@@ -242,173 +242,10 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 			break
 		}
 
-		g.updateEmplacementPosition(s)
+		g.updateUnitPosition(s.Emplacement())
 		s.Update(g.player.Pos())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 	}
-}
-
-func (g *Game) updateMechPosition(s *render.MechSprite) {
-	if s.Mech().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.Mech().Heat() < 0.7*s.Mech().MaxHeat() {
-			s.Mech().SetPowered(model.POWER_ON)
-		}
-		s.Mech().Update()
-		return
-	}
-
-	if s.Mech().Update() {
-		// TODO: refactor to use same update function as g.updatePlayer()
-		sPosition := s.Pos()
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		posZ, velocityZ := s.PosZ(), s.VelocityZ()
-		if velocityZ != 0 {
-			posZ += velocityZ
-		}
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
-		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-
-		if isCollision && len(collisions) > 0 {
-			// TODO: apply damage to the first sprite entity that was hit
-		}
-	}
-}
-
-func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
-	if s.Vehicle().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.Vehicle().Heat() < 0.7*s.Vehicle().MaxHeat() {
-			s.Vehicle().SetPowered(model.POWER_ON)
-		}
-		s.Vehicle().Update()
-		return
-	}
-
-	if s.Vehicle().Update() {
-		// TODO: refactor to use same update function as g.updatePlayer()
-		sPosition := s.Pos()
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		posZ, velocityZ := s.PosZ(), s.VelocityZ()
-		if velocityZ != 0 {
-			posZ += velocityZ
-		}
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
-		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-
-		if isCollision && len(collisions) > 0 {
-			// TODO: apply damage to the first sprite entity that was hit
-		}
-	}
-}
-
-func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
-	if s.VTOL().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.VTOL().Heat() < 0.7*s.VTOL().MaxHeat() {
-			s.VTOL().SetPowered(model.POWER_ON)
-		}
-		s.VTOL().Update()
-		return
-	}
-
-	if s.VTOL().Update() {
-		// TODO: refactor to use same update function as g.updatePlayer()
-		sPosition := s.Pos()
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		posZ, velocityZ := s.PosZ(), s.VelocityZ()
-		if velocityZ != 0 {
-			posZ += velocityZ
-		}
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
-		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-
-		if isCollision && len(collisions) > 0 {
-			// TODO: apply damage to the first sprite entity that was hit
-		}
-	}
-}
-
-func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
-	if s.Infantry().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.Infantry().Heat() < 0.7*s.Infantry().MaxHeat() {
-			s.Infantry().SetPowered(model.POWER_ON)
-		}
-		s.Infantry().Update()
-		return
-	}
-
-	if s.Infantry().Update() {
-		// TODO: refactor to use same update function as g.updatePlayer()
-		sPosition := s.Pos()
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		posZ, velocityZ := s.PosZ(), s.VelocityZ()
-		if velocityZ != 0 {
-			posZ += velocityZ
-		}
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, collisions := g.getValidMove(s.Entity, xCheck, yCheck, posZ, true)
-		if !(newPos.Equals(s.Pos()) && newPosZ == s.PosZ()) {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-
-		if isCollision && len(collisions) > 0 {
-			// TODO: apply damage to the first sprite entity that was hit
-		}
-	}
-}
-
-func (g *Game) updateEmplacementPosition(s *render.EmplacementSprite) {
-	if s.Emplacement().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		if s.Emplacement().Heat() < 0.7*s.Emplacement().MaxHeat() {
-			s.Emplacement().SetPowered(model.POWER_ON)
-		}
-		return
-	}
-	s.Emplacement().Update()
 }
 
 func (g *Game) updateSpritePosition(s *render.Sprite) bool {

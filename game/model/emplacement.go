@@ -27,8 +27,9 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 			armament:        make([]Weapon, 0),
 			ammunition:      NewAmmoStock(),
 			maxVelocity:     0,
-			maxTurnRate:     0.05, // FIXME: testing
-			maxTurretRate:   0.05, // FIXME: testing
+			maxTurnRate:     0.05,     // FIXME: testing
+			maxTurretRate:   0.05,     // FIXME: testing
+			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
 	}
 	return m
@@ -84,6 +85,24 @@ func (e *Emplacement) TurnRate() float64 {
 }
 
 func (e *Emplacement) Update() bool {
+	isOverHeated := e.OverHeated()
+	if e.powered == POWER_ON {
+		// if heat is too high, auto shutdown
+		if isOverHeated {
+			e.SetPowered(POWER_OFF_HEAT)
+		}
+	} else {
+		switch {
+		case isOverHeated:
+			// continue cooling down
+			break
+
+		case e.powered == POWER_OFF_HEAT && !isOverHeated:
+			// set power on automatically after overheat status is cleared
+			e.SetPowered(POWER_ON)
+		}
+	}
+
 	if e.needsUpdate() {
 		e.UnitModel.update()
 	} else {

@@ -912,12 +912,12 @@ func (g *Game) handleInput() {
 	}
 
 	if isStrafe {
-		// TODO: use unit max velocity to determine strafe speed
-		if rotLeft {
-			g.Strafe(-0.05)
-		} else if rotRight {
-			g.Strafe(0.05)
-		}
+		// TODO: use unit max velocity to determine strafe speed and set target strafe heading
+		// if rotLeft {
+		// 	g.Strafe(-0.05)
+		// } else if rotRight {
+		// 	g.Strafe(0.05)
+		// }
 	} else {
 		if rotLeft {
 			turnAmount := g.player.TurnRate()

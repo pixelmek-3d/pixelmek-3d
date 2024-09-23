@@ -368,15 +368,15 @@ func (g *Game) uiRect() image.Rectangle {
 }
 
 // Move player by strafe speed in the left/right direction
-func (g *Game) Strafe(sSpeed float64) {
-	strafeAngle := geom.HalfPi
-	if sSpeed < 0 {
-		strafeAngle = -strafeAngle
-	}
-	playerPosition := g.player.Pos()
-	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading()-strafeAngle, math.Abs(sSpeed))
-	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2, g.player.PosZ())
-}
+// func (g *Game) Strafe(sSpeed float64) {
+// 	strafeAngle := geom.HalfPi
+// 	if sSpeed < 0 {
+// 		strafeAngle = -strafeAngle
+// 	}
+// 	playerPosition := g.player.Pos()
+// 	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading()-strafeAngle, math.Abs(sSpeed))
+// 	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2, g.player.PosZ())
+// }
 
 func (g *Game) InProgress() bool {
 	return g.objectives.Status() == OBJECTIVES_IN_PROGRESS
@@ -431,26 +431,11 @@ func (g *Game) updatePlayer() {
 		return
 	}
 
-	if g.player.Update() {
+	prevPos, prevPosZ := g.player.Pos(), g.player.PosZ()
+	g.updateUnitPosition(g.player)
+	newPos, newPosZ := g.player.Pos(), g.player.PosZ()
 
-		// TODO: refactor to use same update position function as sprites (g.updateMechPosition, etc.)
-
-		position, posZ := g.player.Pos(), g.player.PosZ()
-		velocity, velocityZ := g.player.Velocity(), g.player.VelocityZ()
-		if velocityZ != 0 {
-			posZ += velocityZ
-		}
-
-		moveHeading := g.player.Heading()
-		if g.player.JumpJetsActive() || (posZ > 0 && g.player.JumpJets() > 0) {
-			// while jumping, or still in air after jumping, continue from last jump jet active heading and velocity
-			moveHeading = g.player.JumpJetHeading()
-			velocity = g.player.JumpJetVelocity()
-		}
-		moveLine := geom.LineFromAngle(position.X, position.Y, moveHeading, velocity)
-
-		newX, newY := moveLine.X2, moveLine.Y2
-		g.updatePlayerPosition(newX, newY, posZ)
+	if !(prevPos.Equals(newPos) && prevPosZ == newPosZ) {
 		g.player.moved = true
 
 		// check for nav point visits
@@ -460,7 +445,7 @@ func (g *Game) updatePlayer() {
 			}
 
 			navX, navY := nav.Position[0], nav.Position[1]
-			if model.PointInProximity(1.0, newX, newY, navX, navY) {
+			if model.PointInProximity(1.0, newPos.X, newPos.Y, navX, navY) {
 				nav.SetVisited(true)
 
 				// automatically cycle to next nav point
@@ -572,36 +557,6 @@ func (g *Game) updatePlayer() {
 				}
 				g.player.SetTargetLock(targetLock)
 			}
-		}
-	}
-}
-
-func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
-	// Update player position
-	newPos, newZ, isCollision, collisions := g.getValidMove(g.player.Unit, setX, setY, setZ, true)
-	if !(newPos.Equals(g.player.Pos()) && newZ == g.player.PosZ()) {
-		g.player.SetPos(newPos)
-		g.player.SetPosZ(newZ)
-		g.player.moved = true
-	}
-
-	if isCollision && len(collisions) > 0 {
-		// apply damage to the first sprite entity that was hit
-		collisionEntity := collisions[0]
-
-		// TODO: collision damage based on player unit type, size, speed, and collision entity type
-		collisionDamage := 0.01
-
-		// apply more damage if it is a tree or foliage (MapSprite)
-		mapSprite := g.getMapSpriteFromEntity(collisionEntity.entity)
-		if mapSprite != nil {
-			collisionDamage = 0.1
-		}
-
-		collisionEntity.entity.ApplyDamage(collisionDamage)
-		if g.debug {
-			hp, maxHP := collisionEntity.entity.ArmorPoints()+collisionEntity.entity.StructurePoints(), collisionEntity.entity.MaxArmorPoints()+collisionEntity.entity.MaxStructurePoints()
-			log.Debugf("collided for %0.1f (HP: %0.1f/%0.1f)", collisionDamage, hp, maxHP)
 		}
 	}
 }
