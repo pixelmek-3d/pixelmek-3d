@@ -11,11 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	AI_FIRE_WEAPONS_COUNTER_MIN = 20
-	AI_FIRE_WEAPONS_COUNTER_MAX = 60
-)
-
 func (a *AIBehavior) HasTarget() bt.Node {
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
@@ -63,16 +58,8 @@ func (a *AIBehavior) TargetIsAlive() bt.Node {
 }
 
 func (a *AIBehavior) FireWeapons() bt.Node {
-	// randomly skip a number of ticks to not attempt a firing solution every tick
-	counter := AI_FIRE_WEAPONS_COUNTER_MIN + model.Randish.Intn(AI_FIRE_WEAPONS_COUNTER_MAX-AI_FIRE_WEAPONS_COUNTER_MIN)
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
-			if counter > 0 {
-				counter--
-				return bt.Success, nil
-			}
-			counter = AI_FIRE_WEAPONS_COUNTER_MIN
-
 			target := model.EntityUnit(a.u.Target())
 			if target == nil {
 				return bt.Failure, nil
@@ -161,7 +148,6 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 
 			if weaponFired {
 				//log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
-				counter = AI_FIRE_WEAPONS_COUNTER_MIN + model.Randish.Intn(AI_FIRE_WEAPONS_COUNTER_MAX-AI_FIRE_WEAPONS_COUNTER_MIN)
 				return bt.Success, nil
 			}
 			return bt.Failure, nil

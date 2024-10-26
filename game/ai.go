@@ -22,9 +22,10 @@ const (
 )
 
 type AIHandler struct {
-	g         *Game
-	ai        []*AIBehavior
-	resources AIResources
+	g          *Game
+	ai         []*AIBehavior
+	initiative *AIInitiative
+	resources  AIResources
 }
 
 type AIBehavior struct {
@@ -151,6 +152,8 @@ func NewAIHandler(g *Game) *AIHandler {
 		aiHandler.ai = append(aiHandler.ai, aiHandler.NewAI(u, "unit", aiRes))
 	}
 
+	aiHandler.initiative = NewAIInitiative(aiHandler.ai)
+
 	return aiHandler
 }
 
@@ -263,7 +266,9 @@ func getComposite(nodeName string) bt.Tick {
 }
 
 func (h *AIHandler) Update() {
-	for _, a := range h.ai {
+	// only update AI whose initiative slot is next
+	turnAI := h.initiative.Next()
+	for _, a := range turnAI {
 		if a.u.IsDestroyed() || a.u.Powered() != model.POWER_ON {
 			continue
 		}

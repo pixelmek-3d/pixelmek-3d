@@ -11,14 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	AI_PATH_FINDING_COUNTER_MIN = 10
-	AI_PATH_FINDING_COUNTER_MAX = 30
-)
-
 func (a *AIBehavior) TurnToTarget() bt.Node {
-	// randomly skip a number of ticks to not attempt path finding every tick
-	counter := AI_PATH_FINDING_COUNTER_MIN + model.Randish.Intn(AI_PATH_FINDING_COUNTER_MAX-AI_PATH_FINDING_COUNTER_MIN)
 	return bt.New(
 		func(children []bt.Node) (bt.Status, error) {
 			if a.u.UnitType() == model.EmplacementUnitType {
@@ -35,24 +28,18 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 			var targetHeading float64 = a.u.Heading()
 
 			findNewPath := false
-			if counter > 0 {
-				counter--
-			} else {
-				counter = AI_PATH_FINDING_COUNTER_MIN + model.Randish.Intn(AI_PATH_FINDING_COUNTER_MAX-AI_PATH_FINDING_COUNTER_MIN)
-
-				switch {
-				case a.piloting.Len() == 0:
+			switch {
+			case a.piloting.Len() == 0:
+				findNewPath = true
+			case int(target.Pos().X) != int(a.piloting.destPos.X) || int(target.Pos().Y) != int(a.piloting.destPos.Y):
+				// if still some distance from target, do not recalc path to target until further
+				targetDist := model.EntityDistance2D(a.u, target)
+				if targetDist <= 8 {
 					findNewPath = true
-				case int(target.Pos().X) != int(a.piloting.destPos.X) || int(target.Pos().Y) != int(a.piloting.destPos.Y):
-					// if still some distance from target, do not recalc path to target until further
-					targetDist := model.EntityDistance2D(a.u, target)
-					if targetDist <= 8 {
+				} else {
+					deltaX, deltaY := math.Abs(target.Pos().X-a.piloting.destPos.X), math.Abs(target.Pos().Y-a.piloting.destPos.Y)
+					if deltaX > targetDist/4 || deltaY > targetDist/4 {
 						findNewPath = true
-					} else {
-						deltaX, deltaY := math.Abs(target.Pos().X-a.piloting.destPos.X), math.Abs(target.Pos().Y-a.piloting.destPos.Y)
-						if deltaX > targetDist/4 || deltaY > targetDist/4 {
-							findNewPath = true
-						}
 					}
 				}
 			}
