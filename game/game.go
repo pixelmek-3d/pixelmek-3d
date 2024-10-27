@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"math/rand"
 	"os"
 	"sort"
-	"time"
 
 	"image/color"
 
@@ -1349,9 +1349,8 @@ func (g *Game) RandomUnit(unitResourceType string) model.Unit {
 	// TODO: make it useful for random unit of any unit type, or within some tonnage range
 	switch unitResourceType {
 	case model.MechResourceType:
-		model.Randish.Seed(time.Now().UnixNano())
 		mechResources := g.resources.GetMechResourceList()
-		randIndex := model.Randish.Intn(len(mechResources))
+		randIndex := rand.Intn(len(mechResources))
 		randResource := mechResources[randIndex]
 		return g.createModelMechFromResource(randResource)
 	default:
@@ -1360,7 +1359,7 @@ func (g *Game) RandomUnit(unitResourceType string) model.Unit {
 }
 
 func randFloat(min, max float64) float64 {
-	return model.RandFloat64In(min, max)
+	return model.RandFloat64In(min, max, nil)
 }
 
 func exit(rc int) {

@@ -2,9 +2,7 @@ package model
 
 import (
 	"math"
-	"math/rand"
 	"reflect"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -23,14 +21,6 @@ const (
 	CEILING_JUMP float64 = 5.0
 	CEILING_VTOL float64 = 5.0 // TODO: set flight ceiling in map yaml
 )
-
-var (
-	Randish *rand.Rand
-)
-
-func init() {
-	Randish = rand.New(rand.NewSource(time.Now().UnixNano()))
-}
 
 type TechBase int
 
