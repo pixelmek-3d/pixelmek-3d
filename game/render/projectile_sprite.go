@@ -2,6 +2,7 @@ package render
 
 import (
 	"math"
+	"math/rand"
 	"path"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
@@ -82,7 +83,7 @@ func (p *ProjectileSprite) ImpactAudio() string {
 	if numAudioFiles == 1 {
 		return p.ImpactAudioFiles[0]
 	} else if numAudioFiles > 1 {
-		return p.ImpactAudioFiles[model.Randish.Intn(numAudioFiles)]
+		return p.ImpactAudioFiles[rand.Intn(numAudioFiles)]
 	}
 	return ""
 }

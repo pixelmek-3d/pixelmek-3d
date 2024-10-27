@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"math"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
@@ -191,7 +192,7 @@ func (g *Game) spawnEjectionPodSmokeEffects(s *render.ProjectileSprite) (duratio
 		duration = fxDuration
 	}
 
-	s.SetEffectCounter(1 + model.Randish.Intn(3))
+	s.SetEffectCounter(1 + rand.Intn(3))
 	return
 }
 
@@ -298,7 +299,7 @@ func (g *Game) spawnPlayerDestroyEffects() (duration int) {
 			duration = fxDuration
 		}
 	}
-	s.SetEffectCounter(1 + model.Randish.Intn(4))
+	s.SetEffectCounter(1 + rand.Intn(4))
 	return
 }
 
@@ -344,7 +345,7 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 			duration = fxDuration
 		}
 	}
-	s.SetEffectCounter(1 + model.Randish.Intn(2))
+	s.SetEffectCounter(1 + rand.Intn(2))
 	return
 }
 
@@ -453,7 +454,7 @@ func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions boo
 	if fxCounter > 0 {
 		s.SetEffectCounter(fxCounter - 1)
 	} else {
-		s.SetEffectCounter(1 + model.Randish.Intn(3))
+		s.SetEffectCounter(1 + rand.Intn(3))
 	}
 
 	return
