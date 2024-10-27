@@ -2,20 +2,32 @@ package model
 
 import (
 	"math"
+	"math/rand"
+	"time"
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 )
 
+func NewRNG() *rand.Rand {
+	return rand.New(rand.NewSource(time.Now().UnixNano()))
+}
+
+func RandFloat64In(lo, hi float64, rng *rand.Rand) float64 {
+	var randFloat float64
+	if rng == nil {
+		randFloat = rand.Float64()
+	} else {
+		randFloat = rng.Float64()
+	}
+	return lo + (hi-lo)*randFloat
+}
+
 func PointInProximity(distance, srcX, srcY, tgtX, tgtY float64) bool {
 	distance = math.Ceil(distance)
 	return (srcX-distance <= tgtX && tgtX <= srcX+distance &&
 		srcY-distance <= tgtY && tgtY <= srcY+distance)
-}
-
-func RandFloat64In(lo, hi float64) float64 {
-	return lo + (hi-lo)*Randish.Float64()
 }
 
 // ClampAngle clamps the given angle in a range of -pi to pi

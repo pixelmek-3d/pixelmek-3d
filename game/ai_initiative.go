@@ -1,9 +1,9 @@
 package game
 
 import (
+	"math/rand"
 	"sort"
 
-	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -50,7 +50,7 @@ func (n *AIInitiative) roll() {
 		}
 		rolls = append(rolls, &initiativeRoll{
 			ai:   ai,
-			roll: model.Randish.Float64(),
+			roll: rand.Float64(),
 		})
 	}
 

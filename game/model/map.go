@@ -252,18 +252,20 @@ func (m *Map) generateFillerSprites() error {
 	nSprites := make([]MapSprite, len(m.Sprites))
 	copier.Copy(&nSprites, &m.Sprites)
 
+	rng := NewRNG()
+
 	for n, fill := range m.SpriteFill {
-		Randish.Seed(m.Seed + int64(n))
+		rng.Seed(m.Seed + int64(n))
 
 		x0, y0 := float64(fill.Rect[0][0]), float64(fill.Rect[0][1])
 		x1, y1 := float64(fill.Rect[1][0]), float64(fill.Rect[1][1])
 
 		for i := 0; i < fill.Quantity; i++ {
-			fX, fY := RandFloat64In(x0, x1), RandFloat64In(y0, y1)
+			fX, fY := RandFloat64In(x0, x1, rng), RandFloat64In(y0, y1, rng)
 			scale := 1.0
 			if len(fill.ScaleRange) == 2 {
 				// generate random scale value within scale range
-				scale = RandFloat64In(fill.ScaleRange[0], fill.ScaleRange[1])
+				scale = RandFloat64In(fill.ScaleRange[0], fill.ScaleRange[1], rng)
 			}
 
 			mapSprite := MapSprite{

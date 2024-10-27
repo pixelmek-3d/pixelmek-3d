@@ -1,6 +1,8 @@
 package effects
 
 import (
+	"math/rand"
+
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
@@ -199,17 +201,17 @@ func init() {
 }
 
 func RandBloodKey() string {
-	return _bloodKeys[model.Randish.Intn(len(_bloodKeys))]
+	return _bloodKeys[rand.Intn(len(_bloodKeys))]
 }
 
 func RandExplosionKey() string {
-	return _exploKeys[model.Randish.Intn(len(_exploKeys))]
+	return _exploKeys[rand.Intn(len(_exploKeys))]
 }
 
 func RandFireKey() string {
-	return _fireKeys[model.Randish.Intn(len(_fireKeys))]
+	return _fireKeys[rand.Intn(len(_fireKeys))]
 }
 
 func RandSmokeKey() string {
-	return _smokeKeys[model.Randish.Intn(len(_smokeKeys))]
+	return _smokeKeys[rand.Intn(len(_smokeKeys))]
 }
