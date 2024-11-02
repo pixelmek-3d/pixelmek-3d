@@ -615,16 +615,22 @@ func (e *UnitModel) update() {
 			e.jumpJetHeading = e.heading
 		}
 
-		// offset turret angle so it does not have to play catch up
-		e.targetTurretAngle -= deltaH
+		if e.isPlayer {
+			// offset player turret angle so it does not have to play catch up
+			e.targetTurretAngle -= deltaH
+		}
 	}
 
 	if e.targetPitch != e.pitch {
 		// move towards target pitch amount allowed by turret rate
 		distP := AngleDistance(e.pitch, e.targetPitch)
 
-		// use logarithmic scale to smooth the approach to the target pitch angle
-		pitchRate := math.Log1p(2*math.Abs(distP)) * turretRate
+		pitchRate := turretRate
+		if e.isPlayer {
+			// use logarithmic scale to smooth the approach to the target pitch angle
+			pitchRate = math.Log1p(2*math.Abs(distP)) * turretRate
+		}
+
 		deltaP := geom.Clamp(distP, -pitchRate, pitchRate)
 		e.pitch = ClampAngle(e.pitch + deltaP)
 		if math.Abs(deltaP) < math.Abs(pitchRate) && geom.NearlyEqual(e.targetPitch, e.pitch, 0.0001) {
@@ -636,8 +642,12 @@ func (e *UnitModel) update() {
 		// move towards target turret angle amount allowed by turret rate
 		distA := AngleDistance(e.turretAngle, e.targetTurretAngle)
 
-		// use logarithmic scale to smooth the approach to the target turret angle
-		twistRate := math.Log1p(2*math.Abs(distA)) * turretRate
+		twistRate := turretRate
+		if e.isPlayer {
+			// use logarithmic scale to smooth the approach to the target turret angle
+			twistRate = math.Log1p(2*math.Abs(distA)) * turretRate
+		}
+
 		deltaA := geom.Clamp(distA, -twistRate, twistRate)
 		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA + deltaH)
 		if math.Abs(deltaA) < math.Abs(twistRate) && geom.NearlyEqual(e.targetTurretAngle, e.turretAngle, 0.0001) {
