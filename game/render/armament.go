@@ -32,6 +32,7 @@ type Armament struct {
 	selectedWeapon  uint
 	selectedGroup   uint
 	fireMode        model.WeaponFireMode
+	debug           bool
 }
 
 type Weapon struct {
@@ -56,6 +57,7 @@ func NewArmament(font *Font) *Armament {
 }
 
 func (a *Armament) SetWeapons(weapons []model.Weapon) {
+	a.debug = false
 	a.weapons = make([]*Weapon, len(weapons))
 
 	for i, weapon := range weapons {
@@ -64,6 +66,22 @@ func (a *Armament) SetWeapons(weapons []model.Weapon) {
 			weapon:    weapon,
 		}
 	}
+}
+
+func (a *Armament) SetDebugWeapons(weapons []model.Weapon) {
+	a.debug = true
+	a.weapons = make([]*Weapon, len(weapons))
+
+	for i, weapon := range weapons {
+		a.weapons[i] = &Weapon{
+			HUDSprite: NewHUDSprite(nil, 1.0),
+			weapon:    weapon,
+		}
+	}
+}
+
+func (a *Armament) IsDebugWeapons() bool {
+	return a.debug
 }
 
 func (a *Armament) SetWeaponGroups(weaponGroups [][]model.Weapon) {

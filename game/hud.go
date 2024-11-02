@@ -444,12 +444,27 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 		aX, aY, aX+armamentWidth, aY+armamentHeight,
 	)
 
+	weaponFireMode := g.player.fireMode
+	weaponGroups := g.player.weaponGroups
 	weaponOrGroupIndex := g.player.selectedWeapon
 	if g.player.fireMode == model.GROUP_FIRE {
 		weaponOrGroupIndex = g.player.selectedGroup
 	}
-	armament.SetWeaponGroups(g.player.weaponGroups)
-	armament.SetSelectedWeapon(weaponOrGroupIndex, g.player.fireMode)
+
+	if g.player.debugCameraTarget != nil {
+		// override display for debug camera target
+		if !armament.IsDebugWeapons() {
+			armament.SetDebugWeapons(g.player.debugCameraTarget.Armament())
+		}
+		weaponFireMode = model.GROUP_FIRE
+		weaponGroups = make([][]model.Weapon, 0)
+		weaponOrGroupIndex = 0
+	} else if armament.IsDebugWeapons() {
+		armament.SetWeapons(g.player.Armament())
+	}
+
+	armament.SetWeaponGroups(weaponGroups)
+	armament.SetSelectedWeapon(weaponOrGroupIndex, weaponFireMode)
 	armament.Draw(aBounds, hudOpts)
 }
 
@@ -472,14 +487,23 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 		cX, cY, cX+compassWidth, cY+compassHeight,
 	)
 
-	playerPos := g.player.Pos()
+	camPos := g.player.Pos()
+	camHeading := g.player.Heading()
+	camTurretAngle := g.player.TurretAngle()
+
+	if g.player.debugCameraTarget != nil {
+		// override display for debug camera target
+		camPos = g.player.debugCameraTarget.Pos()
+		camHeading = g.player.debugCameraTarget.Heading()
+		camTurretAngle = g.player.debugCameraTarget.TurretAngle()
+	}
 
 	if g.player.Target() == nil {
 		compass.SetTargetEnabled(false)
 	} else {
 		targetPos := g.player.Target().Pos()
 		tLine := geom.Line{
-			X1: playerPos.X, Y1: playerPos.Y,
+			X1: camPos.X, Y1: camPos.Y,
 			X2: targetPos.X, Y2: targetPos.Y,
 		}
 		tAngle := tLine.Angle()
@@ -494,7 +518,7 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 	} else {
 		navPos := g.player.currentNav.Pos()
 		tLine := geom.Line{
-			X1: playerPos.X, Y1: playerPos.Y,
+			X1: camPos.X, Y1: camPos.Y,
 			X2: navPos.X, Y2: navPos.Y,
 		}
 		nAngle := tLine.Angle()
@@ -503,7 +527,7 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 		compass.SetNavHeading(nAngle)
 	}
 
-	compass.SetValues(g.player.Heading(), g.player.TurretAngle())
+	compass.SetValues(camHeading, camTurretAngle)
 	compass.Draw(cBounds, hudOpts)
 }
 
@@ -519,6 +543,11 @@ func (g *Game) drawAltimeter(hudOpts *render.DrawHudOptions) {
 
 	// convert Z position to meters of altitude
 	altitude := g.player.PosZ() * model.METERS_PER_UNIT
+
+	if g.player.debugCameraTarget != nil {
+		// override display for debug camera target
+		altitude = g.player.debugCameraTarget.PosZ() * model.METERS_PER_UNIT
+	}
 
 	altScale := altimeter.Scale() * g.hudScale
 	if altScale == 0 {
@@ -545,6 +574,12 @@ func (g *Game) drawHeatIndicator(hudOpts *render.DrawHudOptions) {
 	// convert heat dissipation to seconds
 	currHeat, maxHeat := g.player.Heat(), g.player.MaxHeat()
 	dissipationPerSec := g.player.HeatDissipation() * model.TICKS_PER_SECOND
+
+	if g.player.debugCameraTarget != nil {
+		// override display for debug camera target
+		currHeat, maxHeat = g.player.debugCameraTarget.Heat(), g.player.debugCameraTarget.MaxHeat()
+		dissipationPerSec = g.player.debugCameraTarget.HeatDissipation() * model.TICKS_PER_SECOND
+	}
 
 	heatScale := heat.Scale() * g.hudScale
 	if heatScale == 0 {
@@ -579,6 +614,14 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
 
+	if g.player.debugCameraTarget != nil {
+		// override display for debug camera target
+		kphVelocity = g.player.debugCameraTarget.Velocity() * model.VELOCITY_TO_KPH
+		kphVelocityZ = g.player.debugCameraTarget.VelocityZ() * model.VELOCITY_TO_KPH
+		kphTgtVelocity = g.player.debugCameraTarget.TargetVelocity() * model.VELOCITY_TO_KPH
+		kphMax = g.player.debugCameraTarget.MaxVelocity() * model.VELOCITY_TO_KPH
+	}
+
 	throttleScale := throttle.Scale() * g.hudScale
 	if throttleScale == 0 {
 		return
@@ -609,6 +652,12 @@ func (g *Game) drawJumpJetIndicator(hudOpts *render.DrawHudOptions) {
 
 	jDuration := g.player.Unit.JumpJetDuration()
 	jMaxDuration := g.player.Unit.MaxJumpJetDuration()
+
+	if g.player.debugCameraTarget != nil {
+		// override display for debug camera target
+		jDuration = g.player.debugCameraTarget.JumpJetDuration()
+		jMaxDuration = g.player.debugCameraTarget.MaxJumpJetDuration()
+	}
 
 	jetsScale := jets.Scale() * g.hudScale
 	if jetsScale == 0 {
@@ -649,10 +698,19 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	radarBlips := make([]*render.RadarBlip, 0, 128)
 	rNavPoints := make([]*render.RadarNavPoint, 0, len(g.mission.NavPoints))
 
-	playerPos := g.player.Pos()
-	playerAngle := g.player.Heading()
-	playerTarget := g.player.Target()
+	camPos := g.player.Pos()
+	camHeading := g.player.Heading()
+	camTurretAngle := g.player.TurretAngle()
 
+	if g.player.debugCameraTarget != nil {
+		// override radar location for debug camera target
+		camPos = g.player.debugCameraTarget.Pos()
+		camHeading = g.player.debugCameraTarget.Heading()
+		camTurretAngle = g.player.debugCameraTarget.TurretAngle()
+
+	}
+
+	playerTarget := g.player.Target()
 	playerNav := g.player.NavPoint()
 
 	// discover nav points that are in range
@@ -660,7 +718,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	for _, nav := range g.mission.NavPoints {
 		navPos := nav.Pos()
 		navLine := geom.Line{
-			X1: playerPos.X, Y1: playerPos.Y,
+			X1: camPos.X, Y1: camPos.Y,
 			X2: navPos.X, Y2: navPos.Y,
 		}
 
@@ -676,7 +734,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		}
 
 		// determine angle of unit relative from player heading
-		relAngle := playerAngle - navLine.Angle()
+		relAngle := camHeading - navLine.Angle()
 		rNav := &render.RadarNavPoint{
 			NavPoint: nav, Distance: navDistance, Angle: relAngle, IsTarget: navIsTarget,
 		}
@@ -698,7 +756,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 			unitPos := unit.Pos()
 			unitLine := geom.Line{
-				X1: playerPos.X, Y1: playerPos.Y,
+				X1: camPos.X, Y1: camPos.Y,
 				X2: unitPos.X, Y2: unitPos.Y,
 			}
 
@@ -715,10 +773,10 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			}
 
 			// determine angle of unit relative from player heading
-			relAngle := playerAngle - unitLine.Angle()
+			relAngle := camHeading - unitLine.Angle()
 			// determine heading of unit relative from player heading
-			relHeading := playerAngle - unit.Heading()
-			relTurretHeading := playerAngle - unit.TurretAngle()
+			relHeading := camHeading - unit.Heading()
+			relTurretHeading := camHeading - unit.TurretAngle()
 
 			blip := &render.RadarBlip{
 				Unit:          unit,
@@ -755,7 +813,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	}
 
 	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
-	radar.SetValues(g.player.Pos(), g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
+	radar.SetValues(camPos, camHeading, camTurretAngle, cameraViewDegrees)
 
 	radar.SetNavPoints(rNavPoints[:navCount])
 	radar.SetRadarBlips(radarBlips[:blipCount])
@@ -784,6 +842,12 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 
 	deltaAngle := model.AngleDistance(g.player.TurretAngle(), g.player.cameraAngle)
 	deltaPitch := model.AngleDistance(g.player.Pitch(), g.player.cameraPitch)
+
+	if g.player.debugCameraTarget != nil {
+		// override crosshair location for debug camera target
+		deltaAngle = 0
+		deltaPitch = 0
+	}
 
 	fovHorizontal, fovVertical := g.camera.FovRadians(), g.camera.FovRadiansVertical()
 	crosshairs.SetOffsets(deltaAngle, deltaPitch)

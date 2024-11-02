@@ -43,6 +43,8 @@ type Player struct {
 	reticleLead       *render.ReticleLead
 	currentNav        *render.NavSprite
 	ejectionPod       *render.ProjectileSprite
+
+	debugCameraTarget model.Unit
 }
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
@@ -149,6 +151,11 @@ func (p *Player) RotateCamera(rSpeed float64) {
 		return
 	}
 
+	if p.debugCameraTarget != nil {
+		// disallow player from moving camera when viewing from debug camera target
+		return
+	}
+
 	// TODO: add config option to allow 360 degree torso rotation
 	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
 
@@ -176,15 +183,27 @@ func (p *Player) PitchCamera(pSpeed float64) {
 		return
 	}
 
+	if p.debugCameraTarget != nil {
+		// disallow player from moving camera when viewing from debug camera target
+		return
+	}
+
 	// current raycasting method can only allow certain amount in either direction without graphical artifacts
 	pitch := geom.Clamp(p.cameraPitch+pSpeed, -geom.Pi/8, geom.Pi/4)
 	p.cameraPitch = pitch
 	p.moved = true
 }
 
-func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
+func (p *Player) CameraPosition() (pos *geom.Vector2, posZ, angle, pitch float64) {
+	angle, pitch = p.cameraAngle, p.cameraPitch
 	if p.ejectionPod != nil {
 		pos, posZ = p.ejectionPod.Pos().Copy(), p.ejectionPod.PosZ()
+		return
+	}
+
+	if p.debugCameraTarget != nil {
+		pos, posZ = p.debugCameraTarget.Pos().Copy(), p.debugCameraTarget.PosZ()+p.debugCameraTarget.CockpitOffset().Y
+		angle, pitch = p.debugCameraTarget.TurretAngle(), p.debugCameraTarget.Pitch()
 		return
 	}
 

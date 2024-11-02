@@ -67,6 +67,7 @@ const (
 	ActionZoomToggle
 	ActionLightAmpToggle
 	ActionPowerToggle
+	ActionCameraCycle
 	actionCount
 )
 
@@ -160,6 +161,8 @@ func actionString(a input.Action) string {
 		return "light_amplification"
 	case ActionPowerToggle:
 		return "power_toggle"
+	case ActionCameraCycle:
+		return "camera_cycle"
 	default:
 		panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
 	}
@@ -180,6 +183,8 @@ func (g *Game) initControls() {
 			panic(fmt.Errorf("error loading keymap file %s: %v", resources.UserKeymapFile, err))
 		}
 	}
+
+	// TODO: initialize default for new controls even if not first time?
 
 	if len(keymap) == 0 {
 		// first time intitialize defaults into file
@@ -231,6 +236,7 @@ func (g *Game) setDefaultControls() {
 		ActionZoomToggle:     {input.KeyZ, input.KeyGamepadRStick},
 		ActionLightAmpToggle: {input.KeyL, input.KeyGamepadDown},
 		ActionPowerToggle:    {input.KeyP},
+		ActionCameraCycle:    {input.KeyF3},
 	}
 
 	g.inputSystem.Init(input.SystemConfig{
@@ -382,6 +388,16 @@ func (g *Game) handleInput() {
 				target.SetJumpJetsActive(true)
 				target.SetTargetVelocityZ(0.05)
 			}
+		}
+	}
+
+	if g.debug && g.input.ActionIsJustPressed(ActionCameraCycle) {
+		// debug only: camera swap with player target or cycle back to player unit
+		if g.player.debugCameraTarget == nil && g.player.Target() != nil {
+			g.player.debugCameraTarget = model.EntityUnit(g.player.Target())
+		} else if g.player.debugCameraTarget != nil {
+			g.player.debugCameraTarget = nil
+			g.player.moved = true
 		}
 	}
 
