@@ -220,6 +220,17 @@ func (p *Player) CameraPosition() (pos *geom.Vector2, posZ, angle, pitch float64
 	return
 }
 
+func (p *Player) CameraPosXY() (pos *geom.Vector2) {
+	if p.ejectionPod != nil {
+		return p.ejectionPod.Pos().Copy()
+	}
+
+	if p.debugCameraTarget != nil {
+		return p.debugCameraTarget.Pos().Copy()
+	}
+	return p.Pos().Copy()
+}
+
 func (g *Game) SetPlayerUnit(unit model.Unit) {
 	var unitSprite *render.Sprite
 

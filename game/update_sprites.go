@@ -32,14 +32,14 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				// delete when the counter is basically done (to differentiate with default int value 0)
 				g.sprites.deleteMapSprite(s)
 			} else {
-				s.Update(g.player.Pos())
+				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
 			}
 			break
 		}
 
 		g.updateSpritePosition(s)
-		s.Update(g.player.Pos())
+		s.Update(g.player.CameraPosXY())
 
 	case MechSpriteType:
 		s := sInterface.(*render.MechSprite)
@@ -56,7 +56,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				// delete when animation is over
 				g.sprites.deleteMechSprite(s)
 			} else {
-				s.Update(g.player.Pos())
+				s.Update(g.player.CameraPosXY())
 			}
 
 			if sUnit.JumpJets() > 0 {
@@ -69,7 +69,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 
 		mech := s.Mech()
 		g.updateUnitPosition(mech)
-		s.Update(g.player.Pos())
+		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(sUnit)
 
 		if sUnit.Powered() != model.POWER_ON {
@@ -154,14 +154,14 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				// delete when the counter is basically done (to differentiate with default int value 0)
 				g.sprites.deleteVehicleSprite(s)
 			} else {
-				s.Update(g.player.Pos())
+				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
 			}
 			break
 		}
 
 		g.updateUnitPosition(s.Vehicle())
-		s.Update(g.player.Pos())
+		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
 	case VTOLSpriteType:
@@ -202,12 +202,12 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				break
 			}
 
-			s.Update(g.player.Pos())
+			s.Update(g.player.CameraPosXY())
 			break
 		}
 
 		g.updateUnitPosition(s.VTOL())
-		s.Update(g.player.Pos())
+		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
 	case InfantrySpriteType:
@@ -221,7 +221,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 		}
 
 		g.updateUnitPosition(s.Infantry())
-		s.Update(g.player.Pos())
+		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
 	case EmplacementSpriteType:
@@ -236,14 +236,14 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				// delete when the counter is basically done (to differentiate with default int value 0)
 				g.sprites.deleteEmplacementSprite(s)
 			} else {
-				s.Update(g.player.Pos())
+				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
 			}
 			break
 		}
 
 		g.updateUnitPosition(s.Emplacement())
-		s.Update(g.player.Pos())
+		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 	}
 }

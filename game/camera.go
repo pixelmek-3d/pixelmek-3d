@@ -15,8 +15,12 @@ func (g *Game) updatePlayerCamera(forceUpdate bool) {
 		return
 	}
 
-	// reset player moved flag to only update camera when necessary
-	g.player.moved = false
+	if forceUpdate {
+		g.player.moved = true
+	} else {
+		// reset player moved flag to only update camera when necessary
+		g.player.moved = false
+	}
 
 	camPos, camPosZ, camAngle, camPitch := g.player.CameraPosition()
 

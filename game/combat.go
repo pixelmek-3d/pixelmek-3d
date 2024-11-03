@@ -235,7 +235,7 @@ func (g *Game) updateProjectiles() {
 	// Update animated effects
 	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
 		e := k.(*render.EffectSprite)
-		e.Update(g.player.Pos())
+		e.Update(g.player.CameraPosXY())
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
 		}
@@ -393,7 +393,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			}
 		}
 	}
-	p.Update(g.player.Pos())
+	p.Update(g.player.CameraPosXY())
 }
 
 // queueDelayedProjectile queues a projectile on a timed delay (seconds) between shots

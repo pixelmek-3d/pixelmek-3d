@@ -41,10 +41,10 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 	}
 
 	// determine which cells are in view for clutter consideration
-	camX, camY := g.player.Pos().X, g.player.Pos().Y
-	viewAngle := g.player.cameraAngle
+	camPos, _, camHeading, _ := g.player.CameraPosition()
+	camX, camY := camPos.X, camPos.Y
 	viewFOV := geom.Radians(g.fovDegrees)
-	for a := viewAngle - viewFOV/2; a <= viewAngle+viewFOV/2; a += viewFOV / 20 {
+	for a := camHeading - viewFOV/2; a <= camHeading+viewFOV/2; a += viewFOV / 20 {
 		for d := 0.0; d <= g.clutterDistance; d++ {
 			line := geom.LineFromAngle(camX, camY, a, d)
 			x, y := int64(line.X2), int64(line.Y2)

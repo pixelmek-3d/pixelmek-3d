@@ -208,7 +208,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	raycastSprites := make([]raycaster.Sprite, 0, 512)
 
-	playerPos := g.player.Pos()
+	camPos := g.player.CameraPosXY()
 
 	count := 0
 	for _, spriteMap := range g.sprites.sprites {
@@ -218,8 +218,8 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
 			// only include map sprites within fast approximation of render distance
 			doSprite := g.renderDistance < 0 || g.player.Target() == sprite.Entity ||
-				(math.Abs(sprite.Pos().X-playerPos.X) <= g.renderDistance &&
-					math.Abs(sprite.Pos().Y-playerPos.Y) <= g.renderDistance)
+				(math.Abs(sprite.Pos().X-camPos.X) <= g.renderDistance &&
+					math.Abs(sprite.Pos().Y-camPos.Y) <= g.renderDistance)
 			if doSprite {
 				raycastSprites = append(raycastSprites, sprite)
 				count++
