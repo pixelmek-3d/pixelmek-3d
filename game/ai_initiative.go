@@ -9,7 +9,7 @@ import (
 
 const (
 	// AI_INITIATIVE_SLOTS represents the limited number of initiative time slots an AI can be updated (every N ticks)
-	AI_INITIATIVE_SLOTS = 10
+	AI_INITIATIVE_SLOTS = 4
 
 	// AI_INITIATIVE_TIMER is how many ticks between rerolling initiative slots
 	AI_INITIATIVE_TIMER = 300

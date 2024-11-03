@@ -248,7 +248,7 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 }
 
 func (g *Game) getSpriteUnits() []model.Unit {
-	units := make([]model.Unit, 0, 32)
+	units := make([]model.Unit, 0, 64)
 	for _, spriteMap := range g.sprites.sprites {
 		spriteMap.Range(func(k, _ interface{}) bool {
 			spriteInterface := k.(raycaster.Sprite)

@@ -57,6 +57,10 @@ func AngleDistance(a, b float64) float64 {
 	return math.Mod(math.Mod(b-a+geom.Pi, geom.Pi2)-geom.Pi2, geom.Pi2) + geom.Pi
 }
 
+func Hypotenuse(a, b float64) float64 {
+	return math.Sqrt(a*a + b*b)
+}
+
 func IsBetweenDegrees(start, end, mid float64) bool {
 	if end-start < 0.0 {
 		end = end - start + 360.0

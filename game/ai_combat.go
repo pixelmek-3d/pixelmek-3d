@@ -8,7 +8,6 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 
 	bt "github.com/joeycumines/go-behaviortree"
-	log "github.com/sirupsen/logrus"
 )
 
 func (a *AIBehavior) HasTarget() bt.Node {
@@ -34,7 +33,7 @@ func (a *AIBehavior) HasTarget() bt.Node {
 					continue
 				}
 
-				log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
+				// log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
 				a.u.SetTarget(t)
 				return bt.Success, nil
 			}
@@ -65,23 +64,42 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 				return bt.Failure, nil
 			}
 
-			// check for angle/pitch proximity to target
+			// check for angle/pitch proximity to target center mass
 			if a.gunnery.targetLeadPos != nil {
 				targetLeadLine := &geom3d.Line3d{
 					X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
 					X2: a.gunnery.targetLeadPos.X, Y2: a.gunnery.targetLeadPos.Y, Z2: target.PosZ() + target.CollisionHeight()/2,
 				}
 
+				// use target collision size for proximity check
+				targetLeadLine2D := &geom.Line{
+					X1: a.u.Pos().X, Y1: a.u.Pos().Y,
+					X2: a.gunnery.targetLeadPos.X, Y2: a.gunnery.targetLeadPos.Y,
+				}
+				targetLeadDist2D := targetLeadLine2D.Distance()
+				targetProximityAngle2D := math.Atan(targetLeadDist2D / target.CollisionRadius())
+				targetProximityLength2D := model.Hypotenuse(targetLeadDist2D, target.CollisionRadius())
+				targetProximityLine2D := geom.LineFromAngle(a.u.Pos().X, a.u.Pos().Y, targetProximityAngle2D, targetProximityLength2D)
+
+				targetProximityLine := &geom3d.Line3d{
+					X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
+					X2: targetProximityLine2D.X2, Y2: targetProximityLine2D.Y2, Z2: target.PosZ() + target.CollisionHeight(),
+				}
+
+				proximityHeading := math.Abs(model.AngleDistance(targetProximityLine.Heading(), targetLeadLine.Heading())) * 1.1
+				proximityPitch := math.Abs(model.AngleDistance(targetProximityLine.Pitch(), targetLeadLine.Pitch())) * 1.1
+
 				deltaHeading := math.Abs(model.AngleDistance(a.u.TurretAngle(), targetLeadLine.Heading()))
 				deltaPitch := math.Abs(model.AngleDistance(a.u.Pitch(), targetLeadLine.Pitch()))
-				if deltaHeading > 0.05 || deltaPitch > 0.1 {
-					//log.Debugf("[%s] not in proximity to [%s] @ (dH=%0.3f, dP=%0.3f)", a.u.ID(), target.ID(), geom.Degrees(deltaHeading), geom.Degrees(deltaPitch))
+				if deltaHeading > proximityHeading || deltaPitch > proximityPitch {
+					// log.Debugf("[%s] not in proximity to [%s] (pH=%0.3f, pP=%0.3f) @ (dH=%0.3f, dP=%0.3f)", a.u.ID(), target.ID(), geom.Degrees(proximityHeading), geom.Degrees(proximityPitch), geom.Degrees(deltaHeading), geom.Degrees(deltaPitch))
 					return bt.Failure, nil
 				}
 			}
 
 			// check walls for line of sight to target
 			if !a.g.lineOfSight(a.u, target) {
+				// log.Debugf("[%s] wall in LOS to %s", a.u.ID(), target.ID())
 				return bt.Failure, nil
 			}
 
@@ -92,8 +110,7 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 			// check for friendly units in line of fire to target position
 			units := a.g.getSpriteUnits()
 			for _, s := range units {
-				// make sure player unit is checked when same team as AI unit
-				if s == a.u || s.IsDestroyed() || a.g.IsFriendly(a.u, s) {
+				if s == a.u || s.IsDestroyed() || !a.g.IsFriendly(a.u, s) {
 					continue
 				}
 
@@ -103,9 +120,12 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 					continue
 				}
 
+				// TODO: make sure player unit is checked when same team as AI unit
+
 				sCollisionCircle := geom.Circle{X: s.Pos().X, Y: s.Pos().Y, Radius: s.CollisionRadius()}
 				if len(geom.LineCircleIntersection(targetLine, sCollisionCircle, true)) > 0 {
 					// wait to fire until line of fire is not blocked by friendly
+					// log.Debugf("[%s] friendly in LOS to %s", a.u.ID(), target.ID())
 					return bt.Failure, nil
 				}
 			}
@@ -134,6 +154,7 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 			for _, w := range readyWeapons {
 				if unitHeat+w.Heat() >= a.u.MaxHeat() {
 					// only fire the weapon if it will not lead to overheating
+					// log.Debugf("[%s] weapon (%s) too hot to fire @ %s", a.u.ID(), w.ShortName(), target.ID())
 					continue
 				}
 
@@ -147,7 +168,7 @@ func (a *AIBehavior) FireWeapons() bt.Node {
 			}
 
 			if weaponFired {
-				//log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
+				// log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
 				return bt.Success, nil
 			}
 			return bt.Failure, nil
