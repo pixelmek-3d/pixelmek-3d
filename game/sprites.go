@@ -244,6 +244,12 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 		count++
 	}
 
+	if g.player.debugCameraTarget != nil {
+		// add player sprite to be raycasted only when camera attached to a target
+		raycastSprites = append(raycastSprites, g.player.sprite)
+		count++
+	}
+
 	return raycastSprites[:count]
 }
 
@@ -262,6 +268,25 @@ func (g *Game) getSpriteUnits() []model.Unit {
 	}
 
 	return units
+}
+
+func (g *Game) getUnitSprites() []*render.Sprite {
+	sprites := make([]*render.Sprite, 0, 64)
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+			if !g.isInteractiveType(spriteType) {
+				// only include certain sprite types (skip projectiles, effects, etc.)
+				return true
+			}
+
+			spriteInterface := getSpriteFromInterface(k.(raycaster.Sprite))
+			s := getSpriteFromInterface(spriteInterface)
+			sprites = append(sprites, s)
+			return true
+		})
+	}
+
+	return sprites
 }
 
 func getSpriteType(sInterface raycaster.Sprite) SpriteType {
@@ -344,7 +369,7 @@ func (g *Game) getSpriteFromEntity(entity model.Entity) *render.Sprite {
 	for spriteType := range g.sprites.sprites {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 			if !g.isInteractiveType(spriteType) {
-				// only show on certain sprite types (skip projectiles, effects, etc.)
+				// only include certain sprite types (skip projectiles, effects, etc.)
 				return true
 			}
 

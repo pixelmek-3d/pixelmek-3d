@@ -5,7 +5,6 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
@@ -745,53 +744,57 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	// discover blips that are in range
 	blipCount := 0
-	for _, spriteMap := range g.sprites.sprites {
-		spriteMap.Range(func(k, _ interface{}) bool {
-			spriteInterface := k.(raycaster.Sprite)
-			entity := getEntityFromInterface(spriteInterface)
-			unit := model.EntityUnit(entity)
-			if unit == nil {
-				return true
+
+	sprites := g.getUnitSprites()
+	if g.player.debugCameraTarget != nil {
+		// add player sprite to list only when camera attached to a target
+		sprites = append(sprites, g.player.sprite)
+	}
+
+	for _, s := range sprites {
+		entity := s.Entity
+		unit := model.EntityUnit(entity)
+		if unit == nil {
+			ebiten.SetCursorMode(ebiten.CursorModeVisible)
+			continue
+		}
+
+		unitPos := unit.Pos()
+		unitLine := geom.Line{
+			X1: camPos.X, Y1: camPos.Y,
+			X2: unitPos.X, Y2: unitPos.Y,
+		}
+
+		unitIsFriendly := g.IsFriendly(g.player, entity)
+		unitIsTarget := playerTarget == entity
+		unitDistance := unitLine.Distance()
+		if unitDistance > maxDistanceUnits {
+			if unitIsTarget {
+				// if current target out of radar range, draw just outside edge
+				unitDistance = maxDistanceUnits + 1
+			} else {
+				continue
 			}
+		}
 
-			unitPos := unit.Pos()
-			unitLine := geom.Line{
-				X1: camPos.X, Y1: camPos.Y,
-				X2: unitPos.X, Y2: unitPos.Y,
-			}
+		// determine angle of unit relative from player heading
+		relAngle := camHeading - unitLine.Angle()
+		// determine heading of unit relative from player heading
+		relHeading := camHeading - unit.Heading()
+		relTurretHeading := camHeading - unit.TurretAngle()
 
-			unitIsFriendly := g.IsFriendly(g.player, entity)
-			unitIsTarget := playerTarget == entity
-			unitDistance := unitLine.Distance()
-			if unitDistance > maxDistanceUnits {
-				if unitIsTarget {
-					// if current target out of radar range, draw just outside edge
-					unitDistance = maxDistanceUnits + 1
-				} else {
-					return true
-				}
-			}
+		blip := &render.RadarBlip{
+			Unit:          unit,
+			Distance:      unitDistance,
+			Angle:         relAngle,
+			Heading:       relHeading,
+			TurretHeading: relTurretHeading,
+			IsTarget:      unitIsTarget,
+			IsFriendly:    unitIsFriendly,
+		}
 
-			// determine angle of unit relative from player heading
-			relAngle := camHeading - unitLine.Angle()
-			// determine heading of unit relative from player heading
-			relHeading := camHeading - unit.Heading()
-			relTurretHeading := camHeading - unit.TurretAngle()
-
-			blip := &render.RadarBlip{
-				Unit:          unit,
-				Distance:      unitDistance,
-				Angle:         relAngle,
-				Heading:       relHeading,
-				TurretHeading: relTurretHeading,
-				IsTarget:      unitIsTarget,
-				IsFriendly:    unitIsFriendly,
-			}
-
-			radarBlips = append(radarBlips, blip)
-			blipCount++
-			return true
-		})
+		radarBlips = append(radarBlips, blip)
+		blipCount++
 	}
 
 	if g.debug && playerTarget != nil {
@@ -878,7 +881,7 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 	}
 
 	var targetLeadBounds *image.Rectangle
-	if g.player.reticleLead != nil {
+	if g.player.reticleLead != nil && g.player.debugCameraTarget == nil {
 		targetLeadBounds = g.player.reticleLead.ScreenRect(g.renderScale)
 	}
 	targetReticle.ReticleLeadBounds = targetLeadBounds
