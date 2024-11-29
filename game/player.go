@@ -202,9 +202,13 @@ func (p *Player) CameraPosition() (pos *geom.Vector2, posZ, angle, pitch float64
 	}
 
 	if p.debugCameraTarget != nil {
-		pos, posZ = p.debugCameraTarget.Pos().Copy(), p.debugCameraTarget.PosZ()+p.debugCameraTarget.CockpitOffset().Y
-		angle, pitch = p.debugCameraTarget.TurretAngle(), p.debugCameraTarget.Pitch()
-		return
+		if p.debugCameraTarget.IsDestroyed() {
+			p.debugCameraTarget = nil
+		} else {
+			pos, posZ = p.debugCameraTarget.Pos().Copy(), p.debugCameraTarget.PosZ()+p.debugCameraTarget.CockpitOffset().Y
+			angle, pitch = p.debugCameraTarget.TurretAngle(), p.debugCameraTarget.Pitch()
+			return
+		}
 	}
 
 	pos, posZ = p.Pos().Copy(), p.cameraZ
