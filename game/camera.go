@@ -7,7 +7,11 @@ import (
 
 // Update camera to match player position and orientation
 func (g *Game) updatePlayerCamera(forceUpdate bool) {
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
+		if debugCamTgt.IsDestroyed() {
+			g.player.SetDebugCameraTarget(nil)
+		}
 		forceUpdate = true
 	}
 	if !g.player.moved && !forceUpdate {

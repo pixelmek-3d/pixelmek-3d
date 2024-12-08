@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"sync"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
@@ -44,7 +45,8 @@ type Player struct {
 	currentNav        *render.NavSprite
 	ejectionPod       *render.ProjectileSprite
 
-	debugCameraTarget model.Unit
+	debugCameraTgt model.Unit
+	debugCameraMu  sync.Mutex
 }
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
@@ -151,7 +153,7 @@ func (p *Player) RotateCamera(rSpeed float64) {
 		return
 	}
 
-	if p.debugCameraTarget != nil {
+	if p.debugCameraTgt != nil {
 		// disallow player from moving camera when viewing from debug camera target
 		return
 	}
@@ -183,7 +185,7 @@ func (p *Player) PitchCamera(pSpeed float64) {
 		return
 	}
 
-	if p.debugCameraTarget != nil {
+	if p.debugCameraTgt != nil {
 		// disallow player from moving camera when viewing from debug camera target
 		return
 	}
@@ -201,14 +203,11 @@ func (p *Player) CameraPosition() (pos *geom.Vector2, posZ, angle, pitch float64
 		return
 	}
 
-	if p.debugCameraTarget != nil {
-		if p.debugCameraTarget.IsDestroyed() {
-			p.debugCameraTarget = nil
-		} else {
-			pos, posZ = p.debugCameraTarget.Pos().Copy(), p.debugCameraTarget.PosZ()+p.debugCameraTarget.CockpitOffset().Y
-			angle, pitch = p.debugCameraTarget.TurretAngle(), p.debugCameraTarget.Pitch()
-			return
-		}
+	debugCamTgt := p.DebugCameraTarget()
+	if debugCamTgt != nil {
+		pos, posZ = debugCamTgt.Pos().Copy(), debugCamTgt.PosZ()+debugCamTgt.CockpitOffset().Y
+		angle, pitch = debugCamTgt.TurretAngle(), debugCamTgt.Pitch()
+		return
 	}
 
 	pos, posZ = p.Pos().Copy(), p.cameraZ
@@ -229,10 +228,24 @@ func (p *Player) CameraPosXY() (pos *geom.Vector2) {
 		return p.ejectionPod.Pos().Copy()
 	}
 
-	if p.debugCameraTarget != nil {
-		return p.debugCameraTarget.Pos().Copy()
+	debugCamTgt := p.DebugCameraTarget()
+	if debugCamTgt != nil {
+		return debugCamTgt.Pos().Copy()
 	}
 	return p.Pos().Copy()
+}
+
+func (p *Player) DebugCameraTarget() (t model.Unit) {
+	p.debugCameraMu.Lock()
+	t = p.debugCameraTgt
+	p.debugCameraMu.Unlock()
+	return t
+}
+
+func (p *Player) SetDebugCameraTarget(t model.Unit) {
+	p.debugCameraMu.Lock()
+	p.debugCameraTgt = t
+	p.debugCameraMu.Unlock()
 }
 
 func (g *Game) SetPlayerUnit(unit model.Unit) {

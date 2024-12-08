@@ -244,7 +244,7 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 		count++
 	}
 
-	if g.player.debugCameraTarget != nil {
+	if g.player.DebugCameraTarget() != nil {
 		// add player sprite to be raycasted only when camera attached to a target
 		raycastSprites = append(raycastSprites, g.player.sprite)
 		count++

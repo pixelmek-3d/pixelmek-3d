@@ -450,10 +450,11 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 		weaponOrGroupIndex = g.player.selectedGroup
 	}
 
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
 		// override display for debug camera target
 		if !armament.IsDebugWeapons() {
-			armament.SetDebugWeapons(g.player.debugCameraTarget.Armament())
+			armament.SetDebugWeapons(debugCamTgt.Armament())
 		}
 		weaponFireMode = model.GROUP_FIRE
 		weaponGroups = make([][]model.Weapon, 0)
@@ -490,11 +491,12 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 	camHeading := g.player.Heading()
 	camTurretAngle := g.player.TurretAngle()
 
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
 		// override display for debug camera target
-		camPos = g.player.debugCameraTarget.Pos()
-		camHeading = g.player.debugCameraTarget.Heading()
-		camTurretAngle = g.player.debugCameraTarget.TurretAngle()
+		camPos = debugCamTgt.Pos()
+		camHeading = debugCamTgt.Heading()
+		camTurretAngle = debugCamTgt.TurretAngle()
 	}
 
 	if g.player.Target() == nil {
@@ -543,9 +545,10 @@ func (g *Game) drawAltimeter(hudOpts *render.DrawHudOptions) {
 	// convert Z position to meters of altitude
 	altitude := g.player.PosZ() * model.METERS_PER_UNIT
 
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
 		// override display for debug camera target
-		altitude = g.player.debugCameraTarget.PosZ() * model.METERS_PER_UNIT
+		altitude = debugCamTgt.PosZ() * model.METERS_PER_UNIT
 	}
 
 	altScale := altimeter.Scale() * g.hudScale
@@ -574,10 +577,11 @@ func (g *Game) drawHeatIndicator(hudOpts *render.DrawHudOptions) {
 	currHeat, maxHeat := g.player.Heat(), g.player.MaxHeat()
 	dissipationPerSec := g.player.HeatDissipation() * model.TICKS_PER_SECOND
 
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
 		// override display for debug camera target
-		currHeat, maxHeat = g.player.debugCameraTarget.Heat(), g.player.debugCameraTarget.MaxHeat()
-		dissipationPerSec = g.player.debugCameraTarget.HeatDissipation() * model.TICKS_PER_SECOND
+		currHeat, maxHeat = debugCamTgt.Heat(), debugCamTgt.MaxHeat()
+		dissipationPerSec = debugCamTgt.HeatDissipation() * model.TICKS_PER_SECOND
 	}
 
 	heatScale := heat.Scale() * g.hudScale
@@ -613,12 +617,13 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
 	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
 
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
 		// override display for debug camera target
-		kphVelocity = g.player.debugCameraTarget.Velocity() * model.VELOCITY_TO_KPH
-		kphVelocityZ = g.player.debugCameraTarget.VelocityZ() * model.VELOCITY_TO_KPH
-		kphTgtVelocity = g.player.debugCameraTarget.TargetVelocity() * model.VELOCITY_TO_KPH
-		kphMax = g.player.debugCameraTarget.MaxVelocity() * model.VELOCITY_TO_KPH
+		kphVelocity = debugCamTgt.Velocity() * model.VELOCITY_TO_KPH
+		kphVelocityZ = debugCamTgt.VelocityZ() * model.VELOCITY_TO_KPH
+		kphTgtVelocity = debugCamTgt.TargetVelocity() * model.VELOCITY_TO_KPH
+		kphMax = debugCamTgt.MaxVelocity() * model.VELOCITY_TO_KPH
 	}
 
 	throttleScale := throttle.Scale() * g.hudScale
@@ -652,10 +657,11 @@ func (g *Game) drawJumpJetIndicator(hudOpts *render.DrawHudOptions) {
 	jDuration := g.player.Unit.JumpJetDuration()
 	jMaxDuration := g.player.Unit.MaxJumpJetDuration()
 
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
 		// override display for debug camera target
-		jDuration = g.player.debugCameraTarget.JumpJetDuration()
-		jMaxDuration = g.player.debugCameraTarget.MaxJumpJetDuration()
+		jDuration = debugCamTgt.JumpJetDuration()
+		jMaxDuration = debugCamTgt.MaxJumpJetDuration()
 	}
 
 	jetsScale := jets.Scale() * g.hudScale
@@ -701,11 +707,12 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	camHeading := g.player.Heading()
 	camTurretAngle := g.player.TurretAngle()
 
-	if g.player.debugCameraTarget != nil {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
 		// override radar location for debug camera target
-		camPos = g.player.debugCameraTarget.Pos()
-		camHeading = g.player.debugCameraTarget.Heading()
-		camTurretAngle = g.player.debugCameraTarget.TurretAngle()
+		camPos = debugCamTgt.Pos()
+		camHeading = debugCamTgt.Heading()
+		camTurretAngle = debugCamTgt.TurretAngle()
 
 	}
 
@@ -746,7 +753,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	blipCount := 0
 
 	sprites := g.getUnitSprites()
-	if g.player.debugCameraTarget != nil {
+	if debugCamTgt != nil {
 		// add player sprite to list only when camera attached to a target
 		sprites = append(sprites, g.player.sprite)
 	}
@@ -846,7 +853,7 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 	deltaAngle := model.AngleDistance(g.player.TurretAngle(), g.player.cameraAngle)
 	deltaPitch := model.AngleDistance(g.player.Pitch(), g.player.cameraPitch)
 
-	if g.player.debugCameraTarget != nil {
+	if g.player.DebugCameraTarget() != nil {
 		// override crosshair location for debug camera target
 		deltaAngle = 0
 		deltaPitch = 0
@@ -881,7 +888,7 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 	}
 
 	var targetLeadBounds *image.Rectangle
-	if g.player.reticleLead != nil && g.player.debugCameraTarget == nil {
+	if g.player.reticleLead != nil && g.player.DebugCameraTarget() == nil {
 		targetLeadBounds = g.player.reticleLead.ScreenRect(g.renderScale)
 	}
 	targetReticle.ReticleLeadBounds = targetLeadBounds

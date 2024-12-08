@@ -393,10 +393,11 @@ func (g *Game) handleInput() {
 
 	if g.debug && g.input.ActionIsJustPressed(ActionCameraCycle) {
 		// debug only: camera swap with player target or cycle back to player unit
-		if g.player.debugCameraTarget == nil && g.player.Target() != nil {
-			g.player.debugCameraTarget = model.EntityUnit(g.player.Target())
-		} else if g.player.debugCameraTarget != nil {
-			g.player.debugCameraTarget = nil
+		debugCamTgt := g.player.DebugCameraTarget()
+		if debugCamTgt == nil && g.player.Target() != nil {
+			g.player.SetDebugCameraTarget(model.EntityUnit(g.player.Target()))
+		} else if debugCamTgt != nil {
+			g.player.SetDebugCameraTarget(nil)
 			g.player.moved = true
 		}
 	}
