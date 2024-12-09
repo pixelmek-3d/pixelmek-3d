@@ -28,6 +28,7 @@ type UnitStatus struct {
 	showTargetLock bool
 	targetLock     float64
 	isPlayer       bool
+	isSpectating   bool
 	targetReticle  *TargetReticle
 }
 
@@ -46,6 +47,14 @@ func NewUnitStatus(isPlayer bool, font *Font) *UnitStatus {
 	}
 
 	return u
+}
+
+func (u *UnitStatus) SetIsPlayer(isPlayer bool) {
+	u.isPlayer = isPlayer
+}
+
+func (u *UnitStatus) SetIsSpectating(isSpectating bool) {
+	u.isSpectating = isSpectating
 }
 
 func (u *UnitStatus) Unit() *Sprite {
@@ -161,7 +170,29 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	internalStr := fmt.Sprintf("STRUCT\n %0.0f%%", internalPercent)
 	u.fontRenderer.Draw(internalStr, int(sX)+int(3*sW/5), int(sY)+int(2*sH/3))
 
-	if !u.isPlayer {
+	if u.isSpectating {
+		sUnit := model.EntityUnit(u.unit.Entity)
+		if sUnit != nil {
+			// spectated chassis name
+			var eColor color.NRGBA
+			if sUnit.Team() < 0 {
+				eColor = hudOpts.HudColor(_colorFriendly)
+			} else {
+				eColor = hudOpts.HudColor(_colorEnemy)
+			}
+			u.fontRenderer.SetColor(eColor)
+
+			chassisVariant := strings.ToUpper(sUnit.Variant())
+			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
+			u.fontRenderer.Draw(chassisVariant, bX+bW/2, bY)
+
+			// show spectating text
+			sColor := hudOpts.HudColor(_colorStatusWarn)
+			u.fontRenderer.SetColor(sColor)
+			u.fontRenderer.SetAlign(etxt.Bottom, etxt.XCenter)
+			u.fontRenderer.Draw("SPECTATING", bX+bW/2, bY-2)
+		}
+	} else if !u.isPlayer {
 		// target distance
 		if u.unitDistance >= 0 {
 			u.fontRenderer.SetAlign(etxt.Bottom, etxt.XCenter)
@@ -204,7 +235,6 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				u.fontRenderer.Draw(lockStr, bX, bY-u.targetReticle.Height())
 			}
 		}
-
 	}
 
 	if u.targetReticle != nil {

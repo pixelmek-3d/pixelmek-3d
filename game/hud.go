@@ -333,8 +333,12 @@ func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {
 	debugCamTgt := g.player.DebugCameraTarget()
 	if debugCamTgt != nil {
 		playerStatus.SetUnit(g.getSpriteFromEntity(debugCamTgt))
+		playerStatus.SetIsPlayer(false)
+		playerStatus.SetIsSpectating(true)
 	} else {
 		playerStatus.SetUnit(g.player.sprite)
+		playerStatus.SetIsPlayer(true)
+		playerStatus.SetIsSpectating(false)
 	}
 	playerStatus.Draw(sBounds, hudOpts)
 }
