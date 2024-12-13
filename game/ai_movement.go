@@ -111,9 +111,24 @@ func (a *AIBehavior) TurretToTarget() bt.Node {
 				X2: iPos.X, Y2: iPos.Y, Z2: iPos.Z,
 			}
 			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
-			if a.u.TurretAngle() == pHeading && a.u.Pitch() == pPitch {
-				return bt.Success, nil
+			currHeading, currPitch := a.u.TurretAngle(), a.u.Pitch()
+
+			// TODO: if more distant, decrease angle/pitch check for target lock proximity
+			acquireLock := model.AngleDistance(currHeading, pHeading) <= 0.5 && model.AngleDistance(currPitch, pPitch) <= 0.5
+
+			// TODO: decrease lock percent delta if further from target
+			lockDelta := 1.0 / model.TICKS_PER_SECOND
+			if !acquireLock {
+				lockDelta = -0.15 / model.TICKS_PER_SECOND
 			}
+
+			targetLock := a.u.TargetLock() + lockDelta
+			if targetLock > 1.0 {
+				targetLock = 1.0
+			} else if targetLock < 0 {
+				targetLock = 0
+			}
+			a.u.SetTargetLock(targetLock)
 
 			// log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
