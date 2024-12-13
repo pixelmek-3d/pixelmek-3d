@@ -9,7 +9,7 @@ import (
 func (g *Game) updatePlayerCamera(forceUpdate bool) {
 	debugCamTgt := g.player.DebugCameraTarget()
 	if debugCamTgt != nil {
-		if debugCamTgt.IsDestroyed() {
+		if debugCamTgt.IsDestroyed() || g.player.ejectionPod != nil {
 			g.player.SetDebugCameraTarget(nil)
 		}
 		forceUpdate = true
