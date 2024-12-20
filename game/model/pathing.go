@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/harbdog/raycaster-go/geom"
-	"github.com/pixelmek-3d/pixelmek-3d/game/model/bezier"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common/bezier"
 	"github.com/quasilyte/pathing"
 )
 

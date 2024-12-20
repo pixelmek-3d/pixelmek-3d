@@ -8,6 +8,7 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 )
 
 const (
@@ -99,6 +100,7 @@ type Unit interface {
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
 
+	PatrolPath() *common.FIFOStack[geom.Vector2]
 	Objective() UnitObjective
 	SetObjective(UnitObjective)
 	SetAsPlayer(bool)
@@ -153,6 +155,7 @@ type UnitModel struct {
 	target              Entity
 	targetLock          float64
 	objective           UnitObjective
+	patrolPath          *common.FIFOStack[geom.Vector2]
 	parent              Entity
 	isPlayer            bool
 }
@@ -543,6 +546,21 @@ func (e *UnitModel) JumpJetDuration() float64 {
 
 func (e *UnitModel) MaxJumpJetDuration() float64 {
 	return e.maxJumpJetDuration
+}
+
+func (e *UnitModel) SetPatrolPathFromModel(modelPatrolPath [][2]float64) {
+	if len(modelPatrolPath) == 0 {
+		e.patrolPath = nil
+		return
+	}
+	e.patrolPath = common.NewFIFOStack[geom.Vector2]()
+	for _, point := range modelPatrolPath {
+		e.patrolPath.Push(geom.Vector2{X: point[0], Y: point[1]})
+	}
+}
+
+func (e *UnitModel) PatrolPath() *common.FIFOStack[geom.Vector2] {
+	return e.patrolPath
 }
 
 func (e *UnitModel) Objective() UnitObjective {

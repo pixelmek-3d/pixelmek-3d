@@ -260,15 +260,11 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionMech := range g.mission.Mechs {
-		modelMech := g.createModelMech(missionMech.Unit, missionMech.ID, missionMech.Team)
+		modelMech := g.createModelMech(missionMech)
 		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
 
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
 		mech.SetPos(&geom.Vector2{X: posX, Y: posY})
-
-		if len(missionMech.PatrolPath) > 0 {
-			mech.PatrolPath = missionMech.PatrolPath
-		}
 
 		g.sprites.addMechSprite(mech)
 	}
@@ -327,11 +323,13 @@ func (g *Game) loadMissionSprites() {
 	}
 }
 
-func (g *Game) createModelMech(unit, id string, team int) *model.Mech {
-	mechResource := g.resources.GetMechResource(unit)
+func (g *Game) createModelMech(unit model.MissionUnit) *model.Mech {
+	mUnit, id, team := unit.Unit, unit.ID, unit.Team
+	mechResource := g.resources.GetMechResource(mUnit)
 	modelMech := g.createModelMechFromResource(mechResource)
 	modelMech.SetID(id)
 	modelMech.SetTeam(team)
+	modelMech.SetPatrolPathFromModel(unit.PatrolPath)
 	return modelMech
 }
 

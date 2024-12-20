@@ -21,6 +21,28 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 
 			target := model.EntityUnit(a.u.Target())
 			if target == nil {
+
+				// FIXME: create new AI tree/nodes for non-target movement (patrol, guard, wander)
+				patrolPath := a.u.PatrolPath()
+				if patrolPath != nil && patrolPath.Len() > 0 {
+					// determine if need to move to next position in path
+					pos := a.u.Pos()
+					nextPos := patrolPath.Peek()
+					if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
+						// unit is close enough, move to next path position for next cycle
+						patrolPath.Push(*patrolPath.Pop())
+					}
+
+					// TODO: use pathfinding to determine route to next patrol point
+					moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
+					targetHeading := moveLine.Angle()
+
+					a.u.SetTargetHeading(targetHeading)
+
+					//return bt.Success, nil
+					a.u.SetTargetVelocity(a.u.MaxVelocity())
+				}
+
 				return bt.Failure, nil
 			}
 
