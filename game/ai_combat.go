@@ -11,40 +11,47 @@ import (
 )
 
 func (a *AIBehavior) HasTarget() bt.Node {
-	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
-			if a.u.Target() != nil {
-				// TODO: criteria for when to change to another target
-				return bt.Success, nil
+	return bt.New(a.targetFunc())
+}
+
+func (a *AIBehavior) NoTarget() bt.Node {
+	// TODO: determine generic way to support the Negate decorator instead
+	return bt.New(bt.Not(a.targetFunc()))
+}
+
+func (a *AIBehavior) targetFunc() func([]bt.Node) (bt.Status, error) {
+	return func(_ []bt.Node) (bt.Status, error) {
+		if a.u.Target() != nil {
+			// TODO: criteria for when to change to another target
+			return bt.Success, nil
+		}
+
+		// reset AI settings for previous targets
+		a.gunnery.Reset()
+		a.piloting.Reset()
+
+		// TODO: create separate node for selecting a new target based on some criteria
+		units := a.g.getSpriteUnits()
+
+		// TODO: enemy units need to be able to target player unit
+		// units = append(units, a.g.player)
+
+		for _, t := range units {
+			if t == a.u || t.IsDestroyed() || a.g.IsFriendly(a.u, t) {
+				continue
 			}
 
-			// reset AI settings for previous targets
-			a.gunnery.Reset()
-			a.piloting.Reset()
-
-			// TODO: create separate node for selecting a new target based on some criteria
-			units := a.g.getSpriteUnits()
-
-			// TODO: enemy units need to be able to target player unit
-			// units = append(units, a.g.player)
-
-			for _, t := range units {
-				if t == a.u || t.IsDestroyed() || a.g.IsFriendly(a.u, t) {
-					continue
-				}
-
-				// log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
-				a.u.SetTarget(t)
-				return bt.Success, nil
-			}
-			return bt.Failure, nil
-		},
-	)
+			// log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
+			a.u.SetTarget(t)
+			return bt.Success, nil
+		}
+		return bt.Failure, nil
+	}
 }
 
 func (a *AIBehavior) TargetIsAlive() bt.Node {
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			if a.u.Target() != nil {
 				if !a.u.Target().IsDestroyed() {
 					return bt.Success, nil
@@ -58,7 +65,7 @@ func (a *AIBehavior) TargetIsAlive() bt.Node {
 
 func (a *AIBehavior) FireWeapons() bt.Node {
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			target := model.EntityUnit(a.u.Target())
 			if target == nil {
 				return bt.Failure, nil

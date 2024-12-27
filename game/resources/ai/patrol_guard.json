@@ -1,74 +1,118 @@
 {
   "version": "0.3.0",
   "scope": "tree",
-  "id": "a1c99bf9-4d8c-4613-9197-8d0060831399",
-  "title": "unit",
-  "description": "Basic Unit AI",
-  "root": "e5f2187c-ee9b-474b-83d0-65f5d58f0175",
+  "id": "c6775b79-12fd-46e5-b6e1-749941ecb59c",
+  "title": "patrol_guard",
+  "description": "Behavior of a unit guarding or patrolling an area.",
+  "root": "51ddd536-b262-48b8-883f-8110f3be274d",
   "properties": {},
   "nodes": {
-    "e5f2187c-ee9b-474b-83d0-65f5d58f0175": {
-      "id": "e5f2187c-ee9b-474b-83d0-65f5d58f0175",
+    "46b79ddf-b45a-405d-95a7-c52464b7bd70": {
+      "id": "46b79ddf-b45a-405d-95a7-c52464b7bd70",
       "name": "select",
       "title": "Select",
       "description": "Takes multiple children and runs them from top to bottom (or left to right), succeeding when any one succeeds.  Fails if all fail.",
       "properties": {},
       "display": {
-        "x": 12,
-        "y": -384
+        "x": 312,
+        "y": 252
       },
       "children": [
-        "530ad45c-5695-4883-8355-5517a20dd490",
-        "8d200305-2db5-4426-865a-ae25b600015a",
-        "f84eb781-d730-4fd8-8608-71aa14435faf"
+        "e852ca6b-d56a-43e5-81bf-db15244d811b",
+        "fbb2ecfb-6192-46f1-80d9-7180067b6184",
+        "ed4c1884-a804-4f10-8576-a39caaef092c",
+        "6c8cabea-72db-43a8-8fb4-9fd24421ecda",
+        "ff362366-d933-4c6c-b9ea-e5183d601e5f"
       ]
     },
-    "530ad45c-5695-4883-8355-5517a20dd490": {
-      "id": "530ad45c-5695-4883-8355-5517a20dd490",
-      "name": "forced_withdrawal",
-      "title": "forced_withdrawal",
+    "ed4c1884-a804-4f10-8576-a39caaef092c": {
+      "id": "ed4c1884-a804-4f10-8576-a39caaef092c",
+      "name": "PatrolPath",
+      "title": "PatrolPath",
       "description": "",
-      "properties": {
-        "type": "tree"
-      },
+      "properties": {},
       "display": {
-        "x": -204,
-        "y": -252
+        "x": 312,
+        "y": 384
       }
     },
-    "f84eb781-d730-4fd8-8608-71aa14435faf": {
-      "id": "f84eb781-d730-4fd8-8608-71aa14435faf",
-      "name": "engage_target",
-      "title": "engage_target",
+    "6c8cabea-72db-43a8-8fb4-9fd24421ecda": {
+      "id": "6c8cabea-72db-43a8-8fb4-9fd24421ecda",
+      "name": "GuardArea",
+      "title": "GuardArea",
       "description": "",
-      "properties": {
-        "type": "tree"
-      },
+      "properties": {},
       "display": {
-        "x": 216,
-        "y": -252
+        "x": 516,
+        "y": 384
       }
     },
-    "8d200305-2db5-4426-865a-ae25b600015a": {
-      "id": "8d200305-2db5-4426-865a-ae25b600015a",
-      "name": "patrol_guard",
-      "title": "patrol_guard",
+    "e852ca6b-d56a-43e5-81bf-db15244d811b": {
+      "id": "e852ca6b-d56a-43e5-81bf-db15244d811b",
+      "name": "GuardUnit",
+      "title": "GuardUnit",
       "description": "",
-      "properties": {
-        "type": "tree"
-      },
+      "properties": {},
       "display": {
-        "x": 12,
-        "y": -252
+        "x": -108,
+        "y": 384
+      }
+    },
+    "fbb2ecfb-6192-46f1-80d9-7180067b6184": {
+      "id": "fbb2ecfb-6192-46f1-80d9-7180067b6184",
+      "name": "HuntLastTargetArea",
+      "title": "HuntLastTargetArea",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 96,
+        "y": 384
+      }
+    },
+    "ff362366-d933-4c6c-b9ea-e5183d601e5f": {
+      "id": "ff362366-d933-4c6c-b9ea-e5183d601e5f",
+      "name": "Wander",
+      "title": "Wander",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 720,
+        "y": 384
+      }
+    },
+    "51ddd536-b262-48b8-883f-8110f3be274d": {
+      "id": "51ddd536-b262-48b8-883f-8110f3be274d",
+      "name": "sequence",
+      "title": "Sequence",
+      "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+      "properties": {},
+      "display": {
+        "x": 0,
+        "y": 120
+      },
+      "children": [
+        "53ded8d6-97ce-4993-8e8a-9a257b70f289",
+        "46b79ddf-b45a-405d-95a7-c52464b7bd70"
+      ]
+    },
+    "53ded8d6-97ce-4993-8e8a-9a257b70f289": {
+      "id": "53ded8d6-97ce-4993-8e8a-9a257b70f289",
+      "name": "NoTarget",
+      "title": "NoTarget",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": -312,
+        "y": 252
       }
     }
   },
   "display": {
-    "camera_x": 613.5,
-    "camera_y": 751.5,
+    "camera_x": 726.7999999998137,
+    "camera_y": 294.19999999995343,
     "camera_z": 1,
-    "x": 12,
-    "y": -504
+    "x": 0,
+    "y": 0
   },
   "custom_nodes": [
     {
@@ -247,6 +291,15 @@
       "properties": {
         "type": "tree"
       }
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "NoTarget",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
     }
   ]
 }

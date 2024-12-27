@@ -13,7 +13,7 @@ import (
 
 func (a *AIBehavior) TurnToTarget() bt.Node {
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			if a.u.UnitType() == model.EmplacementUnitType {
 				// emplacements only have turrets
 				return bt.Success, nil
@@ -21,28 +21,6 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 
 			target := model.EntityUnit(a.u.Target())
 			if target == nil {
-
-				// FIXME: create new AI tree/nodes for non-target movement (patrol, guard, wander)
-				patrolPath := a.u.PatrolPath()
-				if patrolPath != nil && patrolPath.Len() > 0 {
-					// determine if need to move to next position in path
-					pos := a.u.Pos()
-					nextPos := patrolPath.Peek()
-					if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
-						// unit is close enough, move to next path position for next cycle
-						patrolPath.Push(*patrolPath.Pop())
-					}
-
-					// TODO: use pathfinding to determine route to next patrol point
-					moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
-					targetHeading := moveLine.Angle()
-
-					a.u.SetTargetHeading(targetHeading)
-
-					//return bt.Success, nil
-					a.u.SetTargetVelocity(a.u.MaxVelocity())
-				}
-
 				return bt.Failure, nil
 			}
 
@@ -107,7 +85,7 @@ func (a *AIBehavior) TurnToTarget() bt.Node {
 func (a *AIBehavior) TurretToTarget() bt.Node {
 	// TODO: handle units without turrets
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			target := model.EntityUnit(a.u.Target())
 			if target == nil {
 				return bt.Failure, nil
@@ -192,7 +170,7 @@ func (a *AIBehavior) idealWeaponForDistance(dist float64) model.Weapon {
 
 func (a *AIBehavior) VelocityToMax() bt.Node {
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			if a.u.Velocity() == a.u.MaxVelocity() {
 				return bt.Success, nil
 			}
@@ -206,7 +184,7 @@ func (a *AIBehavior) VelocityToMax() bt.Node {
 
 func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			if a.u.UnitType() == model.EmplacementUnitType {
 				// emplacements cannot withdraw
 				return bt.Failure, nil
@@ -225,7 +203,7 @@ func (a *AIBehavior) DetermineForcedWithdrawal() bt.Node {
 func (a *AIBehavior) TurnToWithdraw() bt.Node {
 	var withdrawPosition = &geom.Vector2{X: 60, Y: 99}
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			// TODO: pathfinding does not need to be recalculated every tick
 			// TODO: refactor to use similar method used for pathing TurnToTarget
 			path := a.g.mission.Pathing.FindPath(a.u.Pos(), withdrawPosition)
@@ -246,7 +224,7 @@ func (a *AIBehavior) TurnToWithdraw() bt.Node {
 
 func (a *AIBehavior) InWithdrawArea() bt.Node {
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			posX, posY := a.u.Pos().X, a.u.Pos().Y
 			delta := 1.5
 			if posX > delta && posX < float64(a.g.mapWidth)-delta &&
@@ -262,12 +240,83 @@ func (a *AIBehavior) InWithdrawArea() bt.Node {
 
 func (a *AIBehavior) Withdraw() bt.Node {
 	return bt.New(
-		func(children []bt.Node) (bt.Status, error) {
+		func(_ []bt.Node) (bt.Status, error) {
 			log.Debugf("[%s] -> withdraw", a.u.ID())
 
-			// TODO: unit safely escapes
+			// TODO: unit safely escapes without exploding
 			a.u.SetStructurePoints(0)
 			return bt.Success, nil
+		},
+	)
+}
+
+func (a *AIBehavior) GuardUnit() bt.Node {
+	return bt.New(
+		func(_ []bt.Node) (bt.Status, error) {
+			// TODO: guard unit
+			//log.Debugf("[%s] -> guard unit", a.u.ID())
+			return bt.Failure, nil
+		},
+	)
+}
+
+func (a *AIBehavior) GuardArea() bt.Node {
+	return bt.New(
+		func(_ []bt.Node) (bt.Status, error) {
+			// TODO: guard area
+			//log.Debugf("[%s] -> guard area", a.u.ID())
+			return bt.Failure, nil
+		},
+	)
+}
+
+func (a *AIBehavior) HuntLastTargetArea() bt.Node {
+	return bt.New(
+		func(_ []bt.Node) (bt.Status, error) {
+			// TODO: hunt last target area
+			//log.Debugf("[%s] -> hunt last target area", a.u.ID())
+			return bt.Failure, nil
+		},
+	)
+}
+
+func (a *AIBehavior) PatrolPath() bt.Node {
+	return bt.New(
+		func(_ []bt.Node) (bt.Status, error) {
+			patrolPath := a.u.PatrolPath()
+			if patrolPath != nil && patrolPath.Len() > 0 {
+				// determine if need to move to next position in path
+				pos := a.u.Pos()
+				nextPos := patrolPath.Peek()
+				if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
+					// unit is close enough, move to next path position for next cycle
+					patrolPath.Push(*patrolPath.Pop())
+					nextPos = patrolPath.Peek()
+				}
+
+				// TODO: use pathfinding to determine route to next patrol point
+				moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
+				targetHeading := moveLine.Angle()
+
+				a.u.SetTargetHeading(targetHeading)
+
+				a.u.SetTargetVelocity(a.u.MaxVelocity())
+
+				//log.Debugf("[%s] -> patrol path -> nextPos: %v", a.u.ID(), nextPos)
+				return bt.Success, nil
+			}
+
+			return bt.Failure, nil
+		},
+	)
+}
+
+func (a *AIBehavior) Wander() bt.Node {
+	return bt.New(
+		func(_ []bt.Node) (bt.Status, error) {
+			// TODO: wander randomly
+			//log.Debugf("[%s] -> wander randomly", a.u.ID())
+			return bt.Failure, nil
 		},
 	)
 }
