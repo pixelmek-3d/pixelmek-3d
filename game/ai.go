@@ -54,6 +54,35 @@ const (
 	AI_NODE_TREE
 )
 
+func (t AINodeType) String() string {
+	switch t {
+	case AI_NODE_DEFAULT:
+		return ""
+	case AI_NODE_TREE:
+		return "tree"
+	default:
+		return fmt.Sprintf("undefined AINodeType: %d", t)
+	}
+}
+
+type AIDecoratorType int
+
+const (
+	AI_DECORATOR_NONE AIDecoratorType = iota
+	AI_DECORATOR_NEGATE
+)
+
+func (t AIDecoratorType) String() string {
+	switch t {
+	case AI_DECORATOR_NONE:
+		return ""
+	case AI_DECORATOR_NEGATE:
+		return "negate"
+	default:
+		return fmt.Sprintf("undefined AIDecoratorType: %d", t)
+	}
+}
+
 type AIResources struct {
 	Trees map[string]AIResourceTree
 }
@@ -188,15 +217,22 @@ func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
 
 	log.Debugf("[%s] loading behavior tree '%s'", aiTree.Title, ai)
 
-	actions := make(map[AINodeID]bt.Node)
+	actions := make(map[AINodeID]func([]bt.Node) (bt.Status, error))
 	compositeTicks := make(map[AINodeID]bt.Tick)
-	// TODO: decorators := make(map[string]bt.Tick)
+	decorators := make(map[AINodeID]AIDecoratorType)
+	trees := make(map[AINodeID]bt.Node)
 
 	for id, n := range aiTree.Nodes {
 		if n.Properties.Type == AI_NODE_TREE {
 			log.Debugf("[%s] loading node as tree: '%s' <%s>", aiTree.Title, n.Name, n.ID)
 			tNode := a.LoadBehaviorTree(n.Name, aiRes)
-			actions[id] = tNode
+			trees[id] = tNode
+			continue
+		}
+
+		decor := getDecorator(n.Name)
+		if decor != AI_DECORATOR_NONE {
+			decorators[id] = decor
 			continue
 		}
 
@@ -207,23 +243,42 @@ func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
 			continue
 		}
 
-		aFunc := reflect.ValueOf(a).MethodByName(n.Name)
-		if aFunc.Kind() == reflect.Invalid || resources.IsNil(aFunc) {
+		iFunc := reflect.ValueOf(a).MethodByName(n.Name)
+		if iFunc.Kind() == reflect.Invalid || resources.IsNil(iFunc) {
 			log.Fatalf("[%s] behavior tree function does not exist with name: '%s' <%s>", aiTree.Title, n.Name, n.ID)
 		}
-		aValues := aFunc.Call(nil)
+		aValues := iFunc.Call(nil)
 
-		var aNode bt.Node = aValues[0].Interface().(bt.Node)
-		if aNode == nil {
+		var actionFunc func([]bt.Node) (bt.Status, error) = aValues[0].Interface().(func([]bt.Node) (bt.Status, error))
+		if actionFunc == nil {
 			log.Fatalf("[%s] behavior tree action function incorrectly defined: '%s' <%s>", aiTree.Title, n.Name, n.ID)
 		}
-		actions[id] = aNode
+		actions[id] = actionFunc
 	}
 
 	// recursive function to create nodes starting from children to work back up to root
 	var loadBehaviorNode func(res AIResourceNode) bt.Node
 	loadBehaviorNode = func(res AIResourceNode) bt.Node {
 		log.Debugf("loading node %s <%s>", res.Name, res.ID)
+
+		if decor, ok := decorators[res.ID]; ok {
+			// currently only supporting decorators with single child that is an action function
+			if len(res.Child) == 0 {
+				log.Fatalf("[%s] decorator must have one child action: %s", aiTree.Title, res.ID)
+			}
+
+			childAction, ok := actions[res.Child]
+			if !ok {
+				log.Fatalf("[%s][%s] decorator child not found or incorrectly defined: %s", aiTree.Title, res.ID, res.Child)
+			}
+
+			decoratedAction := decorate(decor, childAction)
+			if decoratedAction == nil {
+				log.Fatalf("[%s][%s] decorator not currently implemented: %s", aiTree.Title, res.ID, decor.String())
+			}
+			return bt.New(decoratedAction)
+		}
+
 		tick, ok := compositeTicks[res.ID]
 		if !ok {
 			log.Fatalf("[%s] behavior node composite not found or incorrectly defined: %s", aiTree.Title, res.ID)
@@ -233,8 +288,12 @@ func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
 		for _, childId := range res.Children {
 			childRes := aiTree.Nodes[childId]
 			log.Debugf("[%s] processing child %s <%s>", res.Name, childRes.Name, childId)
-			if child, ok := actions[childId]; ok {
-				childNodes = append(childNodes, child)
+			if childTree, ok := trees[childId]; ok {
+				childNodes = append(childNodes, childTree)
+			} else if childAction, ok := actions[childId]; ok {
+				childNodes = append(childNodes, bt.New(childAction))
+			} else if _, ok := decorators[childId]; ok {
+				childNodes = append(childNodes, loadBehaviorNode(childRes))
 			} else if _, ok := compositeTicks[childId]; ok {
 				childNodes = append(childNodes, loadBehaviorNode(childRes))
 			} else {
@@ -263,6 +322,25 @@ func getComposite(nodeName string) bt.Tick {
 		return bt.Sequence
 	}
 	return nil
+}
+
+func getDecorator(nodeName string) AIDecoratorType {
+	switch nodeName {
+	case "negate":
+		return AI_DECORATOR_NEGATE
+	default:
+		return AI_DECORATOR_NONE
+	}
+}
+
+func decorate(decor AIDecoratorType, actionFunc func([]bt.Node) (bt.Status, error)) func([]bt.Node) (bt.Status, error) {
+	switch decor {
+	case AI_DECORATOR_NEGATE:
+		return bt.Not(actionFunc)
+	default:
+		log.Fatalf("decorator not currently implemented: %s", decor.String())
+		return nil
+	}
 }
 
 func (h *AIHandler) Update() {

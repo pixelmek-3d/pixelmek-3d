@@ -19,9 +19,9 @@
       },
       "children": [
         "e852ca6b-d56a-43e5-81bf-db15244d811b",
+        "6c8cabea-72db-43a8-8fb4-9fd24421ecda",
         "fbb2ecfb-6192-46f1-80d9-7180067b6184",
         "ed4c1884-a804-4f10-8576-a39caaef092c",
-        "6c8cabea-72db-43a8-8fb4-9fd24421ecda",
         "ff362366-d933-4c6c-b9ea-e5183d601e5f"
       ]
     },
@@ -32,7 +32,7 @@
       "description": "",
       "properties": {},
       "display": {
-        "x": 312,
+        "x": 516,
         "y": 384
       }
     },
@@ -43,7 +43,7 @@
       "description": "",
       "properties": {},
       "display": {
-        "x": 516,
+        "x": 96,
         "y": 384
       }
     },
@@ -65,7 +65,7 @@
       "description": "",
       "properties": {},
       "display": {
-        "x": 96,
+        "x": 312,
         "y": 384
       }
     },
@@ -91,25 +91,37 @@
         "y": 120
       },
       "children": [
-        "53ded8d6-97ce-4993-8e8a-9a257b70f289",
+        "c785374a-453c-49aa-8de9-fe00ec9c68dc",
         "46b79ddf-b45a-405d-95a7-c52464b7bd70"
       ]
     },
-    "53ded8d6-97ce-4993-8e8a-9a257b70f289": {
-      "id": "53ded8d6-97ce-4993-8e8a-9a257b70f289",
-      "name": "NoTarget",
-      "title": "NoTarget",
+    "282015d7-2c84-4c47-9e3b-91423d29515b": {
+      "id": "282015d7-2c84-4c47-9e3b-91423d29515b",
+      "name": "HasTarget",
+      "title": "HasTarget",
       "description": "",
       "properties": {},
       "display": {
         "x": -312,
-        "y": 252
+        "y": 384
       }
+    },
+    "c785374a-453c-49aa-8de9-fe00ec9c68dc": {
+      "id": "c785374a-453c-49aa-8de9-fe00ec9c68dc",
+      "name": "negate",
+      "title": "Negate",
+      "description": "Takes one child.  If that child succeeds, this node fails, and vice versa.",
+      "properties": {},
+      "display": {
+        "x": -312,
+        "y": 252
+      },
+      "child": "282015d7-2c84-4c47-9e3b-91423d29515b"
     }
   },
   "display": {
-    "camera_x": 726.7999999998137,
-    "camera_y": 294.19999999995343,
+    "camera_x": 732.7999999998137,
+    "camera_y": 342.19999999995343,
     "camera_z": 1,
     "x": 0,
     "y": 0
@@ -291,15 +303,6 @@
       "properties": {
         "type": "tree"
       }
-    },
-    {
-      "version": "0.3.0",
-      "scope": "node",
-      "name": "NoTarget",
-      "category": "action",
-      "title": null,
-      "description": null,
-      "properties": {}
     }
   ]
 }
