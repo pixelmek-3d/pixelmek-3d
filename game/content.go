@@ -260,7 +260,11 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionMech := range g.mission.Mechs {
-		modelMech := g.createModelMech(missionMech)
+		modelMech, err := g.createModelMech(missionMech)
+		if err != nil {
+			log.Errorf("error creating mission mech: %v", err)
+			continue
+		}
 		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
 
 		posX, posY := missionMech.Position[0], missionMech.Position[1]
@@ -270,7 +274,11 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVehicle := range g.mission.Vehicles {
-		modelVehicle := g.createModelVehicle(missionVehicle.Unit, missionVehicle.ID, missionVehicle.Team)
+		modelVehicle, err := g.createModelVehicle(missionVehicle.Unit, missionVehicle.ID, missionVehicle.Team)
+		if err != nil {
+			log.Errorf("error creating mission vehicle: %v", err)
+			continue
+		}
 		vehicle := g.createUnitSprite(modelVehicle).(*render.VehicleSprite)
 
 		posX, posY := missionVehicle.Position[0], missionVehicle.Position[1]
@@ -284,7 +292,11 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVTOL := range g.mission.VTOLs {
-		modelVTOL := g.createModelVTOL(missionVTOL.Unit, missionVTOL.ID, missionVTOL.Team)
+		modelVTOL, err := g.createModelVTOL(missionVTOL.Unit, missionVTOL.ID, missionVTOL.Team)
+		if err != nil {
+			log.Errorf("error creating mission VTOL: %v", err)
+			continue
+		}
 		vtol := g.createUnitSprite(modelVTOL).(*render.VTOLSprite)
 
 		posX, posY, posZ := missionVTOL.Position[0], missionVTOL.Position[1], missionVTOL.ZPosition
@@ -299,7 +311,11 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionInfantry := range g.mission.Infantry {
-		modelInfantry := g.createModelInfantry(missionInfantry.Unit, missionInfantry.ID, missionInfantry.Team)
+		modelInfantry, err := g.createModelInfantry(missionInfantry.Unit, missionInfantry.ID, missionInfantry.Team)
+		if err != nil {
+			log.Errorf("error creating mission infantry: %v", err)
+			continue
+		}
 		infantry := g.createUnitSprite(modelInfantry).(*render.InfantrySprite)
 
 		posX, posY := missionInfantry.Position[0], missionInfantry.Position[1]
@@ -313,7 +329,11 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionEmplacement := range g.mission.Emplacements {
-		modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit, missionEmplacement.ID, missionEmplacement.Team)
+		modelEmplacement, err := g.createModelEmplacement(missionEmplacement.Unit, missionEmplacement.ID, missionEmplacement.Team)
+		if err != nil {
+			log.Errorf("error creating mission emplacement: %v", err)
+			continue
+		}
 		emplacement := g.createUnitSprite(modelEmplacement).(*render.EmplacementSprite)
 
 		posX, posY := missionEmplacement.Position[0], missionEmplacement.Position[1]
@@ -323,14 +343,17 @@ func (g *Game) loadMissionSprites() {
 	}
 }
 
-func (g *Game) createModelMech(unit model.MissionUnit) *model.Mech {
+func (g *Game) createModelMech(unit model.MissionUnit) (*model.Mech, error) {
 	mUnit, id, team := unit.Unit, unit.ID, unit.Team
-	mechResource := g.resources.GetMechResource(mUnit)
+	mechResource, err := g.resources.GetMechResource(mUnit)
+	if err != nil {
+		return nil, err
+	}
 	modelMech := g.createModelMechFromResource(mechResource)
 	modelMech.SetID(id)
 	modelMech.SetTeam(team)
 	modelMech.SetPatrolPathFromModel(unit.PatrolPath)
-	return modelMech
+	return modelMech, nil
 }
 
 func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource) *model.Mech {
@@ -355,8 +378,11 @@ func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource
 	return modelMech
 }
 
-func (g *Game) createModelVehicle(unit, id string, team int) *model.Vehicle {
-	vehicleResource := g.resources.GetVehicleResource(unit)
+func (g *Game) createModelVehicle(unit, id string, team int) (*model.Vehicle, error) {
+	vehicleResource, err := g.resources.GetVehicleResource(unit)
+	if err != nil {
+		return nil, err
+	}
 	vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
 	vehicleImg := getSpriteFromFile(vehicleRelPath)
 
@@ -382,11 +408,14 @@ func (g *Game) createModelVehicle(unit, id string, team int) *model.Vehicle {
 
 	modelVehicle.SetID(id)
 	modelVehicle.SetTeam(team)
-	return modelVehicle
+	return modelVehicle, nil
 }
 
-func (g *Game) createModelVTOL(unit, id string, team int) *model.VTOL {
-	vtolResource := g.resources.GetVTOLResource(unit)
+func (g *Game) createModelVTOL(unit, id string, team int) (*model.VTOL, error) {
+	vtolResource, err := g.resources.GetVTOLResource(unit)
+	if err != nil {
+		return nil, err
+	}
 	vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
 	vtolImg := getSpriteFromFile(vtolRelPath)
 
@@ -412,11 +441,14 @@ func (g *Game) createModelVTOL(unit, id string, team int) *model.VTOL {
 
 	modelVTOL.SetID(id)
 	modelVTOL.SetTeam(team)
-	return modelVTOL
+	return modelVTOL, nil
 }
 
-func (g *Game) createModelInfantry(unit, id string, team int) *model.Infantry {
-	infantryResource := g.resources.GetInfantryResource(unit)
+func (g *Game) createModelInfantry(unit, id string, team int) (*model.Infantry, error) {
+	infantryResource, err := g.resources.GetInfantryResource(unit)
+	if err != nil {
+		return nil, err
+	}
 	infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
 	infantryImg := getSpriteFromFile(infantryRelPath)
 
@@ -442,11 +474,14 @@ func (g *Game) createModelInfantry(unit, id string, team int) *model.Infantry {
 
 	modelInfantry.SetID(id)
 	modelInfantry.SetTeam(team)
-	return modelInfantry
+	return modelInfantry, nil
 }
 
-func (g *Game) createModelEmplacement(unit, id string, team int) *model.Emplacement {
-	emplacementResource := g.resources.GetEmplacementResource(unit)
+func (g *Game) createModelEmplacement(unit, id string, team int) (*model.Emplacement, error) {
+	emplacementResource, err := g.resources.GetEmplacementResource(unit)
+	if err != nil {
+		return nil, err
+	}
 	emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
 	emplacementImg := getSpriteFromFile(emplacementRelPath)
 
@@ -472,7 +507,7 @@ func (g *Game) createModelEmplacement(unit, id string, team int) *model.Emplacem
 
 	modelEmplacement.SetID(id)
 	modelEmplacement.SetTeam(team)
-	return modelEmplacement
+	return modelEmplacement, nil
 }
 
 func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
@@ -484,9 +519,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 		switch armament.Type.WeaponType {
 		case model.ENERGY:
-			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
-			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.EnergyResourceType, armament.Weapon)
+			weaponResource, err := g.resources.GetEnergyWeaponResource(armament.Weapon)
+			if err != nil {
+				log.Errorf("[%s %s] weapon not found: %s", unit.Name(), unit.Variant(), err)
 				continue
 			}
 
@@ -540,9 +575,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			setProjectileSpriteForWeapon(weapon, pSprite)
 
 		case model.MISSILE:
-			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
-			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.MissileResourceType, armament.Weapon)
+			weaponResource, err := g.resources.GetMissileWeaponResource(armament.Weapon)
+			if err != nil {
+				log.Errorf("[%s %s] weapon not found: %s", unit.Name(), unit.Variant(), err)
 				continue
 			}
 
@@ -604,9 +639,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			setProjectileSpriteForWeapon(weapon, pSprite)
 
 		case model.BALLISTIC:
-			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
-			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.BallisticResourceType, armament.Weapon)
+			weaponResource, err := g.resources.GetBallisticWeaponResource(armament.Weapon)
+			if err != nil {
+				log.Errorf("[%s %s] weapon not found: %s", unit.Name(), unit.Variant(), err)
 				continue
 			}
 

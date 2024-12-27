@@ -620,12 +620,11 @@ func (r *ModelResources) loadWeaponResources() error {
 	return nil
 }
 
-func (r *ModelResources) GetMechResource(unit string) *ModelMechResource {
+func (r *ModelResources) GetMechResource(unit string) (*ModelMechResource, error) {
 	if m, ok := r.Mechs[unit]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("mech unit resource does not exist %s", unit)
-	return nil
+	return nil, fmt.Errorf("mech unit resource does not exist %s", unit)
 }
 
 // GetMechResourceList gets mech resources as sorted list
@@ -643,12 +642,11 @@ func (r *ModelResources) GetMechResourceList() []*ModelMechResource {
 	return resourceList
 }
 
-func (r *ModelResources) GetVehicleResource(unit string) *ModelVehicleResource {
+func (r *ModelResources) GetVehicleResource(unit string) (*ModelVehicleResource, error) {
 	if m, ok := r.Vehicles[unit]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("vehicle unit resource does not exist %s", unit)
-	return nil
+	return nil, fmt.Errorf("vehicle unit resource does not exist %s", unit)
 }
 
 // GetVehicleResourceList gets vehicle resources as sorted list
@@ -666,12 +664,11 @@ func (r *ModelResources) GetVehicleResourceList() []*ModelVehicleResource {
 	return resourceList
 }
 
-func (r *ModelResources) GetVTOLResource(unit string) *ModelVTOLResource {
+func (r *ModelResources) GetVTOLResource(unit string) (*ModelVTOLResource, error) {
 	if m, ok := r.VTOLs[unit]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("vtol unit resource does not exist %s", unit)
-	return nil
+	return nil, fmt.Errorf("vtol unit resource does not exist %s", unit)
 }
 
 // GetVTOLResourceList gets vtol resources as sorted list
@@ -689,12 +686,11 @@ func (r *ModelResources) GetVTOLResourceList() []*ModelVTOLResource {
 	return resourceList
 }
 
-func (r *ModelResources) GetInfantryResource(unit string) *ModelInfantryResource {
+func (r *ModelResources) GetInfantryResource(unit string) (*ModelInfantryResource, error) {
 	if m, ok := r.Infantry[unit]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("infantry unit resource does not exist %s", unit)
-	return nil
+	return nil, fmt.Errorf("infantry unit resource does not exist %s", unit)
 }
 
 // GetInfantryResourceList gets infantry resources as sorted list
@@ -712,12 +708,11 @@ func (r *ModelResources) GetInfantryResourceList() []*ModelInfantryResource {
 	return resourceList
 }
 
-func (r *ModelResources) GetEmplacementResource(unit string) *ModelEmplacementResource {
+func (r *ModelResources) GetEmplacementResource(unit string) (*ModelEmplacementResource, error) {
 	if m, ok := r.Emplacements[unit]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("emplacement unit resource does not exist %s", unit)
-	return nil
+	return nil, fmt.Errorf("emplacement unit resource does not exist %s", unit)
 }
 
 // GetEmplacementResourceList gets emplacement resources as sorted list
@@ -735,26 +730,23 @@ func (r *ModelResources) GetEmplacementResourceList() []*ModelEmplacementResourc
 	return resourceList
 }
 
-func (r *ModelResources) GetEnergyWeaponResource(weapon string) *ModelEnergyWeaponResource {
+func (r *ModelResources) GetEnergyWeaponResource(weapon string) (*ModelEnergyWeaponResource, error) {
 	if m, ok := r.EnergyWeapons[weapon]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("energy weapon resource does not exist %s", weapon)
-	return nil
+	return nil, fmt.Errorf("energy weapon resource does not exist %s", weapon)
 }
 
-func (r *ModelResources) GetMissileWeaponResource(weapon string) *ModelMissileWeaponResource {
+func (r *ModelResources) GetMissileWeaponResource(weapon string) (*ModelMissileWeaponResource, error) {
 	if m, ok := r.MissileWeapons[weapon]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("missile weapon resource does not exist %s", weapon)
-	return nil
+	return nil, fmt.Errorf("missile weapon resource does not exist %s", weapon)
 }
 
-func (r *ModelResources) GetBallisticWeaponResource(weapon string) *ModelBallisticWeaponResource {
+func (r *ModelResources) GetBallisticWeaponResource(weapon string) (*ModelBallisticWeaponResource, error) {
 	if m, ok := r.BallisticWeapons[weapon]; ok {
-		return m
+		return m, nil
 	}
-	log.Errorf("ballistic weapon resource does not exist %s", weapon)
-	return nil
+	return nil, fmt.Errorf("ballistic weapon resource does not exist %s", weapon)
 }
