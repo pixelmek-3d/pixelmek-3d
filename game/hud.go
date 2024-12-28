@@ -779,15 +779,21 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		blipCount++
 	}
 
-	if g.debug && camTarget != nil {
+	if g.debug && (camTarget != nil || debugCamTgt != nil) {
 		// draw debug nav lines for AI pathing of player target
+		var debugNavLineTargetUnit model.Unit
+		if debugCamTgt != nil {
+			debugNavLineTargetUnit = debugCamTgt
+		} else {
+			debugNavLineTargetUnit = model.EntityUnit(camTarget)
+		}
+
 		var navLines []*geom.Line
-		targetUnit := model.EntityUnit(camTarget)
-		if targetUnit != nil {
-			unitBehavior := g.ai.UnitAI(targetUnit)
+		if debugNavLineTargetUnit != nil {
+			unitBehavior := g.ai.UnitAI(debugNavLineTargetUnit)
 			if unitBehavior.piloting.Len() > 0 {
 				navLines = make([]*geom.Line, 0, unitBehavior.piloting.Len())
-				prevPathPos := targetUnit.Pos()
+				prevPathPos := debugNavLineTargetUnit.Pos()
 				for _, pathPos := range unitBehavior.piloting.destPath {
 					navLines = append(navLines, &geom.Line{X1: prevPathPos.X, Y1: prevPathPos.Y, X2: pathPos.X, Y2: pathPos.Y})
 					prevPathPos = pathPos
