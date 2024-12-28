@@ -23,61 +23,74 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 			return bt.Failure, nil
 		}
 
-		// calculate heading from unit to target
-		var targetHeading float64 = a.u.Heading()
-
-		findNewPath := false
-		switch {
-		case a.piloting.Len() == 0:
-			findNewPath = true
-		case int(target.Pos().X) != int(a.piloting.destPos.X) || int(target.Pos().Y) != int(a.piloting.destPos.Y):
-			// if still some distance from target, do not recalc path to target until further
-			targetDist := model.EntityDistance2D(a.u, target)
-			if targetDist <= 8 {
-				findNewPath = true
-			} else {
-				deltaX, deltaY := math.Abs(target.Pos().X-a.piloting.destPos.X), math.Abs(target.Pos().Y-a.piloting.destPos.Y)
-				if deltaX > targetDist/4 || deltaY > targetDist/4 {
-					findNewPath = true
-				}
-			}
-		}
-
-		if findNewPath {
-			// find new path to reach target position
-			a.piloting = &AIPiloting{
-				destPos:  target.Pos(),
-				destPath: a.g.mission.Pathing.FindPath(a.u.Pos(), target.Pos()),
-			}
-			// log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
-		} else if a.piloting.Len() > 0 {
-			// determine if need to move to next position in path
-			pos := a.u.Pos()
-			nextPos := a.piloting.Next()
-			if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
-				// unit is close to next path position
-				a.piloting.Pop()
-				// log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
-			}
-		}
-
-		if a.piloting.Len() > 0 {
-			pos := a.u.Pos()
-			nextPos := a.piloting.Next()
-			moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
-			targetHeading = moveLine.Angle()
-		} else {
-			targetLine := geom3d.Line3d{
-				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
-				X2: target.Pos().X, Y2: target.Pos().Y, Z2: target.PosZ(),
-			}
-			targetHeading = targetLine.Heading()
-		}
+		a.updatePathingToPosition(target.Pos(), 8)
+		targetHeading := a.pathingHeading(target.Pos(), target.PosZ())
 
 		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
 		a.u.SetTargetHeading(targetHeading)
 		return bt.Success, nil
 	}
+}
+
+func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) {
+	findNewPath := false
+	switch {
+	case a.piloting.Len() == 0:
+		findNewPath = true
+	case int(toPos.X) != int(a.piloting.destPos.X) || int(toPos.Y) != int(a.piloting.destPos.Y):
+		// if still some distance from target, do not recalc path to target until further
+		uPos := a.u.Pos()
+		toLine := geom.Line{
+			X1: uPos.X, Y1: uPos.Y,
+			X2: toPos.X, Y2: toPos.Y,
+		}
+		toDist := toLine.Distance()
+		if toDist <= recalcDistFactor {
+			findNewPath = true
+		} else {
+			deltaRecalcFactor := geom.Clamp(recalcDistFactor/2, 1, math.MaxFloat64)
+			deltaX, deltaY := math.Abs(toPos.X-a.piloting.destPos.X), math.Abs(toPos.Y-a.piloting.destPos.Y)
+			if deltaX > toDist/deltaRecalcFactor || deltaY > toDist/deltaRecalcFactor {
+				findNewPath = true
+			}
+		}
+	}
+
+	if findNewPath {
+		// find new path to reach target position
+		a.piloting = &AIPiloting{
+			destPos:  toPos,
+			destPath: a.g.mission.Pathing.FindPath(a.u.Pos(), toPos),
+		}
+		// log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
+	} else if a.piloting.Len() > 0 {
+		// determine if need to move to next position in path
+		pos := a.u.Pos()
+		nextPos := a.piloting.Next()
+		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
+			// unit is close to next path position
+			a.piloting.Pop()
+			// log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
+		}
+	}
+}
+
+func (a *AIBehavior) pathingHeading(toPos *geom.Vector2, toPosZ float64) float64 {
+	// calculate heading from unit to position
+	var toHeading float64 = a.u.Heading()
+	if a.piloting.Len() > 0 {
+		pos := a.u.Pos()
+		nextPos := a.piloting.Next()
+		toLine := geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
+		toHeading = toLine.Angle()
+	} else {
+		toLine := geom3d.Line3d{
+			X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ(),
+			X2: toPos.X, Y2: toPos.Y, Z2: toPosZ,
+		}
+		toHeading = toLine.Heading()
+	}
+	return toHeading
 }
 
 func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
@@ -273,11 +286,11 @@ func (a *AIBehavior) PatrolPath() func([]bt.Node) (bt.Status, error) {
 				nextPos = patrolPath.Peek()
 			}
 
-			// TODO: use pathfinding to determine route to next patrol point
-			moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
-			targetHeading := moveLine.Angle()
+			a.updatePathingToPosition(nextPos, 4)
+			targetHeading := a.pathingHeading(nextPos, a.u.PosZ())
 
 			a.u.SetTargetHeading(targetHeading)
+			a.u.SetTargetTurretAngle(targetHeading)
 
 			a.u.SetTargetVelocity(a.u.MaxVelocity())
 
