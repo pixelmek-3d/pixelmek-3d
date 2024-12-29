@@ -81,6 +81,7 @@ type MissionUnit struct {
 	Team       int              `yaml:"team"`
 	Unit       string           `yaml:"unit" validate:"required"`
 	Position   [2]float64       `yaml:"position" validate:"required"`
+	Heading    float64          `yaml:"heading"`
 	PatrolPath [][2]float64     `yaml:"patrolPath"`
 	GuardArea  MissionGuardArea `yaml:"guardArea"`
 	GuardUnit  string           `yaml:"guardUnit"`
@@ -92,6 +93,7 @@ type MissionFlyingUnit struct {
 	Unit       string           `yaml:"unit" validate:"required"`
 	Position   [2]float64       `yaml:"position" validate:"required"`
 	ZPosition  float64          `yaml:"zPosition" validate:"required"`
+	Heading    float64          `yaml:"heading"`
 	PatrolPath [][2]float64     `yaml:"patrolPath"`
 	GuardArea  MissionGuardArea `yaml:"guardArea"`
 	GuardUnit  string           `yaml:"guardUnit"`
@@ -102,6 +104,7 @@ type MissionStaticUnit struct {
 	Team     int        `yaml:"team"`
 	Unit     string     `yaml:"unit" validate:"required"`
 	Position [2]float64 `yaml:"position" validate:"required"`
+	Heading  float64    `yaml:"heading"`
 }
 
 type NavObjective int

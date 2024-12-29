@@ -266,10 +266,6 @@ func (g *Game) loadMissionSprites() {
 			continue
 		}
 		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
-
-		posX, posY := missionMech.Position[0], missionMech.Position[1]
-		mech.SetPos(&geom.Vector2{X: posX, Y: posY})
-
 		g.sprites.addMechSprite(mech)
 	}
 
@@ -352,6 +348,13 @@ func (g *Game) createModelMech(unit model.MissionUnit) (*model.Mech, error) {
 	modelMech := g.createModelMechFromResource(mechResource)
 	modelMech.SetID(id)
 	modelMech.SetTeam(team)
+	modelMech.SetPos(&geom.Vector2{X: unit.Position[0], Y: unit.Position[1]})
+
+	rHeading := geom.Radians(unit.Heading)
+	modelMech.SetHeading(rHeading)
+	modelMech.SetTargetHeading(rHeading)
+	modelMech.SetTurretAngle(rHeading)
+	modelMech.SetTargetTurretAngle(rHeading)
 
 	//modelMech.SetGuardUnitunit.GuardArea.Unit) // TDDO: get unit by id
 
