@@ -249,6 +249,50 @@ func (a *AIBehavior) Withdraw() func([]bt.Node) (bt.Status, error) {
 	}
 }
 
+func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
+	return func(_ []bt.Node) (bt.Status, error) {
+		guardPath := a.u.PathStack()
+		if a.u.GuardArea() == nil || guardPath == nil {
+			return bt.Failure, nil
+		}
+
+		// TOOD: support standing guard by setting guard area radius to 0?
+
+		// use the path stack to keep track of next position to guard within the area
+		pos := a.u.Pos()
+		nextPos := guardPath.Peek()
+		if nextPos == nil {
+			// select a random position within the guard area
+			// TODO: verify random position isn't inside walls that would block reaching the position
+			guardArea := a.u.GuardArea()
+
+			rng := model.NewRNG()
+			rngAngle := model.RandFloat64In(0, 2*geom.Pi, rng)
+			rngLine := geom.LineFromAngle(guardArea.X, guardArea.Y, rngAngle, guardArea.Radius)
+
+			rngX := geom.Clamp(rngLine.X2, 0, float64(a.g.mapWidth))
+			rngY := geom.Clamp(rngLine.Y2, 0, float64(a.g.mapHeight))
+			nextPos = &geom.Vector2{X: rngX, Y: rngY}
+			guardPath.Push(*nextPos)
+		}
+
+		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 2 {
+			guardPath.Pop()
+		}
+
+		a.updatePathingToPosition(nextPos, 4)
+		targetHeading := a.pathingHeading(nextPos, a.u.PosZ())
+
+		a.u.SetTargetHeading(targetHeading)
+		a.u.SetTargetTurretAngle(targetHeading)
+
+		a.u.SetTargetVelocity(a.u.MaxVelocity())
+
+		//log.Debugf("[%s] -> guard area -> nextPos: %v", a.u.ID(), nextPos)
+		return bt.Success, nil
+	}
+}
+
 func (a *AIBehavior) GuardUnit() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
 		// TODO: guard unit
@@ -257,11 +301,32 @@ func (a *AIBehavior) GuardUnit() func([]bt.Node) (bt.Status, error) {
 	}
 }
 
-func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
+func (a *AIBehavior) PatrolPath() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
-		// TODO: guard area
-		//log.Debugf("[%s] -> guard area", a.u.ID())
-		return bt.Failure, nil
+		patrolPath := a.u.PathStack()
+		if patrolPath == nil || patrolPath.Len() == 0 {
+			return bt.Failure, nil
+		}
+
+		// determine if need to move to next position in path
+		pos := a.u.Pos()
+		nextPos := patrolPath.Peek()
+		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
+			// unit is close enough, move to next path position for next cycle
+			patrolPath.Push(*patrolPath.Pop())
+			nextPos = patrolPath.Peek()
+		}
+
+		a.updatePathingToPosition(nextPos, 4)
+		targetHeading := a.pathingHeading(nextPos, a.u.PosZ())
+
+		a.u.SetTargetHeading(targetHeading)
+		a.u.SetTargetTurretAngle(targetHeading)
+
+		a.u.SetTargetVelocity(a.u.MaxVelocity())
+
+		//log.Debugf("[%s] -> patrol path -> nextPos: %v", a.u.ID(), nextPos)
+		return bt.Success, nil
 	}
 }
 
@@ -269,35 +334,6 @@ func (a *AIBehavior) HuntLastTargetArea() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
 		// TODO: hunt last target area
 		//log.Debugf("[%s] -> hunt last target area", a.u.ID())
-		return bt.Failure, nil
-	}
-}
-
-func (a *AIBehavior) PatrolPath() func([]bt.Node) (bt.Status, error) {
-	return func(_ []bt.Node) (bt.Status, error) {
-		patrolPath := a.u.PatrolPath()
-		if patrolPath != nil && patrolPath.Len() > 0 {
-			// determine if need to move to next position in path
-			pos := a.u.Pos()
-			nextPos := patrolPath.Peek()
-			if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
-				// unit is close enough, move to next path position for next cycle
-				patrolPath.Push(*patrolPath.Pop())
-				nextPos = patrolPath.Peek()
-			}
-
-			a.updatePathingToPosition(nextPos, 4)
-			targetHeading := a.pathingHeading(nextPos, a.u.PosZ())
-
-			a.u.SetTargetHeading(targetHeading)
-			a.u.SetTargetTurretAngle(targetHeading)
-
-			a.u.SetTargetVelocity(a.u.MaxVelocity())
-
-			//log.Debugf("[%s] -> patrol path -> nextPos: %v", a.u.ID(), nextPos)
-			return bt.Success, nil
-		}
-
 		return bt.Failure, nil
 	}
 }

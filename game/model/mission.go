@@ -71,21 +71,30 @@ type MissionNavDustoff struct {
 	Name string `yaml:"name" validate:"required"`
 }
 
+type MissionGuardArea struct {
+	Position [2]float64 `yaml:"position"`
+	Radius   float64    `yaml:"radius"`
+}
+
 type MissionUnit struct {
-	ID         string       `yaml:"id"`
-	Team       int          `yaml:"team"`
-	Unit       string       `yaml:"unit" validate:"required"`
-	Position   [2]float64   `yaml:"position" validate:"required"`
-	PatrolPath [][2]float64 `yaml:"patrolPath"`
+	ID         string           `yaml:"id"`
+	Team       int              `yaml:"team"`
+	Unit       string           `yaml:"unit" validate:"required"`
+	Position   [2]float64       `yaml:"position" validate:"required"`
+	PatrolPath [][2]float64     `yaml:"patrolPath"`
+	GuardArea  MissionGuardArea `yaml:"guardArea"`
+	GuardUnit  string           `yaml:"guardUnit"`
 }
 
 type MissionFlyingUnit struct {
-	ID         string       `yaml:"id"`
-	Team       int          `yaml:"team"`
-	Unit       string       `yaml:"unit" validate:"required"`
-	Position   [2]float64   `yaml:"position" validate:"required"`
-	ZPosition  float64      `yaml:"zPosition" validate:"required"`
-	PatrolPath [][2]float64 `yaml:"patrolPath"`
+	ID         string           `yaml:"id"`
+	Team       int              `yaml:"team"`
+	Unit       string           `yaml:"unit" validate:"required"`
+	Position   [2]float64       `yaml:"position" validate:"required"`
+	ZPosition  float64          `yaml:"zPosition" validate:"required"`
+	PatrolPath [][2]float64     `yaml:"patrolPath"`
+	GuardArea  MissionGuardArea `yaml:"guardArea"`
+	GuardUnit  string           `yaml:"guardUnit"`
 }
 
 type MissionStaticUnit struct {

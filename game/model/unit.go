@@ -100,7 +100,9 @@ type Unit interface {
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
 
-	PatrolPath() *common.FIFOStack[geom.Vector2]
+	GuardArea() *geom.Circle
+	GuardUnit() Unit
+	PathStack() *common.FIFOStack[geom.Vector2]
 	Objective() UnitObjective
 	SetObjective(UnitObjective)
 	SetAsPlayer(bool)
@@ -155,7 +157,9 @@ type UnitModel struct {
 	target              Entity
 	targetLock          float64
 	objective           UnitObjective
-	patrolPath          *common.FIFOStack[geom.Vector2]
+	guardArea           *geom.Circle
+	guardUnit           Unit
+	pathStack           *common.FIFOStack[geom.Vector2]
 	parent              Entity
 	isPlayer            bool
 }
@@ -548,19 +552,42 @@ func (e *UnitModel) MaxJumpJetDuration() float64 {
 	return e.maxJumpJetDuration
 }
 
-func (e *UnitModel) SetPatrolPathFromModel(modelPatrolPath [][2]float64) {
-	if len(modelPatrolPath) == 0 {
-		e.patrolPath = nil
+func (e *UnitModel) GuardArea() *geom.Circle {
+	return e.guardArea
+}
+
+func (e *UnitModel) SetGuardAreaFromModel(modelGuardPos [2]float64, modelGuardRadius float64) {
+	if modelGuardRadius <= 0 {
+		e.guardArea = nil
 		return
 	}
-	e.patrolPath = common.NewFIFOStack[geom.Vector2]()
+	e.guardArea = &geom.Circle{X: modelGuardPos[0], Y: modelGuardPos[1], Radius: modelGuardRadius}
+
+	// initialize empty path stack for use in guard area behavior
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
+}
+
+func (e *UnitModel) GuardUnit() Unit {
+	return e.guardUnit
+}
+
+func (e *UnitModel) SetGuardUnit(guardUnit Unit) {
+	e.guardUnit = guardUnit
+}
+
+func (e *UnitModel) SetPatrolPathFromModel(modelPatrolPath [][2]float64) {
+	if len(modelPatrolPath) == 0 {
+		e.pathStack = nil
+		return
+	}
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
 	for _, point := range modelPatrolPath {
-		e.patrolPath.Push(geom.Vector2{X: point[0], Y: point[1]})
+		e.pathStack.Push(geom.Vector2{X: point[0], Y: point[1]})
 	}
 }
 
-func (e *UnitModel) PatrolPath() *common.FIFOStack[geom.Vector2] {
-	return e.patrolPath
+func (e *UnitModel) PathStack() *common.FIFOStack[geom.Vector2] {
+	return e.pathStack
 }
 
 func (e *UnitModel) Objective() UnitObjective {

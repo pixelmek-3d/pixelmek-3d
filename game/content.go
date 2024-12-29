@@ -352,7 +352,19 @@ func (g *Game) createModelMech(unit model.MissionUnit) (*model.Mech, error) {
 	modelMech := g.createModelMechFromResource(mechResource)
 	modelMech.SetID(id)
 	modelMech.SetTeam(team)
-	modelMech.SetPatrolPathFromModel(unit.PatrolPath)
+
+	//modelMech.SetGuardUnitunit.GuardArea.Unit) // TDDO: get unit by id
+
+	if unit.GuardArea.Radius > 0 {
+		modelMech.SetGuardAreaFromModel(unit.GuardArea.Position, unit.GuardArea.Radius)
+		if len(unit.PatrolPath) > 0 {
+			// Guard area is mutually exclusive from patrol path since it also uses the path stack
+			return nil, fmt.Errorf("[%s] guard area and patrol path are mutually exclusive", modelMech.ID())
+		}
+	} else {
+		modelMech.SetPatrolPathFromModel(unit.PatrolPath)
+	}
+
 	return modelMech, nil
 }
 
