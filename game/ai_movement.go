@@ -58,10 +58,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 
 	if findNewPath {
 		// find new path to reach target position
-		a.piloting = &AIPiloting{
-			destPos:  toPos,
-			destPath: a.g.mission.Pathing.FindPath(a.u.Pos(), toPos),
-		}
+		a.piloting.SetDestination(toPos, a.g.mission.Pathing.FindPath(a.u.Pos(), toPos))
 		// log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
 	} else if a.piloting.Len() > 0 {
 		// determine if need to move to next position in path
@@ -206,36 +203,45 @@ func (a *AIBehavior) DetermineForcedWithdrawal() func([]bt.Node) (bt.Status, err
 }
 
 func (a *AIBehavior) TurnToWithdraw() func([]bt.Node) (bt.Status, error) {
-	var withdrawPosition = &geom.Vector2{X: 60, Y: 99}
+
+	var temporaryWithdrawArea = model.NewRect(0, 0, 2, 2)
+
 	return func(_ []bt.Node) (bt.Status, error) {
-		// TODO: pathfinding does not need to be recalculated every tick
-		// TODO: refactor to use similar method used for pathing TurnToTarget
-		path := a.g.mission.Pathing.FindPath(a.u.Pos(), withdrawPosition)
-		if len(path) == 0 {
-			return bt.Success, nil
+		if a.u.WithdrawArea() == nil {
+			// TODO: determine withdraw area based on starting position
+			a.u.SetWithdrawArea(&temporaryWithdrawArea)
 		}
 
-		pos := a.u.Pos()
-		nextPos := path[0]
-		moveLine := &geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
+		// TODO: randomly determine target withdraw position within area up front
+		withdrawArea := a.u.WithdrawArea()
+		withdrawPosition := &geom.Vector2{
+			X: withdrawArea.X1 + withdrawArea.Dx()/2,
+			Y: withdrawArea.Y1 + withdrawArea.Dy()/2,
+		}
 
-		// log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(a.u.Heading()))
-		a.u.SetTargetHeading(moveLine.Angle())
+		a.updatePathingToPosition(withdrawPosition, 4)
+		targetHeading := a.pathingHeading(withdrawPosition, a.u.PosZ())
+
+		a.u.SetTargetHeading(targetHeading)
+
+		// log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(targetHeading))
 		return bt.Success, nil
 	}
 }
 
 func (a *AIBehavior) InWithdrawArea() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
-		posX, posY := a.u.Pos().X, a.u.Pos().Y
-		delta := 1.5
-		if posX > delta && posX < float64(a.g.mapWidth)-delta &&
-			posY > delta && posY < float64(a.g.mapHeight)-delta {
+		if a.u.WithdrawArea() == nil {
 			return bt.Failure, nil
 		}
 
-		// log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
-		return bt.Success, nil
+		withdrawArea := a.u.WithdrawArea()
+		if withdrawArea.ContainsPoint(a.u.Pos().X, a.u.Pos().Y) {
+			// log.Debugf("[%s] %v -> inWithdrawArea", a.u.ID(), a.u.Pos())
+			return bt.Success, nil
+		}
+
+		return bt.Failure, nil
 	}
 }
 
@@ -286,6 +292,7 @@ func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 		a.u.SetTargetHeading(targetHeading)
 		a.u.SetTargetTurretAngle(targetHeading)
 
+		// TODO: max velocity only if outside guard area
 		a.u.SetTargetVelocity(a.u.MaxVelocity())
 
 		//log.Debugf("[%s] -> guard area -> nextPos: %v", a.u.ID(), nextPos)
@@ -295,9 +302,29 @@ func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 
 func (a *AIBehavior) GuardUnit() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
-		// TODO: guard unit
-		//log.Debugf("[%s] -> guard unit", a.u.ID())
-		return bt.Failure, nil
+		guardPath := a.u.PathStack()
+		if a.piloting.formation == nil || guardPath == nil {
+			return bt.Failure, nil
+		}
+
+		leader := a.piloting.formation.leader
+		if leader == nil || leader.IsDestroyed() || a.u == leader {
+			return bt.Failure, nil
+		}
+
+		// TODO: determine guard position using some formation instead of some random position near leader
+
+		a.updatePathingToPosition(leader.Pos(), 4)
+		targetHeading := a.pathingHeading(leader.Pos(), leader.PosZ())
+
+		a.u.SetTargetHeading(targetHeading)
+		a.u.SetTargetTurretAngle(targetHeading)
+
+		// TODO: match leader's velocity if close by
+		a.u.SetTargetVelocity(a.u.MaxVelocity())
+
+		//log.Debugf("[%s] -> guard unit [%s] -> heading: %0.2f", a.u.ID(), leader.ID(), geom.Degrees(targetHeading))
+		return bt.Success, nil
 	}
 }
 
@@ -323,6 +350,7 @@ func (a *AIBehavior) PatrolPath() func([]bt.Node) (bt.Status, error) {
 		a.u.SetTargetHeading(targetHeading)
 		a.u.SetTargetTurretAngle(targetHeading)
 
+		// TODO: max velocity only if very far from next position
 		a.u.SetTargetVelocity(a.u.MaxVelocity())
 
 		//log.Debugf("[%s] -> patrol path -> nextPos: %v", a.u.ID(), nextPos)

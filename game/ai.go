@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -24,6 +25,7 @@ const (
 type AIHandler struct {
 	g          *Game
 	ai         []*AIBehavior
+	formations []*AIFormation
 	initiative *AIInitiative
 	resources  AIResources
 }
@@ -41,8 +43,14 @@ type AIGunnery struct {
 }
 
 type AIPiloting struct {
-	destPos  *geom.Vector2
-	destPath []*geom.Vector2
+	destPos   *geom.Vector2
+	destPath  []*geom.Vector2
+	formation *AIFormation
+}
+
+type AIFormation struct {
+	leader model.Unit
+	units  []model.Unit
 }
 
 type AINodeID string
@@ -181,6 +189,7 @@ func NewAIHandler(g *Game) *AIHandler {
 		aiHandler.ai = append(aiHandler.ai, aiHandler.NewAI(u, "unit", aiRes))
 	}
 
+	aiHandler.LoadFormations()
 	aiHandler.initiative = NewAIInitiative(aiHandler.ai)
 
 	return aiHandler
@@ -207,6 +216,60 @@ func (h *AIHandler) UnitAI(u model.Unit) *AIBehavior {
 		}
 	}
 	return nil
+}
+
+func (f *AIFormation) SetLeader(u model.Unit) {
+	f.leader = u
+}
+
+func (f *AIFormation) AddUnit(u model.Unit) {
+	f.units = append(f.units, u)
+}
+
+func (h *AIHandler) LoadFormations() {
+	h.formations = make([]*AIFormation, 0)
+
+	// sort by unit ID for consistent formation creation
+	ids := make([]string, 0, len(h.ai))
+
+	// map unit ai by ID
+	unitAiByID := make(map[string]*AIBehavior, len(h.ai))
+	for _, ai := range h.ai {
+		ids = append(ids, ai.u.ID())
+		unitAiByID[ai.u.ID()] = ai
+	}
+
+	sort.Strings(ids)
+
+	// create formations by leader ID
+	for _, id := range ids {
+		ai := unitAiByID[id]
+		leaderID := ai.u.GuardUnit()
+		if leaderID == "" {
+			continue
+		}
+
+		leaderAI, ok := unitAiByID[leaderID]
+		if !ok {
+			log.Errorf("[%s] formation leader not found by ID: %s", ai.u.ID(), leaderID)
+			continue
+		}
+
+		if ai.piloting.formation != nil {
+			log.Errorf("[%s] is a leader of another formation and cannot also follow: %s", ai.u.ID(), leaderID)
+			continue
+		}
+
+		leaderFormation := leaderAI.piloting.formation
+		if leaderFormation == nil {
+			leaderFormation = &AIFormation{leader: leaderAI.u, units: make([]model.Unit, 0, 1)}
+			leaderAI.piloting.formation = leaderFormation
+			h.formations = append(h.formations, leaderFormation)
+		}
+
+		ai.piloting.formation = leaderFormation
+		leaderFormation.AddUnit(ai.u)
+	}
 }
 
 func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
@@ -364,6 +427,11 @@ func (n *AIGunnery) Reset() {
 func (p *AIPiloting) Reset() {
 	p.destPos = nil
 	p.destPath = make([]*geom.Vector2, 0)
+}
+
+func (p *AIPiloting) SetDestination(destPos *geom.Vector2, destPath []*geom.Vector2) {
+	p.destPos = destPos
+	p.destPath = destPath
 }
 
 func (p *AIPiloting) Len() int {

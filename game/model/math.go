@@ -10,6 +10,35 @@ import (
 	"github.com/harbdog/raycaster-go/geom3d"
 )
 
+type Rect struct {
+	X1, Y1, X2, Y2 float64
+}
+
+// NewRect returns a new rectangle with the given coordinates. The resulting
+// rectangle has minimum and maximum coordinates swapped if necessary so that
+// it is well-formed.
+func NewRect(x1, y1, x2, y2 float64) Rect {
+	if x1 > x2 {
+		x1, x2 = x2, x1
+	}
+	if y1 > y2 {
+		y1, y2 = y2, y1
+	}
+	return Rect{X1: x1, Y1: y1, X2: x2, Y2: y2}
+}
+
+func (r Rect) ContainsPoint(x, y float64) bool {
+	return r.X1 <= x && x <= r.X2 && r.Y1 <= y && y <= r.Y2
+}
+
+func (r Rect) Dx() float64 {
+	return r.X2 - r.X1
+}
+
+func (r Rect) Dy() float64 {
+	return r.Y2 - r.Y1
+}
+
 func NewRNG() *rand.Rand {
 	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }

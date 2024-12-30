@@ -102,9 +102,13 @@ type Unit interface {
 
 	GuardArea() *geom.Circle
 	SetGuardArea(x, y, radius float64)
-	GuardUnit() Unit
+	GuardUnit() string
+	SetGuardUnit(string)
 	PathStack() *common.FIFOStack[geom.Vector2]
 	SetPatrolPath([]geom.Vector2)
+	WithdrawArea() *Rect
+	SetWithdrawArea(*Rect)
+
 	Objective() UnitObjective
 	SetObjective(UnitObjective)
 	SetAsPlayer(bool)
@@ -160,8 +164,9 @@ type UnitModel struct {
 	targetLock          float64
 	objective           UnitObjective
 	guardArea           *geom.Circle
-	guardUnit           Unit
+	guardUnit           string
 	pathStack           *common.FIFOStack[geom.Vector2]
+	withdrawArea        *Rect
 	parent              Entity
 	isPlayer            bool
 }
@@ -562,24 +567,27 @@ func (e *UnitModel) SetGuardArea(x, y, radius float64) {
 	if radius <= 0 {
 		e.guardArea = nil
 		return
+	} else {
+		e.guardArea = &geom.Circle{X: x, Y: y, Radius: radius}
 	}
-	e.guardArea = &geom.Circle{X: x, Y: y, Radius: radius}
 
 	// initialize empty path stack for use in guard area behavior
 	e.pathStack = common.NewFIFOStack[geom.Vector2]()
 }
 
-func (e *UnitModel) GuardUnit() Unit {
+func (e *UnitModel) GuardUnit() string {
 	return e.guardUnit
 }
 
-func (e *UnitModel) SetGuardUnit(guardUnit Unit) {
-	e.guardUnit = guardUnit
+func (e *UnitModel) SetGuardUnit(unit string) {
+	e.guardUnit = unit
+
+	// initialize empty path stack for use in guard unit behavior
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
 }
 
 func (e *UnitModel) SetPatrolPath(modelPatrolPath []geom.Vector2) {
 	if len(modelPatrolPath) == 0 {
-		e.pathStack = nil
 		return
 	}
 	e.pathStack = common.NewFIFOStack[geom.Vector2]()
@@ -590,6 +598,17 @@ func (e *UnitModel) SetPatrolPath(modelPatrolPath []geom.Vector2) {
 
 func (e *UnitModel) PathStack() *common.FIFOStack[geom.Vector2] {
 	return e.pathStack
+}
+
+func (e *UnitModel) WithdrawArea() *Rect {
+	return e.withdrawArea
+}
+
+func (e *UnitModel) SetWithdrawArea(withdrawArea *Rect) {
+	e.withdrawArea = withdrawArea
+
+	// initialize empty path stack for use in withdraw area behavior
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
 }
 
 func (e *UnitModel) Objective() UnitObjective {

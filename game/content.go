@@ -306,10 +306,6 @@ func (g *Game) loadMissionSprites() {
 			continue
 		}
 		emplacement := g.createUnitSprite(modelEmplacement).(*render.EmplacementSprite)
-
-		posX, posY := missionEmplacement.Position[0], missionEmplacement.Position[1]
-		emplacement.SetPos(&geom.Vector2{X: posX, Y: posY})
-
 		g.sprites.addEmplacementSprite(emplacement)
 	}
 }
@@ -352,8 +348,7 @@ func createMissionUnitModel[T model.MissionUnitModels](g *Game, unit model.Missi
 	u.SetTurretAngle(rHeading)
 	u.SetTargetTurretAngle(rHeading)
 
-	//u.SetGuardUnitunit.GuardArea.Unit) // TDDO: get unit by id
-
+	u.SetGuardUnit(unit.GuardUnit)
 	if unit.GuardArea.Radius > 0 {
 		u.SetGuardArea(unit.GuardArea.Position[0], unit.GuardArea.Position[1], unit.GuardArea.Radius)
 		if len(unit.PatrolPath) > 0 {
@@ -394,8 +389,7 @@ func createMissionFlyingUnitModel[T model.MissionFlyingUnitModels](g *Game, unit
 	u.SetTurretAngle(rHeading)
 	u.SetTargetTurretAngle(rHeading)
 
-	//u.SetGuardUnitunit.GuardArea.Unit) // TDDO: get unit by id
-
+	u.SetGuardUnit(unit.GuardUnit)
 	if unit.GuardArea.Radius > 0 {
 		u.SetGuardArea(unit.GuardArea.Position[0], unit.GuardArea.Position[1], unit.GuardArea.Radius)
 		if len(unit.PatrolPath) > 0 {
