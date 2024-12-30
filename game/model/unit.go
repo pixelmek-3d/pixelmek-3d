@@ -101,8 +101,10 @@ type Unit interface {
 	MaxJumpJetDuration() float64
 
 	GuardArea() *geom.Circle
+	SetGuardArea(x, y, radius float64)
 	GuardUnit() Unit
 	PathStack() *common.FIFOStack[geom.Vector2]
+	SetPatrolPath([]geom.Vector2)
 	Objective() UnitObjective
 	SetObjective(UnitObjective)
 	SetAsPlayer(bool)
@@ -556,12 +558,12 @@ func (e *UnitModel) GuardArea() *geom.Circle {
 	return e.guardArea
 }
 
-func (e *UnitModel) SetGuardAreaFromModel(modelGuardPos [2]float64, modelGuardRadius float64) {
-	if modelGuardRadius <= 0 {
+func (e *UnitModel) SetGuardArea(x, y, radius float64) {
+	if radius <= 0 {
 		e.guardArea = nil
 		return
 	}
-	e.guardArea = &geom.Circle{X: modelGuardPos[0], Y: modelGuardPos[1], Radius: modelGuardRadius}
+	e.guardArea = &geom.Circle{X: x, Y: y, Radius: radius}
 
 	// initialize empty path stack for use in guard area behavior
 	e.pathStack = common.NewFIFOStack[geom.Vector2]()
@@ -575,14 +577,14 @@ func (e *UnitModel) SetGuardUnit(guardUnit Unit) {
 	e.guardUnit = guardUnit
 }
 
-func (e *UnitModel) SetPatrolPathFromModel(modelPatrolPath [][2]float64) {
+func (e *UnitModel) SetPatrolPath(modelPatrolPath []geom.Vector2) {
 	if len(modelPatrolPath) == 0 {
 		e.pathStack = nil
 		return
 	}
 	e.pathStack = common.NewFIFOStack[geom.Vector2]()
 	for _, point := range modelPatrolPath {
-		e.pathStack.Push(geom.Vector2{X: point[0], Y: point[1]})
+		e.pathStack.Push(point)
 	}
 }
 

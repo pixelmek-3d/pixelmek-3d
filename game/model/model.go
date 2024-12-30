@@ -4,6 +4,7 @@ import (
 	"math"
 	"reflect"
 
+	"github.com/harbdog/raycaster-go/geom"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -291,6 +292,14 @@ func (a *AmmoBin) ConsumeAmmo(forWeapon Weapon, consumeN int) {
 			a.ammoCount = 0
 		}
 	}
+}
+
+func PointsToVector2(points [][2]float64) []geom.Vector2 {
+	vectors := make([]geom.Vector2, len(points))
+	for i, p := range points {
+		vectors[i] = geom.Vector2{X: p[0], Y: p[1]}
+	}
+	return vectors
 }
 
 func InArray(array, search interface{}) bool {

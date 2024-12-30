@@ -76,6 +76,10 @@ type MissionGuardArea struct {
 	Radius   float64    `yaml:"radius"`
 }
 
+type MissionUnitModels interface {
+	Mech | Vehicle | Infantry
+}
+
 type MissionUnit struct {
 	ID         string           `yaml:"id"`
 	Team       int              `yaml:"team"`
@@ -85,6 +89,10 @@ type MissionUnit struct {
 	PatrolPath [][2]float64     `yaml:"patrolPath"`
 	GuardArea  MissionGuardArea `yaml:"guardArea"`
 	GuardUnit  string           `yaml:"guardUnit"`
+}
+
+type MissionFlyingUnitModels interface {
+	VTOL
 }
 
 type MissionFlyingUnit struct {
@@ -97,6 +105,10 @@ type MissionFlyingUnit struct {
 	PatrolPath [][2]float64     `yaml:"patrolPath"`
 	GuardArea  MissionGuardArea `yaml:"guardArea"`
 	GuardUnit  string           `yaml:"guardUnit"`
+}
+
+type MissionStaticUnitModels interface {
+	Emplacement
 }
 
 type MissionStaticUnit struct {
