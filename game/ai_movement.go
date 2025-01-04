@@ -257,20 +257,25 @@ func (a *AIBehavior) Withdraw() func([]bt.Node) (bt.Status, error) {
 
 func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
+		guardArea := a.u.GuardArea()
 		guardPath := a.u.PathStack()
-		if a.u.GuardArea() == nil || guardPath == nil {
+		if guardArea == nil || guardPath == nil {
 			return bt.Failure, nil
 		}
 
-		// TOOD: support standing guard by setting guard area radius to 0?
+		pos := a.u.Pos()
+
+		// standing guard if guard area radius is 0 and close to guard area
+		if guardArea.Radius == 0 && geom.Distance2(pos.X, pos.Y, guardArea.X, guardArea.Y) < 2 {
+			a.u.SetTargetVelocity(0)
+			return bt.Success, nil
+		}
 
 		// use the path stack to keep track of next position to guard within the area
-		pos := a.u.Pos()
 		nextPos := guardPath.Peek()
 		if nextPos == nil {
 			// select a random position within the guard area
 			// TODO: verify random position isn't inside walls that would block reaching the position
-			guardArea := a.u.GuardArea()
 
 			rng := model.NewRNG()
 			rngAngle := model.RandFloat64In(0, 2*geom.Pi, rng)

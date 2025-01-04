@@ -564,7 +564,7 @@ func (e *UnitModel) GuardArea() *geom.Circle {
 }
 
 func (e *UnitModel) SetGuardArea(x, y, radius float64) {
-	if radius <= 0 {
+	if radius < 0 {
 		e.guardArea = nil
 		return
 	} else {
