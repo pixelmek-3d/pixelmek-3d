@@ -267,6 +267,7 @@ func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 
 		// standing guard if guard area radius is 0 and close to guard area
 		if guardArea.Radius == 0 && geom.Distance2(pos.X, pos.Y, guardArea.X, guardArea.Y) < 2 {
+			guardPath.Reset()
 			a.u.SetTargetVelocity(0)
 			return bt.Success, nil
 		}
@@ -373,8 +374,40 @@ func (a *AIBehavior) HuntLastTargetArea() func([]bt.Node) (bt.Status, error) {
 
 func (a *AIBehavior) Wander() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
-		// TODO: wander randomly
-		//log.Debugf("[%s] -> wander randomly", a.u.ID())
-		return bt.Failure, nil
+		wanderPath := a.u.PathStack()
+		if wanderPath == nil {
+			return bt.Failure, nil
+		}
+
+		pos := a.u.Pos()
+
+		// use the path stack to keep track of next position to guard within the area
+		nextPos := wanderPath.Peek()
+		if nextPos == nil {
+			// select a random position within the map area
+			// TODO: verify random position isn't inside walls that would block reaching the position
+
+			rng := model.NewRNG()
+			rngX := model.RandFloat64In(0, float64(a.g.mapWidth), rng)
+			rngY := model.RandFloat64In(0, float64(a.g.mapHeight), rng)
+			nextPos = &geom.Vector2{X: rngX, Y: rngY}
+			wanderPath.Push(*nextPos)
+		}
+
+		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 2 {
+			wanderPath.Pop()
+		}
+
+		a.updatePathingToPosition(nextPos, 4)
+		targetHeading := a.pathingHeading(nextPos, a.u.PosZ())
+
+		a.u.SetTargetHeading(targetHeading)
+		a.u.SetTargetTurretAngle(targetHeading)
+
+		// TODO: use cruise velocity for wandering
+		a.u.SetTargetVelocity(a.u.MaxVelocity())
+
+		//log.Debugf("[%s] -> wander path -> nextPos: %v", a.u.ID(), nextPos)
+		return bt.Success, nil
 	}
 }

@@ -12,6 +12,13 @@ func NewFIFOStack[T any]() *FIFOStack[T] {
 	return &FIFOStack[T]{list: list.New()}
 }
 
+// Resets the stack
+func (s *FIFOStack[T]) Reset() {
+	if s.list.Len() > 0 {
+		s.list = list.New()
+	}
+}
+
 // Push adds an element to the end of the stack
 func (s *FIFOStack[T]) Push(value T) {
 	s.list.PushBack(value)

@@ -587,9 +587,6 @@ func (e *UnitModel) SetGuardUnit(unit string) {
 }
 
 func (e *UnitModel) SetPatrolPath(modelPatrolPath []geom.Vector2) {
-	if len(modelPatrolPath) == 0 {
-		return
-	}
 	e.pathStack = common.NewFIFOStack[geom.Vector2]()
 	for _, point := range modelPatrolPath {
 		e.pathStack.Push(point)

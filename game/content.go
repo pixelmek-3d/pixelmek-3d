@@ -349,7 +349,9 @@ func createMissionUnitModel[T model.MissionUnitModels](g *Game, unit model.Missi
 	u.SetTargetTurretAngle(rHeading)
 
 	u.SetGuardUnit(unit.GuardUnit)
-	if len(unit.GuardArea.Position) > 0 {
+	if len(unit.GuardArea.Position) == 2 && unit.GuardArea.Radius >= 0 &&
+		unit.GuardArea.Position[0] > 0 && unit.GuardArea.Position[1] > 0 {
+
 		u.SetGuardArea(unit.GuardArea.Position[0], unit.GuardArea.Position[1], unit.GuardArea.Radius)
 		if len(unit.PatrolPath) > 0 {
 			// Guard area is mutually exclusive from patrol path since it also uses the path stack
