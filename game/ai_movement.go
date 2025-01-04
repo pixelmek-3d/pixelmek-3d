@@ -62,11 +62,13 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 		toPath := a.g.mission.Pathing.FindPath(a.u.Pos(), toPos)
 		pathing.SetDestination(toPos, toPath)
 		//log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
-	} else if pathing.Len() > 0 {
+	}
+
+	if pathing.Len() > 0 {
 		// determine if need to move to next position in path
 		pos := a.u.Pos()
 		nextPos := pathing.Next()
-		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
+		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 2 {
 			// unit is close to next path position
 			pathing.Pop()
 			//log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
@@ -346,7 +348,7 @@ func (a *AIBehavior) PatrolPath() func([]bt.Node) (bt.Status, error) {
 		// determine if need to move to next position in path
 		pos := a.u.Pos()
 		nextPos := patrolPath.Peek()
-		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
+		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 2 {
 			// unit is close enough, move to next path position for next cycle
 			patrolPath.Push(*patrolPath.Pop())
 			nextPos = patrolPath.Peek()
