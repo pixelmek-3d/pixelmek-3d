@@ -59,7 +59,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 	if findNewPath {
 		// find new path to reach target position
 		a.piloting.SetDestination(toPos, a.g.mission.Pathing.FindPath(a.u.Pos(), toPos))
-		// log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
+		//log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.piloting.destPos, a.piloting.destPath)
 	} else if a.piloting.Len() > 0 {
 		// determine if need to move to next position in path
 		pos := a.u.Pos()
@@ -67,7 +67,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
 			// unit is close to next path position
 			a.piloting.Pop()
-			// log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.pathing.pos, a.pathing.path)
+			//log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.piloting.destPos, a.piloting.destPath)
 		}
 	}
 }

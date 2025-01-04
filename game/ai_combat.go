@@ -19,7 +19,6 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 
 		// reset AI settings for previous targets
 		a.gunnery.Reset()
-		a.piloting.Reset()
 
 		// TODO: create separate node for selecting a new target based on some criteria
 		units := a.g.getSpriteUnits()
