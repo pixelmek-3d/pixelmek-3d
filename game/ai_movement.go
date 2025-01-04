@@ -34,10 +34,11 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 
 func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) {
 	findNewPath := false
+	pathing := a.piloting.pathing
 	switch {
-	case a.piloting.Len() == 0:
+	case pathing.Len() == 0:
 		findNewPath = true
-	case int(toPos.X) != int(a.piloting.destPos.X) || int(toPos.Y) != int(a.piloting.destPos.Y):
+	case int(toPos.X) != int(pathing.destPos.X) || int(toPos.Y) != int(pathing.destPos.Y):
 		// if still some distance from target, do not recalc path to target until further
 		uPos := a.u.Pos()
 		toLine := geom.Line{
@@ -49,7 +50,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 			findNewPath = true
 		} else {
 			deltaRecalcFactor := geom.Clamp(recalcDistFactor/2, 1, math.MaxFloat64)
-			deltaX, deltaY := math.Abs(toPos.X-a.piloting.destPos.X), math.Abs(toPos.Y-a.piloting.destPos.Y)
+			deltaX, deltaY := math.Abs(toPos.X-pathing.destPos.X), math.Abs(toPos.Y-pathing.destPos.Y)
 			if deltaX > toDist/deltaRecalcFactor || deltaY > toDist/deltaRecalcFactor {
 				findNewPath = true
 			}
@@ -58,16 +59,17 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 
 	if findNewPath {
 		// find new path to reach target position
-		a.piloting.SetDestination(toPos, a.g.mission.Pathing.FindPath(a.u.Pos(), toPos))
-		//log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.piloting.destPos, a.piloting.destPath)
-	} else if a.piloting.Len() > 0 {
+		toPath := a.g.mission.Pathing.FindPath(a.u.Pos(), toPos)
+		pathing.SetDestination(toPos, toPath)
+		//log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+	} else if pathing.Len() > 0 {
 		// determine if need to move to next position in path
 		pos := a.u.Pos()
-		nextPos := a.piloting.Next()
+		nextPos := pathing.Next()
 		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 1 {
 			// unit is close to next path position
-			a.piloting.Pop()
-			//log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), a.piloting.destPos, a.piloting.destPath)
+			pathing.Pop()
+			//log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
 		}
 	}
 }
@@ -75,9 +77,9 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 func (a *AIBehavior) pathingHeading(toPos *geom.Vector2, toPosZ float64) float64 {
 	// calculate heading from unit to position
 	var toHeading float64 = a.u.Heading()
-	if a.piloting.Len() > 0 {
+	if a.piloting.pathing.Len() > 0 {
 		pos := a.u.Pos()
-		nextPos := a.piloting.Next()
+		nextPos := a.piloting.pathing.Next()
 		toLine := geom.Line{X1: pos.X, Y1: pos.Y, X2: nextPos.X, Y2: nextPos.Y}
 		toHeading = toLine.Angle()
 	} else {

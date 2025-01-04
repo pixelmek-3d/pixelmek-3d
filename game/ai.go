@@ -43,9 +43,13 @@ type AIGunnery struct {
 }
 
 type AIPiloting struct {
-	destPos   *geom.Vector2
-	destPath  []*geom.Vector2
+	pathing   *AIPathing
 	formation *AIFormation
+}
+
+type AIPathing struct {
+	destPos  *geom.Vector2
+	destPath []*geom.Vector2
 }
 
 type AIFormation struct {
@@ -425,26 +429,28 @@ func (n *AIGunnery) Reset() {
 }
 
 func (p *AIPiloting) Reset() {
-	p.destPos = nil
-	p.destPath = make([]*geom.Vector2, 0)
+	p.pathing = &AIPathing{
+		destPos:  nil,
+		destPath: make([]*geom.Vector2, 0),
+	}
 }
 
-func (p *AIPiloting) SetDestination(destPos *geom.Vector2, destPath []*geom.Vector2) {
+func (p *AIPathing) SetDestination(destPos *geom.Vector2, destPath []*geom.Vector2) {
 	p.destPos = destPos
 	p.destPath = destPath
 }
 
-func (p *AIPiloting) Len() int {
+func (p *AIPathing) Len() int {
 	return len(p.destPath)
 }
 
-func (p *AIPiloting) Next() *geom.Vector2 {
+func (p *AIPathing) Next() *geom.Vector2 {
 	if len(p.destPath) == 0 {
 		return nil
 	}
 	return p.destPath[0]
 }
 
-func (p *AIPiloting) Pop() {
+func (p *AIPathing) Pop() {
 	p.destPath = p.destPath[1:]
 }
