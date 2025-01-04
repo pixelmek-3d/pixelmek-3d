@@ -31,6 +31,7 @@ type Radar struct {
 	turretAngle  float64
 	fovDegrees   float64
 	radarRange   float64
+	showPosition bool
 }
 
 type RadarBlip struct {
@@ -116,6 +117,10 @@ func (r *Radar) SetValues(position *geom.Vector2, heading, turretAngle, fovDegre
 	r.fovDegrees = fovDegrees
 }
 
+func (r *Radar) ShowPosition(show bool) {
+	r.showPosition = show
+}
+
 func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
 	r.fontRenderer.SetTarget(screen)
@@ -143,6 +148,9 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	r.fontRenderer.SetColor(rColor)
 
 	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
+	if r.showPosition {
+		radarStr += fmt.Sprintf("\nP:%0.0f,%0.0f", r.position.X, r.position.Y)
+	}
 	r.fontRenderer.Draw(radarStr, bX, bY)
 
 	// Draw radar circle outline

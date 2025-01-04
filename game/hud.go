@@ -805,6 +805,9 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
 	radar.SetValues(camPos, camHeading, camTurretAngle, cameraViewDegrees)
+	if g.debug {
+		radar.ShowPosition(true)
+	}
 
 	radar.SetNavPoints(rNavPoints[:navCount])
 	radar.SetRadarBlips(radarBlips[:blipCount])
