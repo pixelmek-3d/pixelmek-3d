@@ -129,7 +129,7 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 
 	steps := make([]*geom.Vector2, 0, len(path))
 	if !found {
-		log.Debugf("unable to find path for (%0.0f,%0.0f) -> (%0.0f,%0.0f)", startPos.X, startPos.Y, finishPos.X, finishPos.Y)
+		log.Errorf("unable to find path for (%0.0f,%0.0f) -> (%0.0f,%0.0f)", startPos.X, startPos.Y, finishPos.X, finishPos.Y)
 		return steps
 	}
 
