@@ -659,6 +659,14 @@ func (g *Game) drawJumpJetIndicator(hudOpts *render.DrawHudOptions) {
 	jets.Draw(jBounds, hudOpts)
 }
 
+func (g *Game) cycleRadarRange() {
+	radar := g.GetHUDElement(HUD_RADAR).(*render.Radar)
+	if radar == nil {
+		return
+	}
+	radar.CycleRadarRange()
+}
+
 func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	radar := g.GetHUDElement(HUD_RADAR).(*render.Radar)
 	if radar == nil {
@@ -679,7 +687,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	)
 
 	// find all units and nav points within range to draw as blips
-	maxDistanceMeters := 1000.0 // TODO: set in Radar object and game config
+	maxDistanceMeters := radar.RadarRange()
 	maxDistanceUnits := maxDistanceMeters / model.METERS_PER_UNIT
 
 	radarBlips := make([]*render.RadarBlip, 0, 128)

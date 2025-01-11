@@ -60,6 +60,7 @@ const (
 	ActionWeaponFireGroup4
 	ActionWeaponFireGroup5
 	ActionNavCycle
+	ActionRadarRangeCycle
 	ActionTargetCrosshairs
 	ActionTargetNearest
 	ActionTargetNext
@@ -147,6 +148,8 @@ func actionString(a input.Action) string {
 		return "weapon_fire_group_5"
 	case ActionNavCycle:
 		return "nav_cycle"
+	case ActionRadarRangeCycle:
+		return "radar_range_cycle"
 	case ActionTargetCrosshairs:
 		return "target_crosshairs"
 	case ActionTargetNearest:
@@ -228,6 +231,7 @@ func (g *Game) setDefaultControls() {
 		ActionWeaponFireGroup2:       {input.KeyMouseForward},
 
 		ActionNavCycle:         {input.KeyN, input.KeyGamepadDown},
+		ActionRadarRangeCycle:  {input.KeySlash},
 		ActionTargetCrosshairs: {input.KeyQ, input.KeyGamepadL2},
 		ActionTargetNearest:    {input.KeyE, input.KeyGamepadUp},
 		ActionTargetNext:       {input.KeyT, input.KeyGamepadRight},
@@ -720,6 +724,11 @@ func (g *Game) handleInput() {
 	if g.input.ActionIsJustPressed(ActionNavCycle) {
 		// cycle nav points
 		g.navPointCycle(true)
+	}
+
+	if g.input.ActionIsJustPressed(ActionRadarRangeCycle) {
+		// cycle radar HUD range
+		g.cycleRadarRange()
 	}
 
 	if g.input.ActionIsJustPressed(ActionTargetCrosshairs) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"slices"
 	"sort"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -16,7 +17,8 @@ import (
 var (
 	_colorRadar        = _colorDefaultGreen
 	_colorRadarOutline = color.NRGBA{R: 197, G: 145, B: 0, A: 255}
-	radarRangeMeters   = 1000.0
+
+	radarRanges = []float64{1000.0, 500.0, 250.0}
 )
 
 type Radar struct {
@@ -63,7 +65,7 @@ func NewRadar(font *Font) *Radar {
 	r := &Radar{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
 		fontRenderer: renderer,
-		radarRange:   radarRangeMeters / model.METERS_PER_UNIT,
+		radarRange:   radarRanges[0] / model.METERS_PER_UNIT,
 	}
 
 	return r
@@ -77,6 +79,23 @@ func (r *Radar) updateFontSize(_, height int) {
 	}
 
 	r.fontRenderer.SetSizePx(int(pxSize))
+}
+
+func (r *Radar) RadarRange() float64 {
+	return r.radarRange * model.METERS_PER_UNIT
+}
+
+func (r *Radar) CycleRadarRange() {
+	i := slices.Index(radarRanges, r.radarRange*model.METERS_PER_UNIT)
+	if i == -1 {
+		return
+	}
+
+	i++
+	if i >= len(radarRanges) {
+		i = 0
+	}
+	r.radarRange = radarRanges[i] / model.METERS_PER_UNIT
 }
 
 func (r *Radar) SetMapLines(lines []*geom.Line) {
@@ -147,7 +166,10 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	rColor := hudOpts.HudColor(_colorRadar)
 	r.fontRenderer.SetColor(rColor)
 
-	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
+	radarStr := fmt.Sprintf("R:%0.1fkm", r.radarRange*model.METERS_PER_UNIT/1000)
+	if r.radarRange < 1000 {
+		radarStr = fmt.Sprintf("R:%0.0fm", r.radarRange*model.METERS_PER_UNIT)
+	}
 	if r.showPosition {
 		radarStr += fmt.Sprintf("\nP:%0.0f,%0.0f", r.position.X, r.position.Y)
 	}
