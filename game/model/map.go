@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -192,6 +193,10 @@ func (m *Map) Level(levelNum int) [][]int {
 }
 
 func LoadMap(mapFile string) (*Map, error) {
+	if filepath.Ext(mapFile) == "" {
+		mapFile += YAMLExtension
+	}
+
 	v := validator.New()
 	mapPath := path.Join("maps", mapFile)
 

@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -12,6 +13,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+const YAMLExtension string = ".yaml"
 
 const (
 	MechResourceType        string = "mechs"
@@ -386,6 +389,10 @@ func LoadModelResources() (*ModelResources, error) {
 	return resources, nil
 }
 
+func TrimExtension(fileName string) string {
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
+
 func (r *ModelResources) loadUnitResources() error {
 	// load and validate all units
 	v := validator.New()
@@ -454,7 +461,7 @@ func (r *ModelResources) loadUnitResources() error {
 				}
 
 				m.File = fileName
-				r.Mechs[fileName] = m
+				r.Mechs[TrimExtension(fileName)] = m
 
 			case VehicleResourceType:
 				m := &ModelVehicleResource{}
@@ -469,7 +476,7 @@ func (r *ModelResources) loadUnitResources() error {
 				}
 
 				m.File = fileName
-				r.Vehicles[fileName] = m
+				r.Vehicles[TrimExtension(fileName)] = m
 
 			case VTOLResourceType:
 				m := &ModelVTOLResource{}
@@ -484,7 +491,7 @@ func (r *ModelResources) loadUnitResources() error {
 				}
 
 				m.File = fileName
-				r.VTOLs[fileName] = m
+				r.VTOLs[TrimExtension(fileName)] = m
 
 			case InfantryResourceType:
 				m := &ModelInfantryResource{}
@@ -499,7 +506,7 @@ func (r *ModelResources) loadUnitResources() error {
 				}
 
 				m.File = fileName
-				r.Infantry[fileName] = m
+				r.Infantry[TrimExtension(fileName)] = m
 
 			case EmplacementResourceType:
 				m := &ModelEmplacementResource{}
@@ -514,7 +521,7 @@ func (r *ModelResources) loadUnitResources() error {
 				}
 
 				m.File = fileName
-				r.Emplacements[fileName] = m
+				r.Emplacements[TrimExtension(fileName)] = m
 			}
 		}
 	}
@@ -581,7 +588,7 @@ func (r *ModelResources) loadWeaponResources() error {
 				}
 
 				m.File = fileName
-				r.EnergyWeapons[fileName] = m
+				r.EnergyWeapons[TrimExtension(fileName)] = m
 
 			case MissileResourceType:
 				m := &ModelMissileWeaponResource{}
@@ -596,7 +603,7 @@ func (r *ModelResources) loadWeaponResources() error {
 				}
 
 				m.File = fileName
-				r.MissileWeapons[fileName] = m
+				r.MissileWeapons[TrimExtension(fileName)] = m
 
 			case BallisticResourceType:
 				m := &ModelBallisticWeaponResource{}
@@ -611,7 +618,7 @@ func (r *ModelResources) loadWeaponResources() error {
 				}
 
 				m.File = fileName
-				r.BallisticWeapons[fileName] = m
+				r.BallisticWeapons[TrimExtension(fileName)] = m
 
 			}
 		}

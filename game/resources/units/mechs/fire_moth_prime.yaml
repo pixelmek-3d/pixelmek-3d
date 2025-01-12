@@ -18,19 +18,19 @@ heatSinks:
   quantity: 10
   type: double
 armament:
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [8, 37]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [11, 37]
-- weapon: "cl_srm_4.yaml"
+- weapon: cl_srm_4
   type: missile
   location: rt
   offset: [-4, 32]
-- weapon: "cl_srm_6.yaml"
+- weapon: cl_srm_6
   type: missile
   location: ra
   offset: [-11, 37]

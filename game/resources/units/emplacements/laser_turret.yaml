@@ -25,11 +25,11 @@ heatSinks:
   quantity: 10
   type: single
 armament:
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: turret
   offset: [-6, 20]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: turret
   offset: [6, 20]

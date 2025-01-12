@@ -18,23 +18,23 @@ heatSinks:
   quantity: 10
   type: double
 armament:
-- weapon: "cl_lbx_ac_5.yaml"
+- weapon: cl_lbx_ac_5
   type: ballistic
   location: la
   offset: [17, 24]
-- weapon: "cl_large_pulse_laser.yaml"
+- weapon: cl_large_pulse_laser
   type: energy
   location: ra
   offset: [-17, 24]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: lt
   offset: [4, 30]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: rt
   offset: [-4, 30]
 ammo:
 - type: ballistic
-  forWeapon: cl_lbx_ac_5.yaml
+  forWeapon: cl_lbx_ac_5
   tons: 1

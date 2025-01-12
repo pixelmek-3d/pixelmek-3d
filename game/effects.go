@@ -89,7 +89,7 @@ func _loadEjectionPodResource(g *Game) {
 	}
 
 	// TODO: refactor to use same func as g.loadUnitWeapons
-	weaponResource, err := g.resources.GetMissileWeaponResource("_ejection_pod.yaml")
+	weaponResource, err := g.resources.GetMissileWeaponResource("_ejection_pod")
 	if err != nil {
 		log.Error(err)
 	}

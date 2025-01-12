@@ -23,11 +23,11 @@ collisionRadius: 6
 collisionHeight: 24
 cockpitOffset: [0, 19]
 armament:
-- weapon: "cl_machine_gun.yaml"
+- weapon: cl_machine_gun
   type: ballistic
   location: ra
   offset: [-5, 12]
 ammo:
 - type: ballistic
-  forWeapon: cl_machine_gun.yaml
+  forWeapon: cl_machine_gun
   tons: 0.5

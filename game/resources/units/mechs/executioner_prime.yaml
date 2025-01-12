@@ -18,30 +18,30 @@ heatSinks:
   quantity: 16
   type: double
 armament:
-- weapon: "cl_gauss_rifle.yaml"
+- weapon: cl_gauss_rifle
   type: ballistic
   location: la
   offset: [19, 40]
-- weapon: "cl_er_large_laser.yaml"
+- weapon: cl_er_large_laser
   type: energy
   location: ra
   offset: [-17, 35]
-- weapon: "cl_er_large_laser.yaml"
+- weapon: cl_er_large_laser
   type: energy
   location: ra
   offset: [-20, 35]
-- weapon: "cl_machine_gun.yaml"
+- weapon: cl_machine_gun
   type: ballistic
   location: rt
   offset: [-6, 48]
-- weapon: "cl_machine_gun.yaml"
+- weapon: cl_machine_gun
   type: ballistic
   location: rt
   offset: [-8, 48]
 ammo:
 - type: ballistic
-  forWeapon: cl_gauss_rifle.yaml
+  forWeapon: cl_gauss_rifle
   tons: 2
 - type: ballistic
-  forWeapon: cl_machine_gun.yaml
+  forWeapon: cl_machine_gun
   tons: 1

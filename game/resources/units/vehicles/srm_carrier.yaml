@@ -28,27 +28,27 @@ heatSinks:
   quantity: 10
   type: double
 armament:
-- weapon: "cl_srm_6.yaml"
+- weapon: cl_srm_6
   type: missile
   location: front
   offset: [0, 46]
-- weapon: "cl_srm_6.yaml"
+- weapon: cl_srm_6
   type: missile
   location: front
   offset: [0, 40]
-- weapon: "cl_srm_6.yaml"
+- weapon: cl_srm_6
   type: missile
   location: turret
   offset: [-6, 43]
-- weapon: "cl_srm_6.yaml"
+- weapon: cl_srm_6
   type: missile
   location: turret
   offset: [6, 43]
-- weapon: "cl_srm_6.yaml"
+- weapon: cl_srm_6
   type: missile
   location: right
   offset: [-9, 40]
-- weapon: "cl_srm_6.yaml"
+- weapon: cl_srm_6
   type: missile
   location: left
   offset: [9, 40]

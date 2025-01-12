@@ -186,7 +186,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 	// load mission map
 	m.missionMap, err = LoadMap(m.MapPath)
 	if err != nil {
-		log.Error("Error loading map", m.MapPath)
+		log.Error("Error loading map: ", m.MapPath)
 		return nil, err
 	}
 

@@ -25,11 +25,11 @@ heatSinks:
   quantity: 10
   type: single
 armament:
-- weapon: "cl_lrm_10.yaml"
+- weapon: cl_lrm_10
   type: missile
   location: turret
   offset: [-6, 84]
-- weapon: "cl_lrm_10.yaml"
+- weapon: cl_lrm_10
   type: missile
   location: turret
   offset: [6, 84]

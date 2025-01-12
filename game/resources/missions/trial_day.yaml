@@ -3,71 +3,71 @@ briefing: |
   A call to trial during the day.
 
   Justice by combat.
-map: "testing_grounds.yaml"
+map: "testing_grounds"
 music: "bone_remains.mp3"
 dropZone:
   position: [8.5, 3.5]
   heading: 60
 objectives:
   destroy:
-      - all: true
+    - all: true
 navPoints: # https://en.wikipedia.org/wiki/NATO_phonetic_alphabet
-- name: "Alpha"
-  position: [10, 50]
-- name: "Bravo"
-  position: [60, 50]
-- name: "Charlie"
-  position: [60, 10]
+  - name: "Alpha"
+    position: [10, 50]
+  - name: "Bravo"
+    position: [60, 50]
+  - name: "Charlie"
+    position: [60, 10]
 mechs:
-- unit: "jenner_iic.yaml"
-  position: [80, 20]
-- unit: "warhawk_prime.yaml"
-  position: [83, 24]
-- unit: "executioner_prime.yaml"
-  position: [87, 22]
-- unit: "nova_prime.yaml"
-  position: [79, 33]
-  patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
-- unit: "adder_prime.yaml"
-  position: [72, 31]
-  patrolPath: [[18, 21], [18, 16], [3, 16], [3, 21], [18, 21]]
-- unit: "timber_wolf_prime.yaml"
-  position: [85, 35]
-  patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
+  - unit: "jenner_iic"
+    position: [80, 20]
+  - unit: "warhawk_prime"
+    position: [83, 24]
+  - unit: "executioner_prime"
+    position: [87, 22]
+  - unit: "nova_prime"
+    position: [79, 33]
+    patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
+  - unit: "adder_prime"
+    position: [72, 31]
+    patrolPath: [[18, 21], [18, 16], [3, 16], [3, 21], [18, 21]]
+  - unit: "timber_wolf_prime"
+    position: [85, 35]
+    patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 vehicles:
-- unit: "srm_carrier.yaml"
-  position: [12, 20]
-  team: -1
-- unit: "srm_carrier.yaml"
-  position: [15, 18]
-  team: -1
+  - unit: "srm_carrier"
+    position: [12, 20]
+    team: -1
+  - unit: "srm_carrier"
+    position: [15, 18]
+    team: -1
 vtols:
-- unit: "donar.yaml"
-  position: [13, 55]
-  zPosition: 3.0
-  team: -1
-- unit: "donar.yaml"
-  position: [17, 57]
-  zPosition: 3.0
-  team: -1
+  - unit: "donar"
+    position: [13, 55]
+    zPosition: 3.0
+    team: -1
+  - unit: "donar"
+    position: [17, 57]
+    zPosition: 3.0
+    team: -1
 infantry:
-- unit: "heavy_foot.yaml"
-  position: [14, 19]
-  team: -1
-- unit: "heavy_foot.yaml"
-  position: [14, 18]
-  patrolPath: [[12, 14], [9, 14], [12, 14]]
-  team: -1
+  - unit: "heavy_foot"
+    position: [14, 19]
+    team: -1
+  - unit: "heavy_foot"
+    position: [14, 18]
+    patrolPath: [[12, 14], [9, 14], [12, 14]]
+    team: -1
 emplacements:
-- unit: "laser_turret.yaml"
-  position: [14, 10]
-  team: -1
-- unit: "srm_turret.yaml"
-  position: [14, 14]
-  team: -1
-- unit: "sniper_tower.yaml"
-  position: [10, 14]
-  team: -1
-- unit: "lrm_tower.yaml"
-  position: [10, 10]
-  team: -1
+  - unit: "laser_turret"
+    position: [14, 10]
+    team: -1
+  - unit: "srm_turret"
+    position: [14, 14]
+    team: -1
+  - unit: "sniper_tower"
+    position: [10, 14]
+    team: -1
+  - unit: "lrm_tower"
+    position: [10, 10]
+    team: -1
