@@ -5,6 +5,7 @@ import (
 
 	"github.com/harbdog/go-astar"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common/bezier"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -139,5 +140,13 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 		steps = append(steps, &geom.Vector2{X: x, Y: y})
 	}
 
-	return steps
+	if len(steps) < 2 {
+		// not enough steps for a curve, return as-is
+		return steps
+	}
+
+	// convert square grid path into a curve for smoother movement
+	curvePath := make([]*geom.Vector2, len(steps))
+	bezier.New(steps...).Curve(curvePath)
+	return curvePath
 }
