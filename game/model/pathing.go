@@ -146,7 +146,7 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 	}
 
 	// convert square grid path into a curve for smoother movement
-	curvePath := make([]*geom.Vector2, len(steps))
-	bezier.New(steps...).Curve(curvePath)
+	curvePath := make([]*geom.Vector2, len(steps)*2)
+	bezier.New(steps, 2.0).Curve(curvePath)
 	return curvePath
 }

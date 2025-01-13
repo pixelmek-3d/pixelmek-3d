@@ -33,35 +33,46 @@ import (
 
 type point struct {
 	Point, Control geom.Vector2
+	Weighting      float64
 }
 
 // Curve implements Bezier curve calculation according to the algorithm of Robert D. Miller.
 //
 // Graphics Gems 5, 'Quick and Simple Bézier Curve Drawing', pages 206-209.
-type Curve []point
+type Curve struct {
+	p []point
+	w []float64
+}
 
 // NewCurve returns a Curve initialized with the control points in cp.
-func New(cp ...*geom.Vector2) Curve {
+func New(cp []*geom.Vector2, weight float64) *Curve {
 	if len(cp) == 0 {
 		return nil
 	}
-	c := make(Curve, len(cp))
+	c := &Curve{p: make([]point, len(cp)), w: make([]float64, len(cp))}
 	for i, p := range cp {
-		c[i].Point = *p
+		c.p[i].Point = *p
+
+		// TODO: if needed later, could support a different weight value at each control point
+		c.w[i] = weight
 	}
 
-	var w float64
-	for i, p := range c {
+	var s float64
+	for i, p := range c.p {
 		switch i {
 		case 0:
-			w = 1
+			s = 1
 		case 1:
-			w = float64(len(c)) - 1
+			s = float64(len(c.p)) - 1
 		default:
-			w *= float64(len(c)-i) / float64(i)
+			s *= float64(len(c.p)-i) / float64(i)
 		}
-		c[i].Control.X = p.Point.X * w
-		c[i].Control.Y = p.Point.Y * w
+		w := c.w[i]
+
+		c.p[i].Control.X = p.Point.X * w * s
+		c.p[i].Control.Y = p.Point.Y * w * s
+
+		c.p[i].Weighting = w * s
 	}
 
 	return c
@@ -69,13 +80,18 @@ func New(cp ...*geom.Vector2) Curve {
 
 // Point returns the point at t along the curve, where 0 ≤ t ≤ 1.
 func (c Curve) Point(t float64) *geom.Vector2 {
-	c[0].Point = c[0].Control
+	b := Curve{p: make([]point, len(c.p))}
+
+	b.p[0].Point = c.p[0].Control
+	b.p[0].Weighting = c.p[0].Weighting
 	u := t
-	for i, p := range c[1:] {
-		c[i+1].Point = geom.Vector2{
-			X: p.Control.X * float64(u),
-			Y: p.Control.Y * float64(u),
+	for i, p := range c.p[1:] {
+		b.p[i+1].Point = geom.Vector2{
+			X: p.Control.X * u,
+			Y: p.Control.Y * u,
 		}
+		b.p[i+1].Weighting = p.Weighting * u
+
 		u *= t
 	}
 
@@ -83,17 +99,23 @@ func (c Curve) Point(t float64) *geom.Vector2 {
 		t1 = 1 - t
 		tt = t1
 	)
-	p := c[len(c)-1].Point
-	for i := len(c) - 2; i >= 0; i-- {
-		p.X += c[i].Point.X * float64(tt)
-		p.Y += c[i].Point.Y * float64(tt)
+	p := b.p[len(b.p)-1].Point
+	wp := b.p[len(b.p)-1].Weighting
+	for i := len(b.p) - 2; i >= 0; i-- {
+		p.X += b.p[i].Point.X * tt
+		p.Y += b.p[i].Point.Y * tt
+		wp += b.p[i].Weighting * tt
+
 		tt *= t1
 	}
+
+	p.X /= wp
+	p.Y /= wp
 
 	return &p
 }
 
-// Curve returns a slice of vg.Point, p, filled with points along the Bézier curve described by c.
+// Curve returns a slice of points, p, filled with points along the Bézier curve described by c.
 // If the length of p is less than 2, the curve points are undefined. The length of p is not
 // altered by the call.
 func (c Curve) Curve(p []*geom.Vector2) []*geom.Vector2 {
