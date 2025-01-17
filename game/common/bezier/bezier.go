@@ -41,7 +41,7 @@ type point struct {
 type Curve []point
 
 // NewCurve returns a Curve initialized with the control points in cp.
-func New(cp ...*geom.Vector2) Curve {
+func New(cp []*geom.Vector2) Curve {
 	if len(cp) == 0 {
 		return nil
 	}

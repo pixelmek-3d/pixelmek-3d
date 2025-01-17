@@ -140,13 +140,42 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 		steps = append(steps, &geom.Vector2{X: x, Y: y})
 	}
 
-	if len(steps) < 2 {
+	if len(steps) < 3 {
 		// not enough steps for a curve, return as-is
 		return steps
 	}
 
 	// convert square grid path into a curve for smoother movement
-	curvePath := make([]*geom.Vector2, len(steps))
-	bezier.New(steps...).Curve(curvePath)
+	curvePath := make([]*geom.Vector2, 0, len(steps))
+
+	// split up into smaller segments of steps for curves that can handle tight corners
+	segmentIndex := 0
+	segmentSize := 5
+	remainingSteps := len(steps)
+	for remainingSteps > 0 {
+
+		// check if remaining steps is less than segment size
+		if remainingSteps < segmentSize {
+			segmentSize = remainingSteps
+		}
+		remainingSteps -= segmentSize - 1
+
+		// check if next steps are less than minimum for a curve (3), and if so, pull them in to the last curve
+		if remainingSteps > 0 && remainingSteps < 3 {
+			segmentSize += remainingSteps - 1
+			remainingSteps = 0
+		}
+
+		segment := steps[segmentIndex : segmentIndex+segmentSize]
+		segmentPath := make([]*geom.Vector2, segmentSize*2)
+		bezier.New(segment).Curve(segmentPath)
+
+		// extend curve path
+		curvePath = append(curvePath, segmentPath...)
+
+		// update starting index for next curve segment
+		segmentIndex += segmentSize - 1
+	}
+
 	return curvePath
 }
