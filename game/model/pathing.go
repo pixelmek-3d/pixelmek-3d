@@ -150,7 +150,7 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 
 	// split up into smaller segments of steps for curves that can handle tight corners
 	segmentIndex := 0
-	segmentSize := 5
+	segmentSize := 4
 	remainingSteps := len(steps)
 	for remainingSteps > 0 {
 
