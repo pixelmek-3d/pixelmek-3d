@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image/color"
 	"io"
@@ -298,7 +299,7 @@ func (g *Game) restoreControls() (input.Keymap, error) {
 	}
 
 	if len(actionErrorString) > 0 {
-		err = fmt.Errorf(actionErrorString)
+		err = errors.New(actionErrorString)
 		log.Error(err)
 		return keymap, err
 	}
@@ -337,7 +338,7 @@ func (g *Game) saveControls() error {
 		keymapConfig.Set(actionKey, g.input.ActionKeyNames(a, input.AnyDevice))
 	}
 	keymapJson, _ := json.MarshalIndent(keymapConfig, "", "    ")
-	_, err = io.WriteString(keymapFile, string(keymapJson))
+	_, err = keymapFile.Write(keymapJson)
 	if err != nil {
 		log.Error(err)
 		return err
