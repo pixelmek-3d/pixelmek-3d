@@ -20,8 +20,10 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 		// reset AI settings for previous targets
 		a.gunnery.Reset()
 
-		// TODO: create separate node for selecting a new target based on some criteria
-		units := a.g.getSpriteUnits()
+		// TODO: create separate node for selecting a new target based on some criteria?
+
+		// TODO: different detection range for different units
+		units := a.g.getProximitySpriteUnits(a.u.Pos(), 1000/model.METERS_PER_UNIT)
 
 		// TODO: enemy units need to be able to target player unit
 		// units = append(units, a.g.player)

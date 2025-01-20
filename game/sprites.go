@@ -2,13 +2,13 @@ package game
 
 import (
 	"fmt"
-	"math"
 	"sync"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 
 	"github.com/harbdog/raycaster-go"
+	"github.com/harbdog/raycaster-go/geom"
 )
 
 type SpriteHandler struct {
@@ -218,8 +218,7 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
 			// only include map sprites within fast approximation of render distance
 			doSprite := g.renderDistance < 0 || g.player.Target() == sprite.Entity ||
-				(math.Abs(sprite.Pos().X-camPos.X) <= g.renderDistance &&
-					math.Abs(sprite.Pos().Y-camPos.Y) <= g.renderDistance)
+				model.PointInProximity(g.renderDistance, camPos.X, camPos.Y, sprite.Pos().X, sprite.Pos().Copy().Y)
 			if doSprite {
 				raycastSprites = append(raycastSprites, sprite)
 				count++
@@ -253,23 +252,6 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	return raycastSprites[:count]
 }
 
-func (g *Game) getSpriteUnits() []model.Unit {
-	units := make([]model.Unit, 0, 64)
-	for _, spriteMap := range g.sprites.sprites {
-		spriteMap.Range(func(k, _ interface{}) bool {
-			spriteInterface := k.(raycaster.Sprite)
-			entity := getEntityFromInterface(spriteInterface)
-			unit := model.EntityUnit(entity)
-			if unit != nil {
-				units = append(units, unit)
-			}
-			return true
-		})
-	}
-
-	return units
-}
-
 func (g *Game) getUnitSprites() []*render.Sprite {
 	sprites := make([]*render.Sprite, 0, 64)
 	for spriteType := range g.sprites.sprites {
@@ -279,14 +261,69 @@ func (g *Game) getUnitSprites() []*render.Sprite {
 				return true
 			}
 
-			spriteInterface := getSpriteFromInterface(k.(raycaster.Sprite))
-			s := getSpriteFromInterface(spriteInterface)
+			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			sprites = append(sprites, s)
+			return true
+		})
+	}
+	return sprites
+}
+
+func (g *Game) getSpriteUnits() []model.Unit {
+	uSprites := g.getUnitSprites()
+	units := make([]model.Unit, 0, len(uSprites))
+	for _, s := range uSprites {
+		u := s.Unit()
+		if u == nil {
+			continue
+		}
+		units = append(units, u)
+	}
+	return units
+}
+
+func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*render.Sprite {
+	sprites := make([]*render.Sprite, 0, 64)
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+			if !g.isInteractiveType(spriteType) {
+				// only include certain sprite types (skip projectiles, effects, etc.)
+				return true
+			}
+			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			sPos := s.Pos()
+
+			// fast proximity check
+			if !model.PointInProximity(distance, pos.X, pos.Y, sPos.X, sPos.Y) {
+				return true
+			}
+
+			// exact distance check
+			if !model.PointInDistance(distance, pos.X, pos.Y, sPos.X, sPos.Y) {
+				return true
+			}
+
 			sprites = append(sprites, s)
 			return true
 		})
 	}
 
+	// TODO: sort sprites by distance
+
 	return sprites
+}
+
+func (g *Game) getProximitySpriteUnits(pos *geom.Vector2, distance float64) []model.Unit {
+	uSprites := g.getProximityUnitSprites(pos, distance)
+	units := make([]model.Unit, 0, len(uSprites))
+	for _, s := range uSprites {
+		u := s.Unit()
+		if u == nil {
+			continue
+		}
+		units = append(units, u)
+	}
+	return units
 }
 
 func getSpriteType(sInterface raycaster.Sprite) SpriteType {

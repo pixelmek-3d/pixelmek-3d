@@ -733,7 +733,8 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	// discover blips that are in range
 	blipCount := 0
 
-	sprites := g.getUnitSprites()
+	// only get sprites in proximity of radar range
+	sprites := g.getProximityUnitSprites(camPos, maxDistanceUnits)
 
 	debugCamTgt := g.player.DebugCameraTarget()
 	if debugCamTgt != nil {

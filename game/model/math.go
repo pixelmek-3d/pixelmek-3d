@@ -53,10 +53,19 @@ func RandFloat64In(lo, hi float64, rng *rand.Rand) float64 {
 	return lo + (hi-lo)*randFloat
 }
 
+// PointInProximity is a fast but inaccurate distance check between two positions
 func PointInProximity(distance, srcX, srcY, tgtX, tgtY float64) bool {
 	distance = math.Ceil(distance)
-	return (srcX-distance <= tgtX && tgtX <= srcX+distance &&
-		srcY-distance <= tgtY && tgtY <= srcY+distance)
+	return math.Abs(tgtX-srcX) <= distance && math.Abs(tgtY-srcY) <= distance
+}
+
+// PointInDistance is a distance check between two positions
+func PointInDistance(distance, srcX, srcY, tgtX, tgtY float64) bool {
+	line := geom.Line{
+		X1: srcX, Y1: srcY,
+		X2: tgtX, Y2: tgtY,
+	}
+	return line.Distance() <= distance
 }
 
 // ClampAngle clamps the given angle in a range of -pi to pi
