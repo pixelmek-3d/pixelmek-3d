@@ -148,36 +148,6 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 	}
 }
 
-func (a *AIBehavior) idealWeaponForDistance(dist float64) model.Weapon {
-	realDist := dist * model.METERS_PER_UNIT
-
-	var idealWeapon model.Weapon
-	var idealDist float64
-	for _, w := range a.u.Armament() {
-		if model.WeaponAmmoCount(w) <= 0 {
-			// only weapons with ammo remaining
-			continue
-		}
-		weaponDist := w.Distance()
-		if realDist > weaponDist {
-			// only weapons within range
-			continue
-		}
-
-		switch {
-		case idealWeapon == nil:
-			fallthrough
-		case idealWeapon.Cooldown() > 0 && w.Cooldown() == 0:
-			fallthrough
-		case weaponDist < idealDist:
-			idealWeapon = w
-			idealDist = weaponDist
-		}
-
-	}
-	return idealWeapon
-}
-
 func (a *AIBehavior) VelocityToMax() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
 		if a.u.Velocity() == a.u.MaxVelocity() {

@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
@@ -20,6 +21,16 @@ type SpriteHandler struct {
 	infantrySpriteTemplates    map[string]*render.InfantrySprite
 	emplacementSpriteTemplates map[string]*render.EmplacementSprite
 	projectileSpriteTemplates  map[string]*render.ProjectileSprite
+}
+
+type proximitySprite struct {
+	sprite   *render.Sprite
+	distance float64
+}
+
+type proximityUnit struct {
+	unit     model.Unit
+	distance float64
 }
 
 type SpriteType int
@@ -262,6 +273,9 @@ func (g *Game) getUnitSprites() []*render.Sprite {
 			}
 
 			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			if s.IsDestroyed() {
+				return true
+			}
 			sprites = append(sprites, s)
 			return true
 		})
@@ -282,8 +296,8 @@ func (g *Game) getSpriteUnits() []model.Unit {
 	return units
 }
 
-func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*render.Sprite {
-	sprites := make([]*render.Sprite, 0, 64)
+func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*proximitySprite {
+	sprites := make([]*proximitySprite, 0, 64)
 	for spriteType := range g.sprites.sprites {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 			if !g.isInteractiveType(spriteType) {
@@ -291,6 +305,9 @@ func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*r
 				return true
 			}
 			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			if s.IsDestroyed() {
+				return true
+			}
 			sPos := s.Pos()
 
 			// fast proximity check
@@ -299,29 +316,31 @@ func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*r
 			}
 
 			// exact distance check
-			if !model.PointInDistance(distance, pos.X, pos.Y, sPos.X, sPos.Y) {
+			sDist := geom.Distance(pos.X, pos.Y, sPos.X, sPos.Y)
+			if sDist > distance {
 				return true
 			}
 
-			sprites = append(sprites, s)
+			sprites = append(sprites, &proximitySprite{sprite: s, distance: sDist})
 			return true
 		})
 	}
 
-	// TODO: sort sprites by distance
+	// sort sprites by distance
+	sort.Slice(sprites, func(i, j int) bool { return sprites[i].distance < sprites[j].distance })
 
 	return sprites
 }
 
-func (g *Game) getProximitySpriteUnits(pos *geom.Vector2, distance float64) []model.Unit {
+func (g *Game) getProximitySpriteUnits(pos *geom.Vector2, distance float64) []*proximityUnit {
 	uSprites := g.getProximityUnitSprites(pos, distance)
-	units := make([]model.Unit, 0, len(uSprites))
+	units := make([]*proximityUnit, 0, len(uSprites))
 	for _, s := range uSprites {
-		u := s.Unit()
+		u := s.sprite.Unit()
 		if u == nil {
 			continue
 		}
-		units = append(units, u)
+		units = append(units, &proximityUnit{unit: u, distance: s.distance})
 	}
 	return units
 }

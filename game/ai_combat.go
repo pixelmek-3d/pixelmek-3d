@@ -23,12 +23,13 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 		// TODO: create separate node for selecting a new target based on some criteria?
 
 		// TODO: different detection range for different units
-		units := a.g.getProximitySpriteUnits(a.u.Pos(), 1000/model.METERS_PER_UNIT)
+		pUnits := a.g.getProximitySpriteUnits(a.u.Pos(), 1000/model.METERS_PER_UNIT)
 
 		// TODO: enemy units need to be able to target player unit
 		// units = append(units, a.g.player)
 
-		for _, t := range units {
+		for _, p := range pUnits {
+			t := p.unit
 			if t == a.u || t.IsDestroyed() || a.g.IsFriendly(a.u, t) {
 				continue
 			}
@@ -169,4 +170,34 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 		}
 		return bt.Failure, nil
 	}
+}
+
+func (a *AIBehavior) idealWeaponForDistance(dist float64) model.Weapon {
+	realDist := dist * model.METERS_PER_UNIT
+
+	var idealWeapon model.Weapon
+	var idealDist float64
+	for _, w := range a.u.Armament() {
+		if model.WeaponAmmoCount(w) <= 0 {
+			// only weapons with ammo remaining
+			continue
+		}
+		weaponDist := w.Distance()
+		if realDist > weaponDist {
+			// only weapons within range
+			continue
+		}
+
+		switch {
+		case idealWeapon == nil:
+			fallthrough
+		case idealWeapon.Cooldown() > 0 && w.Cooldown() == 0:
+			fallthrough
+		case weaponDist < idealDist:
+			idealWeapon = w
+			idealDist = weaponDist
+		}
+
+	}
+	return idealWeapon
 }

@@ -658,53 +658,26 @@ func (g *Game) spriteInCrosshairs() *render.Sprite {
 }
 
 func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
-	targetables := make([]*render.Sprite, 0, 64)
+	pSprites := g.getProximityUnitSprites(g.player.Pos(), 1000/model.METERS_PER_UNIT)
+	targetables := make([]*render.Sprite, 0, len(pSprites))
 
-	for spriteType := range g.sprites.sprites {
-		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-			if !g.isInteractiveType(spriteType) {
-				// only cycle on certain sprite types (skip projectiles, effects, etc.)
-				return true
-			}
+	if cycleType == TARGET_PREVIOUS {
+		// reverse sort by distance
+		sort.Slice(pSprites, func(i, j int) bool { return pSprites[i].distance > pSprites[j].distance })
+	}
 
-			s := getSpriteFromInterface(k.(raycaster.Sprite))
-			if s.IsDestroyed() {
-				return true
-			}
-
-			if g.IsFriendly(g.player, s.Entity) {
-				// skip friendly units
-				return true
-			}
-
-			targetables = append(targetables, s)
-
-			return true
-		})
+	for _, p := range pSprites {
+		s := p.sprite
+		if g.IsFriendly(g.player, s.Entity) {
+			// skip friendly units
+			continue
+		}
+		targetables = append(targetables, s)
 	}
 
 	if len(targetables) == 0 {
 		g.player.SetTarget(nil)
 		return nil
-	}
-
-	// sort by distance to player
-	playerPos := g.player.Pos()
-
-	if cycleType == TARGET_PREVIOUS {
-		sort.Slice(targetables, func(a, b int) bool {
-			sA, sB := targetables[a], targetables[b]
-			dA := geom.Distance2(sA.Pos().X, sA.Pos().Y, playerPos.X, playerPos.Y)
-			dB := geom.Distance2(sB.Pos().X, sB.Pos().Y, playerPos.X, playerPos.Y)
-			return dA > dB
-		})
-	} else {
-		sort.Slice(targetables, func(a, b int) bool {
-			sA, sB := targetables[a], targetables[b]
-			dA := geom.Distance2(sA.Pos().X, sA.Pos().Y, playerPos.X, playerPos.Y)
-			dB := geom.Distance2(sB.Pos().X, sB.Pos().Y, playerPos.X, playerPos.Y)
-			return dA < dB
-		})
 	}
 
 	var newTarget *render.Sprite
