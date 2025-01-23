@@ -26,7 +26,7 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		a.updatePathingToPosition(target.Pos(), 8)
 		targetHeading := a.pathingHeading(target.Pos(), target.PosZ())
 
-		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(a.u.Heading()), target.ID())
+		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
 		a.u.SetTargetHeading(targetHeading)
 		return bt.Success, nil
 	}
@@ -61,7 +61,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 		// find new path to reach target position
 		toPath := a.g.mission.Pathing.FindPath(a.u.Pos(), toPos)
 		pathing.SetDestination(toPos, toPath)
-		//log.Debugf("[%s] new path (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+		// log.Debugf("[%s] new pathing (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
 	}
 
 	if pathing.Len() > 0 {
@@ -71,7 +71,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 2 {
 			// unit is close to next path position
 			pathing.Pop()
-			//log.Debugf("[%s] path pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+			// log.Debugf("[%s] pathing pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
 		}
 	}
 }
@@ -141,8 +141,18 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 		a.u.SetTargetLock(targetLock)
 
-		// log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(a.u.TurretAngle()), geom.Degrees(pPitch), target.ID())
-		a.u.SetTargetTurretAngle(pHeading)
+		if a.u.HasTurret() {
+			// log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(pHeading), geom.Degrees(pPitch), target.ID())
+			a.u.SetTargetTurretAngle(pHeading)
+		} else {
+			// if weapon is not on cooldown and has LOS to target, override target heading towards target
+			overrideHeading := iWeapon != nil && iWeapon.Cooldown() == 0 && a.g.lineOfSight(a.u, target)
+			if overrideHeading {
+				// log.Debugf("[%s] %0.1f|%0.1f (no turret)ToTarget @ %s", a.u.ID(), geom.Degrees(pHeading), geom.Degrees(pPitch), target.ID())
+				a.u.SetTargetHeading(pHeading)
+			}
+		}
+
 		a.u.SetTargetPitch(pPitch)
 		return bt.Success, nil
 	}
