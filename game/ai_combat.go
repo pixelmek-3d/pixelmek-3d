@@ -61,6 +61,39 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 			return bt.Failure, nil
 		}
 
+		targetDist := model.EntityDistance2D(a.u, target)
+
+		unitHeat := a.u.Heat()
+		readyWeapons := make([]model.Weapon, 0, len(a.u.Armament()))
+		for _, w := range a.u.Armament() {
+			if w.Cooldown() > 0 {
+				// only weapons not on cooldown
+				continue
+			}
+			if model.WeaponAmmoCount(w) <= 0 {
+				// only weapons with ammo remaining
+				continue
+			}
+			if targetDist > 1.25*w.Distance()/model.METERS_PER_UNIT {
+				// only weapons within range
+				continue
+			}
+
+			readyWeapons = append(readyWeapons, w)
+		}
+
+		if len(readyWeapons) == 0 {
+			return bt.Failure, nil
+		}
+
+		// check walls for line of sight to target
+		if !a.g.lineOfSight(a.u, target) {
+			// log.Debugf("[%s] wall in LOS to %s", a.u.ID(), target.ID())
+			return bt.Failure, nil
+		}
+
+		// TODO: sort ready weapons based on which is most ideal to fire given the current circumstances
+
 		// check for angle/pitch proximity to target center mass
 		if a.gunnery.targetLeadPos != nil {
 			targetLeadLine := &geom3d.Line3d{
@@ -74,9 +107,11 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 				X2: a.gunnery.targetLeadPos.X, Y2: a.gunnery.targetLeadPos.Y,
 			}
 			targetLeadDist2D := targetLeadLine2D.Distance()
-			targetProximityAngle2D := math.Atan(targetLeadDist2D / target.CollisionRadius())
+
+			// find the angle using opposite/adjacent, then use hypotenuse length to get the line to the edge of target collision radius
+			targetProximityAngle2D := math.Atan(target.CollisionRadius() / targetLeadDist2D)
 			targetProximityLength2D := model.Hypotenuse(targetLeadDist2D, target.CollisionRadius())
-			targetProximityLine2D := geom.LineFromAngle(a.u.Pos().X, a.u.Pos().Y, targetProximityAngle2D, targetProximityLength2D)
+			targetProximityLine2D := geom.LineFromAngle(a.u.Pos().X, a.u.Pos().Y, targetLeadLine2D.Angle()+targetProximityAngle2D, targetProximityLength2D)
 
 			targetProximityLine := &geom3d.Line3d{
 				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
@@ -94,18 +129,10 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 			}
 		}
 
-		// check walls for line of sight to target
-		if !a.g.lineOfSight(a.u, target) {
-			// log.Debugf("[%s] wall in LOS to %s", a.u.ID(), target.ID())
-			return bt.Failure, nil
-		}
-
-		// use angle/pitch for weapons line of fire checks, not current target position
-		targetDist := model.EntityDistance2D(a.u, target)
-		targetLine := geom.LineFromAngle(a.u.Pos().X, a.u.Pos().Y, a.u.TurretAngle(), targetDist)
-
 		// check for friendly units in line of fire to target position
 		units := a.g.getSpriteUnits()
+		// use angle/pitch for weapons line of fire checks, not current target position
+		targetLine := geom.LineFromAngle(a.u.Pos().X, a.u.Pos().Y, a.u.TurretAngle(), targetDist)
 		for _, s := range units {
 			if s == a.u || s.IsDestroyed() || !a.g.IsFriendly(a.u, s) {
 				continue
@@ -126,26 +153,6 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 				return bt.Failure, nil
 			}
 		}
-
-		readyWeapons := make([]model.Weapon, 0, len(a.u.Armament()))
-		for _, w := range a.u.Armament() {
-			if w.Cooldown() > 0 {
-				// only weapons not on cooldown
-				continue
-			}
-			if model.WeaponAmmoCount(w) <= 0 {
-				// only weapons with ammo remaining
-				continue
-			}
-			if targetDist > 1.25*w.Distance()/model.METERS_PER_UNIT {
-				// only weapons within range
-				continue
-			}
-
-			readyWeapons = append(readyWeapons, w)
-		}
-
-		unitHeat := a.u.Heat()
 
 		weaponFired := false
 		for _, w := range readyWeapons {
