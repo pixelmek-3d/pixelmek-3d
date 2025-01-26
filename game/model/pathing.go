@@ -146,13 +146,20 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 	}
 
 	// convert square grid path into a curve for smoother movement
-	curvePath := make([]*geom.Vector2, 0, len(steps))
+	curvePath := make([]*geom.Vector2, 0, len(steps)*2)
 
 	// split up into smaller segments of steps for curves that can handle tight corners
 	segmentIndex := 0
-	segmentSize := 4
+	segmentSize := 7
 	remainingSteps := len(steps)
 	for remainingSteps > 0 {
+		if segmentSize <= 1 {
+			// no curve here, add the step to prevent infinite loop attempt to curve
+			curvePath = append(curvePath, steps[segmentIndex])
+			remainingSteps--
+			segmentIndex++
+			continue
+		}
 
 		// check if remaining steps is less than segment size
 		if remainingSteps < segmentSize {

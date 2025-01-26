@@ -265,15 +265,13 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 						return nP, nZ, isCollision, collisionEntities
 					} else {
 						if geom.NearlyEqual(posY, moveY, 0.001) {
-							// try very small moveY offset to avoid getting stuck in head-on collision
-							dY := moveY - posY
-							if dY == 0 {
-								dY = 0.01
+							// try small moveY offset to avoid getting stuck on wall collision
+							dY := entity.Velocity() / 2
+							if moveY-posY == 0 {
 								if math.Signbit(moveX) {
 									dY *= -1
 								}
 							} else {
-								dY = 0.01
 								if math.Signbit(moveY - posY) {
 									dY *= -1
 								}
@@ -292,15 +290,13 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 						return nP, nZ, isCollision, collisionEntities
 					} else {
 						if geom.NearlyEqual(posX, moveX, 0.001) {
-							// try very small moveX offset to avoid getting stuck in head-on collision
-							dX := moveX - posX
-							if dX == 0 {
-								dX = 0.01
+							// try small moveX offset to avoid getting stuck on wall collision
+							dX := entity.Velocity() / 2
+							if moveX-posX == 0 {
 								if math.Signbit(moveY) {
 									dX *= -1
 								}
 							} else {
-								dX = 0.01
 								if math.Signbit(moveX - posX) {
 									dX *= -1
 								}

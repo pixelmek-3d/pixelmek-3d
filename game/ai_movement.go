@@ -33,14 +33,16 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 }
 
 func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) {
+	uPos := a.u.Pos()
 	findNewPath := false
 	pathing := a.piloting.pathing
+
 	switch {
 	case pathing.Len() == 0:
 		findNewPath = true
+	// TODO: case if stuck, findNewPath and use starting sequence size of 3?
 	case int(toPos.X) != int(pathing.destPos.X) || int(toPos.Y) != int(pathing.destPos.Y):
 		// if still some distance from target, do not recalc path to target until further
-		uPos := a.u.Pos()
 		toLine := geom.Line{
 			X1: uPos.X, Y1: uPos.Y,
 			X2: toPos.X, Y2: toPos.Y,
@@ -61,14 +63,13 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 		// find new path to reach target position
 		toPath := a.g.mission.Pathing.FindPath(a.u.Pos(), toPos)
 		pathing.SetDestination(toPos, toPath)
-		// log.Debugf("[%s] new pathing (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+		//log.Debugf("[%s] new pathing (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
 	}
 
 	if pathing.Len() > 0 {
 		// determine if need to move to next position in path
-		pos := a.u.Pos()
 		nextPos := pathing.Next()
-		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 2 {
+		if geom.Distance2(uPos.X, uPos.Y, nextPos.X, nextPos.Y) < 0.5 {
 			// unit is close to next path position
 			pathing.Pop()
 			// log.Debugf("[%s] pathing pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)

@@ -29,8 +29,7 @@ const (
 	texWidth = 256
 
 	// distance to keep away from walls and obstacles to avoid clipping
-	// TODO: may want a smaller distance to test vs. sprites
-	clipDistance = 0.1
+	clipDistance = 0.01
 )
 
 // Game - This is the main type for your game.
