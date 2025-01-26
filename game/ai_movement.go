@@ -11,27 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
-	return func(_ []bt.Node) (bt.Status, error) {
-		if a.u.UnitType() == model.EmplacementUnitType {
-			// emplacements only have turrets
-			return bt.Success, nil
-		}
-
-		target := model.EntityUnit(a.u.Target())
-		if target == nil {
-			return bt.Failure, nil
-		}
-
-		a.updatePathingToPosition(target.Pos(), 8)
-		targetHeading := a.pathingHeading(target.Pos(), target.PosZ())
-
-		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
-		a.u.SetTargetHeading(targetHeading)
-		return bt.Success, nil
-	}
-}
-
 func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) {
 	uPos := a.u.Pos()
 	findNewPath := false
@@ -69,10 +48,14 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 	if pathing.Len() > 0 {
 		// determine if need to move to next position in path
 		nextPos := pathing.Next()
-		if geom.Distance2(uPos.X, uPos.Y, nextPos.X, nextPos.Y) < 0.5 {
-			// unit is close to next path position
+		for geom.Distance2(uPos.X, uPos.Y, nextPos.X, nextPos.Y) < 1.0 {
 			pathing.Pop()
-			// log.Debugf("[%s] pathing pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+			nextPos = pathing.Next()
+
+			//log.Debugf("[%s] pathing pop (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+			if nextPos == nil {
+				break
+			}
 		}
 	}
 }
@@ -93,6 +76,27 @@ func (a *AIBehavior) pathingHeading(toPos *geom.Vector2, toPosZ float64) float64
 		toHeading = toLine.Heading()
 	}
 	return toHeading
+}
+
+func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
+	return func(_ []bt.Node) (bt.Status, error) {
+		if a.u.UnitType() == model.EmplacementUnitType {
+			// emplacements only have turrets
+			return bt.Success, nil
+		}
+
+		target := model.EntityUnit(a.u.Target())
+		if target == nil {
+			return bt.Failure, nil
+		}
+
+		a.updatePathingToPosition(target.Pos(), 8)
+		targetHeading := a.pathingHeading(target.Pos(), target.PosZ())
+
+		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
+		a.u.SetTargetHeading(targetHeading)
+		return bt.Success, nil
+	}
 }
 
 func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {

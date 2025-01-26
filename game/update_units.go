@@ -32,7 +32,7 @@ func (g *Game) updateUnitPosition(u model.Unit) {
 		if !(newPos.Equals(position) && newPosZ == posZ) {
 			u.SetPos(newPos)
 			u.SetPosZ(newPosZ)
-			//log.Debugf("[%s] unit moved (%v -> %v) heading @ %0.3f", u.ID(), position, newPos, moveHeading)
+			//log.Debugf("[%s] unit moved %0.4f (%v -> %v) heading @ %0.3f", u.ID(), geom.Distance(position.X, position.Y, newPos.X, newPos.Y), position, newPos, moveHeading)
 		}
 
 		if isCollision && len(collisions) > 0 {
