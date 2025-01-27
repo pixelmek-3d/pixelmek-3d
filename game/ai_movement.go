@@ -78,6 +78,18 @@ func (a *AIBehavior) pathingHeading(toPos *geom.Vector2, toPosZ float64) float64
 	return toHeading
 }
 
+func (a *AIBehavior) pathingVelocity(targetHeading, targetVelocity float64) float64 {
+	// return ideal target velocity to turn towards target heading
+	headingDiff := model.AngleDistance(a.u.Heading(), targetHeading)
+	if headingDiff > geom.Pi/4 {
+		// reduce velocity more for sharper turns
+		vTurnRatio := 0.25 + 0.75*(geom.Pi-math.Abs(headingDiff))/geom.Pi
+		maxVelocity := geom.Clamp(a.u.MaxVelocity()*vTurnRatio, 0, targetVelocity)
+		targetVelocity = geom.Clamp(targetVelocity, 0, maxVelocity)
+	}
+	return targetVelocity
+}
+
 func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
 		if a.u.UnitType() == model.EmplacementUnitType {
@@ -213,6 +225,10 @@ func (a *AIBehavior) TurnToWithdraw() func([]bt.Node) (bt.Status, error) {
 
 		a.u.SetTargetHeading(targetHeading)
 
+		// TODO: fighting withdraw if still has weapons?
+		targetVelocity := a.pathingVelocity(targetHeading, a.u.MaxVelocity())
+		a.u.SetTargetVelocity(targetVelocity)
+
 		// log.Debugf("[%s] %0.1f -> turnToWithdraw", a.u.ID(), geom.Degrees(targetHeading))
 		return bt.Success, nil
 	}
@@ -287,8 +303,9 @@ func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 		a.u.SetTargetHeading(targetHeading)
 		a.u.SetTargetTurretAngle(targetHeading)
 
-		// TODO: max velocity only if outside guard area
-		a.u.SetTargetVelocity(a.u.MaxVelocity())
+		// TODO: units on guard do not need to run, max velocity only if very far from guard area
+		targetVelocity := a.pathingVelocity(targetHeading, a.u.MaxVelocity())
+		a.u.SetTargetVelocity(targetVelocity)
 
 		//log.Debugf("[%s] -> guard area -> nextPos: %v", a.u.ID(), nextPos)
 		return bt.Success, nil
@@ -316,7 +333,8 @@ func (a *AIBehavior) GuardUnit() func([]bt.Node) (bt.Status, error) {
 		a.u.SetTargetTurretAngle(targetHeading)
 
 		// TODO: match leader's velocity if close by
-		a.u.SetTargetVelocity(a.u.MaxVelocity())
+		targetVelocity := a.pathingVelocity(targetHeading, a.u.MaxVelocity())
+		a.u.SetTargetVelocity(targetVelocity)
 
 		//log.Debugf("[%s] -> guard unit [%s] -> heading: %0.2f", a.u.ID(), leader.ID(), geom.Degrees(targetHeading))
 		return bt.Success, nil
@@ -345,8 +363,9 @@ func (a *AIBehavior) PatrolPath() func([]bt.Node) (bt.Status, error) {
 		a.u.SetTargetHeading(targetHeading)
 		a.u.SetTargetTurretAngle(targetHeading)
 
-		// TODO: max velocity only if very far from next position
-		a.u.SetTargetVelocity(a.u.MaxVelocity())
+		// TODO: units on patrol do not need to run, max velocity only if very far from next patrol position
+		targetVelocity := a.pathingVelocity(targetHeading, a.u.MaxVelocity())
+		a.u.SetTargetVelocity(targetVelocity)
 
 		//log.Debugf("[%s] -> patrol path -> nextPos: %v", a.u.ID(), nextPos)
 		return bt.Success, nil
