@@ -13,12 +13,16 @@ import (
 func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
 		if a.u.Target() != nil {
-			// TODO: criteria for when to change to another target
-			return bt.Success, nil
+			stayOnTarget := true
+			if a.newInitiative {
+				// only evaluate choosing a new target at beginning of new initiative set
+				// TODO: better criteria for when to change to another target
+				stayOnTarget = false
+			}
+			if stayOnTarget {
+				return bt.Success, nil
+			}
 		}
-
-		// reset AI settings for previous targets
-		a.gunnery.Reset()
 
 		// TODO: create separate node for selecting a new target based on some criteria?
 
@@ -35,7 +39,13 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 			}
 
 			// log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
-			a.u.SetTarget(t)
+			if a.u.Target() != t {
+				// reset AI settings for previous targets
+				a.gunnery.Reset()
+
+				a.u.SetTarget(t)
+			}
+
 			return bt.Success, nil
 		}
 		return bt.Failure, nil

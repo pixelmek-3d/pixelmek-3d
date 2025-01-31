@@ -52,6 +52,9 @@ func (n *AIInitiative) roll() {
 			ai:   ai,
 			roll: rand.Float64(),
 		})
+
+		// set flag to indicate a new initiative order has started
+		ai.newInitiative = true
 	}
 
 	sort.Slice(rolls, func(i, j int) bool {

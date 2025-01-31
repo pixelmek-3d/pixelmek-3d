@@ -32,10 +32,11 @@ type AIHandler struct {
 
 type AIBehavior struct {
 	bt.Node
-	g        *Game
-	u        model.Unit
-	gunnery  *AIGunnery
-	piloting *AIPiloting
+	g             *Game
+	u             model.Unit
+	gunnery       *AIGunnery
+	piloting      *AIPiloting
+	newInitiative bool
 }
 
 type AIGunnery struct {
@@ -379,6 +380,13 @@ func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
 
 	root := loadBehaviorNode(rootRes)
 	return root
+}
+
+func (a *AIBehavior) Tick() (bt.Status, error) {
+	status, err := a.Node.Tick()
+	// reset flag indicating the current initiative order is no longer new
+	a.newInitiative = false
+	return status, err
 }
 
 func getComposite(nodeName string) bt.Tick {
