@@ -40,9 +40,13 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 
 	if findNewPath {
 		// find new path to reach target position
-		toPath := a.g.mission.Pathing.FindPath(a.u.Pos(), toPos)
-		pathing.SetDestination(toPos, toPath)
-		//log.Debugf("[%s] new pathing (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+		toPath, err := a.g.mission.Pathing.FindPath(a.u.Pos(), toPos)
+		if err != nil {
+			log.Debug(err)
+		} else {
+			pathing.SetDestination(toPos, toPath)
+			//log.Debugf("[%s] new pathing (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
+		}
 	}
 
 	if pathing.Len() > 0 {

@@ -6,8 +6,6 @@ import (
 	"github.com/harbdog/go-astar"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/common/bezier"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type Pathing struct {
@@ -122,15 +120,15 @@ func PathToString(path []*geom.Vector2) string {
 	return "[" + pathStr + "]"
 }
 
-func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
+func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) ([]*geom.Vector2, error) {
 	startTile := p.world.Tile(int(startPos.X), int(startPos.Y))
 	finishTile := p.world.Tile(int(finishPos.X), int(finishPos.Y))
 	path, _, found := astar.Path(startTile, finishTile)
 
 	steps := make([]*geom.Vector2, 0, len(path))
 	if !found {
-		log.Errorf("unable to find path for (%0.0f,%0.0f) -> (%0.0f,%0.0f)", startPos.X, startPos.Y, finishPos.X, finishPos.Y)
-		return steps
+		err := fmt.Errorf("unable to find path for (%0.0f,%0.0f) -> (%0.0f,%0.0f)", startPos.X, startPos.Y, finishPos.X, finishPos.Y)
+		return steps, err
 	}
 
 	// astar path returned in reverse order
@@ -142,7 +140,7 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 
 	if len(steps) < 3 {
 		// not enough steps for a curve, return as-is
-		return steps
+		return steps, nil
 	}
 
 	// convert square grid path into a curve for smoother movement
@@ -184,5 +182,5 @@ func (p *Pathing) FindPath(startPos, finishPos *geom.Vector2) []*geom.Vector2 {
 		segmentIndex += segmentSize - 1
 	}
 
-	return curvePath
+	return curvePath, nil
 }
