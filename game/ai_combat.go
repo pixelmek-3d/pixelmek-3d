@@ -164,7 +164,7 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 			}
 		}
 
-		weaponFired := false
+		var weaponFired model.Weapon
 		for _, w := range readyWeapons {
 			if unitHeat+w.Heat() >= a.u.MaxHeat() {
 				// only fire the weapon if it will not lead to overheating
@@ -172,16 +172,19 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 				continue
 			}
 
-			// TODO: instead of alpha striking or firing each weapon as soon as it is ready, have a small random delay (except for machine guns)?
+			// only fire the weapon at the same time if similar to other weapons fired this cycle
+			if weaponFired != nil && !similarWeapons(weaponFired, w) {
+				continue
+			}
 
 			// TODO: weapon convergence toward target
 			if a.g.fireUnitWeapon(a.u, w) {
-				weaponFired = true
+				weaponFired = w
 				unitHeat = a.u.Heat()
 			}
 		}
 
-		if weaponFired {
+		if weaponFired != nil {
 			// log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
 			return bt.Success, nil
 		}
@@ -217,4 +220,13 @@ func (a *AIBehavior) idealWeaponForDistance(dist float64) model.Weapon {
 
 	}
 	return idealWeapon
+}
+
+func similarWeapons(w1, w2 model.Weapon) bool {
+	if w1 == nil || w2 == nil {
+		return false
+	}
+
+	// TODO: consider different sized weapons within classifications as dissimilar
+	return w1.Classification() == w2.Classification()
 }
