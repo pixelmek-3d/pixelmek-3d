@@ -68,6 +68,7 @@ type Unit interface {
 	SetTargetLock(float64)
 
 	TurnRate() float64
+	TargetHeading() float64
 	SetTargetHeading(float64)
 	SetTargetPitch(float64)
 	MaxVelocity() float64
@@ -396,6 +397,10 @@ func (e *UnitModel) Heading() float64 {
 
 func (e *UnitModel) SetHeading(angle float64) {
 	e.heading = angle
+}
+
+func (e *UnitModel) TargetHeading() float64 {
+	return e.targetHeading
 }
 
 func (e *UnitModel) SetTargetHeading(heading float64) {

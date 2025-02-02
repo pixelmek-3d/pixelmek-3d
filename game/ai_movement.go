@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) {
+func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) error {
 	uPos := a.u.Pos()
 	findNewPath := false
 	pathing := a.piloting.pathing
@@ -43,6 +43,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 		toPath, err := a.g.mission.Pathing.FindPath(a.u.Pos(), toPos)
 		if err != nil {
 			log.Debug(err)
+			return err
 		} else {
 			pathing.SetDestination(toPos, toPath)
 			//log.Debugf("[%s] new pathing (%v -> %v): %+v", a.u.ID(), a.u.Pos(), pathing.destPos, pathing.destPath)
@@ -62,6 +63,7 @@ func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFact
 			}
 		}
 	}
+	return nil
 }
 
 func (a *AIBehavior) pathingHeading(toPos *geom.Vector2, toPosZ float64) float64 {
@@ -181,12 +183,9 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 
 func (a *AIBehavior) VelocityToMax() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
-		if a.u.Velocity() == a.u.MaxVelocity() {
-			return bt.Success, nil
-		}
-
-		// log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), a.u.Velocity()*model.VELOCITY_TO_KPH)
-		a.u.SetTargetVelocity(a.u.MaxVelocity())
+		targetVelocity := a.pathingVelocity(a.u.TargetHeading(), a.u.MaxVelocity())
+		a.u.SetTargetVelocity(targetVelocity)
+		// log.Debugf("[%s] %0.1f -> velocityMax", a.u.ID(), targetVelocity*model.VELOCITY_TO_KPH)
 		return bt.Success, nil
 	}
 }
@@ -407,10 +406,17 @@ func (a *AIBehavior) Wander() func([]bt.Node) (bt.Status, error) {
 		}
 
 		if geom.Distance2(pos.X, pos.Y, nextPos.X, nextPos.Y) < 2 {
+			// random position is too close, try another next cycle
 			wanderPath.Pop()
+			return bt.Success, nil
 		}
 
-		a.updatePathingToPosition(nextPos, 4)
+		err := a.updatePathingToPosition(nextPos, 4)
+		if err != nil {
+			// error trying to reach random position, try another next cycle
+			wanderPath.Pop()
+			return bt.Failure, nil
+		}
 		targetHeading := a.pathingHeading(nextPos, a.u.PosZ())
 
 		a.u.SetTargetHeading(targetHeading)
