@@ -11,7 +11,7 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 )
 
-type DelayedProjectileSpawn struct {
+type ProjectileSpawn struct {
 	delay      float64
 	spread     float64
 	weapon     model.Weapon
@@ -20,7 +20,27 @@ type DelayedProjectileSpawn struct {
 }
 
 func (g *Game) initCombatVariables() {
-	g.delayedProjectiles = make(map[*DelayedProjectileSpawn]struct{}, 256)
+	g.delayedProjectiles = make(map[*ProjectileSpawn]struct{}, 256)
+}
+
+func NewProjectileSpawn(weapon model.Weapon, parent model.Entity) *ProjectileSpawn {
+	p := &ProjectileSpawn{
+		weapon:     weapon,
+		parent:     parent,
+		sfxEnabled: true,
+	}
+	return p
+}
+
+func NewDelayedProjectileSpawn(delay, spread float64, weapon model.Weapon, parent model.Entity, sfxEnabled bool) *ProjectileSpawn {
+	p := &ProjectileSpawn{
+		delay:      delay,
+		spread:     spread,
+		weapon:     weapon,
+		parent:     parent,
+		sfxEnabled: sfxEnabled,
+	}
+	return p
 }
 
 func destroyEntity(e model.Entity) {
@@ -51,14 +71,6 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 		weaponGroupFire = int(g.player.selectedGroup)
 	}
 
-	// in case convergence point not set, use player heading and pitch
-	pAngle, pPitch := g.player.TurretAngle(), g.player.Pitch()
-	var convergencePoint *geom3d.Vector3
-	convergenceSprite := g.spriteInCrosshairs()
-	if convergenceSprite != nil {
-		convergencePoint = model.ConvergencePoint(g.player, convergenceSprite.Entity)
-	}
-
 	// if a weapon with lock required tries but cannot fire make a sound
 	isWeaponWithLockRequiredNotFired := false
 	// if a weapon with no ammo tries to fire make an empty click sound
@@ -77,7 +89,7 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 
 		ammoBin := weapon.AmmoBin()
 		if ammoBin != nil {
-			// perform ammo check
+			// perform ammo check to see if need to play empty click sound
 			ammoCount := ammoBin.AmmoCount()
 			if ammoCount == 0 {
 				isWeaponWithNoAmmoNotFired = true
@@ -85,39 +97,8 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 			}
 		}
 
-		// TODO: replace with call to general use fireUnitWeapon function
-		if g.player.TriggerWeapon(weapon) {
+		if g.fireUnitWeapon(g.player.Unit, weapon) {
 			weaponsFired = true
-
-			var projectile *model.Projectile
-			if convergencePoint == nil {
-				projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Unit)
-			} else {
-				projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Unit)
-			}
-			if projectile != nil {
-				pTemplate := projectileSpriteForWeapon(weapon)
-				pSprite := pTemplate.Clone()
-				pSprite.Projectile = projectile
-				pSprite.Entity = projectile
-				g.sprites.addProjectile(pSprite)
-
-				// queue creation of multiple projectiles after time delay
-				if weapon.ProjectileCount() > 1 {
-					for i := 1; i < weapon.ProjectileCount(); i++ {
-						g.queueDelayedProjectile(i, weapon, g.player.Unit)
-					}
-				}
-			}
-
-			// consume ammo
-			if ammoBin != nil {
-				ammoBin.ConsumeAmmo(weapon, 1)
-				//log.Debugf("[player] %s: %d", weapon.ShortName(), ammoBin.AmmoCount())
-			}
-
-			// play sound effect
-			g.audio.PlayLocalWeaponFireAudio(weapon)
 		} else {
 			missileWeapon, isMissile := weapon.(*model.MissileWeapon)
 			if isMissile && missileWeapon.IsLockOnLockRequired() {
@@ -142,8 +123,6 @@ func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
 		return false
 	}
 
-	// TODO: make sure the weapon is mounted on the unit
-
 	if weapon.Cooldown() > 0 {
 		return false
 	}
@@ -157,41 +136,13 @@ func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
 		}
 	}
 
-	var convergencePoint *geom3d.Vector3
-	if g.player == unit {
-		cSprite := g.spriteInCrosshairs()
-		var cEntity model.Entity
-		if cSprite != nil {
-			cEntity = cSprite.Entity
-		}
-		convergencePoint = model.ConvergencePoint(unit, cEntity)
-	} else {
-		convergencePoint = model.ConvergencePoint(unit, unit.Target())
-	}
-
-	pHeading, pPitch := unit.Heading(), unit.Pitch()
-	if unit.HasTurret() {
-		pHeading = unit.TurretAngle()
-	}
-
 	weaponFired := false
 	if unit.TriggerWeapon(weapon) {
 		weaponFired = true
 
-		var projectile *model.Projectile
-		if convergencePoint == nil {
-			projectile = weapon.SpawnProjectile(pHeading, pPitch, unit)
-		} else {
-			projectile = weapon.SpawnProjectileToward(convergencePoint, unit)
-		}
-
+		pSpawn := NewProjectileSpawn(weapon, unit)
+		projectile := g.spawnProjectile(pSpawn)
 		if projectile != nil {
-			pTemplate := projectileSpriteForWeapon(weapon)
-			pSprite := pTemplate.Clone()
-			pSprite.Projectile = projectile
-			pSprite.Entity = projectile
-			g.sprites.addProjectile(pSprite)
-
 			// queue creation of multiple projectiles after time delay
 			if weapon.ProjectileCount() > 1 {
 				for i := 1; i < weapon.ProjectileCount(); i++ {
@@ -430,13 +381,7 @@ func (g *Game) queueDelayedProjectile(pIndex int, w model.Weapon, e model.Entity
 		panic(fmt.Sprintf("unhandled weapon type (%v) for %s", w.Type(), w.Name()))
 	}
 
-	p := &DelayedProjectileSpawn{
-		delay:      delay,
-		spread:     spread,
-		weapon:     w,
-		parent:     e,
-		sfxEnabled: playSFX,
-	}
+	p := NewDelayedProjectileSpawn(delay, spread, w, e, playSFX)
 	g.delayedProjectiles[p] = struct{}{}
 }
 
@@ -445,20 +390,20 @@ func (g *Game) updateDelayedProjectiles() {
 	for p := range g.delayedProjectiles {
 		p.delay -= model.SECONDS_PER_TICK
 		if p.delay <= 0 {
-			g.spawnDelayedProjectile(p)
+			delete(g.delayedProjectiles, p)
+			g.spawnProjectile(p)
 		}
 	}
 }
 
-// spawnDelayedProjectile puts a projectile in play that was delayed
-func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
-	delete(g.delayedProjectiles, p)
-
+// spawnProjectile puts a projectile in play
+func (g *Game) spawnProjectile(p *ProjectileSpawn) *model.Projectile {
 	w, u := p.weapon, model.EntityUnit(p.parent)
 	if u == nil {
-		return
+		return nil
 	}
 
+	isPlayerProjectile := u == g.player.Unit
 	var projectile *model.Projectile
 
 	var spreadAngle, spreadPitch float64
@@ -469,7 +414,7 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 	}
 
 	var convergencePoint *geom3d.Vector3
-	if g.player == u {
+	if isPlayerProjectile {
 		cSprite := g.spriteInCrosshairs()
 		var cEntity model.Entity
 		if cSprite != nil {
@@ -480,8 +425,13 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		convergencePoint = model.ConvergencePoint(u, u.Target())
 	}
 
-	if u != g.player.Unit || convergencePoint == nil {
-		projectile = w.SpawnProjectile(u.TurretAngle()+spreadAngle, u.Pitch()+spreadPitch, u)
+	pHeading, pPitch := u.Heading(), u.Pitch()
+	if u.HasTurret() {
+		pHeading = u.TurretAngle()
+	}
+
+	if convergencePoint == nil {
+		projectile = w.SpawnProjectile(pHeading+spreadAngle, pPitch+spreadPitch, u)
 	} else {
 		projectile = w.SpawnProjectileToward(convergencePoint, u)
 		if p.spread > 0 {
@@ -511,4 +461,5 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 			s.SetIlluminationPeriod(5000, 0.35)
 		}
 	}
+	return projectile
 }

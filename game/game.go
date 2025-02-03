@@ -107,7 +107,7 @@ type Game struct {
 	clutter                *ClutterHandler
 	collisonSpriteTypes    map[SpriteType]bool
 	interactiveSpriteTypes map[SpriteType]bool
-	delayedProjectiles     map[*DelayedProjectileSpawn]struct{}
+	delayedProjectiles     map[*ProjectileSpawn]struct{}
 
 	// Gameplay
 	objectives *ObjectivesHandler
