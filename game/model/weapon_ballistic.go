@@ -44,6 +44,7 @@ func NewBallisticWeapon(r *ModelBallisticWeaponResource, collisionRadius, collis
 		velocity:        r.Velocity,
 		cooldown:        0,
 		offset:          offset,
+		ammoBin:         &AmmoBin{},
 		parent:          parent,
 	}
 
