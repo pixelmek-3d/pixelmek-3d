@@ -197,6 +197,10 @@ func (w *MissileWeapon) SetAmmoBin(ammoBin *AmmoBin) {
 	w.ammoBin = ammoBin
 }
 
+func (w *MissileWeapon) Projectile() Projectile {
+	return w.projectile
+}
+
 func (w *MissileWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }

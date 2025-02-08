@@ -3,7 +3,7 @@ briefing: |
   A call to trial during the night.
 
   Justice by combat.
-map: "testing_grounds.yaml"
+map: "testing_grounds"
 music: "gi_i_dark_ambient.mp3"
 lighting:
   falloff: -500
@@ -25,31 +25,32 @@ objectives:
     dustoff:
       - name: "Charlie"
 navPoints:
-- name: "Alpha"
-  position: [20, 50]
-- name: "Bravo"
-  position: [30, 20]
-- name: "Charlie"
-  position: [60, 40]
+  - name: "Alpha"
+    position: [20, 50]
+  - name: "Bravo"
+    position: [30, 20]
+  - name: "Charlie"
+    position: [60, 40]
 mechs:
-- unit: "fire_moth_prime.yaml"
-  position: [15, 55]
-- unit: "warhawk_prime.yaml"
-  position: [13, 14]
-- unit: "executioner_prime.yaml"
-  position: [17, 14]
-- unit: "nova_prime.yaml"
-  position: [9, 23]
-  patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
-- unit: "timber_wolf_prime.yaml"
-  position: [15, 23]
-  patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
+  - unit: "fire_moth_prime"
+    position: [15, 55]
+  - unit: "warhawk_prime"
+    position: [13, 14]
+  - unit: "executioner_prime"
+    position: [17, 14]
+  - unit: "nova_prime"
+    position: [9, 23]
+    patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
+  - unit: "timber_wolf_prime"
+    position: [15, 23]
+    patrolPath: [[19, 23], [19, 15], [2, 15], [2, 23], [19, 23]]
 vehicles: []
 vtols:
-- unit: "donar.yaml"
-  position: [13, 45]
-  zPosition: 3.0
-- unit: "donar.yaml"
-  position: [17, 45]
-  zPosition: 3.0
+  - unit: "donar"
+    position: [13, 45]
+    zPosition: 3.0
+  - unit: "donar"
+    position: [17, 45]
+    zPosition: 3.0
 infantry: []
+emplacements: []

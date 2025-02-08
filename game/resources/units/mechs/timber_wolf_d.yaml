@@ -18,31 +18,31 @@ heatSinks:
   quantity: 13
   type: double
 armament:
-- weapon: "cl_er_ppc.yaml"
+- weapon: cl_er_ppc
   type: energy
   location: la
   offset: [18, 35]
-- weapon: "cl_er_ppc.yaml"
+- weapon: cl_er_ppc
   type: energy
   location: ra
   offset: [-18, 35]
-- weapon: "cl_streak_srm_6.yaml"
+- weapon: cl_streak_srm_6
   type: missile
   location: lt
   offset: [13, 57]
-- weapon: "cl_streak_srm_6.yaml"
+- weapon: cl_streak_srm_6
   type: missile
   location: rt
   offset: [-13, 57]
-- weapon: "cl_streak_srm_6.yaml"
+- weapon: cl_streak_srm_6
   type: missile
   location: lt
   offset: [11, 56]
-- weapon: "cl_streak_srm_6.yaml"
+- weapon: cl_streak_srm_6
   type: missile
   location: rt
   offset: [-11, 56]
-- weapon: "cl_er_small_laser.yaml"
+- weapon: cl_er_small_laser
   type: energy
   location: ct
   offset: [0, 39]

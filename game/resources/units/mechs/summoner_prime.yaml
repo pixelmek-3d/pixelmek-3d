@@ -18,21 +18,21 @@ heatSinks:
   quantity: 14
   type: double
 armament:
-- weapon: "cl_lbx_ac_10.yaml"
+- weapon: cl_lbx_ac_10
   type: ballistic
   location: la
   offset: [23, 36]
-- weapon: "cl_er_ppc.yaml"
+- weapon: cl_er_ppc
   type: energy
   location: ra
   offset: [-20, 34]
-- weapon: "cl_lrm_15.yaml"
+- weapon: cl_lrm_15
   type: missile
   location: lt
   offset: [6, 60]
 ammo:
 - type: ballistic
-  forWeapon: cl_lbx_ac_10.yaml
+  forWeapon: cl_lbx_ac_10
   tons: 1
 - type: lrm
   tons: 2

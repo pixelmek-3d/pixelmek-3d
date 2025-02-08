@@ -2,10 +2,13 @@ package model
 
 import (
 	"math"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 )
 
 const (
@@ -65,6 +68,7 @@ type Unit interface {
 	SetTargetLock(float64)
 
 	TurnRate() float64
+	TargetHeading() float64
 	SetTargetHeading(float64)
 	SetTargetPitch(float64)
 	MaxVelocity() float64
@@ -97,6 +101,15 @@ type Unit interface {
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
 
+	GuardArea() *geom.Circle
+	SetGuardArea(x, y, radius float64)
+	GuardUnit() string
+	SetGuardUnit(string)
+	PathStack() *common.FIFOStack[geom.Vector2]
+	SetPatrolPath([]geom.Vector2)
+	WithdrawArea() *Rect
+	SetWithdrawArea(*Rect)
+
 	Objective() UnitObjective
 	SetObjective(UnitObjective)
 	SetAsPlayer(bool)
@@ -107,6 +120,8 @@ type Unit interface {
 
 type UnitModel struct {
 	id                  string
+	name                string
+	variant             string
 	team                int
 	unitType            UnitType
 	position            *geom.Vector2
@@ -149,6 +164,10 @@ type UnitModel struct {
 	target              Entity
 	targetLock          float64
 	objective           UnitObjective
+	guardArea           *geom.Circle
+	guardUnit           string
+	pathStack           *common.FIFOStack[geom.Vector2]
+	withdrawArea        *Rect
 	parent              Entity
 	isPlayer            bool
 }
@@ -181,7 +200,20 @@ func (e *UnitModel) ID() string {
 }
 
 func (e *UnitModel) SetID(id string) {
+	if len(id) == 0 {
+		// use random uuid if not given static id reference
+		e.id = strings.ReplaceAll(strings.ToLower(e.variant), " ", "-") + "_" + uuid.NewString()
+		return
+	}
 	e.id = id
+}
+
+func (e *UnitModel) Name() string {
+	return e.name
+}
+
+func (e *UnitModel) Variant() string {
+	return e.variant
 }
 
 func (e *UnitModel) Team() int {
@@ -367,6 +399,10 @@ func (e *UnitModel) SetHeading(angle float64) {
 	e.heading = angle
 }
 
+func (e *UnitModel) TargetHeading() float64 {
+	return e.targetHeading
+}
+
 func (e *UnitModel) SetTargetHeading(heading float64) {
 	e.targetHeading = heading
 }
@@ -528,6 +564,55 @@ func (e *UnitModel) MaxJumpJetDuration() float64 {
 	return e.maxJumpJetDuration
 }
 
+func (e *UnitModel) GuardArea() *geom.Circle {
+	return e.guardArea
+}
+
+func (e *UnitModel) SetGuardArea(x, y, radius float64) {
+	if radius < 0 {
+		e.guardArea = nil
+		return
+	} else {
+		e.guardArea = &geom.Circle{X: x, Y: y, Radius: radius}
+	}
+
+	// initialize empty path stack for use in guard area behavior
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
+}
+
+func (e *UnitModel) GuardUnit() string {
+	return e.guardUnit
+}
+
+func (e *UnitModel) SetGuardUnit(unit string) {
+	e.guardUnit = unit
+
+	// initialize empty path stack for use in guard unit behavior
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
+}
+
+func (e *UnitModel) SetPatrolPath(modelPatrolPath []geom.Vector2) {
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
+	for _, point := range modelPatrolPath {
+		e.pathStack.Push(point)
+	}
+}
+
+func (e *UnitModel) PathStack() *common.FIFOStack[geom.Vector2] {
+	return e.pathStack
+}
+
+func (e *UnitModel) WithdrawArea() *Rect {
+	return e.withdrawArea
+}
+
+func (e *UnitModel) SetWithdrawArea(withdrawArea *Rect) {
+	e.withdrawArea = withdrawArea
+
+	// initialize empty path stack for use in withdraw area behavior
+	e.pathStack = common.NewFIFOStack[geom.Vector2]()
+}
+
 func (e *UnitModel) Objective() UnitObjective {
 	return e.objective
 }
@@ -589,33 +674,52 @@ func (e *UnitModel) update() {
 		// move towards target heading amount allowed by turn rate
 		deltaH = geom.Clamp(AngleDistance(e.heading, e.targetHeading), -turnRate, turnRate)
 		e.heading = ClampAngle2Pi(e.heading + deltaH)
+		if math.Abs(deltaH) < math.Abs(turnRate) && geom.NearlyEqual(e.targetHeading, e.heading, 0.0001) {
+			e.heading = e.targetHeading
+		}
 
 		if e.jumpJets > 0 && e.jumpJetsActive {
 			// set jump jet heading only while jumping
 			e.jumpJetHeading = e.heading
 		}
 
-		// offset turret angle so it does not have to play catch up
-		e.targetTurretAngle -= deltaH
+		if e.isPlayer {
+			// offset player turret angle so it does not have to play catch up
+			e.targetTurretAngle -= deltaH
+		}
 	}
 
 	if e.targetPitch != e.pitch {
 		// move towards target pitch amount allowed by turret rate
 		distP := AngleDistance(e.pitch, e.targetPitch)
 
-		// use logarithmic scale to smooth the approach to the target pitch angle
-		pitchRate := math.Log1p(2*math.Abs(distP)) * turretRate
+		pitchRate := turretRate
+		if e.isPlayer {
+			// use logarithmic scale to smooth the approach to the target pitch angle
+			pitchRate = math.Log1p(2*math.Abs(distP)) * turretRate
+		}
+
 		deltaP := geom.Clamp(distP, -pitchRate, pitchRate)
 		e.pitch = ClampAngle(e.pitch + deltaP)
+		if math.Abs(deltaP) < math.Abs(pitchRate) && geom.NearlyEqual(e.targetPitch, e.pitch, 0.0001) {
+			e.pitch = e.targetPitch
+		}
 	}
 
 	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
 		// move towards target turret angle amount allowed by turret rate
 		distA := AngleDistance(e.turretAngle, e.targetTurretAngle)
 
-		// use logarithmic scale to smooth the approach to the target turret angle
-		twistRate := math.Log1p(2*math.Abs(distA)) * turretRate
+		twistRate := turretRate
+		if e.isPlayer {
+			// use logarithmic scale to smooth the approach to the target turret angle
+			twistRate = math.Log1p(2*math.Abs(distA)) * turretRate
+		}
+
 		deltaA := geom.Clamp(distA, -twistRate, twistRate)
 		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA + deltaH)
+		if math.Abs(deltaA) < math.Abs(twistRate) && geom.NearlyEqual(e.targetTurretAngle, e.turretAngle, 0.0001) {
+			e.turretAngle = e.targetTurretAngle
+		}
 	}
 }

@@ -7,20 +7,31 @@ import (
 
 // Update camera to match player position and orientation
 func (g *Game) updatePlayerCamera(forceUpdate bool) {
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
+		if debugCamTgt.IsDestroyed() || g.player.ejectionPod != nil {
+			g.player.SetDebugCameraTarget(nil)
+		}
+		forceUpdate = true
+	}
 	if !g.player.moved && !forceUpdate {
 		// only update camera position if player moved or forceUpdate set
 		return
 	}
 
-	// reset player moved flag to only update camera when necessary
-	g.player.moved = false
+	if forceUpdate {
+		g.player.moved = true
+	} else {
+		// reset player moved flag to only update camera when necessary
+		g.player.moved = false
+	}
 
-	camPos, camPosZ := g.player.CameraPosition()
+	camPos, camPosZ, camAngle, camPitch := g.player.CameraPosition()
 
 	g.camera.SetPosition(camPos)
 	g.camera.SetPositionZ(camPosZ)
-	g.camera.SetHeadingAngle(g.player.cameraAngle)
-	g.camera.SetPitchAngle(g.player.cameraPitch)
+	g.camera.SetHeadingAngle(camAngle)
+	g.camera.SetPitchAngle(camPitch)
 }
 
 // CameraLineTo returns a 2D Line of the current camera position to the given position

@@ -18,26 +18,26 @@ imageSheet:
 tech: clan
 tonnage: 21
 height: 5
-heightPixelGap: 61 # 87 image pixel height - 26 unit pixel height = 61
+heightPixelGap: 1
 speed: 151
 armor: 57
 structure: 15 # 10% of weight (rounded up) as points per location (VTOL have 5 locations): 3 * 5 = 15
-collisionRadius: 16
+collisionRadius: 21
 collisionHeight: 26
 cockpitOffset: [0, -2]
 heatSinks:
   quantity: 10
   type: double
 armament:
-- weapon: "cl_er_large_laser.yaml"
+- weapon: cl_er_large_laser
   type: energy
   location: front
   offset: [0, -8]
-- weapon: "cl_srm_2.yaml"
+- weapon: cl_srm_2
   type: missile
   location: front
   offset: [-9, -6]
-- weapon: "cl_srm_2.yaml"
+- weapon: cl_srm_2
   type: missile
   location: front
   offset: [9, -6]

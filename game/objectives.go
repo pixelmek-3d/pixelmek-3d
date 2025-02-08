@@ -137,7 +137,7 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 						}
 						continue
 					}
-					if unit.Team() < 0 {
+					if g.IsFriendly(g.player, unit) {
 						// prevent units on player team from being a destroy objective
 						if !all {
 							log.Errorf("unit ID found on player team as destroy objective: %s", unit.ID())

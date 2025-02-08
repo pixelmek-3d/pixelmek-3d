@@ -1,0 +1,252 @@
+{
+  "version": "0.3.0",
+  "scope": "tree",
+  "id": "a1c99bf9-4d8c-4613-9197-8d0060831399",
+  "title": "unit",
+  "description": "Basic Unit AI",
+  "root": "e5f2187c-ee9b-474b-83d0-65f5d58f0175",
+  "properties": {},
+  "nodes": {
+    "e5f2187c-ee9b-474b-83d0-65f5d58f0175": {
+      "id": "e5f2187c-ee9b-474b-83d0-65f5d58f0175",
+      "name": "select",
+      "title": "Select",
+      "description": "Takes multiple children and runs them from top to bottom (or left to right), succeeding when any one succeeds.  Fails if all fail.",
+      "properties": {},
+      "display": {
+        "x": 12,
+        "y": -384
+      },
+      "children": [
+        "530ad45c-5695-4883-8355-5517a20dd490",
+        "8d200305-2db5-4426-865a-ae25b600015a",
+        "f84eb781-d730-4fd8-8608-71aa14435faf"
+      ]
+    },
+    "530ad45c-5695-4883-8355-5517a20dd490": {
+      "id": "530ad45c-5695-4883-8355-5517a20dd490",
+      "name": "forced_withdrawal",
+      "title": "forced_withdrawal",
+      "description": "",
+      "properties": {
+        "type": "tree"
+      },
+      "display": {
+        "x": -204,
+        "y": -252
+      }
+    },
+    "f84eb781-d730-4fd8-8608-71aa14435faf": {
+      "id": "f84eb781-d730-4fd8-8608-71aa14435faf",
+      "name": "engage_target",
+      "title": "engage_target",
+      "description": "",
+      "properties": {
+        "type": "tree"
+      },
+      "display": {
+        "x": 216,
+        "y": -252
+      }
+    },
+    "8d200305-2db5-4426-865a-ae25b600015a": {
+      "id": "8d200305-2db5-4426-865a-ae25b600015a",
+      "name": "patrol_guard",
+      "title": "patrol_guard",
+      "description": "",
+      "properties": {
+        "type": "tree"
+      },
+      "display": {
+        "x": 12,
+        "y": -252
+      }
+    }
+  },
+  "display": {
+    "camera_x": 613.5,
+    "camera_y": 751.5,
+    "camera_z": 1,
+    "x": 12,
+    "y": -504
+  },
+  "custom_nodes": [
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "DetermineForcedWithdrawal",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "InWithdrawArea",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "Withdraw",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "TurnToWithdraw",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "VelocityToMax",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "forced_withdrawal",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {
+        "type": "tree"
+      }
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "engage_target",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {
+        "type": "tree"
+      }
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "HasTarget",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "TargetIsAlive",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "TurnToTarget",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "TurretToTarget",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "FireWeapons",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "EngageTarget",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "PatrolPath",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "GuardArea",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "GuardUnit",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "HuntLastTargetArea",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "Wander",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "patrol_guard",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {
+        "type": "tree"
+      }
+    }
+  ]
+}

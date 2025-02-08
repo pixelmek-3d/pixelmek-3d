@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"sync"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
@@ -40,8 +41,12 @@ type Player struct {
 	selectedWeapon    uint
 	selectedGroup     uint
 	fireMode          model.WeaponFireMode
+	reticleLead       *render.ReticleLead
 	currentNav        *render.NavSprite
 	ejectionPod       *render.ProjectileSprite
+
+	debugCameraTgt model.Unit
+	debugCameraMu  sync.Mutex
 }
 
 func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
@@ -54,10 +59,13 @@ func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch flo
 	}
 
 	p.SetAsPlayer(true)
+	p.SetTeam(-1)
+	p.SetID("player")
 
 	p.SetPos(&geom.Vector2{X: x, Y: y})
 	p.SetPosZ(z)
 	p.SetHeading(angle)
+	p.SetTargetHeading(angle)
 	p.SetTurretAngle(angle)
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
@@ -146,6 +154,11 @@ func (p *Player) RotateCamera(rSpeed float64) {
 		return
 	}
 
+	if p.debugCameraTgt != nil {
+		// disallow player from moving camera when viewing from debug camera target
+		return
+	}
+
 	// TODO: add config option to allow 360 degree torso rotation
 	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
 
@@ -173,15 +186,29 @@ func (p *Player) PitchCamera(pSpeed float64) {
 		return
 	}
 
+	if p.debugCameraTgt != nil {
+		// disallow player from moving camera when viewing from debug camera target
+		return
+	}
+
 	// current raycasting method can only allow certain amount in either direction without graphical artifacts
 	pitch := geom.Clamp(p.cameraPitch+pSpeed, -geom.Pi/8, geom.Pi/4)
 	p.cameraPitch = pitch
 	p.moved = true
 }
 
-func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
+func (p *Player) CameraPosition() (pos *geom.Vector2, posZ, angle, pitch float64) {
+	angle, pitch = p.cameraAngle, p.cameraPitch
 	if p.ejectionPod != nil {
 		pos, posZ = p.ejectionPod.Pos().Copy(), p.ejectionPod.PosZ()
+		return
+	}
+
+	debugCamTgt := p.DebugCameraTarget()
+	if debugCamTgt != nil {
+		pos, posZ = debugCamTgt.Pos().Copy(), debugCamTgt.PosZ()+debugCamTgt.CockpitOffset().Y
+		angle, pitch = debugCamTgt.TurretAngle(), debugCamTgt.Pitch()
+		p.cameraAngle, p.cameraPitch = angle, pitch
 		return
 	}
 
@@ -196,6 +223,31 @@ func (p *Player) CameraPosition() (pos *geom.Vector2, posZ float64) {
 	cockpitLine := geom.LineFromAngle(pos.X, pos.Y, cameraHeadingAngle, cockpitOffset.X)
 	pos = &geom.Vector2{X: cockpitLine.X2, Y: cockpitLine.Y2}
 	return
+}
+
+func (p *Player) CameraPosXY() (pos *geom.Vector2) {
+	if p.ejectionPod != nil {
+		return p.ejectionPod.Pos().Copy()
+	}
+
+	debugCamTgt := p.DebugCameraTarget()
+	if debugCamTgt != nil {
+		return debugCamTgt.Pos().Copy()
+	}
+	return p.Pos().Copy()
+}
+
+func (p *Player) DebugCameraTarget() (t model.Unit) {
+	p.debugCameraMu.Lock()
+	t = p.debugCameraTgt
+	p.debugCameraMu.Unlock()
+	return t
+}
+
+func (p *Player) SetDebugCameraTarget(t model.Unit) {
+	p.debugCameraMu.Lock()
+	p.debugCameraTgt = t
+	p.debugCameraMu.Unlock()
 }
 
 func (g *Game) SetPlayerUnit(unit model.Unit) {
@@ -245,6 +297,24 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 	} else {
 		g.mouseMode = MouseModeBody
 	}
+}
+
+func (p *Player) getSelectedWeapons() []model.Weapon {
+	selected := make([]model.Weapon, 0, len(p.Armament()))
+	for i, w := range p.Armament() {
+		switch p.fireMode {
+		case model.CHAIN_FIRE:
+			if i == int(p.selectedWeapon) {
+				selected = append(selected, p.Armament()[i])
+			}
+
+		case model.GROUP_FIRE:
+			if model.IsWeaponInGroup(w, p.selectedGroup, p.weaponGroups) {
+				selected = append(selected, p.Armament()[i])
+			}
+		}
+	}
+	return selected
 }
 
 func (p *Player) Eject(g *Game) bool {
@@ -335,6 +405,24 @@ func (p *Player) Update() bool {
 		}
 
 		// TODO: stomp foot when coming to full stop
+	}
+
+	// update reticle lead position to be raycasted for its projected screen location
+	target := model.EntityUnit(p.Target())
+	if target == nil {
+		p.reticleLead = nil
+	} else {
+		var iWeapon model.Weapon
+		selectedWeapons := p.getSelectedWeapons()
+		if len(selectedWeapons) > 0 {
+			iWeapon = selectedWeapons[0]
+		}
+		iPos := model.TargetLeadPosition(p, target, iWeapon)
+		if p.reticleLead == nil {
+			p.reticleLead = render.NewReticleLead(*iPos)
+		} else {
+			p.reticleLead.SetPosition(*iPos)
+		}
 	}
 
 	return p.Unit.Update()

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image"
 	"math"
 	"sort"
 
@@ -32,6 +33,34 @@ func (g *Game) isCollisionType(spriteType SpriteType) bool {
 		return true
 	}
 	return false
+}
+
+// checks walls for line of sight from source to target entity
+func (g *Game) lineOfSight(source, target model.Entity) bool {
+	if source == nil || target == nil {
+		return false
+	}
+
+	srcX, srcY := source.Pos().X, source.Pos().Y
+	tgtX, tgtY := target.Pos().X, target.Pos().Y
+
+	line := geom.Line{X1: srcX, Y1: srcY, X2: tgtX, Y2: tgtY}
+	lRect := image.Rect(int(srcX), int(srcY), int(tgtX), int(tgtY))
+	for _, borderLine := range g.collisionMap {
+		// quick check for nearby wall cells instead of all of them
+		bRect := image.Rect(int(borderLine.X1), int(borderLine.Y1), int(borderLine.X2), int(borderLine.Y2))
+		if (bRect.Min.X > lRect.Max.X && bRect.Min.Y > lRect.Max.Y) ||
+			(bRect.Max.X < lRect.Min.X && bRect.Max.Y < lRect.Min.Y) {
+			continue
+		}
+
+		_, _, intersects := geom.LineIntersection(line, *borderLine)
+		if intersects {
+			return false
+		}
+	}
+
+	return true
 }
 
 // checks for valid move from current position, returns valid (x, y) position, whether a collision
@@ -179,63 +208,110 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 
 	if isCollision {
 		if checkAlternate {
-			// find the point closest to the start position
-			min := math.Inf(1)
-			minI := -1
-			for i, p := range intersectPoints {
-				d2 := geom.Distance2(posX, posY, p.X, p.Y)
-				if d2 < min {
-					min = d2
-					minI = i
+			zDiff := math.Abs(moveZ - posZ)
+			if zDiff > 0 {
+				// if some Z movement, try to move only in Z (useful vs. walls)
+				zP, zZ, zCollide, _ := g.getValidMove(entity, posX, posY, moveZ, false)
+				if !zCollide {
+					return zP, zZ, isCollision, collisionEntities
+				} else {
+					// Z-only resulted in collision, try without any Z (useful when on top of something)
+					zP, zZ, _, _ = g.getValidMove(entity, moveX, moveY, posZ, true)
+					return zP, zZ, isCollision, collisionEntities
 				}
 			}
 
-			// use the closest intersecting point to determine a safe distance to make the move
-			moveLine = geom.Line{X1: posX, Y1: posY, X2: intersectPoints[minI].X, Y2: intersectPoints[minI].Y}
-			dist := math.Sqrt(min)
-			angle := moveLine.Angle()
-
-			// generate new move line using calculated angle and safe distance from intersecting point
-			moveLine = geom.LineFromAngle(posX, posY, angle, dist-0.01)
-
-			newX, newY = moveLine.X2, moveLine.Y2
-
-			// if either X or Y direction was already intersecting, attempt move only in the adjacent direction
-			xDiff := math.Abs(newX - posX)
-			yDiff := math.Abs(newY - posY)
-			zDiff := math.Abs(moveZ - posZ)
-			if xDiff > 0.001 || yDiff > 0.001 || zDiff > 0 {
-				switch {
-				case zDiff > 0:
-					// if some Z movement, try to move only in Z (useful vs. walls)
-					zP, zZ, zCollide, zE := g.getValidMove(entity, posX, posY, moveZ, false)
-					if !zCollide {
-						return zP, zZ, zCollide, zE
-					} else {
-						// Z-only resulted in collision, try without any Z (useful when on top of something)
-						return g.getValidMove(entity, moveX, moveY, posZ, true)
+			if len(collisionEntities) > 0 {
+				// attempt escaping stuck on an entity: find the closest intersection point and angle away from it
+				min := math.Inf(1)
+				minI := -1
+				for i, p := range intersectPoints {
+					d2 := geom.Distance2(posX, posY, p.X, p.Y)
+					if d2 < min {
+						min = d2
+						minI = i
 					}
-				case xDiff <= 0.001:
-					// no more room to move in X, try to move only Y
-					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
-					// 	c.pos.X, c.pos.Y, moveX, moveY, posX, moveY)
-					return g.getValidMove(entity, posX, moveY, moveZ, false)
-				case yDiff <= 0.001:
-					// no more room to move in Y, try to move only X
-					// fmt.Printf("\t[@%v,%v] move to (%v,%v) try adjacent move to {%v,%v}\n",
-					// 	c.pos.X, c.pos.Y, moveX, moveY, moveX, posY)
-					return g.getValidMove(entity, moveX, posY, moveZ, false)
-				default:
-					// try the new position
-					// TODO: need some way to try a potentially valid shorter move without checkAlternate while also avoiding infinite loop
-					return g.getValidMove(entity, newX, newY, moveZ, false)
 				}
+
+				// use the closest intersecting point to determine a safe distance to make the move
+				intersectLine := geom.Line{X1: posX, Y1: posY, X2: intersectPoints[minI].X, Y2: intersectPoints[minI].Y}
+				intersectAngle := intersectLine.Angle()
+
+				// generate new move line using calculated angle and safe distance from intersecting point
+				var escapeAngle float64
+				escapeDist := geom.Clamp(checkDist, 0, entityCollisionRadius-0.001)
+				if model.AngleDistance(entity.Heading(), intersectAngle) >= 0 {
+					escapeAngle = intersectAngle - geom.HalfPi
+				} else {
+					escapeAngle = intersectAngle + geom.HalfPi
+				}
+
+				escapeLine := geom.LineFromAngle(posX, posY, escapeAngle, escapeDist)
+				escapeX, escapeY := escapeLine.X2, escapeLine.Y2
+				//log.Debugf("[%0.3f, %0.3f] escape entity collision (%0.3f@%0.2f)", escapeY, escapeY, escapeDist, geom.Degrees(escapeAngle))
+
+				nP, nZ, _, _ := g.getValidMove(entity, escapeX, escapeY, moveZ, false)
+				return nP, nZ, isCollision, collisionEntities
+
 			} else {
-				// looks like it cannot move
-				return &geom.Vector2{X: posX, Y: posY}, posZ, isCollision, collisionEntities
+				// attempt escaping stuck on a wall: check move in most favored direction, then the other, based on heading
+				identityLine := geom.LineFromAngle(0.0, 0.0, entity.Heading(), 1.0)
+				identityX, identityY := math.Abs(identityLine.X2), math.Abs(identityLine.Y2)
+				if identityX >= identityY {
+					// try to move only X, then only Y
+					// log.Debugf("[%0.3f, %0.3f] first, trying only X (%0.3f)", posX, posY, moveX)
+					nP, nZ, xCollide, _ := g.getValidMove(entity, moveX, posY, moveZ, false)
+					if !xCollide {
+						return nP, nZ, isCollision, collisionEntities
+					} else {
+						if geom.NearlyEqual(posY, moveY, 0.001) {
+							// try small moveY offset to avoid getting stuck on wall collision
+							dY := entity.Velocity() / 2
+							if moveY-posY == 0 {
+								if math.Signbit(moveX) {
+									dY *= -1
+								}
+							} else {
+								if math.Signbit(moveY - posY) {
+									dY *= -1
+								}
+							}
+							moveY = posY + dY
+						}
+						// log.Debugf("[%0.3f, %0.3f] second, trying only Y (%0.3f)", posX, posY, moveY)
+						nP, nZ, _, _ = g.getValidMove(entity, posX, moveY, moveZ, false)
+						return nP, nZ, isCollision, collisionEntities
+					}
+				} else {
+					// try to move only Y, then only X
+					// log.Debugf("[%0.3f, %0.3f] first, trying only Y (%0.3f)", posX, posY, moveY)
+					nP, nZ, yCollide, _ := g.getValidMove(entity, posX, moveY, moveZ, false)
+					if !yCollide {
+						return nP, nZ, isCollision, collisionEntities
+					} else {
+						if geom.NearlyEqual(posX, moveX, 0.001) {
+							// try small moveX offset to avoid getting stuck on wall collision
+							dX := entity.Velocity() / 2
+							if moveX-posX == 0 {
+								if math.Signbit(moveY) {
+									dX *= -1
+								}
+							} else {
+								if math.Signbit(moveX - posX) {
+									dX *= -1
+								}
+							}
+							moveX = posX + dX
+						}
+						// log.Debugf("[%0.3f, %0.3f] second, trying only X (%0.3f)", posX, posY, moveX)
+						nP, nZ, _, _ = g.getValidMove(entity, moveX, posY, moveZ, false)
+						return nP, nZ, isCollision, collisionEntities
+					}
+				}
 			}
 		} else {
 			// looks like it cannot move
+			// log.Debugf("[%0.3f, %0.3f] collision: cannot move", posX, posY)
 			return &geom.Vector2{X: posX, Y: posY}, posZ, isCollision, collisionEntities
 		}
 	}

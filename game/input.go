@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image/color"
 	"io"
@@ -60,6 +61,7 @@ const (
 	ActionWeaponFireGroup4
 	ActionWeaponFireGroup5
 	ActionNavCycle
+	ActionRadarRangeCycle
 	ActionTargetCrosshairs
 	ActionTargetNearest
 	ActionTargetNext
@@ -67,6 +69,7 @@ const (
 	ActionZoomToggle
 	ActionLightAmpToggle
 	ActionPowerToggle
+	ActionCameraCycle
 	actionCount
 )
 
@@ -146,6 +149,8 @@ func actionString(a input.Action) string {
 		return "weapon_fire_group_5"
 	case ActionNavCycle:
 		return "nav_cycle"
+	case ActionRadarRangeCycle:
+		return "radar_range_cycle"
 	case ActionTargetCrosshairs:
 		return "target_crosshairs"
 	case ActionTargetNearest:
@@ -160,6 +165,8 @@ func actionString(a input.Action) string {
 		return "light_amplification"
 	case ActionPowerToggle:
 		return "power_toggle"
+	case ActionCameraCycle:
+		return "camera_cycle"
 	default:
 		panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
 	}
@@ -180,6 +187,8 @@ func (g *Game) initControls() {
 			panic(fmt.Errorf("error loading keymap file %s: %v", resources.UserKeymapFile, err))
 		}
 	}
+
+	// TODO: initialize default for new controls even if not first time?
 
 	if len(keymap) == 0 {
 		// first time intitialize defaults into file
@@ -223,6 +232,7 @@ func (g *Game) setDefaultControls() {
 		ActionWeaponFireGroup2:       {input.KeyMouseForward},
 
 		ActionNavCycle:         {input.KeyN, input.KeyGamepadDown},
+		ActionRadarRangeCycle:  {input.KeySlash},
 		ActionTargetCrosshairs: {input.KeyQ, input.KeyGamepadL2},
 		ActionTargetNearest:    {input.KeyE, input.KeyGamepadUp},
 		ActionTargetNext:       {input.KeyT, input.KeyGamepadRight},
@@ -231,6 +241,7 @@ func (g *Game) setDefaultControls() {
 		ActionZoomToggle:     {input.KeyZ, input.KeyGamepadRStick},
 		ActionLightAmpToggle: {input.KeyL, input.KeyGamepadDown},
 		ActionPowerToggle:    {input.KeyP},
+		ActionCameraCycle:    {input.KeyF3},
 	}
 
 	g.inputSystem.Init(input.SystemConfig{
@@ -288,7 +299,7 @@ func (g *Game) restoreControls() (input.Keymap, error) {
 	}
 
 	if len(actionErrorString) > 0 {
-		err = fmt.Errorf(actionErrorString)
+		err = errors.New(actionErrorString)
 		log.Error(err)
 		return keymap, err
 	}
@@ -327,7 +338,7 @@ func (g *Game) saveControls() error {
 		keymapConfig.Set(actionKey, g.input.ActionKeyNames(a, input.AnyDevice))
 	}
 	keymapJson, _ := json.MarshalIndent(keymapConfig, "", "    ")
-	_, err = io.WriteString(keymapFile, string(keymapJson))
+	_, err = keymapFile.Write(keymapJson)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -382,9 +393,17 @@ func (g *Game) handleInput() {
 				target.SetJumpJetsActive(true)
 				target.SetTargetVelocityZ(0.05)
 			}
+		}
+	}
 
-		default:
-			g.fireTestWeaponAtPlayer()
+	if g.debug && g.input.ActionIsJustPressed(ActionCameraCycle) {
+		// debug only: camera swap with player target or cycle back to player unit
+		debugCamTgt := g.player.DebugCameraTarget()
+		if debugCamTgt == nil && g.player.Target() != nil {
+			g.player.SetDebugCameraTarget(model.EntityUnit(g.player.Target()))
+		} else if debugCamTgt != nil {
+			g.player.SetDebugCameraTarget(nil)
+			g.player.moved = true
 		}
 	}
 
@@ -708,6 +727,11 @@ func (g *Game) handleInput() {
 		g.navPointCycle(true)
 	}
 
+	if g.input.ActionIsJustPressed(ActionRadarRangeCycle) {
+		// cycle radar HUD range
+		g.cycleRadarRange()
+	}
+
 	if g.input.ActionIsJustPressed(ActionTargetCrosshairs) {
 		// target on crosshairs
 		targetEntity := g.targetCrosshairs()
@@ -915,12 +939,12 @@ func (g *Game) handleInput() {
 	}
 
 	if isStrafe {
-		// TODO: use unit max velocity to determine strafe speed
-		if rotLeft {
-			g.Strafe(-0.05)
-		} else if rotRight {
-			g.Strafe(0.05)
-		}
+		// TODO: use unit max velocity to determine strafe speed and set target strafe heading
+		// if rotLeft {
+		// 	g.Strafe(-0.05)
+		// } else if rotRight {
+		// 	g.Strafe(0.05)
+		// }
 	} else {
 		if rotLeft {
 			turnAmount := g.player.TurnRate()

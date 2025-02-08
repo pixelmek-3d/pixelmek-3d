@@ -5,7 +5,6 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
@@ -138,6 +137,14 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	hudRect := g.uiRect()
 	marginX, marginY := hudRect.Dx()/50, hudRect.Dy()/50
 
+	var hudUnit model.Unit
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
+		hudUnit = debugCamTgt
+	} else {
+		hudUnit = g.player
+	}
+
 	hudOpts := &render.DrawHudOptions{
 		Screen:         screen,
 		HudRect:        hudRect,
@@ -145,6 +152,7 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 		MarginY:        marginY,
 		UseCustomColor: g.hudUseCustomColor,
 		Color:          *g.hudRGBA,
+		HudUnit:        hudUnit,
 	}
 
 	// draw FPS display
@@ -321,13 +329,23 @@ func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {
 	sBounds := image.Rect(
 		sX, sY, sX+statusWidth, sY+statusHeight,
 	)
-	playerStatus.SetUnit(g.player.sprite)
+
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
+		playerStatus.SetUnit(g.getSpriteFromEntity(debugCamTgt))
+		playerStatus.SetIsPlayer(false)
+		playerStatus.SetIsSpectating(true)
+	} else {
+		playerStatus.SetUnit(g.player.sprite)
+		playerStatus.SetIsPlayer(true)
+		playerStatus.SetIsSpectating(false)
+	}
 	playerStatus.Draw(sBounds, hudOpts)
 }
 
 func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 	targetStatus := g.GetHUDElement(HUD_TARGET_STATUS).(*render.UnitStatus)
-	if targetStatus == nil || g.player.Target() == nil {
+	if targetStatus == nil {
 		return
 	}
 
@@ -345,25 +363,28 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		sX, sY, sX+statusWidth, sY+statusHeight,
 	)
 
-	targetEntity := g.player.Target()
+	targetEntity := hudOpts.HudUnit.Target()
 	targetUnit := targetStatus.Unit()
 	if targetUnit == nil || targetUnit.Entity != targetEntity {
 		targetUnit = g.getSpriteFromEntity(targetEntity)
 	}
 
-	if targetUnit == nil || targetUnit.Team() < 0 || g.player.Powered() != model.POWER_ON {
-		// do not show target lock indicator if no target, target is friendly, or player not full powered on
+	if targetUnit != nil {
+		targetDistance := model.EntityDistance(hudOpts.HudUnit, targetUnit.Entity) - targetUnit.CollisionRadius() - hudOpts.HudUnit.CollisionRadius()
+		distanceMeters := targetDistance * model.METERS_PER_UNIT
+		targetStatus.SetUnitDistance(distanceMeters)
+	}
+
+	targetIsFriendly := g.IsFriendly(hudOpts.HudUnit, targetEntity)
+
+	if targetUnit == nil || targetIsFriendly || hudOpts.HudUnit.Powered() != model.POWER_ON {
+		// do not show target lock indicator if no target, target is friendly, or player not fully powered on
 		targetStatus.ShowTargetLock(false)
 		targetStatus.SetTargetLock(0)
 	} else {
-		targetDistance := model.EntityDistance(g.player, targetUnit.Entity) - targetUnit.CollisionRadius() - g.player.CollisionRadius()
-		distanceMeters := targetDistance * model.METERS_PER_UNIT
-
-		targetStatus.SetUnitDistance(distanceMeters)
-
 		// determine if lock percent should show
 		hasLockOns := false
-		for _, w := range g.player.Armament() {
+		for _, w := range hudOpts.HudUnit.Armament() {
 			missileWeapon, isMissile := w.(*model.MissileWeapon)
 			if isMissile && missileWeapon.IsLockOn() {
 				hasLockOns = true
@@ -371,16 +392,17 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 			}
 		}
 		targetStatus.ShowTargetLock(hasLockOns)
-		targetStatus.SetTargetLock(g.player.TargetLock())
+		targetStatus.SetTargetLock(hudOpts.HudUnit.TargetLock())
 	}
 
 	// show different target reticle if target is friendly
 	var targetReticle *render.TargetReticle
-	if targetUnit != nil && targetUnit.Team() < 0 {
+	if targetUnit != nil && targetIsFriendly {
 		targetReticle = g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle)
 	} else {
 		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
 	}
+	targetReticle.ReticleLeadBounds = nil
 
 	targetStatus.SetTargetReticle(targetReticle)
 	targetStatus.SetUnit(targetUnit)
@@ -440,12 +462,28 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 		aX, aY, aX+armamentWidth, aY+armamentHeight,
 	)
 
+	weaponFireMode := g.player.fireMode
+	weaponGroups := g.player.weaponGroups
 	weaponOrGroupIndex := g.player.selectedWeapon
 	if g.player.fireMode == model.GROUP_FIRE {
 		weaponOrGroupIndex = g.player.selectedGroup
 	}
-	armament.SetWeaponGroups(g.player.weaponGroups)
-	armament.SetSelectedWeapon(weaponOrGroupIndex, g.player.fireMode)
+
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
+		// override display for debug camera target
+		if !armament.IsDebugWeapons() {
+			armament.SetDebugWeapons(debugCamTgt.Armament())
+		}
+		weaponFireMode = model.GROUP_FIRE
+		weaponGroups = make([][]model.Weapon, 0)
+		weaponOrGroupIndex = 0
+	} else if armament.IsDebugWeapons() {
+		armament.SetWeapons(g.player.Armament())
+	}
+
+	armament.SetWeaponGroups(weaponGroups)
+	armament.SetSelectedWeapon(weaponOrGroupIndex, weaponFireMode)
 	armament.Draw(aBounds, hudOpts)
 }
 
@@ -468,21 +506,23 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 		cX, cY, cX+compassWidth, cY+compassHeight,
 	)
 
-	playerPos := g.player.Pos()
+	camPos := hudOpts.HudUnit.Pos()
+	camHeading := hudOpts.HudUnit.Heading()
+	camTurretAngle := hudOpts.HudUnit.TurretAngle()
 
-	if g.player.Target() == nil {
+	if hudOpts.HudUnit.Target() == nil {
 		compass.SetTargetEnabled(false)
 	} else {
-		targetPos := g.player.Target().Pos()
+		targetPos := hudOpts.HudUnit.Target().Pos()
 		tLine := geom.Line{
-			X1: playerPos.X, Y1: playerPos.Y,
+			X1: camPos.X, Y1: camPos.Y,
 			X2: targetPos.X, Y2: targetPos.Y,
 		}
 		tAngle := tLine.Angle()
 
 		compass.SetTargetEnabled(true)
 		compass.SetTargetHeading(tAngle)
-		compass.SetTargetFriendly(g.player.Target().Team() < 0)
+		compass.SetTargetFriendly(g.IsFriendly(hudOpts.HudUnit, hudOpts.HudUnit.Target()))
 	}
 
 	if g.player.currentNav == nil {
@@ -490,7 +530,7 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 	} else {
 		navPos := g.player.currentNav.Pos()
 		tLine := geom.Line{
-			X1: playerPos.X, Y1: playerPos.Y,
+			X1: camPos.X, Y1: camPos.Y,
 			X2: navPos.X, Y2: navPos.Y,
 		}
 		nAngle := tLine.Angle()
@@ -499,7 +539,7 @@ func (g *Game) drawCompass(hudOpts *render.DrawHudOptions) {
 		compass.SetNavHeading(nAngle)
 	}
 
-	compass.SetValues(g.player.Heading(), g.player.TurretAngle())
+	compass.SetValues(camHeading, camTurretAngle)
 	compass.Draw(cBounds, hudOpts)
 }
 
@@ -514,7 +554,7 @@ func (g *Game) drawAltimeter(hudOpts *render.DrawHudOptions) {
 	hudW, hudH := hudRect.Dx(), hudRect.Dy()
 
 	// convert Z position to meters of altitude
-	altitude := g.player.PosZ() * model.METERS_PER_UNIT
+	altitude := hudOpts.HudUnit.PosZ() * model.METERS_PER_UNIT
 
 	altScale := altimeter.Scale() * g.hudScale
 	if altScale == 0 {
@@ -539,8 +579,8 @@ func (g *Game) drawHeatIndicator(hudOpts *render.DrawHudOptions) {
 	hudW, hudH := hudRect.Dx(), hudRect.Dy()
 
 	// convert heat dissipation to seconds
-	currHeat, maxHeat := g.player.Heat(), g.player.MaxHeat()
-	dissipationPerSec := g.player.HeatDissipation() * model.TICKS_PER_SECOND
+	currHeat, maxHeat := hudOpts.HudUnit.Heat(), hudOpts.HudUnit.MaxHeat()
+	dissipationPerSec := hudOpts.HudUnit.HeatDissipation() * model.TICKS_PER_SECOND
 
 	heatScale := heat.Scale() * g.hudScale
 	if heatScale == 0 {
@@ -564,16 +604,16 @@ func (g *Game) drawThrottle(hudOpts *render.DrawHudOptions) {
 	hudRect := hudOpts.HudRect
 	hudW, hudH := hudRect.Dx(), hudRect.Dy()
 
-	velocity := g.player.Velocity()
-	if g.player.JumpJetVelocity() > 0 {
-		velocity = g.player.JumpJetVelocity()
+	velocity := hudOpts.HudUnit.Velocity()
+	if hudOpts.HudUnit.JumpJetVelocity() > 0 {
+		velocity = hudOpts.HudUnit.JumpJetVelocity()
 	}
 
 	// convert velocity from units per tick to kilometers per hour
 	kphVelocity := velocity * model.VELOCITY_TO_KPH
-	kphVelocityZ := g.player.VelocityZ() * model.VELOCITY_TO_KPH
-	kphTgtVelocity := g.player.TargetVelocity() * model.VELOCITY_TO_KPH
-	kphMax := g.player.MaxVelocity() * model.VELOCITY_TO_KPH
+	kphVelocityZ := hudOpts.HudUnit.VelocityZ() * model.VELOCITY_TO_KPH
+	kphTgtVelocity := hudOpts.HudUnit.TargetVelocity() * model.VELOCITY_TO_KPH
+	kphMax := hudOpts.HudUnit.MaxVelocity() * model.VELOCITY_TO_KPH
 
 	throttleScale := throttle.Scale() * g.hudScale
 	if throttleScale == 0 {
@@ -603,8 +643,8 @@ func (g *Game) drawJumpJetIndicator(hudOpts *render.DrawHudOptions) {
 	hudRect := hudOpts.HudRect
 	hudW, hudH := hudRect.Dx(), hudRect.Dy()
 
-	jDuration := g.player.Unit.JumpJetDuration()
-	jMaxDuration := g.player.Unit.MaxJumpJetDuration()
+	jDuration := hudOpts.HudUnit.JumpJetDuration()
+	jMaxDuration := hudOpts.HudUnit.MaxJumpJetDuration()
 
 	jetsScale := jets.Scale() * g.hudScale
 	if jetsScale == 0 {
@@ -617,6 +657,14 @@ func (g *Game) drawJumpJetIndicator(hudOpts *render.DrawHudOptions) {
 	)
 	jets.SetValues(jDuration, jMaxDuration)
 	jets.Draw(jBounds, hudOpts)
+}
+
+func (g *Game) cycleRadarRange() {
+	radar := g.GetHUDElement(HUD_RADAR).(*render.Radar)
+	if radar == nil {
+		return
+	}
+	radar.CycleRadarRange()
 }
 
 func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
@@ -639,28 +687,29 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	)
 
 	// find all units and nav points within range to draw as blips
-	maxDistanceMeters := 1000.0 // TODO: set in Radar object and game config
+	maxDistanceMeters := radar.RadarRange()
 	maxDistanceUnits := maxDistanceMeters / model.METERS_PER_UNIT
 
 	radarBlips := make([]*render.RadarBlip, 0, 128)
 	rNavPoints := make([]*render.RadarNavPoint, 0, len(g.mission.NavPoints))
 
-	playerPos := g.player.Pos()
-	playerAngle := g.player.Heading()
-	playerTarget := g.player.Target()
+	camPos := hudOpts.HudUnit.Pos()
+	camHeading := hudOpts.HudUnit.Heading()
+	camTurretAngle := hudOpts.HudUnit.TurretAngle()
 
-	playerNav := g.player.NavPoint()
+	camTarget := hudOpts.HudUnit.Target()
+	camNav := g.player.NavPoint()
 
 	// discover nav points that are in range
 	navCount := 0
 	for _, nav := range g.mission.NavPoints {
 		navPos := nav.Pos()
 		navLine := geom.Line{
-			X1: playerPos.X, Y1: playerPos.Y,
+			X1: camPos.X, Y1: camPos.Y,
 			X2: navPos.X, Y2: navPos.Y,
 		}
 
-		navIsTarget := playerNav == nav
+		navIsTarget := camNav == nav
 		navDistance := navLine.Distance()
 		if navDistance > maxDistanceUnits {
 			if navIsTarget {
@@ -672,7 +721,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		}
 
 		// determine angle of unit relative from player heading
-		relAngle := playerAngle - navLine.Angle()
+		relAngle := camHeading - navLine.Angle()
 		rNav := &render.RadarNavPoint{
 			NavPoint: nav, Distance: navDistance, Angle: relAngle, IsTarget: navIsTarget,
 		}
@@ -683,50 +732,100 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	// discover blips that are in range
 	blipCount := 0
-	for _, spriteMap := range g.sprites.sprites {
-		spriteMap.Range(func(k, _ interface{}) bool {
-			spriteInterface := k.(raycaster.Sprite)
-			entity := getEntityFromInterface(spriteInterface)
-			unit := model.EntityUnit(entity)
-			if unit == nil {
-				return true
-			}
 
-			unitPos := unit.Pos()
-			unitLine := geom.Line{
-				X1: playerPos.X, Y1: playerPos.Y,
-				X2: unitPos.X, Y2: unitPos.Y,
-			}
+	// only get sprites in proximity of radar range
+	pSprites := g.getProximityUnitSprites(camPos, maxDistanceUnits)
+	sprites := make([]*render.Sprite, 0, len(pSprites))
+	for _, p := range pSprites {
+		sprites = append(sprites, p.sprite)
+	}
 
-			unitIsFriendly := entity.Team() < 0
-			unitIsTarget := playerTarget == entity
-			unitDistance := unitLine.Distance()
-			if unitDistance > maxDistanceUnits {
-				if unitIsTarget {
-					// if current target out of radar range, draw just outside edge
-					unitDistance = maxDistanceUnits + 1
-				} else {
-					return true
+	debugCamTgt := g.player.DebugCameraTarget()
+	if debugCamTgt != nil {
+		// add player sprite to list only when camera attached to a target
+		sprites = append(sprites, g.player.sprite)
+	}
+
+	for _, s := range sprites {
+		entity := s.Entity
+		unit := model.EntityUnit(entity)
+		if unit == nil {
+			ebiten.SetCursorMode(ebiten.CursorModeVisible)
+			continue
+		}
+
+		unitPos := unit.Pos()
+		unitLine := geom.Line{
+			X1: camPos.X, Y1: camPos.Y,
+			X2: unitPos.X, Y2: unitPos.Y,
+		}
+
+		unitIsFriendly := g.IsFriendly(g.player, entity)
+		unitIsTarget := camTarget == entity
+		unitDistance := unitLine.Distance()
+		if unitDistance > maxDistanceUnits {
+			if unitIsTarget {
+				// if current target out of radar range, draw just outside edge
+				unitDistance = maxDistanceUnits + 1
+			} else {
+				continue
+			}
+		}
+
+		// determine angle of unit relative from player heading
+		relAngle := camHeading - unitLine.Angle()
+		// determine heading of unit relative from player heading
+		relHeading := camHeading - unit.Heading()
+		relTurretHeading := camHeading - unit.TurretAngle()
+
+		blip := &render.RadarBlip{
+			Unit:          unit,
+			Distance:      unitDistance,
+			Angle:         relAngle,
+			Heading:       relHeading,
+			TurretHeading: relTurretHeading,
+			IsTarget:      unitIsTarget,
+			IsFriendly:    unitIsFriendly,
+		}
+
+		radarBlips = append(radarBlips, blip)
+		blipCount++
+	}
+
+	if g.debug && (camTarget != nil || debugCamTgt != nil) {
+		// draw debug nav lines for AI pathing of player target
+		var debugNavLineTargetUnit model.Unit
+		if debugCamTgt != nil {
+			debugNavLineTargetUnit = debugCamTgt
+		} else {
+			debugNavLineTargetUnit = model.EntityUnit(camTarget)
+		}
+
+		var navLines []*geom.Line
+		if debugNavLineTargetUnit != nil {
+			unitBehavior := g.ai.UnitAI(debugNavLineTargetUnit)
+			pathing := unitBehavior.piloting.pathing
+			if pathing != nil && pathing.Len() > 0 {
+				navLines = make([]*geom.Line, 0, pathing.Len())
+				prevPathPos := debugNavLineTargetUnit.Pos()
+				for _, pathPos := range pathing.destPath {
+					navLines = append(navLines, &geom.Line{X1: prevPathPos.X, Y1: prevPathPos.Y, X2: pathPos.X, Y2: pathPos.Y})
+					prevPathPos = pathPos
 				}
 			}
+		}
+		radar.SetNavLines(navLines)
+	}
 
-			// determine angle of unit relative from player heading
-			relAngle := playerAngle - unitLine.Angle()
-			blip := &render.RadarBlip{
-				Unit: unit, Distance: unitDistance, Angle: relAngle, IsTarget: unitIsTarget, IsFriendly: unitIsFriendly,
-			}
-
-			radarBlips = append(radarBlips, blip)
-			blipCount++
-			return true
-		})
+	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
+	radar.SetValues(camPos, camHeading, camTurretAngle, cameraViewDegrees)
+	if g.debug {
+		radar.ShowPosition(true)
 	}
 
 	radar.SetNavPoints(rNavPoints[:navCount])
 	radar.SetRadarBlips(radarBlips[:blipCount])
 
-	cameraViewDegrees := g.fovDegrees / g.camera.FovDepth()
-	radar.SetValues(g.player.Pos(), g.player.Heading(), g.player.TurretAngle(), cameraViewDegrees)
 	radar.Draw(radarBounds, hudOpts)
 }
 
@@ -749,8 +848,8 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 		int(cX), int(cY), int(cX+cWidth), int(cY+cHeight),
 	)
 
-	deltaAngle := model.AngleDistance(g.player.TurretAngle(), g.player.cameraAngle)
-	deltaPitch := model.AngleDistance(g.player.Pitch(), g.player.cameraPitch)
+	deltaAngle := model.AngleDistance(hudOpts.HudUnit.TurretAngle(), g.player.cameraAngle)
+	deltaPitch := model.AngleDistance(hudOpts.HudUnit.Pitch(), g.player.cameraPitch)
 
 	fovHorizontal, fovVertical := g.camera.FovRadians(), g.camera.FovRadiansVertical()
 	crosshairs.SetOffsets(deltaAngle, deltaPitch)
@@ -761,16 +860,16 @@ func (g *Game) drawCrosshairs(hudOpts *render.DrawHudOptions) {
 
 func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 	var targetReticle *render.TargetReticle
-	if g.player.Target() != nil && g.player.Target().Team() < 0 {
+	if hudOpts.HudUnit.Target() != nil && g.IsFriendly(hudOpts.HudUnit, hudOpts.HudUnit.Target()) {
 		targetReticle = g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle)
 	} else {
 		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
 	}
-	if targetReticle == nil || g.player.Target() == nil {
+	if targetReticle == nil || hudOpts.HudUnit.Target() == nil {
 		return
 	}
 
-	s := g.getSpriteFromEntity(g.player.Target())
+	s := g.getSpriteFromEntity(hudOpts.HudUnit.Target())
 	if s == nil {
 		return
 	}
@@ -780,11 +879,12 @@ func (g *Game) drawTargetReticle(hudOpts *render.DrawHudOptions) {
 		return
 	}
 
-	if s.Team() < 0 {
-		targetReticle.Friendly = true
-	} else {
-		targetReticle.Friendly = false
+	var targetLeadBounds *image.Rectangle
+	if g.player.reticleLead != nil && g.player.DebugCameraTarget() == nil {
+		targetLeadBounds = g.player.reticleLead.ScreenRect(g.renderScale)
 	}
+	targetReticle.ReticleLeadBounds = targetLeadBounds
+	targetReticle.Friendly = g.IsFriendly(hudOpts.HudUnit, hudOpts.HudUnit.Target())
 
 	targetReticle.Draw(*targetBounds, hudOpts)
 }

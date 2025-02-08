@@ -1,14 +1,17 @@
 module github.com/pixelmek-3d/pixelmek-3d
 
-go 1.20
+go 1.22
 
 require (
 	github.com/adrianbrad/queue v1.3.0
 	github.com/ebitenui/ebitenui v0.5.6
 	github.com/go-playground/validator/v10 v10.16.0
+	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
-	github.com/harbdog/raycaster-go v1.11.0
+	github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482
+	github.com/harbdog/raycaster-go v1.11.1
 	github.com/jinzhu/copier v0.4.0
+	github.com/joeycumines/go-behaviortree v1.8.1-0.20240127010207-f46a6748b8c0
 	github.com/nlepage/go-tarfs v1.2.1
 	github.com/quasilyte/ebitengine-input v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -39,6 +42,7 @@ require (
 	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
+	github.com/joeycumines/go-bigbuff v1.15.1 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -54,6 +58,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1 // indirect
+	github.com/xlab/treeprint v1.2.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect

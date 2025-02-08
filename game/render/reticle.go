@@ -5,11 +5,14 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/harbdog/raycaster-go/geom"
 )
 
 type TargetReticle struct {
 	HUDSprite
-	Friendly bool
+	Friendly          bool
+	ReticleLeadBounds *image.Rectangle
 }
 
 type NavReticle struct {
@@ -100,6 +103,22 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op.Filter = ebiten.FilterNearest
 	op.GeoM.Translate(maxX-rOff, maxY-rOff)
 	screen.DrawImage(t.Texture(), op)
+
+	// target lead reticle if outside target reticle bounds
+	if t.ReticleLeadBounds != nil && !t.ReticleLeadBounds.In(bounds) {
+		rlMidX := float32(t.ReticleLeadBounds.Min.X) + float32(t.ReticleLeadBounds.Dx())/2
+		rlMidY := float32(t.ReticleLeadBounds.Min.Y) + float32(t.ReticleLeadBounds.Dy())/2
+		rlRadius := float32(geom.Clamp(float64(targetDim)/4, 5, float64(screenDim)/50))
+
+		rlColor := rColor
+		if t.ReticleLeadBounds.Overlaps(bounds) {
+			// make reticle lead mostly transparent if touching target reticle
+			rlAlpha := uint8(2 * int(rColor.A) / 4)
+			rlColor = color.NRGBA{rColor.R, rColor.G, rColor.B, rlAlpha}
+		}
+
+		vector.StrokeCircle(screen, rlMidX, rlMidY, rlRadius, 1, rlColor, false)
+	}
 }
 
 func (t *NavReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {

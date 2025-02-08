@@ -9,10 +9,9 @@ import (
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
-	log "github.com/sirupsen/logrus"
 )
 
-type DelayedProjectileSpawn struct {
+type ProjectileSpawn struct {
 	delay      float64
 	spread     float64
 	weapon     model.Weapon
@@ -21,7 +20,27 @@ type DelayedProjectileSpawn struct {
 }
 
 func (g *Game) initCombatVariables() {
-	g.delayedProjectiles = make(map[*DelayedProjectileSpawn]struct{}, 256)
+	g.delayedProjectiles = make(map[*ProjectileSpawn]struct{}, 256)
+}
+
+func NewProjectileSpawn(weapon model.Weapon, parent model.Entity) *ProjectileSpawn {
+	p := &ProjectileSpawn{
+		weapon:     weapon,
+		parent:     parent,
+		sfxEnabled: true,
+	}
+	return p
+}
+
+func NewDelayedProjectileSpawn(delay, spread float64, weapon model.Weapon, parent model.Entity, sfxEnabled bool) *ProjectileSpawn {
+	p := &ProjectileSpawn{
+		delay:      delay,
+		spread:     spread,
+		weapon:     weapon,
+		parent:     parent,
+		sfxEnabled: sfxEnabled,
+	}
+	return p
 }
 
 func destroyEntity(e model.Entity) {
@@ -52,10 +71,6 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 		weaponGroupFire = int(g.player.selectedGroup)
 	}
 
-	// in case convergence point not set, use player heading and pitch
-	pAngle, pPitch := g.player.TurretAngle(), g.player.Pitch()
-	convergencePoint := g.ConvergencePoint()
-
 	// if a weapon with lock required tries but cannot fire make a sound
 	isWeaponWithLockRequiredNotFired := false
 	// if a weapon with no ammo tries to fire make an empty click sound
@@ -74,7 +89,7 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 
 		ammoBin := weapon.AmmoBin()
 		if ammoBin != nil {
-			// perform ammo check
+			// perform ammo check to see if need to play empty click sound
 			ammoCount := ammoBin.AmmoCount()
 			if ammoCount == 0 {
 				isWeaponWithNoAmmoNotFired = true
@@ -82,38 +97,8 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 			}
 		}
 
-		if g.player.TriggerWeapon(weapon) {
+		if g.fireUnitWeapon(g.player.Unit, weapon) {
 			weaponsFired = true
-
-			var projectile *model.Projectile
-			if convergencePoint == nil {
-				projectile = weapon.SpawnProjectile(pAngle, pPitch, g.player.Unit)
-			} else {
-				projectile = weapon.SpawnProjectileToward(convergencePoint, g.player.Unit)
-			}
-			if projectile != nil {
-				pTemplate := projectileSpriteForWeapon(weapon)
-				pSprite := pTemplate.Clone()
-				pSprite.Projectile = projectile
-				pSprite.Entity = projectile
-				g.sprites.addProjectile(pSprite)
-
-				// queue creation of multiple projectiles after time delay
-				if weapon.ProjectileCount() > 1 {
-					for i := 1; i < weapon.ProjectileCount(); i++ {
-						g.queueDelayedProjectile(i, weapon, g.player.Unit)
-					}
-				}
-			}
-
-			// consume ammo
-			if ammoBin != nil {
-				ammoBin.ConsumeAmmo(weapon, 1)
-				log.Debugf("[player] %s: %d", weapon.ShortName(), ammoBin.AmmoCount())
-			}
-
-			// play sound effect
-			g.audio.PlayLocalWeaponFireAudio(weapon)
 		} else {
 			missileWeapon, isMissile := weapon.(*model.MissileWeapon)
 			if isMissile && missileWeapon.IsLockOnLockRequired() {
@@ -133,121 +118,47 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 	return weaponsFired
 }
 
-func (g *Game) fireTestWeaponAtPlayer() {
-	// Just for testing! Firing test projectiles at player
-	playerPosition := g.player.Unit.Pos()
-	playerPositionZ := g.player.Unit.PosZ()
-	var playerTarget model.Unit
-	if g.player.Target() != nil {
-		// if player has a target, only it shoots at the player
-		playerTarget = model.EntityUnit(g.player.Target())
+func (g *Game) fireUnitWeapon(unit model.Unit, weapon model.Weapon) bool {
+	if unit == nil || weapon == nil {
+		return false
 	}
-	for spriteType := range g.sprites.sprites {
-		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-			var pX, pY, pZ float64
-			var unit model.Unit
-			var sprite *render.Sprite
 
-			switch spriteType {
-			case MechSpriteType:
-				s := k.(*render.MechSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.4
-				unit = model.EntityUnit(s.Entity)
-
-			case VehicleSpriteType:
-				s := k.(*render.VehicleSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.2
-				unit = model.EntityUnit(s.Entity)
-
-			case VTOLSpriteType:
-				s := k.(*render.VTOLSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()
-				unit = model.EntityUnit(s.Entity)
-
-			case InfantrySpriteType:
-				s := k.(*render.InfantrySprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
-				unit = model.EntityUnit(s.Entity)
-
-			case EmplacementSpriteType:
-				s := k.(*render.EmplacementSprite)
-				sprite = s.Sprite
-				sPosition := s.Pos()
-				pX, pY, pZ = sPosition.X, sPosition.Y, s.PosZ()+0.1
-				unit = model.EntityUnit(s.Entity)
-			}
-
-			if unit == nil || (playerTarget != nil && playerTarget != unit) {
-				return true
-			}
-
-			pLine := geom3d.Line3d{X1: pX, Y1: pY, Z1: pZ, X2: playerPosition.X, Y2: playerPosition.Y, Z2: playerPositionZ + randFloat(0.1, 0.7)}
-			pHeading, pPitch := pLine.Heading(), pLine.Pitch()
-
-			if unit.HasTurret() {
-				unit.SetTurretAngle(pHeading)
-			} else {
-				unit.SetHeading(pHeading)
-			}
-			unit.SetPitch(pPitch)
-
-			weaponFired := false
-			for _, weapon := range unit.Armament() {
-				if weapon.Cooldown() > 0 {
-					continue
-				}
-
-				ammoBin := weapon.AmmoBin()
-				if ammoBin != nil {
-					// perform ammo check
-					ammoCount := ammoBin.AmmoCount()
-					if ammoCount == 0 {
-						continue
-					}
-				}
-
-				if unit.TriggerWeapon(weapon) {
-					weaponFired = true
-					projectile := weapon.SpawnProjectile(pHeading, pPitch, unit)
-					if projectile != nil {
-						pTemplate := projectileSpriteForWeapon(weapon)
-						pSprite := pTemplate.Clone()
-						pSprite.Projectile = projectile
-						pSprite.Entity = projectile
-						g.sprites.addProjectile(pSprite)
-
-						// queue creation of multiple projectiles after time delay
-						if weapon.ProjectileCount() > 1 {
-							for i := 1; i < weapon.ProjectileCount(); i++ {
-								g.queueDelayedProjectile(i, weapon, unit)
-							}
-						}
-					}
-
-					// consume ammo
-					if ammoBin != nil {
-						ammoBin.ConsumeAmmo(weapon, 1)
-						log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
-					}
-				}
-			}
-
-			if weaponFired {
-				// illuminate source sprite unit firing the weapon
-				sprite.SetIlluminationPeriod(5000, 0.35)
-			}
-
-			return true
-		})
+	if weapon.Cooldown() > 0 {
+		return false
 	}
+
+	ammoBin := weapon.AmmoBin()
+	if ammoBin != nil {
+		// perform ammo check
+		ammoCount := ammoBin.AmmoCount()
+		if ammoCount == 0 {
+			return false
+		}
+	}
+
+	weaponFired := false
+	if unit.TriggerWeapon(weapon) {
+		weaponFired = true
+
+		pSpawn := NewProjectileSpawn(weapon, unit)
+		projectile := g.spawnProjectile(pSpawn)
+		if projectile != nil {
+			// queue creation of multiple projectiles after time delay
+			if weapon.ProjectileCount() > 1 {
+				for i := 1; i < weapon.ProjectileCount(); i++ {
+					g.queueDelayedProjectile(i, weapon, unit)
+				}
+			}
+		}
+
+		// consume ammo
+		if ammoBin != nil {
+			ammoBin.ConsumeAmmo(weapon, 1)
+			//log.Debugf("[%s %s] %s: %d", unit.Name(), unit.Variant(), weapon.ShortName(), ammoBin.AmmoCount())
+		}
+	}
+
+	return weaponFired
 }
 
 // updateProjectiles updates the state of all projectiles in play
@@ -275,7 +186,7 @@ func (g *Game) updateProjectiles() {
 	// Update animated effects
 	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
 		e := k.(*render.EffectSprite)
-		e.Update(g.player.Pos())
+		e.Update(g.player.CameraPosXY())
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
 		}
@@ -290,7 +201,6 @@ func (g *Game) updateProjectiles() {
 func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	_, isBallistic := p.Projectile.Weapon().(*model.BallisticWeapon)
 	_, isEnergy := p.Projectile.Weapon().(*model.EnergyWeapon)
 	missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
 
@@ -362,7 +272,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 
 		trajectory := geom3d.Line3dFromAngle(pPos.X, pPos.Y, p.PosZ(), p.Heading(), p.Pitch(), p.Velocity())
 
-		if isBallistic || (p.Projectile.InExtremeRange() && !isEnergy) {
+		if p.Projectile.InExtremeRange() && !isEnergy {
 			// make projectile trajectory start to fall (except for energy weapons)
 			extremeTrajectory := &trajectory
 			extremeTrajectory.Z2 -= model.GRAVITY_UNITS_PTT
@@ -390,18 +300,19 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 				damage := p.Damage()
 				entity.ApplyDamage(damage)
 
-				if g.debug {
-					hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
-					percentHP := 100 * (hp / maxHP)
+				// if g.debug {
+				// 	unit := model.EntityUnit(entity)
+				// 	hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
+				// 	percentHP := 100 * (hp / maxHP)
 
-					if entity == g.player.Unit {
-						// TODO: visual response to player being hit
-						log.Debugf("[%0.2f%s] player hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
-					} else {
-						// TODO: ui indicator for showing damage was done
-						log.Debugf("[%0.2f%s] unit hit for %0.1f (HP: %0.1f/%0.0f)", percentHP, "%", damage, hp, maxHP)
-					}
-				}
+				// 	if unit == g.player.Unit {
+				// 		// TODO: visual response to player being hit
+				// 		log.Debugf("[player] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", damage, hp, maxHP, percentHP)
+				// 	} else if unit != nil {
+				// 		// TODO: ui indicator for showing damage was done
+				// 		log.Debugf("[%s] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", unit.ID(), damage, hp, maxHP, percentHP)
+				// 	}
+				// }
 			}
 
 			// destroy projectile after applying damage so it can calculate dropoff if needed
@@ -433,7 +344,7 @@ func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGr
 			}
 		}
 	}
-	p.Update(g.player.Pos())
+	p.Update(g.player.CameraPosXY())
 }
 
 // queueDelayedProjectile queues a projectile on a timed delay (seconds) between shots
@@ -470,13 +381,7 @@ func (g *Game) queueDelayedProjectile(pIndex int, w model.Weapon, e model.Entity
 		panic(fmt.Sprintf("unhandled weapon type (%v) for %s", w.Type(), w.Name()))
 	}
 
-	p := &DelayedProjectileSpawn{
-		delay:      delay,
-		spread:     spread,
-		weapon:     w,
-		parent:     e,
-		sfxEnabled: playSFX,
-	}
+	p := NewDelayedProjectileSpawn(delay, spread, w, e, playSFX)
 	g.delayedProjectiles[p] = struct{}{}
 }
 
@@ -485,20 +390,20 @@ func (g *Game) updateDelayedProjectiles() {
 	for p := range g.delayedProjectiles {
 		p.delay -= model.SECONDS_PER_TICK
 		if p.delay <= 0 {
-			g.spawnDelayedProjectile(p)
+			delete(g.delayedProjectiles, p)
+			g.spawnProjectile(p)
 		}
 	}
 }
 
-// spawnDelayedProjectile puts a projectile in play that was delayed
-func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
-	delete(g.delayedProjectiles, p)
-
-	w, e := p.weapon, model.EntityUnit(p.parent)
-	if e == nil {
-		return
+// spawnProjectile puts a projectile in play
+func (g *Game) spawnProjectile(p *ProjectileSpawn) *model.Projectile {
+	w, u := p.weapon, model.EntityUnit(p.parent)
+	if u == nil {
+		return nil
 	}
 
+	isPlayerProjectile := u == g.player.Unit
 	var projectile *model.Projectile
 
 	var spreadAngle, spreadPitch float64
@@ -508,11 +413,27 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		spreadPitch = randFloat(-p.spread, p.spread)
 	}
 
-	convergencePoint := g.ConvergencePoint()
-	if e != g.player.Unit || convergencePoint == nil {
-		projectile = w.SpawnProjectile(e.TurretAngle()+spreadAngle, e.Pitch()+spreadPitch, e)
+	var convergencePoint *geom3d.Vector3
+	if isPlayerProjectile {
+		cSprite := g.spriteInCrosshairs()
+		var cEntity model.Entity
+		if cSprite != nil {
+			cEntity = cSprite.Entity
+		}
+		convergencePoint = model.ConvergencePoint(u, cEntity)
 	} else {
-		projectile = w.SpawnProjectileToward(convergencePoint, e)
+		convergencePoint = model.ConvergencePoint(u, u.Target())
+	}
+
+	pHeading, pPitch := u.Heading(), u.Pitch()
+	if u.HasTurret() {
+		pHeading = u.TurretAngle()
+	}
+
+	if convergencePoint == nil {
+		projectile = w.SpawnProjectile(pHeading+spreadAngle, pPitch+spreadPitch, u)
+	} else {
+		projectile = w.SpawnProjectileToward(convergencePoint, u)
 		if p.spread > 0 {
 			projectile.SetHeading(projectile.Heading() + spreadAngle)
 			projectile.SetPitch(projectile.Pitch() + spreadPitch)
@@ -527,10 +448,10 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 		g.sprites.addProjectile(pSprite)
 
 		if p.sfxEnabled {
-			if e == g.player.Unit {
+			if u == g.player.Unit {
 				g.audio.PlayLocalWeaponFireAudio(w)
 			} else {
-				g.audio.PlayExternalWeaponFireAudio(g, w, e)
+				g.audio.PlayExternalWeaponFireAudio(g, w, u)
 			}
 		}
 
@@ -540,4 +461,5 @@ func (g *Game) spawnDelayedProjectile(p *DelayedProjectileSpawn) {
 			s.SetIlluminationPeriod(5000, 0.35)
 		}
 	}
+	return projectile
 }

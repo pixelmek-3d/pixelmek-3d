@@ -18,11 +18,11 @@ heatSinks:
   quantity: 11
   type: double
 armament:
-- weapon: "cl_er_ppc.yaml"
+- weapon: cl_er_ppc
   type: energy
   location: la
   offset: [17, 24]
-- weapon: "cl_er_ppc.yaml"
+- weapon: cl_er_ppc
   type: energy
   location: ra
   offset: [-17, 24]

@@ -16,6 +16,7 @@ import (
 
 type Mission struct {
 	missionMap   *Map
+	Pathing      *Pathing            `yaml:"-"`
 	Title        string              `yaml:"title" validate:"required"`
 	Briefing     string              `yaml:"briefing" validate:"required"`
 	MapPath      string              `yaml:"map" validate:"required"`
@@ -70,21 +71,44 @@ type MissionNavDustoff struct {
 	Name string `yaml:"name" validate:"required"`
 }
 
+type MissionGuardArea struct {
+	Position [2]float64 `yaml:"position"`
+	Radius   float64    `yaml:"radius"`
+}
+
+type MissionUnitModels interface {
+	Mech | Vehicle | Infantry
+}
+
 type MissionUnit struct {
-	ID         string       `yaml:"id"`
-	Team       int          `yaml:"team"`
-	Unit       string       `yaml:"unit" validate:"required"`
-	Position   [2]float64   `yaml:"position" validate:"required"`
-	PatrolPath [][2]float64 `yaml:"patrolPath"`
+	ID         string           `yaml:"id"`
+	Team       int              `yaml:"team"`
+	Unit       string           `yaml:"unit" validate:"required"`
+	Position   [2]float64       `yaml:"position" validate:"required"`
+	Heading    float64          `yaml:"heading"`
+	PatrolPath [][2]float64     `yaml:"patrolPath"`
+	GuardArea  MissionGuardArea `yaml:"guardArea"`
+	GuardUnit  string           `yaml:"guardUnit"`
+}
+
+type MissionFlyingUnitModels interface {
+	VTOL
 }
 
 type MissionFlyingUnit struct {
-	ID         string       `yaml:"id"`
-	Team       int          `yaml:"team"`
-	Unit       string       `yaml:"unit" validate:"required"`
-	Position   [2]float64   `yaml:"position" validate:"required"`
-	ZPosition  float64      `yaml:"zPosition" validate:"required"`
-	PatrolPath [][2]float64 `yaml:"patrolPath"`
+	ID         string           `yaml:"id"`
+	Team       int              `yaml:"team"`
+	Unit       string           `yaml:"unit" validate:"required"`
+	Position   [2]float64       `yaml:"position" validate:"required"`
+	ZPosition  float64          `yaml:"zPosition" validate:"required"`
+	Heading    float64          `yaml:"heading"`
+	PatrolPath [][2]float64     `yaml:"patrolPath"`
+	GuardArea  MissionGuardArea `yaml:"guardArea"`
+	GuardUnit  string           `yaml:"guardUnit"`
+}
+
+type MissionStaticUnitModels interface {
+	Emplacement
 }
 
 type MissionStaticUnit struct {
@@ -92,6 +116,7 @@ type MissionStaticUnit struct {
 	Team     int        `yaml:"team"`
 	Unit     string     `yaml:"unit" validate:"required"`
 	Position [2]float64 `yaml:"position" validate:"required"`
+	Heading  float64    `yaml:"heading"`
 }
 
 type NavObjective int
@@ -161,9 +186,12 @@ func LoadMission(missionFile string) (*Mission, error) {
 	// load mission map
 	m.missionMap, err = LoadMap(m.MapPath)
 	if err != nil {
-		log.Error("Error loading map", m.MapPath)
+		log.Error("Error loading map: ", m.MapPath)
 		return nil, err
 	}
+
+	// initialize map pathing
+	m.Pathing = initPathing(m)
 
 	// apply optional overrides to map
 	if m.Lighting != nil {

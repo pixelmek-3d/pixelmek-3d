@@ -40,6 +40,8 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 	m := &Mech{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:               r.Name,
+			variant:            r.Variant,
 			unitType:           MechUnitType,
 			anchor:             raycaster.AnchorBottom,
 			collisionRadius:    collisionRadius,
@@ -57,6 +59,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: 1.0,
+			powered:            POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
 	}
 
@@ -94,14 +97,6 @@ func (e *Mech) Class() MechClass {
 	default:
 		return MECH_ASSAULT
 	}
-}
-
-func (e *Mech) Name() string {
-	return e.Resource.Name
-}
-
-func (e *Mech) Variant() string {
-	return e.Resource.Variant
 }
 
 func (e *Mech) Tonnage() float64 {

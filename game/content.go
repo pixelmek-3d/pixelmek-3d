@@ -260,79 +260,180 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionMech := range g.mission.Mechs {
-		modelMech := g.createModelMech(missionMech.Unit, missionMech.ID, missionMech.Team)
-		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
-
-		posX, posY := missionMech.Position[0], missionMech.Position[1]
-		mech.SetPos(&geom.Vector2{X: posX, Y: posY})
-
-		if len(missionMech.PatrolPath) > 0 {
-			mech.PatrolPath = missionMech.PatrolPath
+		modelMech, err := createMissionUnitModel[model.Mech](g, missionMech)
+		if err != nil {
+			log.Errorf("error creating mission mech: %v", err)
+			continue
 		}
-
+		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
 		g.sprites.addMechSprite(mech)
 	}
 
 	for _, missionVehicle := range g.mission.Vehicles {
-		modelVehicle := g.createModelVehicle(missionVehicle.Unit, missionVehicle.ID, missionVehicle.Team)
-		vehicle := g.createUnitSprite(modelVehicle).(*render.VehicleSprite)
-
-		posX, posY := missionVehicle.Position[0], missionVehicle.Position[1]
-		vehicle.SetPos(&geom.Vector2{X: posX, Y: posY})
-
-		if len(missionVehicle.PatrolPath) > 0 {
-			vehicle.PatrolPath = missionVehicle.PatrolPath
+		modelVehicle, err := createMissionUnitModel[model.Vehicle](g, missionVehicle)
+		if err != nil {
+			log.Errorf("error creating mission vehicle: %v", err)
+			continue
 		}
-
+		vehicle := g.createUnitSprite(modelVehicle).(*render.VehicleSprite)
 		g.sprites.addVehicleSprite(vehicle)
 	}
 
-	for _, missionVTOL := range g.mission.VTOLs {
-		modelVTOL := g.createModelVTOL(missionVTOL.Unit, missionVTOL.ID, missionVTOL.Team)
-		vtol := g.createUnitSprite(modelVTOL).(*render.VTOLSprite)
-
-		posX, posY, posZ := missionVTOL.Position[0], missionVTOL.Position[1], missionVTOL.ZPosition
-		vtol.SetPos(&geom.Vector2{X: posX, Y: posY})
-		vtol.SetPosZ(posZ)
-
-		if len(missionVTOL.PatrolPath) > 0 {
-			vtol.PatrolPath = missionVTOL.PatrolPath
-		}
-
-		g.sprites.addVTOLSprite(vtol)
-	}
-
 	for _, missionInfantry := range g.mission.Infantry {
-		modelInfantry := g.createModelInfantry(missionInfantry.Unit, missionInfantry.ID, missionInfantry.Team)
-		infantry := g.createUnitSprite(modelInfantry).(*render.InfantrySprite)
-
-		posX, posY := missionInfantry.Position[0], missionInfantry.Position[1]
-		infantry.SetPos(&geom.Vector2{X: posX, Y: posY})
-
-		if len(missionInfantry.PatrolPath) > 0 {
-			infantry.PatrolPath = missionInfantry.PatrolPath
+		modelInfantry, err := createMissionUnitModel[model.Infantry](g, missionInfantry)
+		if err != nil {
+			log.Errorf("error creating mission infantry: %v", err)
+			continue
 		}
-
+		infantry := g.createUnitSprite(modelInfantry).(*render.InfantrySprite)
 		g.sprites.addInfantrySprite(infantry)
 	}
 
+	for _, missionVTOL := range g.mission.VTOLs {
+		modelVTOL, err := createMissionFlyingUnitModel[model.VTOL](g, missionVTOL)
+		if err != nil {
+			log.Errorf("error creating mission VTOL: %v", err)
+			continue
+		}
+		vtol := g.createUnitSprite(modelVTOL).(*render.VTOLSprite)
+		g.sprites.addVTOLSprite(vtol)
+	}
+
 	for _, missionEmplacement := range g.mission.Emplacements {
-		modelEmplacement := g.createModelEmplacement(missionEmplacement.Unit, missionEmplacement.ID, missionEmplacement.Team)
+		modelEmplacement, err := createMissionStaticUnitModel[model.Emplacement](g, missionEmplacement)
+		if err != nil {
+			log.Errorf("error creating mission emplacement: %v", err)
+			continue
+		}
 		emplacement := g.createUnitSprite(modelEmplacement).(*render.EmplacementSprite)
-
-		posX, posY := missionEmplacement.Position[0], missionEmplacement.Position[1]
-		emplacement.SetPos(&geom.Vector2{X: posX, Y: posY})
-
 		g.sprites.addEmplacementSprite(emplacement)
 	}
 }
 
-func (g *Game) createModelMech(unit, id string, team int) *model.Mech {
-	mechResource := g.resources.GetMechResource(unit)
-	modelMech := g.createModelMechFromResource(mechResource)
-	modelMech.SetID(id)
-	modelMech.SetTeam(team)
-	return modelMech
+func createMissionUnitModel[T model.MissionUnitModels](g *Game, unit model.MissionUnit) (model.Unit, error) {
+	var u model.Unit
+	mUnit := unit.Unit
+
+	var t T
+	switch any(t).(type) {
+	case model.Mech:
+		r, err := g.resources.GetMechResource(mUnit)
+		if err != nil {
+			return nil, err
+		}
+		u = g.createModelMechFromResource(r)
+	case model.Vehicle:
+		r, err := g.resources.GetVehicleResource(mUnit)
+		if err != nil {
+			return nil, err
+		}
+		u = g.createModelVehicleFromResource(r)
+	case model.Infantry:
+		r, err := g.resources.GetInfantryResource(mUnit)
+		if err != nil {
+			return nil, err
+		}
+		u = g.createModelInfantryFromResource(r)
+	default:
+		return nil, fmt.Errorf("model unit type not implemented: %T", t)
+	}
+
+	u.SetID(unit.ID)
+	u.SetTeam(unit.Team)
+	u.SetPos(&geom.Vector2{X: unit.Position[0], Y: unit.Position[1]})
+
+	rHeading := geom.Radians(unit.Heading)
+	u.SetHeading(rHeading)
+	u.SetTargetHeading(rHeading)
+	u.SetTurretAngle(rHeading)
+	u.SetTargetTurretAngle(rHeading)
+
+	u.SetGuardUnit(unit.GuardUnit)
+	if len(unit.GuardArea.Position) == 2 && unit.GuardArea.Radius >= 0 &&
+		unit.GuardArea.Position[0] > 0 && unit.GuardArea.Position[1] > 0 {
+
+		u.SetGuardArea(unit.GuardArea.Position[0], unit.GuardArea.Position[1], unit.GuardArea.Radius)
+		if len(unit.PatrolPath) > 0 {
+			// Guard area is mutually exclusive from patrol path since it also uses the path stack
+			return nil, fmt.Errorf("[%s] guard area and patrol path are mutually exclusive", u.ID())
+		}
+	} else {
+		u.SetPatrolPath(model.PointsToVector2(unit.PatrolPath))
+	}
+
+	return u, nil
+}
+
+func createMissionFlyingUnitModel[T model.MissionFlyingUnitModels](g *Game, unit model.MissionFlyingUnit) (model.Unit, error) {
+	var u model.Unit
+	mUnit := unit.Unit
+
+	var t T
+	switch any(t).(type) {
+	case model.VTOL:
+		r, err := g.resources.GetVTOLResource(mUnit)
+		if err != nil {
+			return nil, err
+		}
+		u = g.createModelVTOLFromResource(r)
+	default:
+		return nil, fmt.Errorf("model flying unit type not implemented: %T", t)
+	}
+
+	u.SetID(unit.ID)
+	u.SetTeam(unit.Team)
+	u.SetPos(&geom.Vector2{X: unit.Position[0], Y: unit.Position[1]})
+	u.SetPosZ(unit.ZPosition)
+
+	rHeading := geom.Radians(unit.Heading)
+	u.SetHeading(rHeading)
+	u.SetTargetHeading(rHeading)
+	u.SetTurretAngle(rHeading)
+	u.SetTargetTurretAngle(rHeading)
+
+	u.SetGuardUnit(unit.GuardUnit)
+	if len(unit.GuardArea.Position) == 2 && unit.GuardArea.Radius >= 0 &&
+		unit.GuardArea.Position[0] > 0 && unit.GuardArea.Position[1] > 0 {
+
+		u.SetGuardArea(unit.GuardArea.Position[0], unit.GuardArea.Position[1], unit.GuardArea.Radius)
+		if len(unit.PatrolPath) > 0 {
+			// Guard area is mutually exclusive from patrol path since it also uses the path stack
+			return nil, fmt.Errorf("[%s] guard area and patrol path are mutually exclusive", u.ID())
+		}
+	} else {
+		u.SetPatrolPath(model.PointsToVector2(unit.PatrolPath))
+	}
+
+	return u, nil
+}
+
+func createMissionStaticUnitModel[T model.MissionStaticUnitModels](g *Game, unit model.MissionStaticUnit) (model.Unit, error) {
+	var u model.Unit
+	mUnit := unit.Unit
+
+	var t T
+	switch any(t).(type) {
+	case model.Emplacement:
+		r, err := g.resources.GetEmplacementResource(mUnit)
+		if err != nil {
+			return nil, err
+		}
+		u = g.createModelEmplacementFromResource(r)
+	default:
+		return nil, fmt.Errorf("model static unit type not implemented: %T", t)
+	}
+
+	u.SetID(unit.ID)
+	u.SetTeam(unit.Team)
+	u.SetPos(&geom.Vector2{X: unit.Position[0], Y: unit.Position[1]})
+
+	rHeading := geom.Radians(unit.Heading)
+	u.SetHeading(rHeading)
+	u.SetTargetHeading(rHeading)
+	u.SetTurretAngle(rHeading)
+	u.SetTargetTurretAngle(rHeading)
+
+	return u, nil
 }
 
 func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource) *model.Mech {
@@ -357,8 +458,7 @@ func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource
 	return modelMech
 }
 
-func (g *Game) createModelVehicle(unit, id string, team int) *model.Vehicle {
-	vehicleResource := g.resources.GetVehicleResource(unit)
+func (g *Game) createModelVehicleFromResource(vehicleResource *model.ModelVehicleResource) *model.Vehicle {
 	vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
 	vehicleImg := getSpriteFromFile(vehicleRelPath)
 
@@ -382,13 +482,10 @@ func (g *Game) createModelVehicle(unit, id string, team int) *model.Vehicle {
 	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, scale)
 	g.loadUnitAmmo(modelVehicle, vehicleResource.Ammo)
 
-	modelVehicle.SetID(id)
-	modelVehicle.SetTeam(team)
 	return modelVehicle
 }
 
-func (g *Game) createModelVTOL(unit, id string, team int) *model.VTOL {
-	vtolResource := g.resources.GetVTOLResource(unit)
+func (g *Game) createModelVTOLFromResource(vtolResource *model.ModelVTOLResource) *model.VTOL {
 	vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
 	vtolImg := getSpriteFromFile(vtolRelPath)
 
@@ -412,13 +509,10 @@ func (g *Game) createModelVTOL(unit, id string, team int) *model.VTOL {
 	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, scale)
 	g.loadUnitAmmo(modelVTOL, vtolResource.Ammo)
 
-	modelVTOL.SetID(id)
-	modelVTOL.SetTeam(team)
 	return modelVTOL
 }
 
-func (g *Game) createModelInfantry(unit, id string, team int) *model.Infantry {
-	infantryResource := g.resources.GetInfantryResource(unit)
+func (g *Game) createModelInfantryFromResource(infantryResource *model.ModelInfantryResource) *model.Infantry {
 	infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
 	infantryImg := getSpriteFromFile(infantryRelPath)
 
@@ -442,13 +536,10 @@ func (g *Game) createModelInfantry(unit, id string, team int) *model.Infantry {
 	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, scale)
 	g.loadUnitAmmo(modelInfantry, infantryResource.Ammo)
 
-	modelInfantry.SetID(id)
-	modelInfantry.SetTeam(team)
 	return modelInfantry
 }
 
-func (g *Game) createModelEmplacement(unit, id string, team int) *model.Emplacement {
-	emplacementResource := g.resources.GetEmplacementResource(unit)
+func (g *Game) createModelEmplacementFromResource(emplacementResource *model.ModelEmplacementResource) *model.Emplacement {
 	emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
 	emplacementImg := getSpriteFromFile(emplacementRelPath)
 
@@ -472,8 +563,6 @@ func (g *Game) createModelEmplacement(unit, id string, team int) *model.Emplacem
 	g.loadUnitWeapons(modelEmplacement, emplacementResource.Armament, width, height, scale)
 	g.loadUnitAmmo(modelEmplacement, emplacementResource.Ammo)
 
-	modelEmplacement.SetID(id)
-	modelEmplacement.SetTeam(team)
 	return modelEmplacement
 }
 
@@ -486,9 +575,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 		switch armament.Type.WeaponType {
 		case model.ENERGY:
-			weaponResource := g.resources.GetEnergyWeaponResource(armament.Weapon)
-			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.EnergyResourceType, armament.Weapon)
+			weaponResource, err := g.resources.GetEnergyWeaponResource(armament.Weapon)
+			if err != nil {
+				log.Errorf("[%s %s] weapon not found: %s", unit.Name(), unit.Variant(), err)
 				continue
 			}
 
@@ -542,9 +631,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			setProjectileSpriteForWeapon(weapon, pSprite)
 
 		case model.MISSILE:
-			weaponResource := g.resources.GetMissileWeaponResource(armament.Weapon)
-			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.MissileResourceType, armament.Weapon)
+			weaponResource, err := g.resources.GetMissileWeaponResource(armament.Weapon)
+			if err != nil {
+				log.Errorf("[%s %s] weapon not found: %s", unit.Name(), unit.Variant(), err)
 				continue
 			}
 
@@ -606,9 +695,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			setProjectileSpriteForWeapon(weapon, pSprite)
 
 		case model.BALLISTIC:
-			weaponResource := g.resources.GetBallisticWeaponResource(armament.Weapon)
-			if weaponResource == nil {
-				log.Errorf("[%s %s] weapon not found: %s/%s", unit.Name(), unit.Variant(), model.BallisticResourceType, armament.Weapon)
+			weaponResource, err := g.resources.GetBallisticWeaponResource(armament.Weapon)
+			if err != nil {
+				log.Errorf("[%s %s] weapon not found: %s", unit.Name(), unit.Variant(), err)
 				continue
 			}
 
@@ -788,8 +877,10 @@ func convertHeightToScale(unitHeight float64, imageHeight, heightPxGap int) floa
 	return pxRatio * unitHeight / model.METERS_PER_UNIT
 }
 
-func convertOffsetFromPx(xPx, yPx float64, width, height int, scale float64) (offX float64, offY float64) {
-	offX = (scale * xPx) / float64(width)
-	offY = (scale * yPx) / float64(height)
+func convertOffsetFromPx(xPx, yPx float64, width, height int, scaleY float64) (offX float64, offY float64) {
+	// scale given based on height, calculate scale for width for images that are not 1:1
+	scaleX := scaleY * float64(width) / float64(height)
+	offX = (scaleX * xPx) / float64(width)
+	offY = (scaleY * yPx) / float64(height)
 	return
 }

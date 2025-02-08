@@ -2,13 +2,14 @@ package game
 
 import (
 	"fmt"
-	"math"
+	"sort"
 	"sync"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 
 	"github.com/harbdog/raycaster-go"
+	"github.com/harbdog/raycaster-go/geom"
 )
 
 type SpriteHandler struct {
@@ -20,6 +21,16 @@ type SpriteHandler struct {
 	infantrySpriteTemplates    map[string]*render.InfantrySprite
 	emplacementSpriteTemplates map[string]*render.EmplacementSprite
 	projectileSpriteTemplates  map[string]*render.ProjectileSprite
+}
+
+type proximitySprite struct {
+	sprite   *render.Sprite
+	distance float64
+}
+
+type proximityUnit struct {
+	unit     model.Unit
+	distance float64
 }
 
 type SpriteType int
@@ -208,7 +219,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	raycastSprites := make([]raycaster.Sprite, 0, 512)
 
-	playerPos := g.player.Pos()
+	camPos := g.player.CameraPosXY()
 
 	count := 0
 	for _, spriteMap := range g.sprites.sprites {
@@ -218,8 +229,7 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 			// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
 			// only include map sprites within fast approximation of render distance
 			doSprite := g.renderDistance < 0 || g.player.Target() == sprite.Entity ||
-				(math.Abs(sprite.Pos().X-playerPos.X) <= g.renderDistance &&
-					math.Abs(sprite.Pos().Y-playerPos.Y) <= g.renderDistance)
+				model.PointInProximity(g.renderDistance, camPos.X, camPos.Y, sprite.Pos().X, sprite.Pos().Copy().Y)
 			if doSprite {
 				raycastSprites = append(raycastSprites, sprite)
 				count++
@@ -232,30 +242,130 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 		count++
 	}
 
+	// add the reticle lead indicator as sprite for raycast location
+	if g.player.reticleLead != nil {
+		raycastSprites = append(raycastSprites, g.player.reticleLead)
+		count++
+	}
+
 	// add the currently selected nav point as sprite
 	if g.player.currentNav != nil {
 		raycastSprites = append(raycastSprites, g.player.currentNav)
 		count++
 	}
 
+	if g.player.DebugCameraTarget() != nil {
+		// add player sprite to be raycasted only when camera attached to a target
+		raycastSprites = append(raycastSprites, g.player.sprite)
+		count++
+	}
+
 	return raycastSprites[:count]
 }
 
-func (g *Game) getSpriteUnits() []model.Unit {
-	units := make([]model.Unit, 0, 32)
-	for _, spriteMap := range g.sprites.sprites {
-		spriteMap.Range(func(k, _ interface{}) bool {
-			spriteInterface := k.(raycaster.Sprite)
-			entity := getEntityFromInterface(spriteInterface)
-			unit := model.EntityUnit(entity)
-			if unit != nil {
-				units = append(units, unit)
+func (g *Game) getUnitSprites() []*render.Sprite {
+	sprites := make([]*render.Sprite, 0, 64)
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+			if !g.isInteractiveType(spriteType) {
+				// only include certain sprite types (skip projectiles, effects, etc.)
+				return true
 			}
+
+			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			if s.IsDestroyed() {
+				return true
+			}
+			sprites = append(sprites, s)
+			return true
+		})
+	}
+	return sprites
+}
+
+func (g *Game) getSpriteUnits() []model.Unit {
+	uSprites := g.getUnitSprites()
+	units := make([]model.Unit, 0, len(uSprites))
+	for _, s := range uSprites {
+		u := s.Unit()
+		if u == nil {
+			continue
+		}
+		units = append(units, u)
+	}
+	return units
+}
+
+func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*proximitySprite {
+	sprites := make([]*proximitySprite, 0, 64)
+	for spriteType := range g.sprites.sprites {
+		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+			if !g.isInteractiveType(spriteType) {
+				// only include certain sprite types (skip projectiles, effects, etc.)
+				return true
+			}
+			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			if s.IsDestroyed() {
+				return true
+			}
+			sPos := s.Pos()
+
+			// fast proximity check
+			if !model.PointInProximity(distance, pos.X, pos.Y, sPos.X, sPos.Y) {
+				return true
+			}
+
+			// exact distance check
+			sDist := geom.Distance(pos.X, pos.Y, sPos.X, sPos.Y)
+			if sDist > distance {
+				return true
+			}
+
+			sprites = append(sprites, &proximitySprite{sprite: s, distance: sDist})
 			return true
 		})
 	}
 
+	// sort sprites by distance
+	sort.Slice(sprites, func(i, j int) bool { return sprites[i].distance < sprites[j].distance })
+
+	return sprites
+}
+
+func (g *Game) getProximitySpriteUnits(pos *geom.Vector2, distance float64) []*proximityUnit {
+	uSprites := g.getProximityUnitSprites(pos, distance)
+	units := make([]*proximityUnit, 0, len(uSprites))
+	for _, s := range uSprites {
+		u := s.sprite.Unit()
+		if u == nil {
+			continue
+		}
+		units = append(units, &proximityUnit{unit: u, distance: s.distance})
+	}
 	return units
+}
+
+func getSpriteType(sInterface raycaster.Sprite) SpriteType {
+	switch interfaceType := sInterface.(type) {
+	case *render.Sprite:
+		return MapSpriteType
+	case *render.MechSprite:
+		return MechSpriteType
+	case *render.VehicleSprite:
+		return VehicleSpriteType
+	case *render.VTOLSprite:
+		return VTOLSpriteType
+	case *render.InfantrySprite:
+		return InfantrySpriteType
+	case *render.EmplacementSprite:
+		return EmplacementSpriteType
+	case *render.ProjectileSprite:
+		return ProjectileSpriteType
+	case *render.EffectSprite:
+		return EffectSpriteType
+	default:
+		panic(fmt.Errorf("unable to get SpriteType from sprite interface type %v", interfaceType))
+	}
 }
 
 func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
@@ -263,48 +373,50 @@ func getSpriteFromInterface(sInterface raycaster.Sprite) *render.Sprite {
 		return nil
 	}
 
-	switch interfaceType := sInterface.(type) {
-	case *render.Sprite:
+	sType := getSpriteType(sInterface)
+	switch sType {
+	case MapSpriteType:
 		return sInterface.(*render.Sprite)
-	case *render.MechSprite:
+	case MechSpriteType:
 		return sInterface.(*render.MechSprite).Sprite
-	case *render.VehicleSprite:
+	case VehicleSpriteType:
 		return sInterface.(*render.VehicleSprite).Sprite
-	case *render.VTOLSprite:
+	case VTOLSpriteType:
 		return sInterface.(*render.VTOLSprite).Sprite
-	case *render.InfantrySprite:
+	case InfantrySpriteType:
 		return sInterface.(*render.InfantrySprite).Sprite
-	case *render.EmplacementSprite:
+	case EmplacementSpriteType:
 		return sInterface.(*render.EmplacementSprite).Sprite
-	case *render.ProjectileSprite:
+	case ProjectileSpriteType:
 		return sInterface.(*render.ProjectileSprite).Sprite
-	case *render.EffectSprite:
+	case EffectSpriteType:
 		return sInterface.(*render.EffectSprite).Sprite
 	default:
-		panic(fmt.Errorf("unable to get model.Sprite from type %v", interfaceType))
+		panic(fmt.Errorf("unable to get model.Sprite from type %v", sType))
 	}
 }
 
 func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
-	switch interfaceType := sInterface.(type) {
-	case *render.Sprite:
+	sType := getSpriteType(sInterface)
+	switch sType {
+	case MapSpriteType:
 		return sInterface.(*render.Sprite).Entity
-	case *render.MechSprite:
+	case MechSpriteType:
 		return sInterface.(*render.MechSprite).Entity
-	case *render.VehicleSprite:
+	case VehicleSpriteType:
 		return sInterface.(*render.VehicleSprite).Entity
-	case *render.VTOLSprite:
+	case VTOLSpriteType:
 		return sInterface.(*render.VTOLSprite).Entity
-	case *render.InfantrySprite:
+	case InfantrySpriteType:
 		return sInterface.(*render.InfantrySprite).Entity
-	case *render.EmplacementSprite:
+	case EmplacementSpriteType:
 		return sInterface.(*render.EmplacementSprite).Entity
-	case *render.ProjectileSprite:
+	case ProjectileSpriteType:
 		return sInterface.(*render.ProjectileSprite).Entity
-	case *render.EffectSprite:
+	case EffectSpriteType:
 		return sInterface.(*render.EffectSprite).Entity
 	default:
-		panic(fmt.Errorf("unable to get model.Entity from type %v", interfaceType))
+		panic(fmt.Errorf("unable to get model.Entity from type %v", sType))
 	}
 }
 
@@ -313,7 +425,7 @@ func (g *Game) getSpriteFromEntity(entity model.Entity) *render.Sprite {
 	for spriteType := range g.sprites.sprites {
 		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
 			if !g.isInteractiveType(spriteType) {
-				// only show on certain sprite types (skip projectiles, effects, etc.)
+				// only include certain sprite types (skip projectiles, effects, etc.)
 				return true
 			}
 

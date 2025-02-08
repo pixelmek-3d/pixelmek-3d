@@ -1,0 +1,200 @@
+{
+  "version": "0.3.0",
+  "scope": "tree",
+  "id": "258d0efc-b79d-416c-8db6-7ba21e86ef3b",
+  "title": "forced_withdrawal",
+  "description": "Behavior of a unit forced to withdraw.",
+  "root": "3936007d-8b79-42da-872f-eac4844ab89b",
+  "properties": {},
+  "nodes": {
+    "3936007d-8b79-42da-872f-eac4844ab89b": {
+      "id": "3936007d-8b79-42da-872f-eac4844ab89b",
+      "name": "sequence",
+      "title": "Sequence",
+      "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+      "properties": {},
+      "display": {
+        "x": -24,
+        "y": -312
+      },
+      "children": [
+        "2484e86d-a238-46b7-8e7a-d0635cde8224",
+        "6ccfa2dd-0548-4172-9dd5-534dcebcbc11"
+      ]
+    },
+    "2484e86d-a238-46b7-8e7a-d0635cde8224": {
+      "id": "2484e86d-a238-46b7-8e7a-d0635cde8224",
+      "name": "DetermineForcedWithdrawal",
+      "title": "DetermineForcedWithdrawal",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": -288,
+        "y": -180
+      }
+    },
+    "6ccfa2dd-0548-4172-9dd5-534dcebcbc11": {
+      "id": "6ccfa2dd-0548-4172-9dd5-534dcebcbc11",
+      "name": "select",
+      "title": "Select",
+      "description": "Takes multiple children and runs them from top to bottom (or left to right), succeeding when any one succeeds.  Fails if all fail.",
+      "properties": {},
+      "display": {
+        "x": 228,
+        "y": -180
+      },
+      "children": [
+        "460c9cd6-371a-4444-871c-e07eddde5188",
+        "a8ca91e6-2755-4769-84d9-93c7fdc422e0"
+      ]
+    },
+    "460c9cd6-371a-4444-871c-e07eddde5188": {
+      "id": "460c9cd6-371a-4444-871c-e07eddde5188",
+      "name": "sequence",
+      "title": "Sequence",
+      "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+      "properties": {},
+      "display": {
+        "x": 24,
+        "y": -48
+      },
+      "children": [
+        "1eb3f6e8-b3c7-4483-8a1e-d835a3074a5c",
+        "8cc05959-ce28-45cd-80f8-23bd3f396fd6"
+      ]
+    },
+    "a8ca91e6-2755-4769-84d9-93c7fdc422e0": {
+      "id": "a8ca91e6-2755-4769-84d9-93c7fdc422e0",
+      "name": "sequence",
+      "title": "Sequence",
+      "description": "Takes multiple children and runs them from top to bottom (or left to right).  If any fail, this node fails, if all succeed, this node succeeds.",
+      "properties": {},
+      "display": {
+        "x": 444,
+        "y": -48
+      },
+      "children": [
+        "4ff98595-2bf5-4276-826a-6799051a68b8",
+        "aebd31d6-f4f3-4c05-ab7e-4cdf212efe27"
+      ]
+    },
+    "1eb3f6e8-b3c7-4483-8a1e-d835a3074a5c": {
+      "id": "1eb3f6e8-b3c7-4483-8a1e-d835a3074a5c",
+      "name": "InWithdrawArea",
+      "title": "InWithdrawArea",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": -84,
+        "y": 84
+      }
+    },
+    "8cc05959-ce28-45cd-80f8-23bd3f396fd6": {
+      "id": "8cc05959-ce28-45cd-80f8-23bd3f396fd6",
+      "name": "Withdraw",
+      "title": "Withdraw",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 132,
+        "y": 84
+      }
+    },
+    "4ff98595-2bf5-4276-826a-6799051a68b8": {
+      "id": "4ff98595-2bf5-4276-826a-6799051a68b8",
+      "name": "TurnToWithdraw",
+      "title": "TurnToWithdraw",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 336,
+        "y": 84
+      }
+    },
+    "aebd31d6-f4f3-4c05-ab7e-4cdf212efe27": {
+      "id": "aebd31d6-f4f3-4c05-ab7e-4cdf212efe27",
+      "name": "VelocityToMax",
+      "title": "VelocityToMax",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 540,
+        "y": 84
+      }
+    }
+  },
+  "display": {
+    "camera_x": 589.5,
+    "camera_y": 579.5,
+    "camera_z": 0.75,
+    "x": -24,
+    "y": -432
+  },
+  "custom_nodes": [
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "EngageTarget",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "DetermineForcedWithdrawal",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "InWithdrawArea",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "Withdraw",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "TurnToWithdraw",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "VelocityToMax",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {}
+    },
+    {
+      "version": "0.3.0",
+      "scope": "node",
+      "name": "forced_withdrawal",
+      "category": "action",
+      "title": null,
+      "description": null,
+      "properties": {
+        "type": "tree"
+      }
+    }
+  ]
+}

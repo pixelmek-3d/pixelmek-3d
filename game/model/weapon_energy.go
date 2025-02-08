@@ -102,6 +102,10 @@ func (w *EnergyWeapon) AmmoBin() *AmmoBin {
 
 func (w *EnergyWeapon) SetAmmoBin(ammoBin *AmmoBin) {}
 
+func (w *EnergyWeapon) Projectile() Projectile {
+	return w.projectile
+}
+
 func (w *EnergyWeapon) ProjectileCount() int {
 	return w.Resource.ProjectileCount
 }
@@ -135,6 +139,7 @@ func (w *EnergyWeapon) SpawnProjectile(angle, pitch float64, spawnedBy Unit) *Pr
 	// keep track of what spawned it
 	pSpawn.SetParent(spawnedBy)
 	pSpawn.SetWeapon(w)
+	pSpawn.SetTeam(spawnedBy.Team())
 
 	return pSpawn
 }

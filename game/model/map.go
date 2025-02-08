@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -155,12 +156,27 @@ type MapGenerateLevels struct {
 	MapSize      [2]int               `yaml:"mapSize"`
 	BoundaryWall MapTexture           `yaml:"boundaryWall"`
 	Prefabs      []MapGeneratePrefabs `yaml:"prefabs"`
+	Walls        []MapGenerateWalls   `yaml:"walls"`
 }
 
 type MapGeneratePrefabs struct {
 	Name      string    `yaml:"name"`
 	Levels    [][][]int `yaml:"levels"`
 	Positions [][2]int  `yaml:"positions"`
+}
+
+type MapGenerateWalls struct {
+	Texture int        `yaml:"texture"`
+	Height  int        `yaml:"height"`
+	Lines   [][][2]int `yaml:"lines"`
+}
+
+func (m *Map) Size() (width int, height int) {
+	if len(m.Levels) == 0 || len(m.Levels[0]) == 0 {
+		return 0, 0
+	}
+	width, height = len(m.Levels[0]), len(m.Levels[0][0])
+	return
 }
 
 func (m *Map) NumLevels() int {
@@ -177,6 +193,10 @@ func (m *Map) Level(levelNum int) [][]int {
 }
 
 func LoadMap(mapFile string) (*Map, error) {
+	if filepath.Ext(mapFile) == "" {
+		mapFile += YAMLExtension
+	}
+
 	v := validator.New()
 	mapPath := path.Join("maps", mapFile)
 
@@ -360,19 +380,19 @@ func (m *Map) generateMapLevels() error {
 	for _, prefab := range gen.Prefabs {
 		pLevels := len(prefab.Levels)
 		if pLevels == 0 || len(prefab.Positions) == 0 {
-			return fmt.Errorf("prefab must have at least one level and one position: %v", prefab.Name)
+			return fmt.Errorf("prefab must have at least one level and one position: %s", prefab.Name)
 		}
 
 		if pLevels > m.NumRaycastLevels {
 			return fmt.Errorf(
-				"prefab cannot have more levels (%v) than numRaycastLevels (%v): %v",
+				"prefab cannot have more levels (%d) than numRaycastLevels (%d): %s",
 				pLevels, m.NumRaycastLevels, prefab.Name,
 			)
 		}
 
 		pSizeX, pSizeY := len(prefab.Levels[0]), len(prefab.Levels[0][0])
 		if pSizeX == 0 || pSizeY == 0 {
-			return fmt.Errorf("prefab level X/Y length must both be greater than zero: %v", prefab.Name)
+			return fmt.Errorf("prefab level X/Y length must both be greater than zero: %s", prefab.Name)
 		}
 
 		for _, pos := range prefab.Positions {
@@ -387,6 +407,51 @@ func (m *Map) generateMapLevels() error {
 						m.Levels[i][x+posX][y+posY] = prefab.Levels[i][x][y]
 					}
 				}
+			}
+		}
+	}
+
+	// generate walls from lines
+	for i, wall := range gen.Walls {
+		tex := wall.Texture
+		if tex < 0 {
+			return fmt.Errorf("generated wall at index [%d] must have texture index of at least zero, found value: %d", i, tex)
+		}
+
+		height := wall.Height
+		if height < 1 {
+			return fmt.Errorf("generated wall at index [%d] must have level height of at least one, found value: %d", i, height)
+		}
+		if height > m.NumRaycastLevels {
+			return fmt.Errorf(
+				"generated wall at index [%d] cannot have more levels (%d) than numRaycastLevels (%d)",
+				i, height, m.NumRaycastLevels,
+			)
+		}
+
+		// create line segment paths
+		for _, segments := range wall.Lines {
+			var prevPoint *geom.Vector2
+			for _, seg := range segments {
+				point := &geom.Vector2{X: float64(seg[0]), Y: float64(seg[1])}
+
+				if prevPoint != nil {
+					// fill in path for line segment from previous to next point
+					line := geom.Line{X1: prevPoint.X, Y1: prevPoint.Y, X2: point.X, Y2: point.Y}
+
+					// use the angle of the line to then find every coordinate along the line path
+					angle := line.Angle()
+					dist := geom.Distance(line.X1, line.Y1, line.X2, line.Y2)
+					for d := 0.0; d <= dist; d += 0.1 {
+						nLine := geom.LineFromAngle(line.X1, line.Y1, angle, d)
+						for levelIndex := 0; levelIndex < height; levelIndex++ {
+							level := m.Levels[levelIndex]
+							level[int(nLine.X2)][int(nLine.Y2)] = tex
+						}
+					}
+				}
+
+				prevPoint = point
 			}
 		}
 	}

@@ -18,51 +18,51 @@ heatSinks:
   quantity: 15
   type: double
 armament:
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [22, 27]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: ra
   offset: [-22, 27]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [24, 27]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: ra
   offset: [-24, 27]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [26, 30]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: ra
   offset: [-26, 30]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [26, 32]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: ra
   offset: [-26, 32]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [24, 35]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: ra
   offset: [-24, 35]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: la
   offset: [22, 35]
-- weapon: "cl_er_medium_laser.yaml"
+- weapon: cl_er_medium_laser
   type: energy
   location: ra
   offset: [-22, 35]

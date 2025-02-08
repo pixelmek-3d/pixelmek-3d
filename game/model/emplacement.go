@@ -15,6 +15,8 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 	m := &Emplacement{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:            r.Name,
+			variant:         r.Variant,
 			unitType:        EmplacementUnitType,
 			anchor:          raycaster.AnchorBottom,
 			collisionRadius: collisionRadius,
@@ -25,8 +27,9 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 			armament:        make([]Weapon, 0),
 			ammunition:      NewAmmoStock(),
 			maxVelocity:     0,
-			maxTurnRate:     0.05, // FIXME: testing
-			maxTurretRate:   0.05, // FIXME: testing
+			maxTurnRate:     0.05,     // FIXME: testing
+			maxTurretRate:   0.05,     // FIXME: testing
+			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
 	}
 	return m
@@ -47,14 +50,6 @@ func (e *Emplacement) CloneUnit() Unit {
 
 func (e *Emplacement) Clone() Entity {
 	return e.CloneUnit()
-}
-
-func (e *Emplacement) Name() string {
-	return e.Resource.Name
-}
-
-func (e *Emplacement) Variant() string {
-	return e.Resource.Variant
 }
 
 func (e *Emplacement) Tonnage() float64 {
@@ -90,6 +85,24 @@ func (e *Emplacement) TurnRate() float64 {
 }
 
 func (e *Emplacement) Update() bool {
+	isOverHeated := e.OverHeated()
+	if e.powered == POWER_ON {
+		// if heat is too high, auto shutdown
+		if isOverHeated {
+			e.SetPowered(POWER_OFF_HEAT)
+		}
+	} else {
+		switch {
+		case isOverHeated:
+			// continue cooling down
+			break
+
+		case e.powered == POWER_OFF_HEAT && !isOverHeated:
+			// set power on automatically after overheat status is cleared
+			e.SetPowered(POWER_ON)
+		}
+	}
+
 	if e.needsUpdate() {
 		e.UnitModel.update()
 	} else {

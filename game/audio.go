@@ -694,17 +694,16 @@ func (a *AudioHandler) PlayEffectAudio(g *Game, p *render.EffectSprite) {
 // intensityDist - distance of 100% sound intensity before volume begins to dropoff at a rate of 1/d^2
 // maxVolume - the maximum volume percent to be perceived by the player
 func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPosY, extPosZ, intensityDist, maxVolume float64) {
-	playerPos := g.player.Pos()
-	playerHeading := g.player.cameraAngle
+	camPos, _, camHeading, _ := g.player.CameraPosition()
 
 	extLine := geom3d.Line3d{
-		X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
+		X1: camPos.X, Y1: camPos.Y, Z1: g.player.cameraZ,
 		X2: extPosX, Y2: extPosY, Z2: extPosZ,
 	}
 	extDist := extLine.Distance()
 	extHeading := extLine.Heading()
 
-	relHeading := -model.AngleDistance(playerHeading, extHeading)
+	relHeading := -model.AngleDistance(camHeading, extHeading)
 	relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
 
 	extVolume := geom.Clamp(math.Pow(intensityDist/extDist, 2), 0.0, maxVolume)
@@ -717,18 +716,17 @@ func (a *AudioHandler) PlayExternalAudio(g *Game, sfxFile string, extPosX, extPo
 // intensityDist - distance of 100% sound intensity before volume begins to dropoff at a rate of 1/d^2
 // maxVolume - the maximum volume percent to be perceived by the player
 func (a *AudioHandler) PlayEntityAudioLoop(g *Game, sfxFile string, entity model.Entity, intensityDist, maxVolume float64) {
-	playerPos := g.player.Pos()
-	playerHeading := g.player.cameraAngle
+	camPos, _, camHeading, _ := g.player.CameraPosition()
 
 	extPosX, extPosY, extPosZ := entity.Pos().X, entity.Pos().Y, entity.PosZ()
 	extLine := geom3d.Line3d{
-		X1: playerPos.X, Y1: playerPos.Y, Z1: g.player.cameraZ,
+		X1: camPos.X, Y1: camPos.Y, Z1: g.player.cameraZ,
 		X2: extPosX, Y2: extPosY, Z2: extPosZ,
 	}
 	extDist := extLine.Distance()
 	extHeading := extLine.Heading()
 
-	relHeading := -model.AngleDistance(playerHeading, extHeading)
+	relHeading := -model.AngleDistance(camHeading, extHeading)
 	relPercent := 1 - (geom.HalfPi-relHeading)/geom.HalfPi
 
 	extVolume := geom.Clamp(math.Pow(intensityDist/extDist, 2), 0.0, maxVolume)

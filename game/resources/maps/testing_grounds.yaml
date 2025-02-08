@@ -29,6 +29,12 @@ generateLevels:
   mapSize: [500, 500] # TODO: add max render distance here instead of just as config setting or set default to not inf?
   boundaryWall:
     image: "walls/boundary_green.png"
+  walls:
+  - texture: 4
+    height: 1
+    lines:
+    - [[30, 0], [30, 50], [25, 55]]
+    - [[0, 60], [25, 60], [30, 55]]
   prefabs:
   - name: "PlusTower"
     levels:

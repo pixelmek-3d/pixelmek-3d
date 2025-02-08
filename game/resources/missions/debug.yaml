@@ -3,14 +3,14 @@ briefing: |
   A mission to debug things.
 
   And do stuff.
-map: "debug_land.yaml"
+map: "debug_land"
 music: "icy_wastes.mp3"
 dropZone:
   position: [50, 50]
   heading: 45
 objectives:
   destroy:
-      - unit: "destroy_me"
+    - unit: "destroy_me"
   protect:
     - unit: "do_not_hurt_me"
   nav:
@@ -28,12 +28,12 @@ navPoints:
     position: [50, 70]
 mechs:
   - id: "destroy_me"
-    unit: "fire_moth_prime.yaml"
-    position: [60, 60]
+    unit: "fire_moth_prime"
+    position: [57, 65]
 vehicles:
   - id: "do_not_hurt_me"
     team: -1
-    unit: "srm_carrier.yaml"
+    unit: "srm_carrier"
     position: [57, 55]
 vtols: []
 infantry: []

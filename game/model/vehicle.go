@@ -15,6 +15,8 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 	m := &Vehicle{
 		Resource: r,
 		UnitModel: &UnitModel{
+			name:            r.Name,
+			variant:         r.Variant,
 			unitType:        VehicleUnitType,
 			anchor:          raycaster.AnchorBottom,
 			collisionRadius: collisionRadius,
@@ -31,6 +33,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 			maxTurnRate:     100 / r.Tonnage * 0.015, // FIXME: testing
 			maxTurretRate:   100 / r.Tonnage * 0.03,  // FIXME: testing
 			jumpJets:        0,
+			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
 	}
 
@@ -57,14 +60,6 @@ func (e *Vehicle) Clone() Entity {
 	return e.CloneUnit()
 }
 
-func (e *Vehicle) Name() string {
-	return e.Resource.Name
-}
-
-func (e *Vehicle) Variant() string {
-	return e.Resource.Variant
-}
-
 func (e *Vehicle) Tonnage() float64 {
 	return e.Resource.Tonnage
 }
@@ -78,13 +73,21 @@ func (e *Vehicle) MaxStructurePoints() float64 {
 }
 
 func (e *Vehicle) Update() bool {
-	if e.heat > 0 {
-		// TODO: apply heat from movement based on velocity
+	isOverHeated := e.OverHeated()
+	if e.powered == POWER_ON {
+		// if heat is too high, auto shutdown
+		if isOverHeated {
+			e.SetPowered(POWER_OFF_HEAT)
+		}
+	} else {
+		switch {
+		case isOverHeated:
+			// continue cooling down
+			break
 
-		// apply heat dissipation
-		e.heat -= e.HeatDissipation()
-		if e.heat < 0 {
-			e.heat = 0
+		case e.powered == POWER_OFF_HEAT && !isOverHeated:
+			// set power on automatically after overheat status is cleared
+			e.SetPowered(POWER_ON)
 		}
 	}
 

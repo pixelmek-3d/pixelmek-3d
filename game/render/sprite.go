@@ -42,6 +42,10 @@ type facingAngleOverride struct {
 	angle float64
 }
 
+func (s *Sprite) Unit() model.Unit {
+	return model.EntityUnit(s.Entity)
+}
+
 func (s *Sprite) Pos() *geom.Vector2 {
 	return s.Entity.Pos()
 }

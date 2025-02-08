@@ -17,7 +17,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
-	"github.com/harbdog/raycaster-go/geom3d"
 
 	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
@@ -30,8 +29,7 @@ const (
 	texWidth = 256
 
 	// distance to keep away from walls and obstacles to avoid clipping
-	// TODO: may want a smaller distance to test vs. sprites
-	clipDistance = 0.1
+	clipDistance = 0.01
 )
 
 // Game - This is the main type for your game.
@@ -40,6 +38,7 @@ type Game struct {
 	menu   Menu
 	paused bool
 
+	ai          *AIHandler
 	resources   *model.ModelResources
 	audio       *AudioHandler
 	input       *input.Handler
@@ -108,7 +107,7 @@ type Game struct {
 	clutter                *ClutterHandler
 	collisonSpriteTypes    map[SpriteType]bool
 	interactiveSpriteTypes map[SpriteType]bool
-	delayedProjectiles     map[*DelayedProjectileSpawn]struct{}
+	delayedProjectiles     map[*ProjectileSpawn]struct{}
 
 	// Gameplay
 	objectives *ObjectivesHandler
@@ -237,9 +236,7 @@ func (g *Game) initMission() {
 	g.sprites.clear()
 
 	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
-	worldMap := g.mission.Map().Level(0)
-	g.mapWidth = len(worldMap)
-	g.mapHeight = len(worldMap[0])
+	g.mapWidth, g.mapHeight = g.mission.Map().Size()
 
 	// load map and mission content
 	g.loadContent()
@@ -252,6 +249,7 @@ func (g *Game) initMission() {
 	pHeading := geom.Radians(pDegrees)
 	g.player.SetPos(&geom.Vector2{X: pX, Y: pY})
 	g.player.SetHeading(pHeading)
+	g.player.SetTargetHeading(pHeading)
 	g.player.SetTurretAngle(pHeading)
 	g.player.cameraAngle = pHeading
 	g.player.cameraPitch = 0
@@ -299,6 +297,9 @@ func (g *Game) initMission() {
 	if g.clutter != nil {
 		g.clutter.Update(g, true)
 	}
+
+	// initialize AI
+	g.ai = NewAIHandler(g)
 }
 
 // Run is the Ebiten Run loop caller
@@ -365,30 +366,16 @@ func (g *Game) uiRect() image.Rectangle {
 	)
 }
 
-// Move player by move speed in the forward/backward direction
-func (g *Game) Move(mSpeed float64) {
-	playerPosition := g.player.Pos()
-	moveLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading(), mSpeed)
-	g.updatePlayerPosition(moveLine.X2, moveLine.Y2, g.player.PosZ())
-}
-
 // Move player by strafe speed in the left/right direction
-func (g *Game) Strafe(sSpeed float64) {
-	strafeAngle := geom.HalfPi
-	if sSpeed < 0 {
-		strafeAngle = -strafeAngle
-	}
-	playerPosition := g.player.Pos()
-	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading()-strafeAngle, math.Abs(sSpeed))
-	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2, g.player.PosZ())
-}
-
-// Move player by vertical speed in the up/down direction
-func (g *Game) VerticalMove(vSpeed float64) {
-	pos := g.player.Pos()
-	newPosZ := g.player.PosZ() + vSpeed
-	g.updatePlayerPosition(pos.X, pos.Y, newPosZ)
-}
+// func (g *Game) Strafe(sSpeed float64) {
+// 	strafeAngle := geom.HalfPi
+// 	if sSpeed < 0 {
+// 		strafeAngle = -strafeAngle
+// 	}
+// 	playerPosition := g.player.Pos()
+// 	strafeLine := geom.LineFromAngle(playerPosition.X, playerPosition.Y, g.player.Heading()-strafeAngle, math.Abs(sSpeed))
+// 	g.updatePlayerPosition(strafeLine.X2, strafeLine.Y2, g.player.PosZ())
+// }
 
 func (g *Game) InProgress() bool {
 	return g.objectives.Status() == OBJECTIVES_IN_PROGRESS
@@ -407,6 +394,13 @@ func (g *Game) updateObjectives() {
 			log.Debugf("all objectives completed")
 		}
 	}
+}
+
+func (g *Game) updateAI() {
+	if g.ai == nil {
+		return
+	}
+	g.ai.Update()
 }
 
 func (g *Game) updatePlayer() {
@@ -436,26 +430,11 @@ func (g *Game) updatePlayer() {
 		return
 	}
 
-	if g.player.Update() {
+	prevPos, prevPosZ := g.player.Pos(), g.player.PosZ()
+	g.updateUnitPosition(g.player)
+	newPos, newPosZ := g.player.Pos(), g.player.PosZ()
 
-		// TODO: refactor to use same update position function as sprites (g.updateMechPosition, etc.)
-
-		position, posZ := g.player.Pos(), g.player.PosZ()
-		velocity, velocityZ := g.player.Velocity(), g.player.VelocityZ()
-		if velocityZ != 0 {
-			posZ += velocityZ
-		}
-
-		moveHeading := g.player.Heading()
-		if g.player.JumpJetsActive() || (posZ > 0 && g.player.JumpJets() > 0) {
-			// while jumping, or still in air after jumping, continue from last jump jet active heading and velocity
-			moveHeading = g.player.JumpJetHeading()
-			velocity = g.player.JumpJetVelocity()
-		}
-		moveLine := geom.LineFromAngle(position.X, position.Y, moveHeading, velocity)
-
-		newX, newY := moveLine.X2, moveLine.Y2
-		g.updatePlayerPosition(newX, newY, posZ)
+	if !(prevPos.Equals(newPos) && prevPosZ == newPosZ) {
 		g.player.moved = true
 
 		// check for nav point visits
@@ -465,7 +444,7 @@ func (g *Game) updatePlayer() {
 			}
 
 			navX, navY := nav.Position[0], nav.Position[1]
-			if model.PointInProximity(1.0, newX, newY, navX, navY) {
+			if model.PointInProximity(1.0, newPos.X, newPos.Y, navX, navY) {
 				nav.SetVisited(true)
 
 				// automatically cycle to next nav point
@@ -540,7 +519,7 @@ func (g *Game) updatePlayer() {
 		g.player.SetTarget(nil)
 	}
 
-	if target == nil || target.Team() < 0 || g.player.Powered() != model.POWER_ON {
+	if target == nil || g.IsFriendly(g.player, target) || g.player.Powered() != model.POWER_ON {
 		// clear target lock if no target, friendly target, or player is not fully powered on
 		g.player.SetTargetLock(0)
 	} else {
@@ -577,36 +556,6 @@ func (g *Game) updatePlayer() {
 				}
 				g.player.SetTargetLock(targetLock)
 			}
-		}
-	}
-}
-
-func (g *Game) updatePlayerPosition(setX, setY, setZ float64) {
-	// Update player position
-	newPos, newZ, isCollision, collisions := g.getValidMove(g.player.Unit, setX, setY, setZ, true)
-	if !(newPos.Equals(g.player.Pos()) && newZ == g.player.PosZ()) {
-		g.player.SetPos(newPos)
-		g.player.SetPosZ(newZ)
-		g.player.moved = true
-	}
-
-	if isCollision && len(collisions) > 0 {
-		// apply damage to the first sprite entity that was hit
-		collisionEntity := collisions[0]
-
-		// TODO: collision damage based on player unit type, size, speed, and collision entity type
-		collisionDamage := 0.01
-
-		// apply more damage if it is a tree or foliage (MapSprite)
-		mapSprite := g.getMapSpriteFromEntity(collisionEntity.entity)
-		if mapSprite != nil {
-			collisionDamage = 0.1
-		}
-
-		collisionEntity.entity.ApplyDamage(collisionDamage)
-		if g.debug {
-			hp, maxHP := collisionEntity.entity.ArmorPoints()+collisionEntity.entity.StructurePoints(), collisionEntity.entity.MaxArmorPoints()+collisionEntity.entity.MaxStructurePoints()
-			log.Debugf("collided for %0.1f (HP: %0.1f/%0.1f)", collisionDamage, hp, maxHP)
 		}
 	}
 }
@@ -707,76 +656,27 @@ func (g *Game) spriteInCrosshairs() *render.Sprite {
 	return cSprite
 }
 
-// ConvergencePoint returns the convergence point from current angle/pitch to sprite in crosshairs.
-// Returns nil if no sprite in crosshairs.
-func (g *Game) ConvergencePoint() *geom3d.Vector3 {
-	p := g.player
-	s := g.spriteInCrosshairs()
-	if s == nil {
-		return nil
+func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
+	pSprites := g.getProximityUnitSprites(g.player.Pos(), 1000/model.METERS_PER_UNIT)
+	targetables := make([]*render.Sprite, 0, len(pSprites))
+
+	if cycleType == TARGET_PREVIOUS {
+		// reverse sort by distance
+		sort.Slice(pSprites, func(i, j int) bool { return pSprites[i].distance > pSprites[j].distance })
 	}
 
-	pX, pY, pZ := p.Pos().X, p.Pos().Y, p.cameraZ
-	sX, sY, sZ := s.Pos().X, s.Pos().Y, s.PosZ()
-	targetDist := (&geom3d.Line3d{
-		X1: pX, Y1: pY, Z1: pZ,
-		X2: sX, Y2: sY, Z2: sZ,
-	}).Distance()
-
-	convergenceLine := geom3d.Line3dFromAngle(pX, pY, pZ, p.TurretAngle(), p.Pitch(), targetDist)
-	convergencePoint := &geom3d.Vector3{X: convergenceLine.X2, Y: convergenceLine.Y2, Z: convergenceLine.Z2}
-
-	return convergencePoint
-}
-
-func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
-	targetables := make([]*render.Sprite, 0, 64)
-
-	for spriteType := range g.sprites.sprites {
-		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-			if !g.isInteractiveType(spriteType) {
-				// only cycle on certain sprite types (skip projectiles, effects, etc.)
-				return true
-			}
-
-			s := getSpriteFromInterface(k.(raycaster.Sprite))
-			if s.IsDestroyed() {
-				return true
-			}
-
-			if s.Team() < 0 {
-				// skip friendly units
-				return true
-			}
-
-			targetables = append(targetables, s)
-
-			return true
-		})
+	for _, p := range pSprites {
+		s := p.sprite
+		if g.IsFriendly(g.player, s.Entity) {
+			// skip friendly units
+			continue
+		}
+		targetables = append(targetables, s)
 	}
 
 	if len(targetables) == 0 {
 		g.player.SetTarget(nil)
 		return nil
-	}
-
-	// sort by distance to player
-	playerPos := g.player.Pos()
-
-	if cycleType == TARGET_PREVIOUS {
-		sort.Slice(targetables, func(a, b int) bool {
-			sA, sB := targetables[a], targetables[b]
-			dA := geom.Distance2(sA.Pos().X, sA.Pos().Y, playerPos.X, playerPos.Y)
-			dB := geom.Distance2(sB.Pos().X, sB.Pos().Y, playerPos.X, playerPos.Y)
-			return dA > dB
-		})
-	} else {
-		sort.Slice(targetables, func(a, b int) bool {
-			sA, sB := targetables[a], targetables[b]
-			dA := geom.Distance2(sA.Pos().X, sA.Pos().Y, playerPos.X, playerPos.Y)
-			dB := geom.Distance2(sB.Pos().X, sB.Pos().Y, playerPos.X, playerPos.Y)
-			return dA < dB
-		})
 	}
 
 	var newTarget *render.Sprite
@@ -803,519 +703,6 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 
 	g.player.SetTarget(newTarget.Entity)
 	return newTarget.Entity
-}
-
-func (g *Game) updateSprites() {
-	// Update for animated sprite movement
-	for spriteType := range g.sprites.sprites {
-		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-
-			switch spriteType {
-			case MapSpriteType:
-				s := k.(*render.Sprite)
-				if s.IsDestroyed() {
-					destroyCounter := s.DestroyCounter()
-					if destroyCounter == 0 {
-						// start the destruction process but do not remove yet
-						// TODO: when tree is destroyed by projectile, add fire effect (energy and missile only)
-						fxDuration := g.spawnGenericDestroyEffects(s, false)
-						s.SetDestroyCounter(geom.ClampInt(fxDuration, 1, fxDuration))
-					} else if destroyCounter == 1 {
-						// delete when the counter is basically done (to differentiate with default int value 0)
-						g.sprites.deleteMapSprite(s)
-					} else {
-						s.Update(g.player.Pos())
-						s.SetDestroyCounter(destroyCounter - 1)
-					}
-					break
-				}
-
-				g.updateSpritePosition(s)
-				s.Update(g.player.Pos())
-
-			case MechSpriteType:
-				s := k.(*render.MechSprite)
-				sUnit := model.EntityUnit(s.Entity)
-				if s.IsDestroyed() {
-					if s.MechAnimation() != render.MECH_ANIMATE_DESTRUCT {
-						// play unit destruction animation
-						s.SetMechAnimation(render.MECH_ANIMATE_DESTRUCT, false)
-
-						// spawn ejection pod
-						g.spawnEjectionPod(s.Sprite)
-
-					} else if s.LoopCounter() >= 1 {
-						// delete when animation is over
-						g.sprites.deleteMechSprite(s)
-					} else {
-						s.Update(g.player.Pos())
-					}
-
-					if sUnit.JumpJets() > 0 {
-						g.removeJumpJetEffect(s.Sprite)
-					}
-
-					g.spawnMechDestroyEffects(s)
-					break
-				}
-
-				mech := s.Mech()
-				g.updateMechPosition(s)
-				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(sUnit)
-
-				if sUnit.Powered() != model.POWER_ON {
-					poweringOn := s.AnimationReversed()
-					if mech.PowerOffTimer > 0 &&
-						(s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN || poweringOn) {
-
-						// start shutdown animation since unit is powering off
-						s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, false)
-					}
-					if mech.PowerOffTimer <= 0 && mech.PowerOnTimer > 0 &&
-						(s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN || !poweringOn) {
-
-						// reverse shutdown animation since unit is powering on
-						s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, true)
-
-					}
-					if s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN {
-						s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, true)
-					}
-				} else {
-					if mech.JumpJetsActive() {
-						falling := s.AnimationReversed()
-						if s.MechAnimation() != render.MECH_ANIMATE_JUMP_JET || falling {
-							s.SetMechAnimation(render.MECH_ANIMATE_JUMP_JET, false)
-
-							// spawn jump jet effect when first starting jump jet
-							g.spawnJumpJetEffect(s.Sprite)
-						}
-					} else if s.VelocityZ() < 0 {
-						falling := s.AnimationReversed()
-						if s.MechAnimation() != render.MECH_ANIMATE_JUMP_JET || !falling {
-							// reverse jump jet animation for falling
-							s.SetMechAnimation(render.MECH_ANIMATE_JUMP_JET, true)
-
-							// remove jump jet effect since jump jet no longer active
-							g.removeJumpJetEffect(s.Sprite)
-						}
-					} else if s.Velocity() == 0 && s.VelocityZ() == 0 {
-						if s.MechAnimation() != render.MECH_ANIMATE_IDLE {
-							s.SetMechAnimation(render.MECH_ANIMATE_IDLE, false)
-						}
-					} else {
-						if s.MechAnimation() != render.MECH_ANIMATE_STRUT {
-							s.SetMechAnimation(render.MECH_ANIMATE_STRUT, false)
-						}
-					}
-				}
-
-				if s.StrideStomp() {
-					s.ResetStrideStomp()
-					pos, posZ := s.Pos(), s.PosZ()
-					mechStompFile, err := StompSFXForMech(mech)
-					if err == nil {
-						g.audio.PlayExternalAudio(g, mechStompFile, pos.X, pos.Y, posZ, 2.5, 0.35)
-					}
-				}
-
-				if mech.JumpJets() > 0 {
-					mechJumpFile, err := JumpJetSFXForMech(mech)
-					if err == nil {
-						switch {
-						case mech.JumpJetsActive() && !s.JetsPlaying:
-							s.JetsPlaying = true
-							g.audio.PlayEntityAudioLoop(g, mechJumpFile, mech, 5.0, 0.35)
-						case !mech.JumpJetsActive() && s.JetsPlaying:
-							g.audio.StopEntityAudioLoop(g, mechJumpFile, mech)
-							s.JetsPlaying = false
-						}
-					}
-				}
-
-			case VehicleSpriteType:
-				s := k.(*render.VehicleSprite)
-				if s.IsDestroyed() {
-					destroyCounter := s.DestroyCounter()
-					if destroyCounter == 0 {
-						// start the destruction process but do not remove yet
-						fxDuration := g.spawnVehicleDestroyEffects(s)
-						s.SetDestroyCounter(fxDuration)
-					} else if destroyCounter == 1 {
-						// delete when the counter is basically done (to differentiate with default int value 0)
-						g.sprites.deleteVehicleSprite(s)
-					} else {
-						s.Update(g.player.Pos())
-						s.SetDestroyCounter(destroyCounter - 1)
-					}
-					break
-				}
-
-				g.updateVehiclePosition(s)
-				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
-
-			case VTOLSpriteType:
-				s := k.(*render.VTOLSprite)
-				if s.IsDestroyed() {
-					// unique VTOL destroy effect where it crashes towards the ground spinning
-					destroyCounter := s.DestroyCounter()
-					if destroyCounter == 0 {
-						// start the destruction process but do not remove yet
-						g.spawnVTOLDestroyEffects(s, true)
-						s.SetVelocity(0)
-						s.SetVelocityZ(0)
-
-						// use the destroy counter to determine which effects to spawn
-						s.SetDestroyCounter(1)
-					} else if s.PosZ() <= 0 {
-						// instantly delete if it gets below the ground
-						g.sprites.deleteVTOLSprite(s)
-						break
-					} else {
-						// spawn only smoke effects
-						g.spawnVTOLDestroyEffects(s, false)
-					}
-
-					// fall towards the ground
-					velocityZ := s.VelocityZ()
-					s.SetVelocityZ(velocityZ - model.GRAVITY_UNITS_PTT)
-
-					// put in a tailspin
-					heading := s.Heading()
-					s.SetHeading(model.ClampAngle2Pi(heading + (geom.Pi2 / model.TICKS_PER_SECOND)))
-
-					hasCollision := g.updateSpritePosition(s.Sprite)
-					if hasCollision {
-						// instantly remove on collision with some more explosions
-						g.spawnVTOLDestroyEffects(s, true)
-						g.sprites.deleteVTOLSprite(s)
-						break
-					}
-
-					s.Update(g.player.Pos())
-					break
-				}
-
-				g.updateVTOLPosition(s)
-				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
-
-			case InfantrySpriteType:
-				s := k.(*render.InfantrySprite)
-				if s.IsDestroyed() {
-					// infantry are destroyed immediately
-					// TODO: if an infantry unit has death animation prior to deletion
-					g.spawnInfantryDestroyEffects(s)
-					g.sprites.deleteInfantrySprite(s)
-					break
-				}
-
-				g.updateInfantryPosition(s)
-				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
-
-			case EmplacementSpriteType:
-				s := k.(*render.EmplacementSprite)
-				if s.IsDestroyed() {
-					destroyCounter := s.DestroyCounter()
-					if destroyCounter == 0 {
-						// start the destruction process but do not remove yet
-						fxDuration := g.spawnEmplacementDestroyEffects(s)
-						s.SetDestroyCounter(fxDuration)
-					} else if destroyCounter == 1 {
-						// delete when the counter is basically done (to differentiate with default int value 0)
-						g.sprites.deleteEmplacementSprite(s)
-					} else {
-						s.Update(g.player.Pos())
-						s.SetDestroyCounter(destroyCounter - 1)
-					}
-					break
-				}
-
-				g.updateEmplacementPosition(s)
-				s.Update(g.player.Pos())
-				g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
-			}
-
-			return true
-		})
-	}
-}
-
-func (g *Game) updateMechPosition(s *render.MechSprite) {
-	if s.Mech().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.Mech().Heat() < 0.7*s.Mech().MaxHeat() {
-			s.Mech().SetPowered(model.POWER_ON)
-		}
-		s.Mech().Update()
-		return
-	}
-
-	// TODO: give mechs a bit more of a brain than this
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateMechPosition(s)
-			return
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
-	if s.Mech().Update() {
-		// TODO: refactor to use same update function as g.updatePlayer()
-
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		posZ, velocityZ := s.PosZ(), s.VelocityZ()
-		if velocityZ != 0 {
-			posZ += velocityZ
-		}
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, posZ, false)
-		if isCollision {
-			// TODO: collision damage against units based on mech and speed
-
-			// if mech is falling to the ground, let it land!
-			if velocityZ < 0 && posZ <= 0 && newPosZ == 0 {
-				s.SetPosZ(newPosZ)
-			}
-		} else {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-	}
-}
-
-func (g *Game) updateVehiclePosition(s *render.VehicleSprite) {
-	// TODO: give units a bit more of a brain than this
-	if s.Vehicle().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.Vehicle().Heat() < 0.7*s.Vehicle().MaxHeat() {
-			s.Vehicle().SetPowered(model.POWER_ON)
-		}
-		s.Vehicle().Update()
-		return
-	}
-
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateVehiclePosition(s)
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
-	if s.Velocity() != 0 {
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if isCollision {
-			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
-			s.SetVelocity(randFloat(0.005, 0.009))
-		} else {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-	}
-}
-
-func (g *Game) updateVTOLPosition(s *render.VTOLSprite) {
-	// TODO: give units a bit more of a brain than this
-	if s.VTOL().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.VTOL().Heat() < 0.7*s.VTOL().MaxHeat() {
-			s.VTOL().SetPowered(model.POWER_ON)
-		}
-		s.VTOL().Update()
-		return
-	}
-
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateVTOLPosition(s)
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
-	if s.Velocity() != 0 {
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if isCollision {
-			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
-			s.SetVelocity(randFloat(0.005, 0.009))
-		} else {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-	}
-}
-
-func (g *Game) updateInfantryPosition(s *render.InfantrySprite) {
-	// TODO: give units a bit more of a brain than this
-	if s.Infantry().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		s.SetVelocity(0)
-		s.SetVelocityZ(0)
-
-		if s.Infantry().Heat() < 0.7*s.Infantry().MaxHeat() {
-			s.Infantry().SetPowered(model.POWER_ON)
-		}
-		s.Infantry().Update()
-		return
-	}
-
-	sPosition := s.Pos()
-	if len(s.PatrolPath) > 0 {
-		// make sure there's movement towards the next patrol point
-		patrolX, patrolY := s.PatrolPath[s.PatrolPathIndex][0], s.PatrolPath[s.PatrolPathIndex][1]
-		patrolLine := geom.Line{X1: sPosition.X, Y1: sPosition.Y, X2: patrolX, Y2: patrolY}
-
-		// TODO: do something about this velocity
-		s.SetVelocity(0.02 * s.Scale())
-
-		angle := patrolLine.Angle()
-		dist := patrolLine.Distance()
-
-		if dist <= s.Velocity() {
-			// start movement towards next patrol point
-			s.PatrolPathIndex += 1
-			if s.PatrolPathIndex >= len(s.PatrolPath) {
-				// loop back towards first patrol point
-				s.PatrolPathIndex = 0
-			}
-			g.updateInfantryPosition(s)
-		} else {
-			// keep movements towards current patrol point
-			s.SetHeading(angle)
-		}
-	}
-
-	if s.Velocity() != 0 {
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, s.PosZ(), false)
-		if isCollision {
-			// for testing purposes, letting the sample sprite ping pong off walls in somewhat random direction
-			s.SetHeading(randFloat(-geom.Pi, geom.Pi))
-			s.SetVelocity(randFloat(0.005, 0.009))
-		} else {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-	}
-}
-
-func (g *Game) updateEmplacementPosition(s *render.EmplacementSprite) {
-	// TODO: give turrets a bit more of a brain than this
-	if s.Emplacement().Powered() != model.POWER_ON {
-		// TODO: refactor to use same update logic from player shutdown
-		if s.Emplacement().Heat() < 0.7*s.Emplacement().MaxHeat() {
-			s.Emplacement().SetPowered(model.POWER_ON)
-		}
-		return
-	}
-}
-
-func (g *Game) updateSpritePosition(s *render.Sprite) bool {
-	if s.Velocity() != 0 || s.VelocityZ() != 0 {
-		sPosition := s.Pos()
-		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())
-
-		xCheck := vLine.X2
-		yCheck := vLine.Y2
-		zCheck := s.PosZ() + s.VelocityZ()
-
-		newPos, newPosZ, isCollision, _ := g.getValidMove(s.Entity, xCheck, yCheck, zCheck, false)
-		if isCollision {
-			return true
-		} else {
-			s.SetPos(newPos)
-			s.SetPosZ(newPosZ)
-		}
-	}
-	return false
 }
 
 func (g *Game) updateWeaponCooldowns(unit model.Unit) {
@@ -1356,6 +743,16 @@ func (g *Game) RandomUnit(unitResourceType string) model.Unit {
 	default:
 		panic(fmt.Errorf("currently unable to handle random model.Unit for resource type %v", unitResourceType))
 	}
+}
+
+func (g *Game) IsFriendly(e1, e2 model.Entity) bool {
+	if e1 == nil || e2 == nil {
+		return false
+	}
+	if e1 == g.player || e2 == g.player {
+		return e1.Team() < 0 && e2.Team() < 0
+	}
+	return e1.Team() == e2.Team()
 }
 
 func randFloat(min, max float64) float64 {

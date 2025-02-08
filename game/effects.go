@@ -11,6 +11,7 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	renderFx "github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources/effects"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -88,7 +89,10 @@ func _loadEjectionPodResource(g *Game) {
 	}
 
 	// TODO: refactor to use same func as g.loadUnitWeapons
-	weaponResource := g.resources.GetMissileWeaponResource("_ejection_pod.yaml")
+	weaponResource, err := g.resources.GetMissileWeaponResource("_ejection_pod")
+	if err != nil {
+		log.Error(err)
+	}
 
 	// need to use the projectile image size to find the unit collision conversion from pixels
 	pResource := weaponResource.Projectile

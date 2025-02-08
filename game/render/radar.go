@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"slices"
+	"sort"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
@@ -14,7 +17,8 @@ import (
 var (
 	_colorRadar        = _colorDefaultGreen
 	_colorRadarOutline = color.NRGBA{R: 197, G: 145, B: 0, A: 255}
-	radarRangeMeters   = 1000.0
+
+	radarRanges = []float64{1000.0, 500.0, 250.0}
 )
 
 type Radar struct {
@@ -23,18 +27,23 @@ type Radar struct {
 	mapLines     []*geom.Line
 	radarBlips   []*RadarBlip
 	navPoints    []*RadarNavPoint
+	navLines     []*geom.Line
 	position     *geom.Vector2
 	heading      float64
 	turretAngle  float64
 	fovDegrees   float64
+	radarRange   float64
+	showPosition bool
 }
 
 type RadarBlip struct {
-	Unit       model.Unit
-	Angle      float64
-	Distance   float64
-	IsTarget   bool
-	IsFriendly bool
+	Unit          model.Unit
+	Angle         float64
+	Heading       float64
+	TurretHeading float64
+	Distance      float64
+	IsTarget      bool
+	IsFriendly    bool
 }
 
 type RadarNavPoint struct {
@@ -56,6 +65,7 @@ func NewRadar(font *Font) *Radar {
 	r := &Radar{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
 		fontRenderer: renderer,
+		radarRange:   radarRanges[0] / model.METERS_PER_UNIT,
 	}
 
 	return r
@@ -71,15 +81,51 @@ func (r *Radar) updateFontSize(_, height int) {
 	r.fontRenderer.SetSizePx(int(pxSize))
 }
 
+func (r *Radar) RadarRange() float64 {
+	return r.radarRange * model.METERS_PER_UNIT
+}
+
+func (r *Radar) CycleRadarRange() {
+	i := slices.Index(radarRanges, r.radarRange*model.METERS_PER_UNIT)
+	if i == -1 {
+		return
+	}
+
+	i++
+	if i >= len(radarRanges) {
+		i = 0
+	}
+	r.radarRange = radarRanges[i] / model.METERS_PER_UNIT
+}
+
 func (r *Radar) SetMapLines(lines []*geom.Line) {
 	r.mapLines = lines
 }
 
+func (r *Radar) SetNavLines(lines []*geom.Line) {
+	r.navLines = lines
+}
+
 func (r *Radar) SetNavPoints(radarNavPoints []*RadarNavPoint) {
+	// sort nav points from furthest to closest from player position
+	sort.Slice(radarNavPoints, func(i, j int) bool {
+		return radarNavPoints[i].Distance > radarNavPoints[j].Distance
+	})
 	r.navPoints = radarNavPoints
 }
 
 func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
+	// sort blips from furthest to closest from player position to draw on top
+	sort.Slice(blips, func(i, j int) bool {
+		// player target blip always comes last
+		switch {
+		case blips[i].IsTarget:
+			return false
+		case blips[j].IsTarget:
+			return true
+		}
+		return blips[i].Distance > blips[j].Distance
+	})
 	r.radarBlips = blips
 }
 
@@ -88,6 +134,10 @@ func (r *Radar) SetValues(position *geom.Vector2, heading, turretAngle, fovDegre
 	r.heading = heading
 	r.turretAngle = turretAngle
 	r.fovDegrees = fovDegrees
+}
+
+func (r *Radar) ShowPosition(show bool) {
+	r.showPosition = show
 }
 
 func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
@@ -116,7 +166,13 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	rColor := hudOpts.HudColor(_colorRadar)
 	r.fontRenderer.SetColor(rColor)
 
-	radarStr := fmt.Sprintf("R:%0.1fkm", 1.0)
+	radarStr := fmt.Sprintf("R:%0.1fkm", r.radarRange*model.METERS_PER_UNIT/1000)
+	if r.radarRange < 1000 {
+		radarStr = fmt.Sprintf("R:%0.0fm", r.radarRange*model.METERS_PER_UNIT)
+	}
+	if r.showPosition {
+		radarStr += fmt.Sprintf("\nP:%0.0f,%0.0f", r.position.X, r.position.Y)
+	}
 	r.fontRenderer.Draw(radarStr, bX, bY)
 
 	// Draw radar circle outline
@@ -127,35 +183,15 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	vector.StrokeCircle(screen, float32(midX), float32(midY), float32(radius), oT, color.NRGBA{oColor.R, oColor.G, oColor.B, oAlpha}, false)
 
 	// Draw any walls/boundaries within the radar range using lines that make up the map wall boundaries
-	posX, posY := r.position.X, r.position.Y
-	radarRange := radarRangeMeters / model.METERS_PER_UNIT
-	radarHudSizeFactor := radius / radarRange
-	for _, borderLine := range r.mapLines {
-		// quick range check for nearby wall cells
-		if !(model.PointInProximity(radarRange, posX, posY, borderLine.X1, borderLine.Y1) ||
-			model.PointInProximity(radarRange, posX, posY, borderLine.X2, borderLine.Y2)) {
-			continue
-		}
+	radarHudSizeFactor := radius / r.radarRange
+	wColor := hudOpts.HudColor(_colorRadarOutline)
+	for _, wallLine := range r.mapLines {
+		r.drawRadarLine(screen, wallLine, midX, midY, radarHudSizeFactor, oT, wColor)
+	}
 
-		wColor := hudOpts.HudColor(_colorRadarOutline)
-
-		// determine distance to wall line, convert to relative radar angle and draw
-		line1 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X1, Y2: borderLine.Y1}
-		angle1 := r.heading - line1.Angle() - geom.HalfPi
-		dist1 := line1.Distance()
-
-		line2 := geom.Line{X1: posX, Y1: posY, X2: borderLine.X2, Y2: borderLine.Y2}
-		angle2 := r.heading - line2.Angle() - geom.HalfPi
-		dist2 := line2.Distance()
-
-		if dist1 > radarRange || dist2 > radarRange {
-			continue
-		}
-
-		rLine1 := geom.LineFromAngle(midX, midY, angle1, dist1*radarHudSizeFactor)
-		rLine2 := geom.LineFromAngle(midX, midY, angle2, dist2*radarHudSizeFactor)
-
-		vector.StrokeLine(screen, float32(rLine1.X2), float32(rLine1.Y2), float32(rLine2.X2), float32(rLine2.Y2), oT, wColor, false)
+	// Draw navigation lines
+	for _, nLine := range r.navLines {
+		r.drawRadarLine(screen, nLine, midX, midY, radarHudSizeFactor, 1, wColor)
 	}
 
 	// Draw turret angle reference lines
@@ -205,7 +241,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	fColor := hudOpts.HudColor(_colorFriendly)
 
 	for _, blip := range r.radarBlips {
-		// convert heading angle into relative radar angle where "up" is forward
+		// convert direction angle into relative radar angle where "up" is forward
 		radarAngle := blip.Angle - geom.HalfPi
 
 		radarDistancePx := blip.Distance * radarHudSizeFactor
@@ -218,11 +254,25 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			bColor = eColor
 		}
 
+		// convert blip unit heading into relative radar angle
+		radarHeading := blip.Heading - geom.HalfPi
+		radarTurretHeading := blip.TurretHeading - geom.HalfPi
+
 		if blip.IsTarget {
 			// draw target square around lighter colored blip
 			tAlpha := uint8(int(bColor.A) / 3)
 			tColor := color.NRGBA{R: bColor.R, G: bColor.G, B: bColor.B, A: tAlpha}
 			vector.DrawFilledRect(screen, float32(bLine.X2-6), float32(bLine.Y2-6), 12, 12, tColor, false) // TODO: calculate thickness based on image size
+
+			hLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarHeading, 10)
+			vector.StrokeLine(screen, float32(hLine.X1), float32(hLine.Y1), float32(hLine.X2), float32(hLine.Y2), 3, bColor, false)
+
+			// only draw turret heading for current target
+			thLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarTurretHeading, 6)
+			vector.StrokeLine(screen, float32(thLine.X1), float32(thLine.Y1), float32(thLine.X2), float32(thLine.Y2), 2, bColor, false)
+		} else {
+			hLine := geom.LineFromAngle(bLine.X2, bLine.Y2, radarHeading, 8)
+			vector.StrokeLine(screen, float32(hLine.X1), float32(hLine.Y1), float32(hLine.X2), float32(hLine.Y2), 2, bColor, false)
 		}
 
 		if blip.IsFriendly {
@@ -232,4 +282,31 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			vector.DrawFilledRect(screen, float32(bLine.X2)-2, float32(bLine.Y2-2), 4, 4, bColor, false) // TODO: calculate thickness based on image size
 		}
 	}
+}
+
+func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, centerY, hudSizeFactor float64, lineWidth float32, clr color.Color) {
+	posX, posY := r.position.X, r.position.Y
+	// quick range check for nearby wall cells
+	if !(model.PointInProximity(r.radarRange, posX, posY, line.X1, line.Y1) ||
+		model.PointInProximity(r.radarRange, posX, posY, line.X2, line.Y2)) {
+		return
+	}
+
+	// determine distance to wall line, convert to relative radar angle and draw
+	line1 := geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
+	angle1 := r.heading - line1.Angle() - geom.HalfPi
+	dist1 := line1.Distance()
+
+	line2 := geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
+	angle2 := r.heading - line2.Angle() - geom.HalfPi
+	dist2 := line2.Distance()
+
+	if dist1 > r.radarRange || dist2 > r.radarRange {
+		return
+	}
+
+	rLine1 := geom.LineFromAngle(centerX, centerY, angle1, dist1*hudSizeFactor)
+	rLine2 := geom.LineFromAngle(centerX, centerY, angle2, dist2*hudSizeFactor)
+
+	vector.StrokeLine(dst, float32(rLine1.X2), float32(rLine1.Y2), float32(rLine2.X2), float32(rLine2.Y2), lineWidth, clr, false)
 }

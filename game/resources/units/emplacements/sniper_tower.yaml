@@ -25,15 +25,15 @@ heatSinks:
   quantity: 10
   type: single
 armament:
-- weapon: "cl_ultra_ac_2.yaml"
+- weapon: cl_ultra_ac_2
   type: ballistic
   location: turret
   offset: [-6, 80]
-- weapon: "cl_ultra_ac_2.yaml"
+- weapon: cl_ultra_ac_2
   type: ballistic
   location: turret
   offset: [6, 80]
 ammo:
 - type: ballistic
-  forWeapon: cl_ultra_ac_2.yaml
+  forWeapon: cl_ultra_ac_2
   tons: 10

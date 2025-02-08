@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
 var (
@@ -41,6 +42,7 @@ type DrawHudOptions struct {
 	MarginX, MarginY int
 	UseCustomColor   bool
 	Color            color.NRGBA
+	HudUnit          model.Unit
 }
 
 // HudColor gets the color that should be used by a HUD element based on its default or custom user color setting
