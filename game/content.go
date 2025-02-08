@@ -6,6 +6,8 @@ import (
 	"image/color"
 	"math"
 	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
@@ -766,9 +768,11 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 		case model.AMMO_BALLISTIC:
 			var ammoBin *model.AmmoBin
 			for _, w := range unit.Armament() {
+				// ballistic ammo is specific for weapons of specified caliber
 				if ballisticWeapon, ok := w.(*model.BallisticWeapon); ok {
-					// ballistic ammo is specific for weapons of specified caliber
-					if ammoResource.ForWeapon != ballisticWeapon.File() {
+					// trim file extension from weapon resource name so ammo for it can be listed without the extension
+					weaponFileBase := strings.TrimSuffix(ballisticWeapon.File(), filepath.Ext(ballisticWeapon.File()))
+					if ammoResource.ForWeapon != weaponFileBase {
 						continue
 					}
 					if ammoBin == nil {

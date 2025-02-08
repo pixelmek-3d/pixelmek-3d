@@ -53,6 +53,7 @@ func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionH
 		offset:            offset,
 		missileTube:       0,
 		missileTubeOffset: make([]*geom.Vector2, r.ProjectileCount),
+		ammoBin:           &AmmoBin{},
 		parent:            parent,
 	}
 
