@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 - Eric Harbeston. All Rights Reserved.
+ * Copyright (c) 2025 - Eric Harbeston. All Rights Reserved.
  *
  * PixelMek 3D is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
+	"strings"
 
 	"github.com/mattn/go-isatty"
 	"github.com/pixelmek-3d/pixelmek-3d/cmd"
@@ -29,7 +31,7 @@ import (
 func main() {
 	// setup logging
 	log.SetLevel(log.InfoLevel)
-	if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+	if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) || isDebuggerPresent() {
 		log.SetOutput(os.Stdout)
 	} else {
 		f, err := os.OpenFile("pixelmek-3d.log", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0666)
@@ -50,4 +52,18 @@ func main() {
 	log.SetFormatter(&formatter)
 
 	cmd.Execute()
+}
+
+func isDebuggerPresent() bool {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return false
+	}
+	for _, s := range bi.Settings {
+		if s.Key == "-gcflags" && strings.Contains(s.Value, "all=-N") {
+			fmt.Print("debugger present...\n")
+			return true
+		}
+	}
+	return false
 }
