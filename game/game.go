@@ -38,7 +38,9 @@ type Game struct {
 	menu   Menu
 	paused bool
 
-	ai          *AIHandler
+	ai             *AIHandler
+	aiIgnorePlayer bool
+
 	resources   *model.ModelResources
 	audio       *AudioHandler
 	input       *input.Handler

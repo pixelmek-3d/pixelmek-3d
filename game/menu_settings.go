@@ -183,11 +183,18 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	pages = append(pages, hudSettings)
 	pages = append(pages, audioSettings)
 
-	var lightingSettings *settingsPage
-	if gameMenu != nil && m.Game().debug {
-		// only show the lighting menu page in-mission and when debug mode
-		lightingSettings = lightingPage(m)
-		pages = append(pages, lightingSettings)
+	var debugLightingSettings *settingsPage
+	var debugOptionsSettings *settingsPage
+	if m.Game().debug {
+		// only show the debug options menu page when debug mode
+		debugOptionsSettings = debugOptionsPage(m)
+		pages = append(pages, debugOptionsSettings)
+
+		if gameMenu != nil {
+			// only show the debug lighting menu page in-mission and when debug mode
+			debugLightingSettings = debugLightingPage(m)
+			pages = append(pages, debugLightingSettings)
+		}
 	}
 
 	pageContainer := newSettingsPageContainer(m)
@@ -211,7 +218,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			nextPage := args.Entry.(*settingsPage)
 			pageContainer.setPage(nextPage)
-			if missionSettings != nil && (nextPage == hudSettings || (lightingSettings != nil && nextPage == lightingSettings)) {
+			if missionSettings != nil && (nextPage == hudSettings || (debugLightingSettings != nil && nextPage == debugLightingSettings)) {
 				// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
 				m.Root().BackgroundImage = nil
 				pageContainer.widget.(*widget.Container).BackgroundImage = nil

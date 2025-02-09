@@ -804,7 +804,10 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		var navLines []*geom.Line
 		if debugNavLineTargetUnit != nil {
 			unitBehavior := g.ai.UnitAI(debugNavLineTargetUnit)
-			pathing := unitBehavior.piloting.pathing
+			var pathing *AIPathing
+			if unitBehavior != nil {
+				pathing = unitBehavior.piloting.pathing
+			}
 			if pathing != nil && pathing.Len() > 0 {
 				navLines = make([]*geom.Line, 0, pathing.Len())
 				prevPathPos := debugNavLineTargetUnit.Pos()

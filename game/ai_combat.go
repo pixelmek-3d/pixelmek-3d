@@ -44,6 +44,7 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 
 			return bt.Success, nil
 		}
+		a.u.SetTarget(nil)
 		return bt.Failure, nil
 	}
 }

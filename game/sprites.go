@@ -326,7 +326,7 @@ func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*p
 		})
 	}
 
-	if g.player.sprite != nil {
+	if g.player.sprite != nil && !g.aiIgnorePlayer {
 		// include player also
 		sPos := g.player.sprite.Pos()
 		// fast proximity check
