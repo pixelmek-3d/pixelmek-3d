@@ -326,6 +326,19 @@ func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*p
 		})
 	}
 
+	if g.player.sprite != nil && !g.aiIgnorePlayer {
+		// include player also
+		sPos := g.player.sprite.Pos()
+		// fast proximity check
+		if model.PointInProximity(distance, pos.X, pos.Y, sPos.X, sPos.Y) {
+			// exact distance check
+			sDist := geom.Distance(pos.X, pos.Y, sPos.X, sPos.Y)
+			if sDist <= distance {
+				sprites = append(sprites, &proximitySprite{sprite: g.player.sprite, distance: sDist})
+			}
+		}
+	}
+
 	// sort sprites by distance
 	sort.Slice(sprites, func(i, j int) bool { return sprites[i].distance < sprites[j].distance })
 

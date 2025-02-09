@@ -28,10 +28,6 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 
 		// TODO: different detection range for different units
 		pUnits := a.g.getProximitySpriteUnits(a.u.Pos(), 1000/model.METERS_PER_UNIT)
-
-		// TODO: enemy units need to be able to target player unit
-		// units = append(units, a.g.player)
-
 		for _, p := range pUnits {
 			t := p.unit
 			if t == a.u || t.IsDestroyed() || a.g.IsFriendly(a.u, t) {
@@ -48,6 +44,7 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 
 			return bt.Success, nil
 		}
+		a.u.SetTarget(nil)
 		return bt.Failure, nil
 	}
 }
