@@ -188,10 +188,7 @@ func (g *Game) loadContent() {
 			continue
 		}
 
-		if s.Scale == 0.0 {
-			// default unset scale to 1.0
-			s.Scale = 1.0
-		}
+		scale := s.Height / model.METERS_PER_UNIT
 
 		var spriteImg *ebiten.Image
 		if eImg, ok := g.tex.texMap[s.Image]; ok {
@@ -207,7 +204,7 @@ func (g *Game) loadContent() {
 			x, y, z := position[0], position[1], s.ZPosition
 
 			collisionRadius, collisionHeight := convertOffsetFromPx(
-				s.CollisionPxRadius, s.CollisionPxHeight, sWidth, sHeight, s.Scale,
+				s.CollisionPxRadius, s.CollisionPxHeight, sWidth, sHeight, scale,
 			)
 
 			hitPoints := math.MaxFloat64
@@ -217,7 +214,8 @@ func (g *Game) loadContent() {
 
 			sprite := render.NewSprite(
 				model.BasicCollisionEntity(x, y, z, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight, hitPoints),
-				s.Scale, spriteImg,
+				scale,
+				spriteImg,
 			)
 
 			g.sprites.addMapSprite(sprite)

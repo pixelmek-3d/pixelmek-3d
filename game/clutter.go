@@ -88,6 +88,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 				}
 
 				clutterImg := g.tex.texMap[clutter.Image]
+				clutterScale := clutter.Height / model.METERS_PER_UNIT
 				cSprite := render.NewSprite(
 					model.BasicVisualEntity(
 						float64(x)+c.rng.Float64(),
@@ -95,7 +96,8 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 						0,
 						raycaster.AnchorBottom,
 					),
-					clutter.Scale, clutterImg,
+					clutterScale,
+					clutterImg,
 				)
 
 				// store clutter sprites and which coordinate position id they are in

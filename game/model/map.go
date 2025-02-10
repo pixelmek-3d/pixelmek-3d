@@ -66,7 +66,7 @@ type MapClutter struct {
 	Image          string  `yaml:"image"`
 	FloorPathMatch *RegExp `yaml:"floorPathMatch"`
 	Frequency      float64 `yaml:"frequency"`
-	Scale          float64 `yaml:"scale"`
+	Height         float64 `yaml:"height"`
 }
 
 type SpriteAnchor struct {
@@ -115,7 +115,7 @@ type MapSprite struct {
 	CollisionPxRadius float64      `yaml:"collisionRadius"`
 	CollisionPxHeight float64      `yaml:"collisionHeight"`
 	HitPoints         float64      `yaml:"hitPoints"`
-	Scale             float64      `default:"1.0" yaml:"scale,omitempty"`
+	Height            float64      `yaml:"height"`
 	Anchor            SpriteAnchor `yaml:"anchor"`
 	Stamp             string       `yaml:"stamp"`
 }
@@ -126,7 +126,7 @@ type MapSpriteFill struct {
 	CollisionPxRadius float64    `yaml:"collisionRadius"`
 	CollisionPxHeight float64    `yaml:"collisionHeight"`
 	HitPoints         float64    `yaml:"hitPoints"`
-	ScaleRange        [2]float64 `yaml:"scaleRange"`
+	HeightRange       [2]float64 `yaml:"heightRange"`
 	Rect              [2][2]int  `yaml:"rect"`
 }
 
@@ -274,10 +274,11 @@ func (m *Map) generateFillerSprites() error {
 
 		for i := 0; i < fill.Quantity; i++ {
 			fX, fY := RandFloat64In(x0, x1, rng), RandFloat64In(y0, y1, rng)
-			scale := 1.0
-			if len(fill.ScaleRange) == 2 {
-				// generate random scale value within scale range
-				scale = RandFloat64In(fill.ScaleRange[0], fill.ScaleRange[1], rng)
+
+			var height float64
+			if len(fill.HeightRange) == 2 {
+				// generate random height value within height range
+				height = RandFloat64In(fill.HeightRange[0], fill.HeightRange[1], rng)
 			}
 
 			mapSprite := MapSprite{
@@ -286,7 +287,7 @@ func (m *Map) generateFillerSprites() error {
 				CollisionPxRadius: fill.CollisionPxRadius,
 				CollisionPxHeight: fill.CollisionPxHeight,
 				HitPoints:         fill.HitPoints,
-				Scale:             scale,
+				Height:            height,
 			}
 			nSprites = append(nSprites, mapSprite)
 		}
@@ -324,7 +325,7 @@ func (m *Map) generateSpritesFromStamps() error {
 							CollisionPxRadius: stampSprite.CollisionPxRadius,
 							CollisionPxHeight: stampSprite.CollisionPxHeight,
 							HitPoints:         stampSprite.HitPoints,
-							Scale:             stampSprite.Scale,
+							Height:            stampSprite.Height,
 						}
 						nSprites = append(nSprites, mapSprite)
 					}
