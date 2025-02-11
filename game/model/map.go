@@ -16,6 +16,8 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Map struct {
@@ -32,6 +34,8 @@ type Map struct {
 	SpriteFill       []MapSpriteFill    `yaml:"spriteFill"`
 	SpriteStamps     []MapSpriteStamp   `yaml:"spriteStamps"`
 	Seed             int64              `yaml:"seed"`
+
+	spritesByID map[string]MapSprite `yaml:"-"`
 }
 
 type MapTexture struct {
@@ -109,6 +113,7 @@ func (r *RegExp) UnmarshalText(b []byte) error {
 }
 
 type MapSprite struct {
+	ID                string       `yaml:"id"`
 	Image             string       `yaml:"image"`
 	Positions         [][2]float64 `yaml:"positions"`
 	ZPosition         float64      `yaml:"zPosition"`
@@ -121,18 +126,21 @@ type MapSprite struct {
 }
 
 type MapSpriteFill struct {
-	Image             string     `yaml:"image"`
-	Quantity          int        `yaml:"quantity"`
-	CollisionPxRadius float64    `yaml:"collisionRadius"`
-	CollisionPxHeight float64    `yaml:"collisionHeight"`
-	HitPoints         float64    `yaml:"hitPoints"`
-	HeightRange       [2]float64 `yaml:"heightRange"`
-	Rect              [2][2]int  `yaml:"rect"`
+	SpriteID    string     `yaml:"sprite"`
+	Quantity    int        `yaml:"quantity"`
+	HeightRange [2]float64 `yaml:"heightRange"`
+	Rect        [2][2]int  `yaml:"rect"`
 }
 
 type MapSpriteStamp struct {
-	Id      string      `yaml:"id"`
-	Sprites []MapSprite `yaml:"sprites"`
+	Positions [][2]float64        `yaml:"positions"`
+	Sprites   []MapSpriteStampRef `yaml:"sprites"`
+}
+
+type MapSpriteStampRef struct {
+	SpriteID  string       `yaml:"sprite"`
+	Height    float64      `yaml:"height"`
+	Positions [][2]float64 `yaml:"positions"`
 }
 
 type MapLighting struct {
@@ -241,6 +249,19 @@ func LoadMap(mapFile string) (*Map, error) {
 		m.NumRaycastLevels = len(m.Levels)
 	}
 
+	// map sprites by ID for use in sprite fill/stamps
+	m.spritesByID = make(map[string]MapSprite, len(m.Sprites))
+	for _, mSprite := range m.Sprites {
+		if len(mSprite.ID) == 0 {
+			continue
+		}
+		if _, exists := m.spritesByID[mSprite.ID]; exists {
+			log.Errorf("sprite with same ID is defined more than once: %s", mSprite.ID)
+			continue
+		}
+		m.spritesByID[mSprite.ID] = mSprite
+	}
+
 	// generate additional sprites using sprite fill
 	if len(m.SpriteFill) > 0 {
 		err := m.generateFillerSprites()
@@ -281,14 +302,15 @@ func (m *Map) generateFillerSprites() error {
 				height = RandFloat64In(fill.HeightRange[0], fill.HeightRange[1], rng)
 			}
 
-			mapSprite := MapSprite{
-				Image:             fill.Image,
-				Positions:         [][2]float64{{fX, fY}},
-				CollisionPxRadius: fill.CollisionPxRadius,
-				CollisionPxHeight: fill.CollisionPxHeight,
-				HitPoints:         fill.HitPoints,
-				Height:            height,
+			mapSprite, ok := m.spritesByID[fill.SpriteID]
+			if !ok {
+				log.Errorf("fill sprite not found with ID: %s", fill.SpriteID)
+				continue
 			}
+
+			mapSprite.Positions = [][2]float64{{fX, fY}}
+			mapSprite.Height = height
+
 			nSprites = append(nSprites, mapSprite)
 		}
 
@@ -300,44 +322,31 @@ func (m *Map) generateFillerSprites() error {
 
 func (m *Map) generateSpritesFromStamps() error {
 	nSprites := make([]MapSprite, len(m.Sprites))
+	copier.Copy(&nSprites, &m.Sprites)
 
-	stampsById := make(map[string]MapSpriteStamp, len(m.SpriteStamps))
 	for _, stamp := range m.SpriteStamps {
-		stampsById[stamp.Id] = stamp
-	}
-
-	for _, sprite := range m.Sprites {
-		if sprite.Image != "" {
-			nSprites = append(nSprites, sprite)
-		}
-		if sprite.Stamp != "" {
-			if stamp, ok := stampsById[sprite.Stamp]; ok {
-				for _, position := range sprite.Positions {
-					x, y := position[0], position[1]
-					for _, stampSprite := range stamp.Sprites {
-						mapPositions := make([][2]float64, len(stampSprite.Positions))
-						for i, stampPosition := range stampSprite.Positions {
-							mapPositions[i] = [2]float64{x + stampPosition[0], y + stampPosition[1]}
-						}
-						mapSprite := MapSprite{
-							Image:             stampSprite.Image,
-							Positions:         mapPositions,
-							CollisionPxRadius: stampSprite.CollisionPxRadius,
-							CollisionPxHeight: stampSprite.CollisionPxHeight,
-							HitPoints:         stampSprite.HitPoints,
-							Height:            stampSprite.Height,
-						}
-						nSprites = append(nSprites, mapSprite)
-					}
+		for _, position := range stamp.Positions {
+			x, y := position[0], position[1]
+			for _, stampSprite := range stamp.Sprites {
+				mapSprite, ok := m.spritesByID[stampSprite.SpriteID]
+				if !ok {
+					log.Errorf("stamp sprite not found with ID: %s", stampSprite.SpriteID)
+					continue
 				}
-			} else {
-				return fmt.Errorf("stamp id is not defined or is misspelled: \"%s\"", sprite.Stamp)
+
+				mapPositions := make([][2]float64, len(stampSprite.Positions))
+				for i, stampPosition := range stampSprite.Positions {
+					mapPositions[i] = [2]float64{x + stampPosition[0], y + stampPosition[1]}
+				}
+				mapSprite.Positions = mapPositions
+				mapSprite.Height = stampSprite.Height
+
+				nSprites = append(nSprites, mapSprite)
 			}
 		}
 	}
 
 	m.Sprites = nSprites
-
 	return nil
 }
 

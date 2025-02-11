@@ -43,18 +43,29 @@ clutter:
   floorPathMatch: "desert"
   frequency: 0.3
 spriteFill:
-- image: "shrubbery/tree_0.png"
+- sprite: "tree_0"
   heightRange: [4, 16]
-  collisionRadius: 80
-  collisionHeight: 220
-  hitPoints: 0.1
   quantity: 100
   rect: [[42, 25], [64, 55]]
-spriteStamps: []
+spriteStamps:
+- # tree line
+  positions:
+    - [59, 59]
+    - [62, 62]
+  sprites:
+  - sprite: "tree_0"
+    height: 10
+    positions:
+    - [0, 0]
+    - [0.5, 0]
+    - [1.0, 0]
+    - [1.5, 0]
+    - [2.0, 0]
 sprites:
-- image: "shrubbery/tree_0.png"
+- id: "tree_0"
+  image: "shrubbery/tree_0.png"
   height: 20
-  collisionRadius: 60
+  collisionRadius: 56
   collisionHeight: 190
   hitPoints: 0.1
   positions:
