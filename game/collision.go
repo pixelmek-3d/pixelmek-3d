@@ -90,12 +90,6 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 
 	// check wall collisions
 	for _, borderLine := range g.collisionMap {
-		// only check intersection of nearby wall cells instead of all of them
-		if !(model.PointInProximity(checkDist, newX, newY, borderLine.X1, borderLine.Y1) ||
-			model.PointInProximity(checkDist, newX, newY, borderLine.X2, borderLine.Y2)) {
-			continue
-		}
-
 		if px, py, ok := geom.LineIntersection(moveLine, *borderLine); ok {
 			intersectPoints = append(intersectPoints, geom.Vector2{X: px, Y: py})
 		}
