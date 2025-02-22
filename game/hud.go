@@ -295,6 +295,9 @@ func (g *Game) drawFPS(hudOpts *render.DrawHudOptions) {
 	}
 
 	fpsText := fmt.Sprintf("FPS: %0.1f | TPS: %0.1f/%d", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
+	if debugProfCPU {
+		fpsText += " | CPU Profiling Enabled"
+	}
 	fps.SetFPSText(fpsText)
 
 	marginY := hudOpts.MarginY
