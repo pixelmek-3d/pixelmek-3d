@@ -286,6 +286,11 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, centerY, hudSizeFactor float64, lineWidth float32, clr color.Color) {
 	posX, posY := r.position.X, r.position.Y
+	// quick range check for nearby wall cells
+	if !(model.PointInProximity(r.radarRange, posX, posY, line.X1, line.Y1) ||
+		model.PointInProximity(r.radarRange, posX, posY, line.X2, line.Y2)) {
+		return
+	}
 
 	// determine distance to wall line, convert to relative radar angle and draw
 	line1 := geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
@@ -296,7 +301,9 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 	angle2 := r.heading - line2.Angle() - geom.HalfPi
 	dist2 := line2.Distance()
 
-	// FIXME: determine if line is outside of radar, clip line to radar circle
+	if dist1 > r.radarRange || dist2 > r.radarRange {
+		return
+	}
 
 	rLine1 := geom.LineFromAngle(centerX, centerY, angle1, dist1*hudSizeFactor)
 	rLine2 := geom.LineFromAngle(centerX, centerY, angle2, dist2*hudSizeFactor)

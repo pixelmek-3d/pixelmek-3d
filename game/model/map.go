@@ -20,16 +20,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type CardinalDirection byte
-
-const (
-	NORTH CardinalDirection = iota
-	EAST
-	SOUTH
-	WEST
-	NOWHERE
-)
-
 type Map struct {
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
@@ -480,154 +470,32 @@ func (m *Map) generateMapLevels() error {
 }
 
 func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
-	w, h := m.Size()
-	if w == 0 || h == 0 {
+	if len(m.Levels) == 0 || len(m.Levels[0]) == 0 || len(m.Levels[0][0]) == 0 {
 		return []*geom.Line{}
 	}
 
-	level := m.Levels[0]
-	lines := make([]*geom.Line, 0, 4*len(level))
+	firstLevel := m.Levels[0]
+	lines := make([]*geom.Line, 0, 4*len(firstLevel))
 
-	// start with line around map border
 	rectLines := geom.Rect(clipDistance, clipDistance,
-		float64(len(level))-2*clipDistance, float64(len(level[0]))-2*clipDistance)
-	for i := range rectLines {
+		float64(len(firstLevel))-2*clipDistance, float64(len(firstLevel[0]))-2*clipDistance)
+	for i := 0; i < len(rectLines); i++ {
 		lines = append(lines, &rectLines[i])
 	}
 
-	// track cells which have already been visited
-	visited := make([][]bool, len(level))
-	for i := range visited {
-		visited[i] = make([]bool, len(level[0]))
-	}
-
-	// walk cells with walls to generate contiguous lines where possible, starting from the west and going clockwise
-	for y := range h {
-		// walking in X direction before Y
-		for x := range w {
-			value := level[x][y]
-			if value == 0 || visited[x][y] {
-				continue
+	for x, row := range firstLevel {
+		for y, value := range row {
+			if value > 0 {
+				rectLines = geom.Rect(float64(x)-clipDistance, float64(y)-clipDistance,
+					1.0+(2*clipDistance), 1.0+(2*clipDistance))
+				for i := 0; i < len(rectLines); i++ {
+					lines = append(lines, &rectLines[i])
+				}
 			}
-
-			// start a new line from the bottom left to top left of cell (NORTH)
-			lineDir := NORTH
-			prevDir := lineDir
-			line := m.createWallLine(x, y, lineDir)
-			lines = append(lines, line)
-
-			// keep track of last visited cell in contiguous line group as (i,j)
-			i, j := x, y
-
-			// loop check cardinal directions in order to see if that direction can be moved until a visited cell is reached
-			for lineDir != NOWHERE {
-				// starting with North, check each direction for a non-visited wall cell
-				// if the direction of non-visited wall cell is same as last loop, update the ending position of the line
-				// else, start a new line
-				a, b := i, j // check prospective cells as (a,b)
-				switch lineDir {
-				case NORTH:
-					b++
-				case EAST:
-					a++
-				case SOUTH:
-					b--
-				case WEST:
-					a--
-				}
-
-				// make sure the prospective cell (a,b) is not out of bounds
-				if a < 0 || b < 0 || a >= w || b >= h {
-					lineDir++
-					continue
-				}
-
-				// make sure the prospective cell (a,b) is a wall and has not already been visited
-				if level[a][b] == 0 || visited[a][b] {
-					lineDir++
-					continue
-				}
-
-				// FIXME: when boundary line hits a corner it is not connecting properly to next segment
-
-				// FIXME: if wall is only one unit width, it will appear already visited and not come back the other side of it
-
-				if prevDir == lineDir {
-					// update current boundary line in same direction as before
-					m.updateWallLine(a, b, lineDir, line)
-				} else {
-					// start a new boundary line
-					line = m.createWallLine(a, b, lineDir)
-					lines = append(lines, line)
-				}
-
-				// reset to north, update (i,j) to be (a,b) for next cell iteration
-				lineDir = NORTH
-				i, j = a, b
-				visited[i][j] = true
-			}
-
-			// FIXME: if only one cell was found with no contiguous parts, create a simple rect of lines just for it ( x,y == i,j ? )
-
 		}
 	}
 
 	return lines
-}
-
-// createWallLine starts a new outer line for a cell based on the given direction
-func (m *Map) createWallLine(x, y int, direction CardinalDirection) *geom.Line {
-	x1, y1 := float64(x), float64(y)
-	x2, y2 := float64(x), float64(y)
-
-	// TODO: account for clipDistance
-	switch direction {
-	case NORTH:
-		// start from bottom left of cell and go up
-		y2++
-	case EAST:
-		// start from top left of cell and go right
-		y1++
-		x2++
-		y2++
-	case SOUTH:
-		// start from top right of cell and go down
-		x1++
-		y1++
-		x2++
-	case WEST:
-		// start from bottom right of cell and go left
-		x1++
-	default:
-		return nil
-	}
-
-	return &geom.Line{X1: x1, Y1: y1, X2: x2, Y2: y2}
-}
-
-// updateWallLine updates an outer line for a cell based on being extended in the given direction
-func (m *Map) updateWallLine(i, j int, direction CardinalDirection, line *geom.Line) {
-	x2, y2 := float64(i), float64(j)
-
-	// TODO: account for clipDistance
-	switch direction {
-	case NORTH:
-		// from bottom left of cell: going up
-		y2++
-	case EAST:
-		// from top left of cell: going right
-		x2++
-		y2++
-	case SOUTH:
-		// from top right of cell: going down
-		x2++
-	case WEST:
-		// from bottom right of cell: going left
-		break
-	}
-
-	line.X2 = x2
-	line.Y2 = y2
 }
 
 func (m *Map) IsWallAt(levelNum, x, y int) bool {
