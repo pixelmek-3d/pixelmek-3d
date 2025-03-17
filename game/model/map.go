@@ -17,6 +17,7 @@ import (
 	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -469,6 +470,11 @@ func (m *Map) generateMapLevels() error {
 	return nil
 }
 
+type KeyValuePair[K any, V any] struct {
+	Key   K `json:"Key" form:"Key"`
+	Value V `json:"Value" form:"Value"`
+}
+
 func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 	if len(m.Levels) == 0 || len(m.Levels[0]) == 0 || len(m.Levels[0][0]) == 0 {
 		return []*geom.Line{}
@@ -477,25 +483,114 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 	firstLevel := m.Levels[0]
 	lines := make([]*geom.Line, 0, 4*len(firstLevel))
 
+	// border lines for edge of map
 	rectLines := geom.Rect(clipDistance, clipDistance,
 		float64(len(firstLevel))-2*clipDistance, float64(len(firstLevel[0]))-2*clipDistance)
-	for i := 0; i < len(rectLines); i++ {
-		lines = append(lines, &rectLines[i])
+	for _, li := range rectLines {
+		lines = append(lines, &li)
 	}
+
+	// create list of coordinates for the corners of each wall cell
+	// based on https://stackoverflow.com/a/73233163/854696
+	wallCoords := make([][4]*geom.Vector2, 0, 4*len(firstLevel))
 
 	for x, row := range firstLevel {
 		for y, value := range row {
 			if value > 0 {
-				rectLines = geom.Rect(float64(x)-clipDistance, float64(y)-clipDistance,
-					1.0+(2*clipDistance), 1.0+(2*clipDistance))
-				for i := 0; i < len(rectLines); i++ {
-					lines = append(lines, &rectLines[i])
+				fX, fY := float64(x), float64(y)
+				cellCoords := [4]*geom.Vector2{
+					{X: fX, Y: fY},
+					{X: fX + 1, Y: fY},
+					{X: fX + 1, Y: fY + 1},
+					{X: fX, Y: fY + 1},
+				}
+				wallCoords = append(wallCoords, cellCoords)
+			}
+		}
+	}
+
+	// compute edges of contiguous wall cells
+	edges := mapset.NewThreadUnsafeSet[KeyValuePair[geom.Vector2, geom.Vector2]]()
+	var firstEdge *KeyValuePair[geom.Vector2, geom.Vector2]
+	for _, coords := range wallCoords {
+		// Iterate over the coordinates to compute the edges
+		// Using for loop to skip already processed edges
+		for i, src := range coords {
+			for j, dest := range coords {
+				if i == j {
+					continue
+				}
+
+				// Check the distance between them to filter out the diagonal edges
+				coordDistance := geom.Distance(src.X, src.Y, dest.X, dest.Y)
+				if !(math.Abs(coordDistance-1.0) < 0.001) {
+					continue
+				}
+
+				edge := KeyValuePair[geom.Vector2, geom.Vector2]{*src, *dest}
+				if firstEdge == nil {
+					firstEdge = &edge
+				}
+
+				if edges.Contains(edge) {
+					// If the edge already exists in the set,
+					// it means its not part of the border
+					edges.Remove(edge)
+				} else {
+					edges.Add(edge)
 				}
 			}
 		}
 	}
 
+	// TODO: create ordered list of lines from the edge points
+	coordsList := make([]geom.Vector2, 0, len(wallCoords))
+
+	// Make a copy of the edges so we can remove items from it
+	// without destroying the original collection
+	cpEdges := edges.Clone()
+
+	// Add the first pair before starting the loop
+	previousEdge := KeyValuePair[geom.Vector2, geom.Vector2]{firstEdge.Key, firstEdge.Value}
+
+	coordsList = append(coordsList, previousEdge.Key, previousEdge.Value)
+
+	var currentEdge KeyValuePair[geom.Vector2, geom.Vector2]
+
+	// While there is an edge that follows the previous one
+
+	//  while (!(currentEdge = copy.FirstOrDefault(pair => pair.Key == previousEdge.Value))
+	//  	.Equals(default(KeyValuePair<Vector3, Vector3>)))
+	// {
+	defaultEdge := KeyValuePair[geom.Vector2, geom.Vector2]{}
+	currentEdge = setFirstOrDefaultWithKey(cpEdges, previousEdge.Value)
+	for currentEdge != defaultEdge {
+		// Our graph is not oriented but we want to ignores edges
+		// that go back from where we went
+		if currentEdge.Key.Equals(&previousEdge.Key) && currentEdge.Value.Equals(&previousEdge.Value) {
+			cpEdges.Remove(currentEdge)
+		}
+
+		// Add the vertex to the list and continue
+		coordsList = append(coordsList, currentEdge.Value)
+		previousEdge = currentEdge
+
+		// Remove traversed nodes
+		cpEdges.Remove(currentEdge)
+
+		currentEdge = setFirstOrDefaultWithKey(cpEdges, previousEdge.Value)
+	}
+
 	return lines
+}
+
+func setFirstOrDefaultWithKey(set mapset.Set[KeyValuePair[geom.Vector2, geom.Vector2]], key geom.Vector2) KeyValuePair[geom.Vector2, geom.Vector2] {
+	for kv := range set.Iter() {
+		if kv.Key.Equals(&key) {
+			return kv
+		}
+	}
+	return KeyValuePair[geom.Vector2, geom.Vector2]{}
 }
 
 func (m *Map) IsWallAt(levelNum, x, y int) bool {

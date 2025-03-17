@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/adrianbrad/queue v1.3.0
+	github.com/deckarep/golang-set/v2 v2.8.0
 	github.com/ebitenui/ebitenui v0.5.6
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/google/uuid v1.6.0
