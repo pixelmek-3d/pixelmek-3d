@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/go-playground/validator/v10"
@@ -17,7 +18,6 @@ import (
 	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -510,7 +510,7 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 	}
 
 	// compute edges of contiguous wall cells
-	edges := mapset.NewThreadUnsafeSet[KeyValuePair[geom.Vector2, geom.Vector2]]()
+	edges := common.NewOrderedSet[KeyValuePair[geom.Vector2, geom.Vector2]]()
 	var firstEdge *KeyValuePair[geom.Vector2, geom.Vector2]
 	for _, coords := range wallCoords {
 		// Iterate over the coordinates to compute the edges
@@ -555,20 +555,16 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 
 	coordsList = append(coordsList, previousEdge.Key, previousEdge.Value)
 
-	var currentEdge KeyValuePair[geom.Vector2, geom.Vector2]
+	defaultEdge := KeyValuePair[geom.Vector2, geom.Vector2]{}
+	currentEdge := setFirstOrDefaultWithKey(cpEdges, previousEdge.Value)
 
 	// While there is an edge that follows the previous one
-
-	//  while (!(currentEdge = copy.FirstOrDefault(pair => pair.Key == previousEdge.Value))
-	//  	.Equals(default(KeyValuePair<Vector3, Vector3>)))
-	// {
-	defaultEdge := KeyValuePair[geom.Vector2, geom.Vector2]{}
-	currentEdge = setFirstOrDefaultWithKey(cpEdges, previousEdge.Value)
 	for currentEdge != defaultEdge {
 		// Our graph is not oriented but we want to ignores edges
 		// that go back from where we went
-		if currentEdge.Key.Equals(&previousEdge.Key) && currentEdge.Value.Equals(&previousEdge.Value) {
+		if currentEdge == previousEdge {
 			cpEdges.Remove(currentEdge)
+			continue
 		}
 
 		// Add the vertex to the list and continue
@@ -584,7 +580,7 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 	return lines
 }
 
-func setFirstOrDefaultWithKey(set mapset.Set[KeyValuePair[geom.Vector2, geom.Vector2]], key geom.Vector2) KeyValuePair[geom.Vector2, geom.Vector2] {
+func setFirstOrDefaultWithKey(set *common.OrderedSet[KeyValuePair[geom.Vector2, geom.Vector2]], key geom.Vector2) KeyValuePair[geom.Vector2, geom.Vector2] {
 	for kv := range set.Iter() {
 		if kv.Key.Equals(&key) {
 			return kv
