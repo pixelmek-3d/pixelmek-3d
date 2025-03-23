@@ -550,8 +550,6 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 					continue
 				}
 
-				// FIXME: when boundary line hits a corner it is not connecting properly to next segment
-
 				// FIXME: if wall is only one unit width, it will appear already visited and not come back the other side of it
 
 				if prevDir == lineDir {
@@ -559,7 +557,7 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 					m.updateWallLine(a, b, lineDir, line)
 				} else {
 					// start a new boundary line
-					line = m.createWallLine(a, b, lineDir)
+					line = m.createWallLine(i, j, lineDir)
 					lines = append(lines, line)
 				}
 
