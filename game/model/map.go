@@ -488,11 +488,13 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 	level := m.Levels[0]
 	lines := make([]*geom.Line, 0, 4*len(level))
 
-	// start with line around map border
-	rectLines := geom.Rect(clipDistance, clipDistance,
-		float64(len(level))-2*clipDistance, float64(len(level[0]))-2*clipDistance)
-	for i := range rectLines {
-		lines = append(lines, &rectLines[i])
+	if len(m.GenerateLevels.BoundaryWall.Image) == 0 {
+		// create collision lines around map border if no boundary wall
+		rectLines := geom.Rect(clipDistance, clipDistance,
+			float64(len(level))-2*clipDistance, float64(len(level[0]))-2*clipDistance)
+		for i := range rectLines {
+			lines = append(lines, &rectLines[i])
+		}
 	}
 
 	// track cells which have already been visited
@@ -562,6 +564,7 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 				}
 
 				// reset to north, update (i,j) to be (a,b) for next cell iteration
+				prevDir = lineDir
 				lineDir = NORTH
 				i, j = a, b
 				visited[i][j] = true
