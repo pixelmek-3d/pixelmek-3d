@@ -30,6 +30,42 @@ const (
 	NOWHERE
 )
 
+func (cd CardinalDirection) Next() CardinalDirection {
+	next := cd + 1
+	if next == NOWHERE {
+		next = NORTH
+	}
+	return next
+}
+
+func (cd CardinalDirection) Opposite() CardinalDirection {
+	switch cd {
+	case NORTH:
+		return SOUTH
+	case EAST:
+		return WEST
+	case SOUTH:
+		return NORTH
+	case WEST:
+		return EAST
+	}
+	return NOWHERE
+}
+
+func (cd CardinalDirection) String() string {
+	switch cd {
+	case NORTH:
+		return "N"
+	case EAST:
+		return "E"
+	case SOUTH:
+		return "S"
+	case WEST:
+		return "W"
+	}
+	return "?"
+}
+
 type Map struct {
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
@@ -370,9 +406,9 @@ func (m *Map) generateMapLevels() error {
 
 	// initialize map level slices
 	m.Levels = make([][][]int, m.NumRaycastLevels)
-	for i := 0; i < m.NumRaycastLevels; i++ {
+	for i := range m.NumRaycastLevels {
 		m.Levels[i] = make([][]int, mapSizeX)
-		for x := 0; x < mapSizeX; x++ {
+		for x := range mapSizeX {
 			m.Levels[i][x] = make([]int, mapSizeY)
 		}
 	}
@@ -387,8 +423,8 @@ func (m *Map) generateMapLevels() error {
 		boundaryTex := math.MaxInt16
 		m.Textures[boundaryTex] = gen.BoundaryWall
 
-		for x := 0; x < mapSizeX; x++ {
-			for y := 0; y < mapSizeY; y++ {
+		for x := range mapSizeX {
+			for y := range mapSizeY {
 				if x == 0 || y == 0 || x == mapSizeX-1 || y == mapSizeY-1 {
 					level[x][y] = boundaryTex
 				}
@@ -418,9 +454,9 @@ func (m *Map) generateMapLevels() error {
 		for _, pos := range prefab.Positions {
 			posX, posY := pos[0], pos[1]
 
-			for i := 0; i < pLevels; i++ {
-				for x := 0; x < pSizeX; x++ {
-					for y := 0; y < pSizeY; y++ {
+			for i := range pLevels {
+				for x := range pSizeX {
+					for y := range pSizeY {
 						if x+posX >= mapSizeX || y+posY >= mapSizeY {
 							continue
 						}
@@ -464,7 +500,7 @@ func (m *Map) generateMapLevels() error {
 					dist := geom.Distance(line.X1, line.Y1, line.X2, line.Y2)
 					for d := 0.0; d <= dist; d += 0.1 {
 						nLine := geom.LineFromAngle(line.X1, line.Y1, angle, d)
-						for levelIndex := 0; levelIndex < height; levelIndex++ {
+						for levelIndex := range height {
 							level := m.Levels[levelIndex]
 							level[int(nLine.X2)][int(nLine.Y2)] = tex
 						}
@@ -479,7 +515,185 @@ func (m *Map) generateMapLevels() error {
 	return nil
 }
 
-func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
+type wallLineGenerator struct {
+	m     *Map
+	cells [][]*cellBorder
+}
+
+type cellBorder struct {
+	dirLines map[CardinalDirection]*wallLine
+	visited  bool
+}
+
+type wallLine struct {
+	geom.Line
+	dir       CardinalDirection
+	cancelled bool
+	visited   bool
+}
+
+type wallGroup struct {
+	lines []*wallLine
+}
+
+func (l *wallLine) String() string {
+	return fmt.Sprintf("{%0.3f,%0.3f->%0.3f,%0.3f@%v}", l.X1, l.Y1, l.X2, l.Y2, l.dir)
+}
+
+func (wg *wallGroup) addLine(l *wallLine) {
+	l.visited = true
+	wg.lines = append(wg.lines, l)
+}
+
+func newWallLineGenerator(m *Map) *wallLineGenerator {
+	w, h := m.Size()
+	cells := make([][]*cellBorder, w)
+	for i := range cells {
+		cells[i] = make([]*cellBorder, h)
+	}
+	gen := &wallLineGenerator{
+		m:     m,
+		cells: cells,
+	}
+	gen.initializeCellWalls()
+	return gen
+}
+
+func newCellBorders(x, y int) *cellBorder {
+	return &cellBorder{
+		dirLines: map[CardinalDirection]*wallLine{
+			NORTH: createWallLine(x, y, NORTH),
+			EAST:  createWallLine(x, y, EAST),
+			SOUTH: createWallLine(x, y, SOUTH),
+			WEST:  createWallLine(x, y, WEST),
+		},
+	}
+}
+
+func (g *wallLineGenerator) cellInDirection(x, y int, direction CardinalDirection) (*cellBorder, int, int) {
+	i, j := x, y
+	switch direction {
+	case NORTH:
+		j++
+	case EAST:
+		i++
+	case SOUTH:
+		j--
+	case WEST:
+		i--
+	}
+
+	w, h := g.m.Size()
+	if i < 0 || j < 0 || i >= w || j >= h {
+		return nil, x, y
+	}
+
+	return g.cells[i][j], i, j
+}
+
+func (g *wallLineGenerator) initializeCellWalls() {
+	// initialize border line segments for each wall cell
+	w, h := g.m.Size()
+	level := g.m.Levels[0]
+	wallSet := make(map[geom.Line]*wallLine, w*h/4)
+
+	for x := range w {
+		for y := range h {
+			if level[x][y] == 0 {
+				continue
+			}
+			// for each wall cell, create directional line for each of its 4 borders
+			cb := newCellBorders(x, y)
+			g.cells[x][y] = cb
+
+			// for each border, check if an opposite direction of the same segment exists to cancel each other out
+			for _, dLine := range cb.dirLines {
+				oppLine := LineOpposite(dLine.Line)
+				if existingLine, found := wallSet[oppLine]; found {
+					// cancel each other out
+					dLine.cancelled = true
+					existingLine.cancelled = true
+				} else {
+					wallSet[dLine.Line] = dLine
+				}
+			}
+		}
+	}
+}
+
+func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
+	// walk connected cell lines to form connected groups of wall line segments
+	w, h := g.m.Size()
+
+	wallGroups := make([]*wallGroup, 0, w*h/4)
+
+	// walking in X direction before Y to start from the west and go clockwise
+	for y := range h {
+		for x := range w {
+			cell := g.cells[x][y]
+			if cell == nil || cell.visited {
+				continue
+			}
+
+			// start a new wallgroup of connecting lines
+			wg := &wallGroup{lines: make([]*wallLine, 0, 4)}
+			wallGroups = append(wallGroups, wg)
+
+			// go clockwise starting North since coming in from the West
+			lineDir := NORTH
+			ogLine := cell.dirLines[lineDir]
+			ogPoint := geom.Vector2{X: ogLine.X1, Y: ogLine.Y1}
+			wg.lines = append(wg.lines, ogLine)
+			fmt.Printf("ogPoint: %v\n", ogPoint)
+
+			i, j := x, y
+			startDir := lineDir
+			for {
+				cell.visited = true
+
+				// check adjacent cell in current direction if it continues in same direction
+				peekCell, peekX, peekY := g.cellInDirection(i, j, lineDir)
+				if peekCell != nil && !peekCell.visited {
+					peekLine := peekCell.dirLines[lineDir]
+					if peekLine != nil && !peekLine.cancelled && !peekLine.visited {
+						// move to the line in the new cell in same direction
+						fmt.Printf("peekLine: %v\n", peekLine)
+						wg.addLine(peekLine)
+						cell = peekCell
+						i, j = peekX, peekY
+						continue
+					}
+				}
+
+				line := cell.dirLines[lineDir]
+				if line == nil || line.cancelled || line.visited {
+					lineDir = lineDir.Next()
+					if lineDir == startDir {
+						log.Errorf("[%d, %d] unable to escape cell lines - breaking out of infinite loop", i, j)
+						break
+					}
+					continue
+				}
+
+				fmt.Printf("nextLine: %v\n", line)
+				startDir = lineDir
+				wg.addLine(line)
+
+				// TODO: force break if same direction has been attempted twice (err out before infinite loop)
+
+				// break when back to origin point of wallgroup
+				if line.X2 == ogPoint.X && line.Y2 == ogPoint.Y {
+					break
+				}
+			}
+
+			// TODO: mark all involved *cellBorder as visited before moving on through the map grid
+		}
+	}
+	return wallGroups
+}
+
+func (m *Map) GenerateWallCollisionLines(clipDistance float64) []*geom.Line {
 	w, h := m.Size()
 	if w == 0 || h == 0 {
 		return []*geom.Line{}
@@ -497,87 +711,98 @@ func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
 		}
 	}
 
-	// track cells which have already been visited
-	visited := make([][]bool, len(level))
-	for i := range visited {
-		visited[i] = make([]bool, len(level[0]))
-	}
-
-	// walk cells with walls to generate contiguous lines where possible, starting from the west and going clockwise
-	for y := range h {
-		// walking in X direction before Y
-		for x := range w {
-			value := level[x][y]
-			if value == 0 || visited[x][y] {
-				continue
-			}
-
-			// start a new line from the bottom left to top left of cell (NORTH)
-			lineDir := NORTH
-			prevDir := lineDir
-			line := m.createWallLine(x, y, lineDir)
-			lines = append(lines, line)
-
-			// keep track of last visited cell in contiguous line group as (i,j)
-			i, j := x, y
-
-			// loop check cardinal directions in order to see if that direction can be moved until a visited cell is reached
-			for lineDir != NOWHERE {
-				// starting with North, check each direction for a non-visited wall cell
-				// if the direction of non-visited wall cell is same as last loop, update the ending position of the line
-				// else, start a new line
-				a, b := i, j // check prospective cells as (a,b)
-				switch lineDir {
-				case NORTH:
-					b++
-				case EAST:
-					a++
-				case SOUTH:
-					b--
-				case WEST:
-					a--
-				}
-
-				// make sure the prospective cell (a,b) is not out of bounds
-				if a < 0 || b < 0 || a >= w || b >= h {
-					lineDir++
-					continue
-				}
-
-				// make sure the prospective cell (a,b) is a wall and has not already been visited
-				if level[a][b] == 0 || visited[a][b] {
-					lineDir++
-					continue
-				}
-
-				// FIXME: if wall is only one unit width, it will appear already visited and not come back the other side of it
-
-				if prevDir == lineDir {
-					// update current boundary line in same direction as before
-					m.updateWallLine(a, b, lineDir, line)
-				} else {
-					// start a new boundary line
-					line = m.createWallLine(i, j, lineDir)
-					lines = append(lines, line)
-				}
-
-				// reset to north, update (i,j) to be (a,b) for next cell iteration
-				prevDir = lineDir
-				lineDir = NORTH
-				i, j = a, b
-				visited[i][j] = true
-			}
-
-			// FIXME: if only one cell was found with no contiguous parts, create a simple rect of lines just for it ( x,y == i,j ? )
-
+	// Phase 1 - Create 4 border lines per cell with cardinal direction of clockwise movement
+	//           to trace outlines of contiguous wall segments
+	// Phase 1.1 - Keep track of same line segments and cancel out those with opposite cardinal direction
+	gen := newWallLineGenerator(m)
+	wallGroups := gen.generateWallGroups()
+	for _, wg := range wallGroups {
+		for _, l := range wg.lines {
+			lines = append(lines, &l.Line)
 		}
 	}
+
+	// Phase 2 - Go over each cell, walking the remaining line segments to other connected cells,
+	//           connecting contiguous segements in the same direction as growing line
+
+	// // track cells which have already been visited
+	// visited := make([][]bool, len(level))
+	// for i := range visited {
+	// 	visited[i] = make([]bool, len(level[0]))
+	// }
+
+	// // walk cells with walls to generate contiguous lines where possible, starting from the west and going clockwise
+	// for y := range h {
+	// 	// walking in X direction before Y
+	// 	for x := range w {
+	// 		value := level[x][y]
+	// 		if value == 0 || visited[x][y] {
+	// 			continue
+	// 		}
+
+	// 		// start a new line from the bottom left to top left of cell (NORTH)
+	// 		lineDir := NORTH
+	// 		prevDir := lineDir
+	// 		line := m.createWallLine(x, y, lineDir)
+	// 		lines = append(lines, line)
+
+	// 		// keep track of last visited cell in contiguous line group as (i,j)
+	// 		i, j := x, y
+
+	// 		// loop check cardinal directions in order to see if that direction can be moved until a visited cell is reached
+	// 		for lineDir != NOWHERE {
+	// 			// starting with North, check each direction for a non-visited wall cell
+	// 			// if the direction of non-visited wall cell is same as last loop, update the ending position of the line
+	// 			// else, start a new line
+	// 			a, b := i, j // check prospective cells as (a,b)
+	// 			switch lineDir {
+	// 			case NORTH:
+	// 				b++
+	// 			case EAST:
+	// 				a++
+	// 			case SOUTH:
+	// 				b--
+	// 			case WEST:
+	// 				a--
+	// 			}
+
+	// 			// make sure the prospective cell (a,b) is not out of bounds
+	// 			if a < 0 || b < 0 || a >= w || b >= h {
+	// 				lineDir++
+	// 				continue
+	// 			}
+
+	// 			// make sure the prospective cell (a,b) is a wall and has not already been visited
+	// 			if level[a][b] == 0 || visited[a][b] {
+	// 				lineDir++
+	// 				continue
+	// 			}
+
+	// 			// FIXME: if wall is only one unit width, it will appear already visited and not come back the other side of it
+
+	// 			if prevDir == lineDir {
+	// 				// update current boundary line in same direction as before
+	// 				m.updateWallLine(a, b, lineDir, line)
+	// 			} else {
+	// 				// start a new boundary line
+	// 				line = m.createWallLine(i, j, lineDir)
+	// 				lines = append(lines, line)
+	// 			}
+
+	// 			// reset to north, update (i,j) to be (a,b) for next cell iteration
+	// 			prevDir = lineDir
+	// 			lineDir = NORTH
+	// 			i, j = a, b
+	// 			visited[i][j] = true
+	// 		}
+	// 	}
+	// }
 
 	return lines
 }
 
 // createWallLine starts a new outer line for a cell based on the given direction
-func (m *Map) createWallLine(x, y int, direction CardinalDirection) *geom.Line {
+func createWallLine(x, y int, direction CardinalDirection) *wallLine {
 	x1, y1 := float64(x), float64(y)
 	x2, y2 := float64(x), float64(y)
 
@@ -603,33 +828,36 @@ func (m *Map) createWallLine(x, y int, direction CardinalDirection) *geom.Line {
 		return nil
 	}
 
-	return &geom.Line{X1: x1, Y1: y1, X2: x2, Y2: y2}
-}
-
-// updateWallLine updates an outer line for a cell based on being extended in the given direction
-func (m *Map) updateWallLine(i, j int, direction CardinalDirection, line *geom.Line) {
-	x2, y2 := float64(i), float64(j)
-
-	// TODO: account for clipDistance
-	switch direction {
-	case NORTH:
-		// from bottom left of cell: going up
-		y2++
-	case EAST:
-		// from top left of cell: going right
-		x2++
-		y2++
-	case SOUTH:
-		// from top right of cell: going down
-		x2++
-	case WEST:
-		// from bottom right of cell: going left
-		break
+	return &wallLine{
+		Line: geom.Line{X1: x1, Y1: y1, X2: x2, Y2: y2},
+		dir:  direction,
 	}
-
-	line.X2 = x2
-	line.Y2 = y2
 }
+
+// // updateWallLine updates an outer line for a cell based on being extended in the given direction
+// func updateWallLine(i, j int, direction CardinalDirection, line *geom.Line) {
+// 	x2, y2 := float64(i), float64(j)
+
+// 	// TODO: account for clipDistance
+// 	switch direction {
+// 	case NORTH:
+// 		// from bottom left of cell: going up
+// 		y2++
+// 	case EAST:
+// 		// from top left of cell: going right
+// 		x2++
+// 		y2++
+// 	case SOUTH:
+// 		// from top right of cell: going down
+// 		x2++
+// 	case WEST:
+// 		// from bottom right of cell: going left
+// 		break
+// 	}
+
+// 	line.X2 = x2
+// 	line.Y2 = y2
+// }
 
 func (m *Map) IsWallAt(levelNum, x, y int) bool {
 	level := m.Level(levelNum)

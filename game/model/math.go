@@ -39,6 +39,10 @@ func (r Rect) Dy() float64 {
 	return r.Y2 - r.Y1
 }
 
+func LineOpposite(l geom.Line) geom.Line {
+	return geom.Line{X1: l.X2, Y1: l.Y2, X2: l.X1, Y2: l.Y1}
+}
+
 func NewRNG() *rand.Rand {
 	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }

@@ -227,18 +227,20 @@ func (g *Game) initMission() {
 		panic("g.mission must be set before initMission!")
 	}
 
+	missionMap := g.mission.Map()
+
 	// reload texture handler
 	if g.tex != nil {
 		g.initRenderFloorTex = g.tex.renderFloorTex
 	}
-	g.tex = NewTextureHandler(g.mission.Map())
+	g.tex = NewTextureHandler(missionMap)
 	g.tex.renderFloorTex = g.initRenderFloorTex
 
 	// clear mission sprites
 	g.sprites.clear()
 
-	g.collisionMap = g.mission.Map().GetCollisionLines(clipDistance)
-	g.mapWidth, g.mapHeight = g.mission.Map().Size()
+	g.collisionMap = missionMap.GenerateWallCollisionLines(clipDistance)
+	g.mapWidth, g.mapHeight = missionMap.Size()
 
 	// load map and mission content
 	g.loadContent()
