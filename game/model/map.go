@@ -219,7 +219,7 @@ func (m MapGenerateLevels) HasBoundaryWall() bool {
 
 type MapGeneratePrefabs struct {
 	Name      string    `yaml:"name"`
-	Levels    [][][]int `yaml:"levels"`
+	Layers    [][][]int `yaml:"layers"`
 	Positions [][2]int  `yaml:"positions"`
 }
 
@@ -438,33 +438,33 @@ func (m *Map) generateMapLevels() error {
 
 	// populate "prefab" structures
 	for _, prefab := range gen.Prefabs {
-		pLevels := len(prefab.Levels)
-		if pLevels == 0 || len(prefab.Positions) == 0 {
-			return fmt.Errorf("prefab must have at least one level and one position: %s", prefab.Name)
+		pLayers := len(prefab.Layers)
+		if pLayers == 0 || len(prefab.Positions) == 0 {
+			return fmt.Errorf("prefab must have at least one layer and one position: %s", prefab.Name)
 		}
 
-		if pLevels > m.NumRaycastLevels {
+		if pLayers > m.NumRaycastLevels {
 			return fmt.Errorf(
-				"prefab cannot have more levels (%d) than numRaycastLevels (%d): %s",
-				pLevels, m.NumRaycastLevels, prefab.Name,
+				"prefab cannot have more layers (%d) than numRaycastLevels (%d): %s",
+				pLayers, m.NumRaycastLevels, prefab.Name,
 			)
 		}
 
-		pSizeX, pSizeY := len(prefab.Levels[0]), len(prefab.Levels[0][0])
+		pSizeY, pSizeX := len(prefab.Layers[0]), len(prefab.Layers[0][0])
 		if pSizeX == 0 || pSizeY == 0 {
-			return fmt.Errorf("prefab level X/Y length must both be greater than zero: %s", prefab.Name)
+			return fmt.Errorf("prefab layer Y/X length must both be greater than zero: %s", prefab.Name)
 		}
 
 		for _, pos := range prefab.Positions {
 			posX, posY := pos[0], pos[1]
 
-			for i := range pLevels {
-				for x := range pSizeX {
-					for y := range pSizeY {
+			for i := range pLayers {
+				for y := range pSizeY {
+					for x := range pSizeX {
 						if x+posX >= mapSizeX || y+posY >= mapSizeY {
 							continue
 						}
-						m.Levels[i][x+posX][y+posY] = prefab.Levels[i][x][y]
+						m.Levels[i][x+posX][y+posY] = prefab.Layers[i][y][x]
 					}
 				}
 			}
