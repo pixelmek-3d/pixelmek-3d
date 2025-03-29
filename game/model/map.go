@@ -653,28 +653,12 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 			lineDir := NORTH
 			ogLine := cell.dirLines[lineDir]
 			ogPoint := geom.Vector2{X: ogLine.X1, Y: ogLine.Y1}
-			wg.lines = append(wg.lines, ogLine)
 			fmt.Printf("ogPoint: %v\n", ogPoint)
 
 			i, j := x, y
 			startDir := lineDir
 			for {
 				cell.visited = true
-
-				// check adjacent cell in current direction if it continues in same direction
-				peekCell, peekX, peekY := g.cellInDirection(i, j, lineDir)
-				if peekCell != nil && !peekCell.visited {
-					peekLine := peekCell.dirLines[lineDir]
-					if peekLine != nil && !peekLine.cancelled && !peekLine.visited {
-						// move to the line in the new cell in same direction
-						fmt.Printf("peekLine: %v\n", peekLine)
-						wg.addLine(peekLine)
-						cell = peekCell
-						i, j = peekX, peekY
-						continue
-					}
-				}
-
 				line := cell.dirLines[lineDir]
 				if line == nil || line.cancelled || line.visited {
 					lineDir = lineDir.Next()
@@ -685,14 +669,26 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 					continue
 				}
 
-				fmt.Printf("nextLine: %v\n", line)
 				startDir = lineDir
 				wg.addLine(line)
+				fmt.Printf("add %v\n", line)
 
-				// TODO: force break if same direction has been attempted twice (err out before infinite loop)
+				// check adjacent cell in current direction if it continues in same direction
+				peekCell, peekX, peekY := g.cellInDirection(i, j, lineDir)
+				if peekCell != nil {
+					peekLine := peekCell.dirLines[lineDir]
+					if peekLine != nil && !peekLine.cancelled && !peekLine.visited {
+						// move to the new cell with wall line in the same direction
+						fmt.Printf("peekLine: %v\n", peekLine)
+						cell = peekCell
+						i, j = peekX, peekY
+						continue
+					}
+				}
 
 				// break when back to origin point of wallgroup
 				if line.X2 == ogPoint.X && line.Y2 == ogPoint.Y {
+					fmt.Printf("back to ogPoint: %v\n", ogPoint)
 					break
 				}
 			}
