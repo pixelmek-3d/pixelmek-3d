@@ -213,6 +213,10 @@ type MapGenerateLevels struct {
 	Walls        []MapGenerateWalls   `yaml:"walls"`
 }
 
+func (m MapGenerateLevels) HasBoundaryWall() bool {
+	return len(m.BoundaryWall.Image) > 0
+}
+
 type MapGeneratePrefabs struct {
 	Name      string    `yaml:"name"`
 	Levels    [][][]int `yaml:"levels"`
@@ -414,7 +418,7 @@ func (m *Map) generateMapLevels() error {
 	}
 
 	// if provided, create boundary wall
-	if len(gen.BoundaryWall.Image) > 0 {
+	if gen.HasBoundaryWall() {
 		// at this time boundary walls only supported on first elevation level
 		level := m.Levels[0]
 
@@ -599,6 +603,12 @@ func (g *wallLineGenerator) initializeCellWalls() {
 
 	for x := range w {
 		for y := range h {
+			if g.m.GenerateLevels.HasBoundaryWall() {
+				// skip creating cells from boundary wall
+				if x == 0 || y == 0 || x == w-1 || y == h-1 {
+					continue
+				}
+			}
 			if level[x][y] == 0 {
 				continue
 			}
@@ -702,13 +712,20 @@ func (m *Map) GenerateWallCollisionLines(clipDistance float64) []*geom.Line {
 	level := m.Levels[0]
 	lines := make([]*geom.Line, 0, 4*len(level))
 
-	if len(m.GenerateLevels.BoundaryWall.Image) == 0 {
-		// create collision lines around map border if no boundary wall
-		rectLines := geom.Rect(clipDistance, clipDistance,
-			float64(len(level))-2*clipDistance, float64(len(level[0]))-2*clipDistance)
+	if m.GenerateLevels.HasBoundaryWall() {
+		// create collision lines around inner border boundary wall
+		rectLines := geom.Rect(1+clipDistance, 1+clipDistance,
+			float64(w-2)-2*clipDistance, float64(h-2)-2*clipDistance)
 		for i := range rectLines {
 			lines = append(lines, &rectLines[i])
 		}
+	}
+
+	// create collision lines around outer map border
+	rectLines := geom.Rect(clipDistance, clipDistance,
+		float64(w)-2*clipDistance, float64(h)-2*clipDistance)
+	for i := range rectLines {
+		lines = append(lines, &rectLines[i])
 	}
 
 	// Phase 1 - Create 4 border lines per cell with cardinal direction of clockwise movement
