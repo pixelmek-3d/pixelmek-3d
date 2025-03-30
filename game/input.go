@@ -78,7 +78,7 @@ const (
 var (
 	stringToAction map[string]input.Action
 
-	debugProfFile, _ = os.Create("cpu_" + strconv.Itoa(os.Getpid()) + ".prof")
+	debugProfFile *os.File
 )
 
 func stringAction(aName string) input.Action {
@@ -960,7 +960,17 @@ func (g *Game) handleDebugInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionCameraCycle) {
+	if ctrl_test && alt_test && g.input.ActionIsJustPressed(ActionCameraCycle) {
+		// debug only: start/stop CPU profiler
+		if debugProfCPU {
+			pprof.StopCPUProfile()
+			debugProfCPU = false
+		} else {
+			debugProfFile, _ = os.Create("cpu_" + strconv.Itoa(os.Getpid()) + ".prof")
+			pprof.StartCPUProfile(debugProfFile)
+			debugProfCPU = true
+		}
+	} else if g.input.ActionIsJustPressed(ActionCameraCycle) {
 		// debug only: camera swap with player target or cycle back to player unit
 		debugCamTgt := g.player.DebugCameraTarget()
 		if debugCamTgt == nil && g.player.Target() != nil {
@@ -968,17 +978,6 @@ func (g *Game) handleDebugInput() {
 		} else if debugCamTgt != nil {
 			g.player.SetDebugCameraTarget(nil)
 			g.player.moved = true
-		}
-	}
-
-	// debug only: start/stop CPU profiler
-	if ctrl_test && alt_test && g.input.ActionIsJustPressed(ActionCameraCycle) {
-		if debugProfCPU {
-			pprof.StopCPUProfile()
-			debugProfCPU = false
-		} else {
-			pprof.StartCPUProfile(debugProfFile)
-			debugProfCPU = true
 		}
 	}
 }
