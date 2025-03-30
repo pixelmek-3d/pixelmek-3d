@@ -458,12 +458,16 @@ func (m *Map) generateMapLevels() error {
 			posX, posY := pos[0], pos[1]
 
 			for i := range pLayers {
+				// map level layer in revese so the layers appear on top of each other instead of under
+				iReverse := pLayers - i - 1
 				for y := range len(prefab.Layers[i]) {
+					// map Y-layer in reverse so the layers do not appear mirrored
+					yReverse := len(prefab.Layers[i]) - y - 1
 					for x := range len(prefab.Layers[i][y]) {
-						if x+posX >= mapSizeX || y+posY >= mapSizeY {
+						if x+posX >= mapSizeX || yReverse+posY >= mapSizeY {
 							continue
 						}
-						m.Levels[i][x+posX][y+posY] = prefab.Layers[i][y][x]
+						m.Levels[iReverse][x+posX][yReverse+posY] = prefab.Layers[i][y][x]
 					}
 				}
 			}
