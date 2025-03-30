@@ -287,6 +287,14 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, centerY, hudSizeFactor float64, lineWidth float32, clr color.Color) {
 	posX, posY := r.position.X, r.position.Y
 
+	// skip line if both line points are outside radar range
+	minX, minY := posX-r.radarRange, posY-r.radarRange
+	maxX, maxY := posX+r.radarRange, posY+r.radarRange
+	if (line.X1 < minX && line.X2 < minX) || (line.X1 > maxX && line.X2 > maxX) ||
+		(line.Y1 < minY && line.Y2 < minY) || (line.Y1 > maxY && line.Y2 > maxY) {
+		return
+	}
+
 	// determine distance to wall line, convert to relative radar angle and draw
 	line1 := geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
 	angle1 := r.heading - line1.Angle() - geom.HalfPi
