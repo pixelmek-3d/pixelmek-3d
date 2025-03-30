@@ -684,7 +684,7 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 			lineDir := NORTH
 			ogLine := cell.dirLines[lineDir]
 			ogPoint := geom.Vector2{X: ogLine.X1, Y: ogLine.Y1}
-			fmt.Printf("> ogPoint: %v\n", ogPoint)
+			//fmt.Printf("> ogPoint: %v\n", ogPoint)
 
 			i, j := x, y
 			startDir := lineDir
@@ -702,7 +702,7 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 
 				startDir = lineDir
 				wg.addLine(line)
-				fmt.Printf("+ add %v\n", line)
+				//fmt.Printf("+ add %v\n", line)
 
 				// check adjacent cell in current direction if it continues in same direction
 				peekCell, peekX, peekY := g.cellInDirection(i, j, lineDir)
@@ -710,7 +710,7 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 					peekLine := peekCell.dirLines[lineDir]
 					if peekLine != nil && !peekLine.cancelled && !peekLine.visited {
 						// move to the new cell with wall line in the same direction
-						fmt.Printf("  - peekLine: %v\n", peekLine)
+						//fmt.Printf("  - peekLine: %v\n", peekLine)
 						cell = peekCell
 						i, j = peekX, peekY
 						continue
@@ -723,7 +723,7 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 					diagDir := lineDir.Prev()
 					diagLine := diagCell.dirLines[diagDir]
 					if diagLine != nil && !diagLine.cancelled && !diagLine.visited {
-						fmt.Printf("  > diagLine: %v\n", diagLine)
+						//fmt.Printf("  > diagLine: %v\n", diagLine)
 						cell = diagCell
 						lineDir = diagDir
 						i, j = diagX, diagY
@@ -733,7 +733,7 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 
 				// break when back to origin point of wallgroup
 				if line.X2 == ogPoint.X && line.Y2 == ogPoint.Y {
-					fmt.Printf("< back to ogPoint: %v\n", ogPoint)
+					//fmt.Printf("< back to ogPoint: %v\n", ogPoint)
 					break
 				}
 			}
