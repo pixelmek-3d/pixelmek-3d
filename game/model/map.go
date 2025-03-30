@@ -450,8 +450,7 @@ func (m *Map) generateMapLevels() error {
 			)
 		}
 
-		pSizeY, pSizeX := len(prefab.Layers[0]), len(prefab.Layers[0][0])
-		if pSizeX == 0 || pSizeY == 0 {
+		if len(prefab.Layers[0]) == 0 || len(prefab.Layers[0][0]) == 0 {
 			return fmt.Errorf("prefab layer Y/X length must both be greater than zero: %s", prefab.Name)
 		}
 
@@ -459,8 +458,8 @@ func (m *Map) generateMapLevels() error {
 			posX, posY := pos[0], pos[1]
 
 			for i := range pLayers {
-				for y := range pSizeY {
-					for x := range pSizeX {
+				for y := range len(prefab.Layers[i]) {
+					for x := range len(prefab.Layers[i][y]) {
 						if x+posX >= mapSizeX || y+posY >= mapSizeY {
 							continue
 						}
