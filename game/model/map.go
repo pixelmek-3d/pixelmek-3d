@@ -555,11 +555,6 @@ func (l *wallLine) String() string {
 	return fmt.Sprintf("{%0.3f,%0.3f->%0.3f,%0.3f@%v}", l.X1, l.Y1, l.X2, l.Y2, l.dir)
 }
 
-func (wg *wallGroup) addLine(l *wallLine) {
-	l.visited = true
-	wg.lines = append(wg.lines, l)
-}
-
 func newWallLineGenerator(m *Map) *wallLineGenerator {
 	w, h := m.Size()
 	cells := make([][]*cellBorder, w)
@@ -742,11 +737,42 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 					break
 				}
 			}
-
-			// TODO: mark all involved *cellBorder as visited before moving on through the map grid
 		}
 	}
 	return wallGroups
+}
+
+func (wg *wallGroup) addLine(l *wallLine) {
+	l.visited = true
+	wg.lines = append(wg.lines, l)
+}
+
+func (wg *wallGroup) generateWallLines() []*geom.Line {
+	lines := make([]*geom.Line, 0, len(wg.lines))
+	if len(wg.lines) == 0 {
+		return lines
+	}
+
+	line := wg.lines[0]
+	lineDir := line.dir
+	prevDir := lineDir
+	lines = append(lines, &line.Line)
+
+	for i := 1; i < len(wg.lines); i++ {
+		wl := wg.lines[i]
+		lineDir = wl.dir
+
+		if prevDir == lineDir {
+			// update current wall line in same direction as before
+			line.X2, line.Y2 = wl.Line.X2, wl.Line.Y2
+		} else {
+			// start a new wall line
+			line = wl
+			lines = append(lines, &line.Line)
+		}
+		prevDir = lineDir
+	}
+	return lines
 }
 
 func (m *Map) GenerateWallCollisionLines(clipDistance float64) []*geom.Line {
@@ -776,90 +802,17 @@ func (m *Map) GenerateWallCollisionLines(clipDistance float64) []*geom.Line {
 
 	// Phase 1 - Create 4 border lines per cell with cardinal direction of clockwise movement
 	//           to trace outlines of contiguous wall segments
-	// Phase 1.1 - Keep track of same line segments and cancel out those with opposite cardinal direction
+	//         - Keep track of same line segments and cancel out those with opposite cardinal direction
 	gen := newWallLineGenerator(m)
+
+	// Phase 2 - Go over each cell, walking the wall line segments to other connected cells
+	//           to put contiguous line segments in groups
 	wallGroups := gen.generateWallGroups()
+
+	// Phase 3 - Connect contiguous lines in the same direction as single line instead of segments
 	for _, wg := range wallGroups {
-		for _, l := range wg.lines {
-			lines = append(lines, &l.Line)
-		}
+		lines = append(lines, wg.generateWallLines()...)
 	}
-
-	// Phase 2 - Go over each cell, walking the remaining line segments to other connected cells,
-	//           connecting contiguous segements in the same direction as growing line
-
-	// // track cells which have already been visited
-	// visited := make([][]bool, len(level))
-	// for i := range visited {
-	// 	visited[i] = make([]bool, len(level[0]))
-	// }
-
-	// // walk cells with walls to generate contiguous lines where possible, starting from the west and going clockwise
-	// for y := range h {
-	// 	// walking in X direction before Y
-	// 	for x := range w {
-	// 		value := level[x][y]
-	// 		if value == 0 || visited[x][y] {
-	// 			continue
-	// 		}
-
-	// 		// start a new line from the bottom left to top left of cell (NORTH)
-	// 		lineDir := NORTH
-	// 		prevDir := lineDir
-	// 		line := m.createWallLine(x, y, lineDir)
-	// 		lines = append(lines, line)
-
-	// 		// keep track of last visited cell in contiguous line group as (i,j)
-	// 		i, j := x, y
-
-	// 		// loop check cardinal directions in order to see if that direction can be moved until a visited cell is reached
-	// 		for lineDir != NOWHERE {
-	// 			// starting with North, check each direction for a non-visited wall cell
-	// 			// if the direction of non-visited wall cell is same as last loop, update the ending position of the line
-	// 			// else, start a new line
-	// 			a, b := i, j // check prospective cells as (a,b)
-	// 			switch lineDir {
-	// 			case NORTH:
-	// 				b++
-	// 			case EAST:
-	// 				a++
-	// 			case SOUTH:
-	// 				b--
-	// 			case WEST:
-	// 				a--
-	// 			}
-
-	// 			// make sure the prospective cell (a,b) is not out of bounds
-	// 			if a < 0 || b < 0 || a >= w || b >= h {
-	// 				lineDir++
-	// 				continue
-	// 			}
-
-	// 			// make sure the prospective cell (a,b) is a wall and has not already been visited
-	// 			if level[a][b] == 0 || visited[a][b] {
-	// 				lineDir++
-	// 				continue
-	// 			}
-
-	// 			// FIXME: if wall is only one unit width, it will appear already visited and not come back the other side of it
-
-	// 			if prevDir == lineDir {
-	// 				// update current boundary line in same direction as before
-	// 				m.updateWallLine(a, b, lineDir, line)
-	// 			} else {
-	// 				// start a new boundary line
-	// 				line = m.createWallLine(i, j, lineDir)
-	// 				lines = append(lines, line)
-	// 			}
-
-	// 			// reset to north, update (i,j) to be (a,b) for next cell iteration
-	// 			prevDir = lineDir
-	// 			lineDir = NORTH
-	// 			i, j = a, b
-	// 			visited[i][j] = true
-	// 		}
-	// 	}
-	// }
 
 	return lines
 }
@@ -896,31 +849,6 @@ func createWallLine(x, y int, direction CardinalDirection) *wallLine {
 		dir:  direction,
 	}
 }
-
-// // updateWallLine updates an outer line for a cell based on being extended in the given direction
-// func updateWallLine(i, j int, direction CardinalDirection, line *geom.Line) {
-// 	x2, y2 := float64(i), float64(j)
-
-// 	// TODO: account for clipDistance
-// 	switch direction {
-// 	case NORTH:
-// 		// from bottom left of cell: going up
-// 		y2++
-// 	case EAST:
-// 		// from top left of cell: going right
-// 		x2++
-// 		y2++
-// 	case SOUTH:
-// 		// from top right of cell: going down
-// 		x2++
-// 	case WEST:
-// 		// from bottom right of cell: going left
-// 		break
-// 	}
-
-// 	line.X2 = x2
-// 	line.Y2 = y2
-// }
 
 func (m *Map) IsWallAt(levelNum, x, y int) bool {
 	level := m.Level(levelNum)
