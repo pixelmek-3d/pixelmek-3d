@@ -295,16 +295,44 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 		return
 	}
 
-	// determine distance to wall line, convert to relative radar angle and draw
 	line1 := geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
-	angle1 := r.heading - line1.Angle() - geom.HalfPi
 	dist1 := line1.Distance()
-
 	line2 := geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
-	angle2 := r.heading - line2.Angle() - geom.HalfPi
 	dist2 := line2.Distance()
 
-	// FIXME: determine if line is outside of radar, clip line to radar circle
+	if dist1 > r.radarRange+1 || dist2 > r.radarRange+1 {
+		// determine if line is outside of radar, clip line to radar circle
+		intersects := geom.LineCircleIntersection(
+			*line, geom.Circle{X: posX, Y: posY, Radius: r.radarRange}, true,
+		)
+
+		switch len(intersects) {
+		case 2:
+			// line segment is cropped entirely by radar circle intersections
+			p1, p2 := intersects[0], intersects[1]
+			line = &geom.Line{X1: p1.X, Y1: p1.Y, X2: p2.X, Y2: p2.Y}
+		case 1:
+			// use closest point in line to extend to radar circle intersection
+			p := intersects[0]
+			if dist1 < dist2 {
+				line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X1, Y2: line.Y1}
+			} else {
+				line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X2, Y2: line.Y2}
+			}
+		}
+
+		if len(intersects) > 0 {
+			// update lines and distances for clipped line segment
+			line1 = geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
+			dist1 = line1.Distance()
+			line2 = geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
+			dist2 = line2.Distance()
+		}
+	}
+
+	// convert to relative radar angle
+	angle1 := r.heading - line1.Angle() - geom.HalfPi
+	angle2 := r.heading - line2.Angle() - geom.HalfPi
 
 	rLine1 := geom.LineFromAngle(centerX, centerY, angle1, dist1*hudSizeFactor)
 	rLine2 := geom.LineFromAngle(centerX, centerY, angle2, dist2*hudSizeFactor)
