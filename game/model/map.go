@@ -551,6 +551,16 @@ type wallGroup struct {
 	lines []*wallLine
 }
 
+// cancelled returns true if all lines in the cell are cancelled out
+func (cb *cellBorder) cancelled() bool {
+	for _, l := range cb.dirLines {
+		if !l.cancelled {
+			return false
+		}
+	}
+	return true
+}
+
 func (l *wallLine) String() string {
 	return fmt.Sprintf("{%0.3f,%0.3f->%0.3f,%0.3f@%v}", l.X1, l.Y1, l.X2, l.Y2, l.dir)
 }
@@ -672,7 +682,7 @@ func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
 	for y := range h {
 		for x := range w {
 			cell := g.cells[x][y]
-			if cell == nil || cell.visited {
+			if cell == nil || cell.visited || cell.cancelled() {
 				continue
 			}
 
