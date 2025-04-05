@@ -72,6 +72,26 @@ func PointInDistance(distance, srcX, srcY, tgtX, tgtY float64) bool {
 	return line.Distance() <= distance
 }
 
+// PointInLine returns true if a point is on a line segment
+func PointInLine(p geom.Vector2, l geom.Line, epsilon float64) bool {
+	// based on https://stackoverflow.com/a/328122/854696
+	crossProduct := (p.Y-l.Y1)*(l.X2-l.X1) - (p.X-l.X1)*(l.Y2-l.Y1)
+	if math.Abs(crossProduct) > epsilon {
+		return false
+	}
+
+	dotProduct := (p.X-l.X1)*(l.X2-l.X1) + (p.Y-l.Y1)*(l.Y2-l.Y1)
+	if dotProduct < 0 {
+		return false
+	}
+
+	squaredLengthBA := (l.X2-l.X1)*(l.X2-l.X1) + (l.Y2-l.Y1)*(l.Y2-l.Y1)
+	if dotProduct > squaredLengthBA {
+		return false
+	}
+	return true
+}
+
 // ClampAngle clamps the given angle in a range of -pi to pi
 func ClampAngle(angle float64) float64 {
 	for angle > geom.Pi {

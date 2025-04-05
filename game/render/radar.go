@@ -300,17 +300,28 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 	line2 := geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
 	dist2 := line2.Distance()
 
-	if dist1 > r.radarRange+1 || dist2 > r.radarRange+1 {
-		// determine if line is outside of radar, clip line to radar circle
-		intersects := geom.LineCircleIntersection(
-			*line, geom.Circle{X: posX, Y: posY, Radius: r.radarRange}, true,
+	if dist1 > r.radarRange || dist2 > r.radarRange {
+		// part of the line is outside of radar, clip line to radar circle
+		isSegment := dist1 <= r.radarRange || dist2 <= r.radarRange
+		intersects := geom.LineCircleIntersection( // FIXME: occasionally gets it wrong and results in flickering line on radar when moving around
+			*line, geom.Circle{X: posX, Y: posY, Radius: r.radarRange}, isSegment,
 		)
+
+		if len(intersects) == 0 {
+			return
+		}
 
 		switch len(intersects) {
 		case 2:
-			// line segment is cropped entirely by radar circle intersections
+			// line is entirely cropped by radar circle intersections
 			p1, p2 := intersects[0], intersects[1]
+			// make sure both points are inside original line segment
+			if !(model.PointInLine(p1, *line, 0.001) && model.PointInLine(p2, *line, 0.001)) {
+				return
+			}
+
 			line = &geom.Line{X1: p1.X, Y1: p1.Y, X2: p2.X, Y2: p2.Y}
+
 		case 1:
 			// use closest point in line to extend to radar circle intersection
 			p := intersects[0]
@@ -321,13 +332,11 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 			}
 		}
 
-		if len(intersects) > 0 {
-			// update lines and distances for clipped line segment
-			line1 = geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
-			dist1 = line1.Distance()
-			line2 = geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
-			dist2 = line2.Distance()
-		}
+		// update lines and distances for clipped line segment
+		line1 = geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
+		dist1 = line1.Distance()
+		line2 = geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
+		dist2 = line2.Distance()
 	}
 
 	// convert to relative radar angle
