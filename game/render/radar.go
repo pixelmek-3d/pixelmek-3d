@@ -301,12 +301,11 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 	dist2 := line2.Distance()
 
 	if dist1 > r.radarRange || dist2 > r.radarRange {
-		// part of the line is outside of radar, clip line to radar circle
-		isSegment := dist1 <= r.radarRange || dist2 <= r.radarRange
-		intersects := geom.LineCircleIntersection( // FIXME: occasionally gets it wrong and results in flickering line on radar when moving around
-			*line, geom.Circle{X: posX, Y: posY, Radius: r.radarRange}, isSegment,
+		// some part of the line is outside of radar, clip line to radar circle
+		// use rays instead of segments for all calculations to avoid glitches
+		intersects := geom.LineCircleIntersection(
+			*line, geom.Circle{X: posX, Y: posY, Radius: r.radarRange}, false,
 		)
-
 		if len(intersects) == 0 {
 			return
 		}
@@ -315,20 +314,43 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 		case 2:
 			// line is entirely cropped by radar circle intersections
 			p1, p2 := intersects[0], intersects[1]
-			// make sure both points are inside original line segment
-			if !(model.PointInLine(p1, *line, 0.001) && model.PointInLine(p2, *line, 0.001)) {
+
+			p1InLine := model.PointInLine(p1, *line, 0.001)
+			p2InLine := model.PointInLine(p2, *line, 0.001)
+
+			switch {
+			case dist1 > r.radarRange && dist2 > r.radarRange && p1InLine && p2InLine:
+				// use both circle intersection points
+				line = &geom.Line{X1: p1.X, Y1: p1.Y, X2: p2.X, Y2: p2.Y}
+			case dist1 > r.radarRange && (p1InLine || p2InLine):
+				// line point 2 is inside circle
+				if p1InLine {
+					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p1.X, Y2: p1.Y}
+				} else {
+					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p2.X, Y2: p2.Y}
+				}
+			case dist2 > r.radarRange && (p1InLine || p2InLine):
+				// line point 1 is inside circle
+				if p1InLine {
+					line = &geom.Line{X1: line.X1, Y1: line.Y1, X2: p1.X, Y2: p1.Y}
+				} else {
+					line = &geom.Line{X1: line.X1, Y1: line.Y1, X2: p2.X, Y2: p2.Y}
+				}
+			default:
 				return
 			}
-
-			line = &geom.Line{X1: p1.X, Y1: p1.Y, X2: p2.X, Y2: p2.Y}
 
 		case 1:
 			// use closest point in line to extend to radar circle intersection
 			p := intersects[0]
-			if dist1 < dist2 {
-				line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X1, Y2: line.Y1}
+			if model.PointInLine(p, *line, 0.001) {
+				if dist1 < dist2 {
+					line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X1, Y2: line.Y1}
+				} else {
+					line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X2, Y2: line.Y2}
+				}
 			} else {
-				line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X2, Y2: line.Y2}
+				return
 			}
 		}
 
