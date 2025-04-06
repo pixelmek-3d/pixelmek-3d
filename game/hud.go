@@ -753,7 +753,10 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		entity := s.Entity
 		unit := model.EntityUnit(entity)
 		if unit == nil {
-			ebiten.SetCursorMode(ebiten.CursorModeVisible)
+			continue
+		}
+		if debugCamTgt == nil && unit.IsPlayer() {
+			// only show player unit blip when spectating
 			continue
 		}
 
