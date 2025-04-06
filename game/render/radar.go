@@ -322,19 +322,19 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 			case dist1 > r.radarRange && dist2 > r.radarRange && p1InLine && p2InLine:
 				// use both circle intersection points
 				line = &geom.Line{X1: p1.X, Y1: p1.Y, X2: p2.X, Y2: p2.Y}
-			case dist1 > r.radarRange && (p1InLine || p2InLine):
-				// line point 2 is inside circle
-				if p1InLine {
-					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p1.X, Y2: p1.Y}
-				} else {
-					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p2.X, Y2: p2.Y}
-				}
-			case dist2 > r.radarRange && (p1InLine || p2InLine):
+			case dist1 <= r.radarRange && dist2 > r.radarRange && (p1InLine || p2InLine):
 				// line point 1 is inside circle
 				if p1InLine {
 					line = &geom.Line{X1: line.X1, Y1: line.Y1, X2: p1.X, Y2: p1.Y}
 				} else {
 					line = &geom.Line{X1: line.X1, Y1: line.Y1, X2: p2.X, Y2: p2.Y}
+				}
+			case dist2 <= r.radarRange && dist1 > r.radarRange && (p1InLine || p2InLine):
+				// line point 2 is inside circle
+				if p1InLine {
+					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p1.X, Y2: p1.Y}
+				} else {
+					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p2.X, Y2: p2.Y}
 				}
 			default:
 				return
