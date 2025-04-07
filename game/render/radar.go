@@ -286,24 +286,84 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, centerY, hudSizeFactor float64, lineWidth float32, clr color.Color) {
 	posX, posY := r.position.X, r.position.Y
-	// quick range check for nearby wall cells
-	if !(model.PointInProximity(r.radarRange, posX, posY, line.X1, line.Y1) ||
-		model.PointInProximity(r.radarRange, posX, posY, line.X2, line.Y2)) {
+
+	// skip line if both line points are outside radar range
+	minX, minY := posX-r.radarRange, posY-r.radarRange
+	maxX, maxY := posX+r.radarRange, posY+r.radarRange
+	if (line.X1 < minX && line.X2 < minX) || (line.X1 > maxX && line.X2 > maxX) ||
+		(line.Y1 < minY && line.Y2 < minY) || (line.Y1 > maxY && line.Y2 > maxY) {
 		return
 	}
 
-	// determine distance to wall line, convert to relative radar angle and draw
 	line1 := geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
-	angle1 := r.heading - line1.Angle() - geom.HalfPi
 	dist1 := line1.Distance()
-
 	line2 := geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
-	angle2 := r.heading - line2.Angle() - geom.HalfPi
 	dist2 := line2.Distance()
 
 	if dist1 > r.radarRange || dist2 > r.radarRange {
-		return
+		// some part of the line is outside of radar, clip line to radar circle
+		// use rays instead of segments for all calculations to avoid glitches
+		intersects := geom.LineCircleIntersection(
+			*line, geom.Circle{X: posX, Y: posY, Radius: r.radarRange}, false,
+		)
+		if len(intersects) == 0 {
+			return
+		}
+
+		switch len(intersects) {
+		case 2:
+			// line is entirely cropped by radar circle intersections
+			p1, p2 := intersects[0], intersects[1]
+
+			p1InLine := model.PointInLine(p1, *line, 0.001)
+			p2InLine := model.PointInLine(p2, *line, 0.001)
+
+			switch {
+			case dist1 > r.radarRange && dist2 > r.radarRange && p1InLine && p2InLine:
+				// use both circle intersection points
+				line = &geom.Line{X1: p1.X, Y1: p1.Y, X2: p2.X, Y2: p2.Y}
+			case dist1 <= r.radarRange && dist2 > r.radarRange && (p1InLine || p2InLine):
+				// line point 1 is inside circle
+				if p1InLine {
+					line = &geom.Line{X1: line.X1, Y1: line.Y1, X2: p1.X, Y2: p1.Y}
+				} else {
+					line = &geom.Line{X1: line.X1, Y1: line.Y1, X2: p2.X, Y2: p2.Y}
+				}
+			case dist2 <= r.radarRange && dist1 > r.radarRange && (p1InLine || p2InLine):
+				// line point 2 is inside circle
+				if p1InLine {
+					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p1.X, Y2: p1.Y}
+				} else {
+					line = &geom.Line{X1: line.X2, Y1: line.Y2, X2: p2.X, Y2: p2.Y}
+				}
+			default:
+				return
+			}
+
+		case 1:
+			// use closest point in line to extend to radar circle intersection
+			p := intersects[0]
+			if model.PointInLine(p, *line, 0.001) {
+				if dist1 < dist2 {
+					line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X1, Y2: line.Y1}
+				} else {
+					line = &geom.Line{X1: p.X, Y1: p.Y, X2: line.X2, Y2: line.Y2}
+				}
+			} else {
+				return
+			}
+		}
+
+		// update lines and distances for clipped line segment
+		line1 = geom.Line{X1: posX, Y1: posY, X2: line.X1, Y2: line.Y1}
+		dist1 = line1.Distance()
+		line2 = geom.Line{X1: posX, Y1: posY, X2: line.X2, Y2: line.Y2}
+		dist2 = line2.Distance()
 	}
+
+	// convert to relative radar angle
+	angle1 := r.heading - line1.Angle() - geom.HalfPi
+	angle2 := r.heading - line2.Angle() - geom.HalfPi
 
 	rLine1 := geom.LineFromAngle(centerX, centerY, angle1, dist1*hudSizeFactor)
 	rLine2 := geom.LineFromAngle(centerX, centerY, angle2, dist2*hudSizeFactor)

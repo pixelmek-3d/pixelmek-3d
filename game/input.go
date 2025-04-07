@@ -9,6 +9,8 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -75,6 +77,8 @@ const (
 
 var (
 	stringToAction map[string]input.Action
+
+	debugProfFile *os.File
 )
 
 func stringAction(aName string) input.Action {
@@ -369,43 +373,11 @@ func (g *Game) handleInput() {
 		return
 	}
 
+	g.handleDebugInput()
+
 	_, isInfantry := g.player.Unit.(*model.Infantry)
 	//_, isMech := g.player.Unit.(*model.Mech)
 	_, isVTOL := g.player.Unit.(*model.VTOL)
-
-	if g.debug && ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
-		// TESTING purposes only
-		ctrl_test := ebiten.IsKeyPressed(ebiten.KeyControl)
-		alt_test := ebiten.IsKeyPressed(ebiten.KeyAlt)
-		switch {
-		case ctrl_test && alt_test:
-			destroyEntity(g.player)
-
-		case ctrl_test:
-			target := model.EntityUnit(g.player.Target())
-			if target != nil {
-				destroyEntity(target)
-			}
-
-		case alt_test:
-			target := model.EntityUnit(g.player.Target())
-			if target != nil && target.JumpJets() > 0 {
-				target.SetJumpJetsActive(true)
-				target.SetTargetVelocityZ(0.05)
-			}
-		}
-	}
-
-	if g.debug && g.input.ActionIsJustPressed(ActionCameraCycle) {
-		// debug only: camera swap with player target or cycle back to player unit
-		debugCamTgt := g.player.DebugCameraTarget()
-		if debugCamTgt == nil && g.player.Target() != nil {
-			g.player.SetDebugCameraTarget(model.EntityUnit(g.player.Target()))
-		} else if debugCamTgt != nil {
-			g.player.SetDebugCameraTarget(nil)
-			g.player.moved = true
-		}
-	}
 
 	if g.input.ActionIsJustPressed(ActionPowerToggle) {
 		switch g.player.Powered() {
@@ -952,6 +924,60 @@ func (g *Game) handleInput() {
 		} else if rotRight {
 			turnAmount := g.player.TurnRate()
 			g.player.SetTargetRelativeHeading(-turnAmount)
+		}
+	}
+}
+
+// debug mode only input flags
+var debugProfCPU bool
+
+func (g *Game) handleDebugInput() {
+	if !g.debug {
+		return
+	}
+
+	ctrl_test := ebiten.IsKeyPressed(ebiten.KeyControl)
+	alt_test := ebiten.IsKeyPressed(ebiten.KeyAlt)
+
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
+		// TESTING purposes only
+		switch {
+		case ctrl_test && alt_test:
+			destroyEntity(g.player)
+
+		case ctrl_test:
+			target := model.EntityUnit(g.player.Target())
+			if target != nil {
+				destroyEntity(target)
+			}
+
+		case alt_test:
+			target := model.EntityUnit(g.player.Target())
+			if target != nil && target.JumpJets() > 0 {
+				target.SetJumpJetsActive(true)
+				target.SetTargetVelocityZ(0.05)
+			}
+		}
+	}
+
+	if ctrl_test && alt_test && g.input.ActionIsJustPressed(ActionCameraCycle) {
+		// debug only: start/stop CPU profiler
+		if debugProfCPU {
+			pprof.StopCPUProfile()
+			debugProfCPU = false
+		} else {
+			debugProfFile, _ = os.Create("cpu_" + strconv.Itoa(os.Getpid()) + ".prof")
+			pprof.StartCPUProfile(debugProfFile)
+			debugProfCPU = true
+		}
+	} else if g.input.ActionIsJustPressed(ActionCameraCycle) {
+		// debug only: camera swap with player target or cycle back to player unit
+		debugCamTgt := g.player.DebugCameraTarget()
+		if debugCamTgt == nil && g.player.Target() != nil {
+			g.player.SetDebugCameraTarget(model.EntityUnit(g.player.Target()))
+		} else if debugCamTgt != nil {
+			g.player.SetDebugCameraTarget(nil)
+			g.player.moved = true
 		}
 	}
 }

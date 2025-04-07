@@ -295,6 +295,9 @@ func (g *Game) drawFPS(hudOpts *render.DrawHudOptions) {
 	}
 
 	fpsText := fmt.Sprintf("FPS: %0.1f | TPS: %0.1f/%d", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
+	if debugProfCPU {
+		fpsText += " | CPU Profiling Enabled"
+	}
 	fps.SetFPSText(fpsText)
 
 	marginY := hudOpts.MarginY
@@ -750,7 +753,10 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		entity := s.Entity
 		unit := model.EntityUnit(entity)
 		if unit == nil {
-			ebiten.SetCursorMode(ebiten.CursorModeVisible)
+			continue
+		}
+		if debugCamTgt == nil && unit.IsPlayer() {
+			// only show player unit blip when spectating
 			continue
 		}
 

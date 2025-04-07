@@ -20,6 +20,60 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type CardinalDirection byte
+
+const (
+	NORTH CardinalDirection = iota
+	EAST
+	SOUTH
+	WEST
+	NOWHERE
+)
+
+func (cd CardinalDirection) Next() CardinalDirection {
+	next := cd + 1
+	if next == NOWHERE {
+		next = NORTH
+	}
+	return next
+}
+
+func (cd CardinalDirection) Prev() CardinalDirection {
+	next := cd - 1
+	if cd == NORTH {
+		next = WEST
+	}
+	return next
+}
+
+func (cd CardinalDirection) Opposite() CardinalDirection {
+	switch cd {
+	case NORTH:
+		return SOUTH
+	case EAST:
+		return WEST
+	case SOUTH:
+		return NORTH
+	case WEST:
+		return EAST
+	}
+	return NOWHERE
+}
+
+func (cd CardinalDirection) String() string {
+	switch cd {
+	case NORTH:
+		return "N"
+	case EAST:
+		return "E"
+	case SOUTH:
+		return "S"
+	case WEST:
+		return "W"
+	}
+	return "?"
+}
+
 type Map struct {
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
@@ -167,9 +221,13 @@ type MapGenerateLevels struct {
 	Walls        []MapGenerateWalls   `yaml:"walls"`
 }
 
+func (m MapGenerateLevels) HasBoundaryWall() bool {
+	return len(m.BoundaryWall.Image) > 0
+}
+
 type MapGeneratePrefabs struct {
 	Name      string    `yaml:"name"`
-	Levels    [][][]int `yaml:"levels"`
+	Layers    [][][]int `yaml:"layers"`
 	Positions [][2]int  `yaml:"positions"`
 }
 
@@ -360,15 +418,15 @@ func (m *Map) generateMapLevels() error {
 
 	// initialize map level slices
 	m.Levels = make([][][]int, m.NumRaycastLevels)
-	for i := 0; i < m.NumRaycastLevels; i++ {
+	for i := range m.NumRaycastLevels {
 		m.Levels[i] = make([][]int, mapSizeX)
-		for x := 0; x < mapSizeX; x++ {
+		for x := range mapSizeX {
 			m.Levels[i][x] = make([]int, mapSizeY)
 		}
 	}
 
 	// if provided, create boundary wall
-	if len(gen.BoundaryWall.Image) > 0 {
+	if gen.HasBoundaryWall() {
 		// at this time boundary walls only supported on first elevation level
 		level := m.Levels[0]
 
@@ -377,8 +435,8 @@ func (m *Map) generateMapLevels() error {
 		boundaryTex := math.MaxInt16
 		m.Textures[boundaryTex] = gen.BoundaryWall
 
-		for x := 0; x < mapSizeX; x++ {
-			for y := 0; y < mapSizeY; y++ {
+		for x := range mapSizeX {
+			for y := range mapSizeY {
 				if x == 0 || y == 0 || x == mapSizeX-1 || y == mapSizeY-1 {
 					level[x][y] = boundaryTex
 				}
@@ -388,33 +446,36 @@ func (m *Map) generateMapLevels() error {
 
 	// populate "prefab" structures
 	for _, prefab := range gen.Prefabs {
-		pLevels := len(prefab.Levels)
-		if pLevels == 0 || len(prefab.Positions) == 0 {
-			return fmt.Errorf("prefab must have at least one level and one position: %s", prefab.Name)
+		pLayers := len(prefab.Layers)
+		if pLayers == 0 || len(prefab.Positions) == 0 {
+			return fmt.Errorf("prefab must have at least one layer and one position: %s", prefab.Name)
 		}
 
-		if pLevels > m.NumRaycastLevels {
+		if pLayers > m.NumRaycastLevels {
 			return fmt.Errorf(
-				"prefab cannot have more levels (%d) than numRaycastLevels (%d): %s",
-				pLevels, m.NumRaycastLevels, prefab.Name,
+				"prefab cannot have more layers (%d) than numRaycastLevels (%d): %s",
+				pLayers, m.NumRaycastLevels, prefab.Name,
 			)
 		}
 
-		pSizeX, pSizeY := len(prefab.Levels[0]), len(prefab.Levels[0][0])
-		if pSizeX == 0 || pSizeY == 0 {
-			return fmt.Errorf("prefab level X/Y length must both be greater than zero: %s", prefab.Name)
+		if len(prefab.Layers[0]) == 0 || len(prefab.Layers[0][0]) == 0 {
+			return fmt.Errorf("prefab layer Y/X length must both be greater than zero: %s", prefab.Name)
 		}
 
 		for _, pos := range prefab.Positions {
 			posX, posY := pos[0], pos[1]
 
-			for i := 0; i < pLevels; i++ {
-				for x := 0; x < pSizeX; x++ {
-					for y := 0; y < pSizeY; y++ {
-						if x+posX >= mapSizeX || y+posY >= mapSizeY {
+			for i := range pLayers {
+				// map level layer in revese so the layers appear on top of each other instead of under
+				iReverse := pLayers - i - 1
+				for y := range len(prefab.Layers[i]) {
+					// map Y-layer in reverse so the layers do not appear mirrored
+					yReverse := len(prefab.Layers[i]) - y - 1
+					for x := range len(prefab.Layers[i][y]) {
+						if x+posX >= mapSizeX || yReverse+posY >= mapSizeY {
 							continue
 						}
-						m.Levels[i][x+posX][y+posY] = prefab.Levels[i][x][y]
+						m.Levels[iReverse][x+posX][yReverse+posY] = prefab.Layers[i][y][x]
 					}
 				}
 			}
@@ -454,7 +515,7 @@ func (m *Map) generateMapLevels() error {
 					dist := geom.Distance(line.X1, line.Y1, line.X2, line.Y2)
 					for d := 0.0; d <= dist; d += 0.1 {
 						nLine := geom.LineFromAngle(line.X1, line.Y1, angle, d)
-						for levelIndex := 0; levelIndex < height; levelIndex++ {
+						for levelIndex := range height {
 							level := m.Levels[levelIndex]
 							level[int(nLine.X2)][int(nLine.Y2)] = tex
 						}
@@ -469,33 +530,334 @@ func (m *Map) generateMapLevels() error {
 	return nil
 }
 
-func (m *Map) GetCollisionLines(clipDistance float64) []*geom.Line {
-	if len(m.Levels) == 0 || len(m.Levels[0]) == 0 || len(m.Levels[0][0]) == 0 {
-		return []*geom.Line{}
+type wallLineGenerator struct {
+	m     *Map
+	cells [][]*cellBorder
+}
+
+type cellBorder struct {
+	dirLines map[CardinalDirection]*wallLine
+	visited  bool
+}
+
+type wallLine struct {
+	geom.Line
+	dir       CardinalDirection
+	cancelled bool
+	visited   bool
+}
+
+type wallGroup struct {
+	lines []*wallLine
+}
+
+// cancelled returns true if all lines in the cell are cancelled out
+func (cb *cellBorder) cancelled() bool {
+	for _, l := range cb.dirLines {
+		if !l.cancelled {
+			return false
+		}
+	}
+	return true
+}
+
+func (l *wallLine) String() string {
+	return fmt.Sprintf("{%0.3f,%0.3f->%0.3f,%0.3f@%v}", l.X1, l.Y1, l.X2, l.Y2, l.dir)
+}
+
+func newWallLineGenerator(m *Map) *wallLineGenerator {
+	w, h := m.Size()
+	cells := make([][]*cellBorder, w)
+	for i := range cells {
+		cells[i] = make([]*cellBorder, h)
+	}
+	gen := &wallLineGenerator{
+		m:     m,
+		cells: cells,
+	}
+	gen.initializeCellWalls()
+	return gen
+}
+
+func newCellBorders(x, y int) *cellBorder {
+	return &cellBorder{
+		dirLines: map[CardinalDirection]*wallLine{
+			NORTH: createWallLine(x, y, NORTH),
+			EAST:  createWallLine(x, y, EAST),
+			SOUTH: createWallLine(x, y, SOUTH),
+			WEST:  createWallLine(x, y, WEST),
+		},
+	}
+}
+
+func (g *wallLineGenerator) cellInDirection(x, y int, direction CardinalDirection) (*cellBorder, int, int) {
+	i, j := x, y
+	switch direction {
+	case NORTH:
+		j++
+	case EAST:
+		i++
+	case SOUTH:
+		j--
+	case WEST:
+		i--
 	}
 
-	firstLevel := m.Levels[0]
-	lines := make([]*geom.Line, 0, 4*len(firstLevel))
-
-	rectLines := geom.Rect(clipDistance, clipDistance,
-		float64(len(firstLevel))-2*clipDistance, float64(len(firstLevel[0]))-2*clipDistance)
-	for i := 0; i < len(rectLines); i++ {
-		lines = append(lines, &rectLines[i])
+	w, h := g.m.Size()
+	if i < 0 || j < 0 || i >= w || j >= h {
+		return nil, x, y
 	}
 
-	for x, row := range firstLevel {
-		for y, value := range row {
-			if value > 0 {
-				rectLines = geom.Rect(float64(x)-clipDistance, float64(y)-clipDistance,
-					1.0+(2*clipDistance), 1.0+(2*clipDistance))
-				for i := 0; i < len(rectLines); i++ {
-					lines = append(lines, &rectLines[i])
+	return g.cells[i][j], i, j
+}
+
+func (g *wallLineGenerator) cellInDiagonalFromDirection(x, y int, direction CardinalDirection) (*cellBorder, int, int) {
+	i, j := x, y
+	switch direction {
+	case NORTH:
+		i--
+		j++
+	case EAST:
+		i++
+		j++
+	case SOUTH:
+		i++
+		j--
+	case WEST:
+		i--
+		j--
+	}
+
+	w, h := g.m.Size()
+	if i < 0 || j < 0 || i >= w || j >= h {
+		return nil, x, y
+	}
+
+	return g.cells[i][j], i, j
+}
+
+func (g *wallLineGenerator) initializeCellWalls() {
+	// initialize border line segments for each wall cell
+	w, h := g.m.Size()
+	level := g.m.Levels[0]
+	wallSet := make(map[geom.Line]*wallLine, w*h/4)
+
+	for x := range w {
+		for y := range h {
+			if g.m.GenerateLevels.HasBoundaryWall() {
+				// skip creating cells from boundary wall
+				if x == 0 || y == 0 || x == w-1 || y == h-1 {
+					continue
+				}
+			}
+			if level[x][y] == 0 {
+				continue
+			}
+			// for each wall cell, create directional line for each of its 4 borders
+			cb := newCellBorders(x, y)
+			g.cells[x][y] = cb
+
+			// for each border, check if an opposite direction of the same segment exists to cancel each other out
+			for _, dLine := range cb.dirLines {
+				oppLine := LineOpposite(dLine.Line)
+				if existingLine, found := wallSet[oppLine]; found {
+					// cancel each other out
+					dLine.cancelled = true
+					existingLine.cancelled = true
+				} else {
+					wallSet[dLine.Line] = dLine
 				}
 			}
 		}
 	}
+}
+
+func (g *wallLineGenerator) generateWallGroups() []*wallGroup {
+	// walk connected cell lines to form connected groups of wall line segments
+	w, h := g.m.Size()
+
+	wallGroups := make([]*wallGroup, 0, w*h/4)
+
+	// walking in X direction before Y to start from the west and go clockwise
+	for y := range h {
+		for x := range w {
+			cell := g.cells[x][y]
+			if cell == nil || cell.visited || cell.cancelled() {
+				continue
+			}
+
+			// start a new wallgroup of connecting lines
+			wg := &wallGroup{lines: make([]*wallLine, 0, 4)}
+			wallGroups = append(wallGroups, wg)
+
+			// go clockwise starting North since coming in from the West
+			lineDir := NORTH
+			ogLine := cell.dirLines[lineDir]
+			ogPoint := geom.Vector2{X: ogLine.X1, Y: ogLine.Y1}
+			//fmt.Printf("> ogPoint: %v\n", ogPoint)
+
+			i, j := x, y
+			startDir := lineDir
+			for {
+				cell.visited = true
+				line := cell.dirLines[lineDir]
+				if line == nil || line.cancelled || line.visited {
+					lineDir = lineDir.Next()
+					if lineDir == startDir {
+						log.Errorf("[%d, %d] unable to escape cell lines - breaking out of infinite loop", i, j)
+						break
+					}
+					continue
+				}
+
+				startDir = lineDir
+				wg.addLine(line)
+				//fmt.Printf("+ add %v\n", line)
+
+				// check adjacent cell in current direction if it continues in same direction
+				peekCell, peekX, peekY := g.cellInDirection(i, j, lineDir)
+				if peekCell != nil {
+					peekLine := peekCell.dirLines[lineDir]
+					if peekLine != nil && !peekLine.cancelled && !peekLine.visited {
+						// move to the new cell with wall line in the same direction
+						//fmt.Printf("  - peekLine: %v\n", peekLine)
+						cell = peekCell
+						i, j = peekX, peekY
+						continue
+					}
+				}
+
+				// check for lines that can continue in diagnonal instead of adjacent cells
+				diagCell, diagX, diagY := g.cellInDiagonalFromDirection(i, j, lineDir)
+				if diagCell != nil {
+					diagDir := lineDir.Prev()
+					diagLine := diagCell.dirLines[diagDir]
+					if diagLine != nil && !diagLine.cancelled && !diagLine.visited {
+						//fmt.Printf("  > diagLine: %v\n", diagLine)
+						cell = diagCell
+						lineDir = diagDir
+						i, j = diagX, diagY
+						continue
+					}
+				}
+
+				// break when back to origin point of wallgroup
+				if line.X2 == ogPoint.X && line.Y2 == ogPoint.Y {
+					//fmt.Printf("< back to ogPoint: %v\n", ogPoint)
+					break
+				}
+			}
+		}
+	}
+	return wallGroups
+}
+
+func (wg *wallGroup) addLine(l *wallLine) {
+	l.visited = true
+	wg.lines = append(wg.lines, l)
+}
+
+func (wg *wallGroup) generateWallLines() []*geom.Line {
+	lines := make([]*geom.Line, 0, len(wg.lines))
+	if len(wg.lines) == 0 {
+		return lines
+	}
+
+	line := wg.lines[0]
+	lineDir := line.dir
+	prevDir := lineDir
+	lines = append(lines, &line.Line)
+
+	for i := 1; i < len(wg.lines); i++ {
+		wl := wg.lines[i]
+		lineDir = wl.dir
+
+		if prevDir == lineDir {
+			// update current wall line in same direction as before
+			line.X2, line.Y2 = wl.Line.X2, wl.Line.Y2
+		} else {
+			// start a new wall line
+			line = wl
+			lines = append(lines, &line.Line)
+		}
+		prevDir = lineDir
+	}
+	return lines
+}
+
+func (m *Map) GenerateWallCollisionLines(clipDistance float64) []*geom.Line {
+	w, h := m.Size()
+	if w == 0 || h == 0 {
+		return []*geom.Line{}
+	}
+
+	level := m.Levels[0]
+	lines := make([]*geom.Line, 0, 4*len(level))
+
+	if m.GenerateLevels.HasBoundaryWall() {
+		// create collision lines around inner border boundary wall
+		rectLines := geom.Rect(1+clipDistance, 1+clipDistance,
+			float64(w-2)-2*clipDistance, float64(h-2)-2*clipDistance)
+		for i := range rectLines {
+			lines = append(lines, &rectLines[i])
+		}
+	}
+
+	// create collision lines around outer map border
+	rectLines := geom.Rect(clipDistance, clipDistance,
+		float64(w)-2*clipDistance, float64(h)-2*clipDistance)
+	for i := range rectLines {
+		lines = append(lines, &rectLines[i])
+	}
+
+	// Phase 1 - Create 4 border lines per cell with cardinal direction of clockwise movement
+	//           to trace outlines of contiguous wall segments
+	//         - Keep track of same line segments and cancel out those with opposite cardinal direction
+	gen := newWallLineGenerator(m)
+
+	// Phase 2 - Go over each cell, walking the wall line segments to other connected cells
+	//           to put contiguous line segments in groups
+	wallGroups := gen.generateWallGroups()
+
+	// Phase 3 - Connect contiguous lines in the same direction as single line instead of segments
+	for _, wg := range wallGroups {
+		lines = append(lines, wg.generateWallLines()...)
+	}
 
 	return lines
+}
+
+// createWallLine starts a new outer line for a cell based on the given direction
+func createWallLine(x, y int, direction CardinalDirection) *wallLine {
+	x1, y1 := float64(x), float64(y)
+	x2, y2 := float64(x), float64(y)
+
+	// TODO: account for clipDistance
+	switch direction {
+	case NORTH:
+		// start from bottom left of cell and go up
+		y2++
+	case EAST:
+		// start from top left of cell and go right
+		y1++
+		x2++
+		y2++
+	case SOUTH:
+		// start from top right of cell and go down
+		x1++
+		y1++
+		x2++
+	case WEST:
+		// start from bottom right of cell and go left
+		x1++
+	default:
+		return nil
+	}
+
+	return &wallLine{
+		Line: geom.Line{X1: x1, Y1: y1, X2: x2, Y2: y2},
+		dir:  direction,
+	}
 }
 
 func (m *Map) IsWallAt(levelNum, x, y int) bool {
