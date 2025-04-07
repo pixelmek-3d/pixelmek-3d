@@ -56,10 +56,10 @@ type RadarNavPoint struct {
 // NewRadar creates a radar image to be rendered on demand
 func NewRadar(font *Font) *Radar {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.Top, etxt.Left)
+	renderer.SetAlign(etxt.Top)
 	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	r := &Radar{
@@ -78,7 +78,7 @@ func (r *Radar) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	r.fontRenderer.SetSizePx(int(pxSize))
+	r.fontRenderer.SetSize(pxSize)
 }
 
 func (r *Radar) RadarRange() float64 {
@@ -142,7 +142,6 @@ func (r *Radar) ShowPosition(show bool) {
 
 func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	r.fontRenderer.SetTarget(screen)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	r.updateFontSize(bW, bH)
@@ -173,7 +172,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	if r.showPosition {
 		radarStr += fmt.Sprintf("\nP:%0.0f,%0.0f", r.position.X, r.position.Y)
 	}
-	r.fontRenderer.Draw(radarStr, bX, bY)
+	r.fontRenderer.Draw(screen, radarStr, bX, bY)
 
 	// Draw radar circle outline
 	oColor := hudOpts.HudColor(_colorRadarOutline)

@@ -36,10 +36,10 @@ type compassIndicator struct {
 // NewCompass creates a compass image to be rendered on demand
 func NewCompass(font *Font) *Compass {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.Top, etxt.XCenter)
+	renderer.SetAlign(etxt.Top)
 	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	c := &Compass{
@@ -59,7 +59,7 @@ func (c *Compass) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	c.fontRenderer.SetSizePx(int(pxSize))
+	c.fontRenderer.SetSize(pxSize)
 }
 
 func (c *Compass) SetTargetEnabled(b bool) {
@@ -95,7 +95,6 @@ func (c *Compass) SetValues(heading, turretAngle float64) {
 
 func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	c.fontRenderer.SetTarget(screen)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	c.updateFontSize(bW, bH)
@@ -160,7 +159,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			}
 
 			if pipDegStr != "" {
-				c.fontRenderer.Draw(pipDegStr, int(iX), int(topY+float32(bH)/2)+2)
+				c.fontRenderer.Draw(screen, pipDegStr, int(iX), int(topY+float32(bH)/2)+2)
 			}
 		}
 	}

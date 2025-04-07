@@ -35,7 +35,7 @@ type UnitStatus struct {
 // NewUnitStatus creates a unit status element image to be rendered on demand
 func NewUnitStatus(isPlayer bool, font *Font) *UnitStatus {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 
@@ -88,13 +88,12 @@ func (u *UnitStatus) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	u.fontRenderer.SetSizePx(int(pxSize))
+	u.fontRenderer.SetSize(pxSize)
 }
 
 func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	u.fontRenderer.SetTarget(screen)
-	u.fontRenderer.SetAlign(etxt.YCenter, etxt.Left)
+	u.fontRenderer.SetAlign(etxt.VertCenter)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	u.updateFontSize(bW, bH)
@@ -164,11 +163,11 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// armor readout
 	armorStr := fmt.Sprintf("ARMOR\n %0.0f%%", armorPercent)
-	u.fontRenderer.Draw(armorStr, int(sX)+int(3*sW/5), int(sY)+int(sH/3))
+	u.fontRenderer.Draw(screen, armorStr, int(sX)+int(3*sW/5), int(sY)+int(sH/3))
 
 	// internal structure readout
 	internalStr := fmt.Sprintf("STRUCT\n %0.0f%%", internalPercent)
-	u.fontRenderer.Draw(internalStr, int(sX)+int(3*sW/5), int(sY)+int(2*sH/3))
+	u.fontRenderer.Draw(screen, internalStr, int(sX)+int(3*sW/5), int(sY)+int(2*sH/3))
 
 	if u.isSpectating {
 		sUnit := model.EntityUnit(u.unit.Entity)
@@ -183,21 +182,21 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			u.fontRenderer.SetColor(eColor)
 
 			chassisVariant := strings.ToUpper(sUnit.Variant())
-			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
-			u.fontRenderer.Draw(chassisVariant, bX+bW/2, bY)
+			u.fontRenderer.SetAlign(etxt.Top)
+			u.fontRenderer.Draw(screen, chassisVariant, bX+bW/2, bY)
 
 			// show spectating text
 			sColor := hudOpts.HudColor(_colorStatusWarn)
 			u.fontRenderer.SetColor(sColor)
-			u.fontRenderer.SetAlign(etxt.Bottom, etxt.XCenter)
-			u.fontRenderer.Draw("SPECTATING", bX+bW/2, bY-2)
+			u.fontRenderer.SetAlign(etxt.Bottom)
+			u.fontRenderer.Draw(screen, "SPECTATING", bX+bW/2, bY-2)
 		}
 	} else if !u.isPlayer {
 		// target distance
 		if u.unitDistance >= 0 {
-			u.fontRenderer.SetAlign(etxt.Bottom, etxt.XCenter)
+			u.fontRenderer.SetAlign(etxt.Bottom)
 			distanceStr := fmt.Sprintf("%0.0fm", u.unitDistance)
-			u.fontRenderer.Draw(distanceStr, bX+bW/2, bY+bH)
+			u.fontRenderer.Draw(screen, distanceStr, bX+bW/2, bY+bH)
 		}
 
 		tUnit := model.EntityUnit(u.unit.Entity)
@@ -219,8 +218,8 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				chassisVariant = "^" + chassisVariant + "^"
 			}
 
-			u.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
-			u.fontRenderer.Draw(chassisVariant, bX+bW/2, bY)
+			u.fontRenderer.SetAlign(etxt.Top)
+			u.fontRenderer.Draw(screen, chassisVariant, bX+bW/2, bY)
 
 			// if lock-ons equipped, display lock percent on target
 			if u.showTargetLock {
@@ -229,10 +228,10 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 					lColor = hudOpts.HudColor(_colorStatusWarn)
 				}
 				u.fontRenderer.SetColor(lColor)
-				u.fontRenderer.SetAlign(etxt.Bottom, etxt.Left)
+				u.fontRenderer.SetAlign(etxt.Bottom)
 
 				lockStr := fmt.Sprintf("LOCK: %0.0f%%", u.targetLock*100)
-				u.fontRenderer.Draw(lockStr, bX, bY-u.targetReticle.Height())
+				u.fontRenderer.Draw(screen, lockStr, bX, bY-u.targetReticle.Height())
 			}
 		}
 	}

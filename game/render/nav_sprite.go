@@ -41,7 +41,7 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 	}
 
 	navImage := ebiten.NewImage(imageSize, imageSize)
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 
 	if clr == nil {
 		clr = &_colorNavPoint
@@ -49,7 +49,6 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 
 	nColor := color.NRGBA{R: clr.R, G: clr.G, B: clr.B, A: 255}
 
-	renderer.SetTarget(navImage)
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 	renderer.SetColor(nColor)
@@ -60,11 +59,11 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 		fontPxSize = 1
 	}
 
-	renderer.SetSizePx(int(fontPxSize))
-	renderer.SetAlign(etxt.YCenter, etxt.XCenter)
+	renderer.SetSize(fontPxSize)
+	renderer.SetAlign(etxt.VertCenter)
 
 	navChar := navPoint.Name[0:1]
-	renderer.Draw(navChar, imageSize/2, imageSize/2)
+	renderer.Draw(navImage, navChar, imageSize/2, imageSize/2)
 
 	// draw nav diamond shape
 	oT := float32(2)

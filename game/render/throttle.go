@@ -28,10 +28,10 @@ type Throttle struct {
 // NewThrottle creates a speed indicator image to be rendered on demand
 func NewThrottle(font *Font) *Throttle {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.YCenter, etxt.Right)
+	renderer.SetAlign(etxt.VertCenter)
 
 	t := &Throttle{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -48,7 +48,7 @@ func (t *Throttle) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	t.fontRenderer.SetSizePx(int(pxSize))
+	t.fontRenderer.SetSize(pxSize)
 }
 
 func (t *Throttle) SetValues(velocity, targetVelocity, velocityZ, maxVelocity, maxReverse float64) {
@@ -61,7 +61,6 @@ func (t *Throttle) SetValues(velocity, targetVelocity, velocityZ, maxVelocity, m
 
 func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	t.fontRenderer.SetTarget(screen)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	t.updateFontSize(bW, bH)
@@ -95,11 +94,11 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		velocityStr += fmt.Sprintf("\n%0.1fvert", t.velocityZ)
 	}
 	if t.velocity >= 0 {
-		t.fontRenderer.SetAlign(etxt.Top, etxt.Right)
+		t.fontRenderer.SetAlign(etxt.Top)
 	} else {
-		t.fontRenderer.SetAlign(etxt.Bottom, etxt.Right)
+		t.fontRenderer.SetAlign(etxt.Bottom)
 	}
-	t.fontRenderer.Draw(velocityStr, int(oX)-3, bY+int(zeroY+vH)) // TODO: calculate better margin spacing
+	t.fontRenderer.Draw(screen, velocityStr, int(oX)-3, bY+int(zeroY+vH)) // TODO: calculate better margin spacing
 
 	// target velocity throttle indicator line
 	vColor = hudOpts.HudColor(_colorThrottleForward)

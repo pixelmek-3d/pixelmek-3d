@@ -23,7 +23,7 @@ type JumpJetIndicator struct {
 // NewJumpJetIndicator creates a jump jet indicator image to be rendered on demand
 func NewJumpJetIndicator(font *Font) *JumpJetIndicator {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 
@@ -42,7 +42,7 @@ func (j *JumpJetIndicator) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	j.fontRenderer.SetSizePx(int(pxSize))
+	j.fontRenderer.SetSize(pxSize)
 }
 
 func (j *JumpJetIndicator) SetValues(jumpJetDuration, maxJumpJetDuration float64) {
@@ -52,7 +52,6 @@ func (j *JumpJetIndicator) SetValues(jumpJetDuration, maxJumpJetDuration float64
 
 func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	j.fontRenderer.SetTarget(screen)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	j.updateFontSize(bW, bH)
@@ -82,6 +81,6 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions)
 	// jet indicator text
 	tColor := hudOpts.HudColor(_colorJetsText)
 	j.fontRenderer.SetColor(tColor)
-	j.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
-	j.fontRenderer.Draw("Jets", int(midX), int(oY+oH+2*oT)) // TODO: calculate better margin spacing
+	j.fontRenderer.SetAlign(etxt.Top)
+	j.fontRenderer.Draw(screen, "Jets", int(midX), int(oY+oH+2*oT)) // TODO: calculate better margin spacing
 }

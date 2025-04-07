@@ -26,7 +26,7 @@ type NavStatus struct {
 // NewNavStatus creates a nav status element image to be rendered on demand
 func NewNavStatus(font *Font) *NavStatus {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 
@@ -54,13 +54,12 @@ func (n *NavStatus) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	n.fontRenderer.SetSizePx(int(pxSize))
+	n.fontRenderer.SetSize(pxSize)
 }
 
 func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	n.fontRenderer.SetTarget(screen)
-	n.fontRenderer.SetAlign(etxt.YCenter, etxt.XCenter)
+	n.fontRenderer.SetAlign(etxt.VertCenter)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	n.updateFontSize(bW, bH)
@@ -94,9 +93,9 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	n.fontRenderer.SetColor(tColor)
 
 	if n.navDistance >= 0 {
-		n.fontRenderer.SetAlign(etxt.Bottom, etxt.XCenter)
+		n.fontRenderer.SetAlign(etxt.Bottom)
 		distanceStr := fmt.Sprintf("%0.0fm", n.navDistance)
-		n.fontRenderer.Draw(distanceStr, bX+bW/2, bY+bH)
+		n.fontRenderer.Draw(screen, distanceStr, bX+bW/2, bY+bH)
 	}
 
 	// nav point name
@@ -106,7 +105,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		nColor = color.NRGBA{nColor.R, nColor.G, nColor.B, nAlpha}
 	}
 	n.fontRenderer.SetColor(nColor)
-	n.fontRenderer.SetAlign(etxt.Top, etxt.XCenter)
+	n.fontRenderer.SetAlign(etxt.Top)
 
 	navName := "NAV " + strings.ToUpper(n.navPoint.Name)
 	switch {
@@ -117,5 +116,5 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	case n.navPoint.Objective() == model.NavVisitObjective:
 		navName = "*" + navName + "*"
 	}
-	n.fontRenderer.Draw(navName, bX+bW/2, bY)
+	n.fontRenderer.Draw(screen, navName, bX+bW/2, bY)
 }

@@ -19,7 +19,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/tinne26/etxt"
+	efont "github.com/tinne26/etxt/font"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"
@@ -135,7 +135,7 @@ func NewFontFromFile(path string) (*sfnt.Font, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	return etxt.ParseFontBytes(b)
+	return efont.ParseFromBytes(b)
 }
 
 func LoadFont(path string, size float64) (font.Face, error) {
