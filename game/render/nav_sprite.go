@@ -60,7 +60,7 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 	}
 
 	renderer.SetSize(fontPxSize)
-	renderer.SetAlign(etxt.VertCenter)
+	renderer.SetAlign(etxt.VertCenter | etxt.HorzCenter)
 
 	navChar := navPoint.Name[0:1]
 	renderer.Draw(navImage, navChar, imageSize/2, imageSize/2)

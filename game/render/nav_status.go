@@ -59,7 +59,7 @@ func (n *NavStatus) updateFontSize(_, height int) {
 
 func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	n.fontRenderer.SetAlign(etxt.VertCenter)
+	n.fontRenderer.SetAlign(etxt.VertCenter | etxt.HorzCenter)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	n.updateFontSize(bW, bH)
@@ -93,7 +93,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	n.fontRenderer.SetColor(tColor)
 
 	if n.navDistance >= 0 {
-		n.fontRenderer.SetAlign(etxt.Bottom)
+		n.fontRenderer.SetAlign(etxt.Bottom | etxt.HorzCenter)
 		distanceStr := fmt.Sprintf("%0.0fm", n.navDistance)
 		n.fontRenderer.Draw(screen, distanceStr, bX+bW/2, bY+bH)
 	}
@@ -105,7 +105,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		nColor = color.NRGBA{nColor.R, nColor.G, nColor.B, nAlpha}
 	}
 	n.fontRenderer.SetColor(nColor)
-	n.fontRenderer.SetAlign(etxt.Top)
+	n.fontRenderer.SetAlign(etxt.Top | etxt.HorzCenter)
 
 	navName := "NAV " + strings.ToUpper(n.navPoint.Name)
 	switch {

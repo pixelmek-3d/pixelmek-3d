@@ -30,7 +30,7 @@ func NewHeatIndicator(font *Font) *HeatIndicator {
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.Top)
+	renderer.SetAlign(etxt.Top | etxt.Left)
 	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	h := &HeatIndicator{
@@ -97,11 +97,11 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	h.fontRenderer.SetColor(tColor)
 
 	heatStr := fmt.Sprintf("Heat: %0.1f", h.heat)
-	h.fontRenderer.SetAlign(etxt.Top)
+	h.fontRenderer.SetAlign(etxt.Top | etxt.Left)
 	h.fontRenderer.Draw(screen, heatStr, int(oX+2*oT), int(oY+oH+2*oT)) // TODO: calculate better margin spacing
 
 	// current heat dissipation text
 	dissipationStr := fmt.Sprintf("dH/dT: %0.1f", -h.dissipation)
-	h.fontRenderer.SetAlign(etxt.Top)
+	h.fontRenderer.SetAlign(etxt.Top | etxt.Right)
 	h.fontRenderer.Draw(screen, dissipationStr, int(oX+oW-2*oT), int(oY+oH+2*oT)) // TODO: calculate better margin spacing
 }

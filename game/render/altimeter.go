@@ -32,7 +32,7 @@ func NewAltimeter(font *Font) *Altimeter {
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.VertCenter)
+	renderer.SetAlign(etxt.VertCenter | etxt.Right)
 	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	a := &Altimeter{

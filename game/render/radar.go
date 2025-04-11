@@ -59,7 +59,7 @@ func NewRadar(font *Font) *Radar {
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.Top)
+	renderer.SetAlign(etxt.Top | etxt.Left)
 	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	r := &Radar{

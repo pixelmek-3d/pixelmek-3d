@@ -185,7 +185,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	a.fontRenderer.SetAlign(etxt.VertCenter)
+	a.fontRenderer.SetAlign(etxt.VertCenter | etxt.Left)
 	a.fontRenderer.SetSize(a.fontSizeWeapons)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
@@ -209,7 +209,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 
 	// render ammo indicator
 	if wAmmoBin != nil {
-		a.fontRenderer.SetAlign(etxt.Bottom)
+		a.fontRenderer.SetAlign(etxt.Bottom | etxt.Right)
 		a.fontRenderer.SetSize(a.fontSizeAmmo)
 
 		// just picked a character to indicate as empty
@@ -222,7 +222,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 
 	// render weapon group indicator
 	if len(a.weaponGroups) > 0 {
-		a.fontRenderer.SetAlign(etxt.Top)
+		a.fontRenderer.SetAlign(etxt.Top | etxt.Right)
 		a.fontRenderer.SetSize(a.fontSizeGroups)
 
 		var groupsTxt string

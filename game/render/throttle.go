@@ -31,7 +31,7 @@ func NewThrottle(font *Font) *Throttle {
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.VertCenter)
+	renderer.SetAlign(etxt.VertCenter | etxt.Right)
 
 	t := &Throttle{
 		HUDSprite:    NewHUDSprite(nil, 1.0),
@@ -94,9 +94,9 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		velocityStr += fmt.Sprintf("\n%0.1fvert", t.velocityZ)
 	}
 	if t.velocity >= 0 {
-		t.fontRenderer.SetAlign(etxt.Top)
+		t.fontRenderer.SetAlign(etxt.Top | etxt.Right)
 	} else {
-		t.fontRenderer.SetAlign(etxt.Bottom)
+		t.fontRenderer.SetAlign(etxt.Bottom | etxt.Right)
 	}
 	t.fontRenderer.Draw(screen, velocityStr, int(oX)-3, bY+int(zeroY+vH)) // TODO: calculate better margin spacing
 

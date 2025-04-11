@@ -54,6 +54,6 @@ func (f *FPSIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	// fps indicator text
 	tColor := hudOpts.HudColor(_colorFPSText)
 	f.fontRenderer.SetColor(tColor)
-	f.fontRenderer.SetAlign(etxt.Top)
+	f.fontRenderer.SetAlign(etxt.Top | etxt.Left)
 	f.fontRenderer.Draw(screen, f.fpsText, bX, bY)
 }

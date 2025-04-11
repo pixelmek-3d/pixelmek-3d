@@ -93,7 +93,7 @@ func (u *UnitStatus) updateFontSize(_, height int) {
 
 func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	u.fontRenderer.SetAlign(etxt.VertCenter)
+	u.fontRenderer.SetAlign(etxt.VertCenter | etxt.Left)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	u.updateFontSize(bW, bH)
@@ -182,19 +182,19 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			u.fontRenderer.SetColor(eColor)
 
 			chassisVariant := strings.ToUpper(sUnit.Variant())
-			u.fontRenderer.SetAlign(etxt.Top)
+			u.fontRenderer.SetAlign(etxt.Top | etxt.HorzCenter)
 			u.fontRenderer.Draw(screen, chassisVariant, bX+bW/2, bY)
 
 			// show spectating text
 			sColor := hudOpts.HudColor(_colorStatusWarn)
 			u.fontRenderer.SetColor(sColor)
-			u.fontRenderer.SetAlign(etxt.Bottom)
+			u.fontRenderer.SetAlign(etxt.Bottom | etxt.HorzCenter)
 			u.fontRenderer.Draw(screen, "SPECTATING", bX+bW/2, bY-2)
 		}
 	} else if !u.isPlayer {
 		// target distance
 		if u.unitDistance >= 0 {
-			u.fontRenderer.SetAlign(etxt.Bottom)
+			u.fontRenderer.SetAlign(etxt.Bottom | etxt.HorzCenter)
 			distanceStr := fmt.Sprintf("%0.0fm", u.unitDistance)
 			u.fontRenderer.Draw(screen, distanceStr, bX+bW/2, bY+bH)
 		}
@@ -218,7 +218,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				chassisVariant = "^" + chassisVariant + "^"
 			}
 
-			u.fontRenderer.SetAlign(etxt.Top)
+			u.fontRenderer.SetAlign(etxt.Top | etxt.HorzCenter)
 			u.fontRenderer.Draw(screen, chassisVariant, bX+bW/2, bY)
 
 			// if lock-ons equipped, display lock percent on target
@@ -228,7 +228,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 					lColor = hudOpts.HudColor(_colorStatusWarn)
 				}
 				u.fontRenderer.SetColor(lColor)
-				u.fontRenderer.SetAlign(etxt.Bottom)
+				u.fontRenderer.SetAlign(etxt.Bottom | etxt.Left)
 
 				lockStr := fmt.Sprintf("LOCK: %0.0f%%", u.targetLock*100)
 				u.fontRenderer.Draw(screen, lockStr, bX, bY-u.targetReticle.Height())

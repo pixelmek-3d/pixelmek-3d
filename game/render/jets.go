@@ -81,6 +81,6 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions)
 	// jet indicator text
 	tColor := hudOpts.HudColor(_colorJetsText)
 	j.fontRenderer.SetColor(tColor)
-	j.fontRenderer.SetAlign(etxt.Top)
+	j.fontRenderer.SetAlign(etxt.Top | etxt.HorzCenter)
 	j.fontRenderer.Draw(screen, "Jets", int(midX), int(oY+oH+2*oT)) // TODO: calculate better margin spacing
 }

@@ -39,7 +39,7 @@ func NewCompass(font *Font) *Compass {
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.Top)
+	renderer.SetAlign(etxt.Top | etxt.HorzCenter)
 	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	c := &Compass{
