@@ -7,8 +7,8 @@ import (
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
-	"golang.org/x/image/font"
 )
 
 const (
@@ -42,9 +42,10 @@ const (
 )
 
 type uiResources struct {
-	fonts          *fonts
-	background     *image.NineSlice
-	separatorColor color.Color
+	fonts           *fonts
+	background      *image.NineSlice
+	backgroundColor color.Color
+	separatorColor  color.Color
 
 	text        *textResources
 	button      *buttonResources
@@ -63,16 +64,16 @@ type uiResources struct {
 type textResources struct {
 	idleColor     color.Color
 	disabledColor color.Color
-	face          font.Face
-	titleFace     font.Face
-	bigTitleFace  font.Face
-	smallFace     font.Face
+	face          text.Face
+	titleFace     text.Face
+	bigTitleFace  text.Face
+	smallFace     text.Face
 }
 
 type buttonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
-	face    font.Face
+	face    text.Face
 	padding widget.Insets
 }
 
@@ -84,14 +85,14 @@ type checkboxResources struct {
 
 type labelResources struct {
 	text *widget.LabelColor
-	face font.Face
+	face text.Face
 }
 
 type comboButtonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
-	face    font.Face
-	graphic *widget.ButtonImageImage
+	face    text.Face
+	graphic *widget.GraphicImage
 	padding widget.Insets
 }
 
@@ -101,7 +102,7 @@ type listResources struct {
 	trackPadding widget.Insets
 	handle       *widget.ButtonImage
 	handleSize   int
-	face         font.Face
+	face         text.Face
 	entry        *widget.ListEntryColor
 	entryPadding widget.Insets
 }
@@ -120,7 +121,7 @@ type panelResources struct {
 }
 
 type tabBookResources struct {
-	buttonFace    font.Face
+	buttonFace    text.Face
 	buttonText    *widget.ButtonTextColor
 	buttonPadding widget.Insets
 }
@@ -128,7 +129,7 @@ type tabBookResources struct {
 type headerResources struct {
 	background *image.NineSlice
 	padding    widget.Insets
-	face       font.Face
+	face       text.Face
 	color      color.Color
 }
 
@@ -138,25 +139,25 @@ type textAreaResources struct {
 	trackPadding widget.Insets
 	handle       *widget.ButtonImage
 	handleSize   int
-	face         font.Face
+	face         text.Face
 	entryPadding widget.Insets
 }
 
 type toolTipResources struct {
 	background *image.NineSlice
 	padding    widget.Insets
-	face       font.Face
-	monoFace   font.Face
+	face       text.Face
+	monoFace   text.Face
 	color      color.Color
 }
 
 type fonts struct {
 	scale        float64
-	face         font.Face
-	titleFace    font.Face
-	bigTitleFace font.Face
-	toolTipFace  font.Face
-	toolTipMono  font.Face
+	face         text.Face
+	titleFace    text.Face
+	bigTitleFace text.Face
+	toolTipFace  text.Face
+	toolTipMono  text.Face
 }
 
 func NewUIResources(fonts *fonts) (*uiResources, error) {
@@ -213,9 +214,10 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 	}
 
 	return &uiResources{
-		fonts:          fonts,
-		background:     background,
-		separatorColor: hexToColor(separatorColor),
+		fonts:           fonts,
+		background:      background,
+		backgroundColor: hexToColor(backgroundColor),
+		separatorColor:  hexToColor(separatorColor),
 
 		text: &textResources{
 			idleColor:     hexToColor(textIdleColor),
@@ -276,7 +278,7 @@ func loadFonts(fontScale float64) (*fonts, error) {
 	}, nil
 }
 
-func loadGraphicImages(idle string, disabled string, scale float64) (*widget.ButtonImageImage, error) {
+func loadGraphicImages(idle string, disabled string, scale float64) (*widget.GraphicImage, error) {
 	idleImage, _, err := resources.NewScaledImageFromFile(idle, scale)
 	if err != nil {
 		return nil, err
@@ -290,7 +292,7 @@ func loadGraphicImages(idle string, disabled string, scale float64) (*widget.But
 		}
 	}
 
-	return &widget.ButtonImageImage{
+	return &widget.GraphicImage{
 		Idle:     idleImage,
 		Disabled: disabledImage,
 	}, nil

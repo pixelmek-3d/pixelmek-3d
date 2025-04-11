@@ -30,7 +30,7 @@ func newCheckbox(m Menu, label string, checked bool, changedHandler widget.Check
 	return c
 }
 
-func newListComboButton(entries []interface{}, selectedEntry interface{}, buttonLabel widget.SelectComboButtonEntryLabelFunc, entryLabel widget.ListEntryLabelFunc,
+func newListComboButton(entries []any, selectedEntry any, buttonLabel widget.SelectComboButtonEntryLabelFunc, entryLabel widget.ListEntryLabelFunc,
 	entrySelectedHandler widget.ListComboButtonEntrySelectedHandlerFunc, res *uiResources) *widget.ListComboButton {
 
 	c := widget.NewListComboButton(
@@ -187,7 +187,7 @@ func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) 
 	)
 }
 
-func newSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWidget {
+func newSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
 	res := m.Resources()
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -209,7 +209,8 @@ func newSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWidget {
 	return c
 }
 
-func newBlankSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWidget {
+func newBlankSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
+	res := m.Resources()
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -224,6 +225,7 @@ func newBlankSeparator(m Menu, ld interface{}) widget.PreferredSizeLocateableWid
 			Stretch:   true,
 			MaxHeight: 4,
 		})),
+		widget.GraphicOpts.ImageNineSlice(image.NewNineSliceColor(res.backgroundColor)),
 	))
 
 	return c
