@@ -28,9 +28,11 @@ func init() {
 	cobra.OnInitialize(resources.InitConfig)
 
 	// global flags that are not persisted in config file
-	rootCmd.PersistentFlags().Bool(game.PARAM_KEY_DEBUG, false, "developer debug mode")
+	rootCmd.PersistentFlags().Bool(game.PARAM_KEY_BENCHMARK, false, "developer benchmark mode")
+	globalViper.BindPFlag(game.PARAM_KEY_BENCHMARK, rootCmd.PersistentFlags().Lookup(game.PARAM_KEY_BENCHMARK))
+	globalViper.SetDefault(game.PARAM_KEY_BENCHMARK, false)
 
+	rootCmd.PersistentFlags().Bool(game.PARAM_KEY_DEBUG, false, "developer debug mode")
 	globalViper.BindPFlag(game.PARAM_KEY_DEBUG, rootCmd.PersistentFlags().Lookup(game.PARAM_KEY_DEBUG))
 	globalViper.SetDefault(game.PARAM_KEY_DEBUG, false)
-
 }

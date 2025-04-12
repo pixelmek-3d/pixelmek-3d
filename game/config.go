@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	PARAM_KEY_DEBUG = "debug"
+	PARAM_KEY_DEBUG     = "debug"
+	PARAM_KEY_BENCHMARK = "benchmark"
 
 	CONFIG_KEY_SHOW_FPS         = "show_fps"
 	CONFIG_KEY_SCREEN_WIDTH     = "screen.width"
@@ -52,6 +53,7 @@ const (
 
 func (g *Game) initConfig() {
 	// handle global flag values
+	g.benchmark = globalViper.GetBool(PARAM_KEY_BENCHMARK)
 	g.debug = globalViper.GetBool(PARAM_KEY_DEBUG)
 	if g.debug {
 		log.SetLevel(log.DebugLevel)
