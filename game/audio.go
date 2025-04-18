@@ -14,6 +14,7 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/solarlune/resound"
+	"github.com/solarlune/resound/effects"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -93,7 +94,7 @@ func NewAudioHandler() *AudioHandler {
 
 	a.bgm = &BGMHandler{}
 	a.bgm.channel = resound.NewDSPChannel()
-	a.bgm.channel.Add("volume", resound.NewVolume(nil))
+	a.bgm.channel.Add("volume", effects.NewVolume(nil))
 	a.SetMusicVolume(bgmVolume)
 
 	a.sfxMap = &sync.Map{}
@@ -124,8 +125,8 @@ func NewAudioHandler() *AudioHandler {
 func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	s := &SFXSource{volume: sourceVolume}
 	s.channel = resound.NewDSPChannel()
-	s.channel.Add("volume", resound.NewVolume(nil).SetStrength(sourceVolume))
-	s.channel.Add("pan", resound.NewPan(nil))
+	s.channel.Add("volume", effects.NewVolume(nil).SetStrength(sourceVolume))
+	s.channel.Add("pan", effects.NewPan(nil))
 	return s
 }
 
@@ -198,7 +199,7 @@ func (s *SFXSource) LoadLoopSFX(a *AudioHandler, sfxFile string) error {
 
 // UpdateVolume updates the volume of the sound channel taking into account relative volume modifier
 func (s *SFXSource) UpdateVolume() {
-	v := s.channel.Effects["volume"].(*resound.Volume)
+	v := s.channel.Effects["volume"].(*effects.Volume)
 	v.SetStrength(sfxVolume * s.volume)
 }
 
@@ -210,10 +211,10 @@ func (s *SFXSource) SetSourceVolume(sourceVolume float64) {
 
 // SetPan sets the left/right panning percent of the sound channel
 func (s *SFXSource) SetPan(panPercent float64) {
-	if pan, ok := s.channel.Effects["pan"].(*resound.Pan); ok {
+	if pan, ok := s.channel.Effects["pan"].(*effects.Pan); ok {
 		pan.SetPan(panPercent)
 	} else {
-		s.channel.Add("pan", resound.NewPan(nil).SetPan(panPercent))
+		s.channel.Add("pan", effects.NewPan(nil).SetPan(panPercent))
 	}
 }
 
@@ -362,7 +363,7 @@ func (s *SFXHandler) _updateExtSFXCount(sfxFile string, countDiff int) {
 // SetMusicVolume sets volume of background music
 func (a *AudioHandler) SetMusicVolume(strength float64) {
 	bgmVolume = strength
-	v := a.bgm.channel.Effects["volume"].(*resound.Volume)
+	v := a.bgm.channel.Effects["volume"].(*effects.Volume)
 	v.SetStrength(bgmVolume)
 
 	if bgmVolume == 0 {
@@ -542,7 +543,7 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 	}
 
 	bgm := audio.NewInfiniteLoop(stream, length)
-	vol := resound.NewVolume(bgm)
+	vol := effects.NewVolume(bgm)
 	a.bgm.player = a.bgm.channel.CreatePlayer(vol)
 	a.bgm.player.SetBufferSize(time.Millisecond * 100)
 	a.bgm.player.Play()
@@ -566,7 +567,7 @@ func (a *AudioHandler) StartEngineAmbience() {
 	}
 
 	engAmb := audio.NewInfiniteLoop(stream, length)
-	vol := resound.NewVolume(engAmb)
+	vol := effects.NewVolume(engAmb)
 	engine.player = engine.channel.CreatePlayer(vol)
 	engine.player.SetBufferSize(time.Millisecond * 50)
 	engine.player.Play()

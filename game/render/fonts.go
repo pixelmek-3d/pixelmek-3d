@@ -5,7 +5,7 @@ import (
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/tinne26/etxt"
-	"github.com/tinne26/etxt/ecache"
+	"github.com/tinne26/etxt/cache"
 )
 
 type FontHandler struct {
@@ -14,7 +14,7 @@ type FontHandler struct {
 
 type Font struct {
 	*etxt.Font
-	FontCache *ecache.DefaultCache
+	FontCache *cache.DefaultCache
 	FontName  string
 	FontPath  string
 }
@@ -34,7 +34,7 @@ func (f *FontHandler) LoadFont(fontFile string) (*Font, error) {
 	}
 
 	// create 10MB cache
-	fontCache := etxt.NewDefaultCache(10 * 1024 * 1024)
+	fontCache := cache.NewDefaultCache(10 * 1024 * 1024)
 
 	return &Font{
 		Font:      font,

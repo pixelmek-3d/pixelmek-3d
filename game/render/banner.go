@@ -22,7 +22,7 @@ type MissionBanner struct {
 // NewMissionBanner creates an in-mission banner to be rendered
 func NewMissionBanner(font *Font) *MissionBanner {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 
@@ -41,7 +41,7 @@ func (f *MissionBanner) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	f.fontRenderer.SetSizePx(int(pxSize))
+	f.fontRenderer.SetSize(pxSize)
 }
 
 func (f *MissionBanner) SetBannerText(bannerText string) {
@@ -50,7 +50,6 @@ func (f *MissionBanner) SetBannerText(bannerText string) {
 
 func (f *MissionBanner) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	f.fontRenderer.SetTarget(screen)
 
 	sW := screen.Bounds().Dx()
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
@@ -61,6 +60,6 @@ func (f *MissionBanner) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// mission banner text
 	f.fontRenderer.SetColor(_colorBannerText)
-	f.fontRenderer.SetAlign(etxt.Top, etxt.Left)
-	f.fontRenderer.Draw(f.bannerText, bX, bY+bH/8)
+	f.fontRenderer.SetAlign(etxt.Top | etxt.Left)
+	f.fontRenderer.Draw(screen, f.bannerText, bX, bY+bH/8)
 }

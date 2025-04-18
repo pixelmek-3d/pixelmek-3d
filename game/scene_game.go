@@ -9,6 +9,7 @@ type GameScene struct {
 	Game *Game
 
 	transition SceneTransition
+	benchmark  *BenchmarkHandler
 }
 
 func NewGameScene(g *Game) *GameScene {
@@ -40,13 +41,25 @@ func NewGameScene(g *Game) *GameScene {
 	}
 	transition := transitions.NewFade(g.overlayScreen, tOpts, ebiten.GeoM{})
 
-	return &GameScene{
+	scene := &GameScene{
 		Game:       g,
 		transition: transition,
 	}
+
+	if g.benchmark {
+		scene.benchmark = NewBenchmarkHandler()
+	}
+
+	return scene
 }
 
 func (g *Game) LeaveGame() {
+	if gs, ok := g.scene.(*GameScene); ok && gs.benchmark != nil {
+		// close benchmark
+		gs.benchmark.Close()
+		gs.benchmark = nil
+	}
+
 	// stop mission music and sfx audio
 	g.audio.StopSFX()
 	g.audio.StopMusic()
@@ -57,6 +70,10 @@ func (g *Game) LeaveGame() {
 
 func (s *GameScene) Update() error {
 	g := s.Game
+
+	if s.benchmark != nil {
+		s.benchmark.UpdateStart()
+	}
 
 	if g.osType == osTypeBrowser && ebiten.CursorMode() == ebiten.CursorModeVisible && !g.menu.Active() && !g.menu.Closing() {
 		// capture not working sometimes (https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API#iframe_limitations):
@@ -124,6 +141,10 @@ func (s *GameScene) Update() error {
 
 	// update the menu (if active)
 	g.menu.Update()
+
+	if s.benchmark != nil {
+		s.benchmark.UpdateStop()
+	}
 
 	return nil
 }

@@ -24,9 +24,9 @@ var (
 type Armament struct {
 	HUDSprite
 	fontRenderer    *etxt.Renderer
-	fontSizeWeapons int
-	fontSizeAmmo    int
-	fontSizeGroups  int
+	fontSizeWeapons float64
+	fontSizeAmmo    float64
+	fontSizeGroups  float64
 	weapons         []*Weapon
 	weaponGroups    [][]model.Weapon
 	selectedWeapon  uint
@@ -44,7 +44,7 @@ type Weapon struct {
 // NewArmament creates a weapon list image to be rendered on demand
 func NewArmament(font *Font) *Armament {
 	// create and configure renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 
@@ -127,9 +127,9 @@ func (a *Armament) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	a.fontSizeWeapons = geom.ClampInt(int(pxSize), 1, math.MaxInt)
-	a.fontSizeAmmo = geom.ClampInt(int(3*pxSize/5), 1, math.MaxInt)
-	a.fontSizeGroups = geom.ClampInt(int(pxSize/2), 1, math.MaxInt)
+	a.fontSizeWeapons = geom.Clamp(pxSize, 1, math.MaxInt)
+	a.fontSizeAmmo = geom.Clamp(3*pxSize/5, 1, math.MaxInt)
+	a.fontSizeGroups = geom.Clamp(pxSize/2, 1, math.MaxInt)
 }
 
 func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
@@ -185,9 +185,8 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	a.fontRenderer.SetTarget(screen)
-	a.fontRenderer.SetAlign(etxt.YCenter, etxt.Left)
-	a.fontRenderer.SetSizePx(a.fontSizeWeapons)
+	a.fontRenderer.SetAlign(etxt.VertCenter | etxt.Left)
+	a.fontRenderer.SetSize(a.fontSizeWeapons)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 
@@ -206,25 +205,25 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing
 
 	weaponDisplayTxt := weapon.ShortName()
-	a.fontRenderer.Draw(weaponDisplayTxt, wX, wY)
+	a.fontRenderer.Draw(screen, weaponDisplayTxt, wX, wY)
 
 	// render ammo indicator
 	if wAmmoBin != nil {
-		a.fontRenderer.SetAlign(etxt.Bottom, etxt.Right)
-		a.fontRenderer.SetSizePx(a.fontSizeAmmo)
+		a.fontRenderer.SetAlign(etxt.Bottom | etxt.Right)
+		a.fontRenderer.SetSize(a.fontSizeAmmo)
 
 		// just picked a character to indicate as empty
 		ammoDisplayTxt := "/ "
 		if !isAmmoEmpty {
 			ammoDisplayTxt = fmt.Sprintf("_%d ", wAmmoBin.AmmoCount())
 		}
-		a.fontRenderer.Draw(ammoDisplayTxt, bX+bW, bY+bH-2) // TODO: calculate better margin spacing
+		a.fontRenderer.Draw(screen, ammoDisplayTxt, bX+bW, bY+bH-2) // TODO: calculate better margin spacing
 	}
 
 	// render weapon group indicator
 	if len(a.weaponGroups) > 0 {
-		a.fontRenderer.SetAlign(etxt.Top, etxt.Right)
-		a.fontRenderer.SetSizePx(a.fontSizeGroups)
+		a.fontRenderer.SetAlign(etxt.Top | etxt.Right)
+		a.fontRenderer.SetSize(a.fontSizeGroups)
 
 		var groupsTxt string
 		for _, g := range model.GetGroupsForWeapon(w.weapon, a.weaponGroups) {
@@ -232,7 +231,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 		}
 
 		if len(groupsTxt) > 0 {
-			a.fontRenderer.Draw(groupsTxt, bX+bW, bY+2) // TODO: calculate better margin spacing
+			a.fontRenderer.Draw(screen, groupsTxt, bX+bW, bY+2) // TODO: calculate better margin spacing
 		}
 	}
 }

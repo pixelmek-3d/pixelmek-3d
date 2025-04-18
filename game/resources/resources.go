@@ -14,14 +14,12 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/tinne26/etxt"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	efont "github.com/tinne26/etxt/font"
 	"golang.org/x/image/font/sfnt"
 	"gopkg.in/yaml.v3"
 
@@ -135,42 +133,24 @@ func NewFontFromFile(path string) (*sfnt.Font, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	return etxt.ParseFontBytes(b)
+	return efont.ParseFromBytes(b)
 }
 
-func LoadFont(path string, size float64) (font.Face, error) {
+func LoadFont(path string, size float64) (text.Face, error) {
 	fontData, err := ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	switch {
-	case strings.HasSuffix(path, ".otf"):
-		otfFont, err := opentype.Parse(fontData)
-		if err != nil {
-			return nil, err
-		}
-
-		return opentype.NewFace(otfFont, &opentype.FaceOptions{
-			Size:    size,
-			DPI:     72,
-			Hinting: font.HintingFull,
-		})
-
-	case strings.HasSuffix(path, ".ttf"):
-		ttfFont, err := truetype.Parse(fontData)
-		if err != nil {
-			return nil, err
-		}
-
-		return truetype.NewFace(ttfFont, &truetype.Options{
-			Size:    size,
-			DPI:     72,
-			Hinting: font.HintingFull,
-		}), nil
+	ttfFont, err := text.NewGoTextFaceSource(bytes.NewReader(fontData))
+	if err != nil {
+		return nil, fmt.Errorf("[%s] error loading font: %v", path, err)
 	}
 
-	return nil, errors.New("unhandled font extension for " + path)
+	return &text.GoTextFace{
+		Source: ttfFont,
+		Size:   size,
+	}, nil
 }
 
 func NewAudioStreamFromFile(path string) (io.ReadSeeker, int64, error) {

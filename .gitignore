@@ -22,4 +22,5 @@ mods/*
 !mods/README.md
 
 # Miscellany
+*.csv
 *.log

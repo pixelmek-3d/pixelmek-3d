@@ -29,10 +29,10 @@ type Altimeter struct {
 // NewAltimeter creates a compass image to be rendered on demand
 func NewAltimeter(font *Font) *Altimeter {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
-	renderer.SetAlign(etxt.YCenter, etxt.Right)
+	renderer.SetAlign(etxt.VertCenter | etxt.Right)
 	renderer.SetColor(color.NRGBA{255, 255, 255, 255})
 
 	a := &Altimeter{
@@ -50,7 +50,7 @@ func (a *Altimeter) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	a.fontRenderer.SetSizePx(int(pxSize))
+	a.fontRenderer.SetSize(pxSize)
 }
 
 func (a *Altimeter) SetValues(altitude, pitch float64) {
@@ -60,7 +60,6 @@ func (a *Altimeter) SetValues(altitude, pitch float64) {
 
 func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	a.fontRenderer.SetTarget(screen)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	a.updateFontSize(bW, bH)
@@ -107,7 +106,7 @@ func (a *Altimeter) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			var pipAltStr string = fmt.Sprintf("%d", actualAlt)
 
 			if pipAltStr != "" {
-				a.fontRenderer.Draw(pipAltStr, int(midX), int(iY))
+				a.fontRenderer.Draw(screen, pipAltStr, int(midX), int(iY))
 			}
 		}
 	}

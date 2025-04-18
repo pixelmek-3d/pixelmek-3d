@@ -118,6 +118,7 @@ type Game struct {
 	throttleDecay bool
 
 	osType     osType
+	benchmark  bool
 	debug      bool
 	fpsEnabled bool
 }

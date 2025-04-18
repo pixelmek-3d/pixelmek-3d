@@ -19,7 +19,7 @@ type FPSIndicator struct {
 // NewFPSIndicator creates an FPS indicator to be rendered on demand
 func NewFPSIndicator(font *Font) *FPSIndicator {
 	// create and configure font renderer
-	renderer := etxt.NewStdRenderer()
+	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
 	renderer.SetFont(font.Font)
 
@@ -38,7 +38,7 @@ func (f *FPSIndicator) updateFontSize(_, height int) {
 		pxSize = 1
 	}
 
-	f.fontRenderer.SetSizePx(int(pxSize))
+	f.fontRenderer.SetSize(pxSize)
 }
 
 func (f *FPSIndicator) SetFPSText(fpsText string) {
@@ -47,7 +47,6 @@ func (f *FPSIndicator) SetFPSText(fpsText string) {
 
 func (f *FPSIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	f.fontRenderer.SetTarget(screen)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
 	f.updateFontSize(bW, bH)
@@ -55,6 +54,6 @@ func (f *FPSIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	// fps indicator text
 	tColor := hudOpts.HudColor(_colorFPSText)
 	f.fontRenderer.SetColor(tColor)
-	f.fontRenderer.SetAlign(etxt.Top, etxt.Left)
-	f.fontRenderer.Draw(f.fpsText, bX, bY)
+	f.fontRenderer.SetAlign(etxt.Top | etxt.Left)
+	f.fontRenderer.Draw(screen, f.fpsText, bX, bY)
 }
