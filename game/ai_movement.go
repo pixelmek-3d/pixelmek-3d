@@ -87,9 +87,9 @@ func (a *AIBehavior) pathingHeading(toPos *geom.Vector2, toPosZ float64) float64
 func (a *AIBehavior) pathingVelocity(targetHeading, targetVelocity float64) float64 {
 	// return ideal target velocity to turn towards target heading
 	headingDiff := model.AngleDistance(a.u.Heading(), targetHeading)
-	if headingDiff > geom.Pi/4 {
+	if headingDiff > geom.Pi/8 {
 		// reduce velocity more for sharper turns
-		vTurnRatio := 0.25 + 0.75*(geom.Pi-math.Abs(headingDiff))/geom.Pi
+		vTurnRatio := (geom.Pi - math.Abs(headingDiff)) / geom.Pi
 		maxVelocity := geom.Clamp(a.u.MaxVelocity()*vTurnRatio, 0, targetVelocity)
 		targetVelocity = geom.Clamp(targetVelocity, 0, maxVelocity)
 	}
