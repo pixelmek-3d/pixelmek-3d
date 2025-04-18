@@ -55,7 +55,7 @@ type AudioHandler struct {
 
 type BGMHandler struct {
 	channel *resound.DSPChannel
-	player  *resound.Player
+	player  *resound.DSPPlayer
 }
 
 type SFXHandler struct {
@@ -67,7 +67,7 @@ type SFXHandler struct {
 
 type SFXSource struct {
 	channel *resound.DSPChannel
-	player  *resound.Player
+	player  *resound.DSPPlayer
 	volume  float64
 
 	_sfxFile            string
@@ -94,7 +94,7 @@ func NewAudioHandler() *AudioHandler {
 
 	a.bgm = &BGMHandler{}
 	a.bgm.channel = resound.NewDSPChannel()
-	a.bgm.channel.AddEffect("volume", effects.NewVolume())
+	a.bgm.channel.Add("volume", effects.NewVolume(nil))
 	a.SetMusicVolume(bgmVolume)
 
 	a.sfxMap = &sync.Map{}
@@ -125,8 +125,8 @@ func NewAudioHandler() *AudioHandler {
 func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	s := &SFXSource{volume: sourceVolume}
 	s.channel = resound.NewDSPChannel()
-	s.channel.AddEffect("volume", effects.NewVolume().SetStrength(sourceVolume))
-	s.channel.AddEffect("pan", effects.NewPan())
+	s.channel.Add("volume", effects.NewVolume(nil).SetStrength(sourceVolume))
+	s.channel.Add("pan", effects.NewPan(nil))
 	return s
 }
 
@@ -156,11 +156,7 @@ func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 		return err
 	}
 
-	s.player, err = resound.NewPlayer(stream)
-	if err != nil {
-		return err
-	}
-	s.player.SetDSPChannel(s.channel)
+	s.player = s.channel.CreatePlayer(stream)
 	s.player.SetBufferSize(time.Millisecond * 100)
 	s._sfxFile = sfxFile
 
@@ -194,11 +190,7 @@ func (s *SFXSource) LoadLoopSFX(a *AudioHandler, sfxFile string) error {
 	}
 
 	loop := audio.NewInfiniteLoop(stream, length)
-	s.player, err = resound.NewPlayer(loop)
-	if err != nil {
-		return err
-	}
-	s.player.SetDSPChannel(s.channel)
+	s.player = s.channel.CreatePlayer(loop)
 	s.player.SetBufferSize(time.Millisecond * 100)
 	s._sfxFile = sfxFile
 
@@ -207,11 +199,8 @@ func (s *SFXSource) LoadLoopSFX(a *AudioHandler, sfxFile string) error {
 
 // UpdateVolume updates the volume of the sound channel taking into account relative volume modifier
 func (s *SFXSource) UpdateVolume() {
-	if vol, ok := s.channel.Effects["volume"].(*effects.Volume); ok {
-		vol.SetStrength(sfxVolume * s.volume)
-	} else {
-		s.channel.AddEffect("volume", effects.NewVolume().SetStrength(sfxVolume*s.volume))
-	}
+	v := s.channel.Effects["volume"].(*effects.Volume)
+	v.SetStrength(sfxVolume * s.volume)
 }
 
 // SetSourceVolume sets the relative volume modifier of the sound channel
@@ -225,7 +214,7 @@ func (s *SFXSource) SetPan(panPercent float64) {
 	if pan, ok := s.channel.Effects["pan"].(*effects.Pan); ok {
 		pan.SetPan(panPercent)
 	} else {
-		s.channel.AddEffect("pan", effects.NewPan().SetPan(panPercent))
+		s.channel.Add("pan", effects.NewPan(nil).SetPan(panPercent))
 	}
 }
 
@@ -314,6 +303,7 @@ func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, so
 	})
 
 	// get and close the lowest priority source for reuse
+	// source, _ := a.sfx.extSources.Get()
 	if source == nil {
 		source = NewSoundEffectSource(0.0)
 	} else if source._sfxFile != sfxFile {
@@ -374,7 +364,7 @@ func (s *SFXHandler) _updateExtSFXCount(sfxFile string, countDiff int) {
 func (a *AudioHandler) SetMusicVolume(strength float64) {
 	bgmVolume = strength
 	v := a.bgm.channel.Effects["volume"].(*effects.Volume)
-	v.SetStrength(strength)
+	v.SetStrength(bgmVolume)
 
 	if bgmVolume == 0 {
 		a.PauseMusic()
@@ -399,8 +389,9 @@ func (a *AudioHandler) SetSFXVolume(strength float64) {
 // SetSFXChannels sets max number of external sound effect channels
 func (a *AudioHandler) SetSFXChannels(numChannels int) {
 	sfxChannels = numChannels
-	extInit := make([]*SFXSource, 0, numChannels)
-	for _ = range numChannels {
+
+	extInit := make([]*SFXSource, 0, sfxChannels)
+	for i := 0; i < sfxChannels; i++ {
 		// reuse existing channels if available
 		if a.sfx.extSources != nil && !a.sfx.extSources.IsEmpty() {
 			s, _ := a.sfx.extSources.Get()
@@ -420,7 +411,7 @@ func (a *AudioHandler) SetSFXChannels(numChannels int) {
 	a.sfx.extSources = queue.NewPriority(
 		extInit,
 		a.sfxSourcePriorityCompare,
-		queue.WithCapacity(numChannels),
+		queue.WithCapacity(sfxChannels),
 	)
 	a.sfx._extSFXCount = &sync.Map{}
 }
@@ -546,18 +537,14 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 
 	stream, length, err := resources.NewAudioStreamFromFile(path)
 	if err != nil {
-		log.Errorf("Error loading music: %v\n", err)
-		a.bgm.player = nil
+		log.Error("Error loading music:")
+		log.Error(err)
 		return
 	}
 
 	bgm := audio.NewInfiniteLoop(stream, length)
-	a.bgm.player, err = resound.NewPlayer(bgm)
-	if err != nil {
-		log.Errorf("Error starting music player: %v\n", err)
-		return
-	}
-	a.bgm.player.SetDSPChannel(a.bgm.channel)
+	vol := effects.NewVolume(bgm)
+	a.bgm.player = a.bgm.channel.CreatePlayer(vol)
 	a.bgm.player.SetBufferSize(time.Millisecond * 100)
 	a.bgm.player.Play()
 }
@@ -573,18 +560,15 @@ func (a *AudioHandler) StartEngineAmbience() {
 	// TODO: different ambient angine sound for different tonnages/unit types
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
 	if err != nil {
-		log.Errorf("Error loading engine ambience file: %v\n", err)
+		log.Error("Error loading engine ambience file:")
+		log.Error(err)
 		engine.player = nil
 		return
 	}
 
 	engAmb := audio.NewInfiniteLoop(stream, length)
-	engine.player, err = resound.NewPlayer(engAmb)
-	if err != nil {
-		log.Errorf("Error starting engine ambience player: %v\n", err)
-		return
-	}
-	engine.player.SetDSPChannel(engine.channel)
+	vol := effects.NewVolume(engAmb)
+	engine.player = engine.channel.CreatePlayer(vol)
 	engine.player.SetBufferSize(time.Millisecond * 50)
 	engine.player.Play()
 }
