@@ -15,7 +15,7 @@ velocity: 150
 cooldown: 4.5
 ammoPerTon: 120
 lockOn:
-  turnRate: 7.5
+  turnRate: 20
   groupRadius: 0.175
 projectileCount: 15
 projectileDelay: 0.05

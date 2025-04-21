@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	PARAM_KEY_DEBUG     = "debug"
-	PARAM_KEY_BENCHMARK = "benchmark"
+	PARAM_KEY_DEBUG         = "debug"
+	PARAM_KEY_BENCHMARK     = "benchmark"
+	PARAM_KEY_IGNORE_PLAYER = "ignore-player"
 
 	CONFIG_KEY_SHOW_FPS         = "show_fps"
 	CONFIG_KEY_SCREEN_WIDTH     = "screen.width"
@@ -57,6 +58,8 @@ func (g *Game) initConfig() {
 	g.debug = globalViper.GetBool(PARAM_KEY_DEBUG)
 	if g.debug {
 		log.SetLevel(log.DebugLevel)
+
+		g.aiIgnorePlayer = globalViper.GetBool(PARAM_KEY_IGNORE_PLAYER)
 	}
 
 	// special behavior needed for wasm play
