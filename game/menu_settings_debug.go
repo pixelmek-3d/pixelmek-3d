@@ -21,6 +21,14 @@ func debugOptionsPage(m Menu) *settingsPage {
 	// AI ignore player checkbox
 	ignorePlayerCheckbox := newCheckbox(m, "AI Ignore Player", game.aiIgnorePlayer, func(args *widget.CheckboxChangedEventArgs) {
 		game.aiIgnorePlayer = args.State == widget.WidgetChecked
+		if game.aiIgnorePlayer {
+			// clear AI target if player is current target
+			for _, a := range game.ai.ai {
+				if a.u.Target() == game.player.Unit {
+					a.u.SetTarget(nil)
+				}
+			}
+		}
 	})
 	c.AddChild(ignorePlayerCheckbox)
 
