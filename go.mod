@@ -7,7 +7,7 @@ require (
 	github.com/ebitenui/ebitenui v0.6.2
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/google/uuid v1.6.0
-	github.com/hajimehoshi/ebiten/v2 v2.8.7
+	github.com/hajimehoshi/ebiten/v2 v2.8.8
 	github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482
 	github.com/harbdog/raycaster-go v1.12.0
 	github.com/jinzhu/copier v0.4.0
