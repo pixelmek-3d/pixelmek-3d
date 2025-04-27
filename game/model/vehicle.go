@@ -6,6 +6,11 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+const (
+	VEHICLE_TURN_RATE_FACTOR   float64 = (0.125 * geom.Pi) / TICKS_PER_SECOND
+	VEHICLE_TURRET_RATE_FACTOR float64 = 2.0 * VEHICLE_TURN_RATE_FACTOR
+)
+
 type Vehicle struct {
 	*UnitModel
 	Resource *ModelVehicleResource
@@ -30,8 +35,8 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 			ammunition:      NewAmmoStock(),
 			hasTurret:       true,
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:     100 / r.Tonnage * 0.015, // FIXME: testing
-			maxTurretRate:   100 / r.Tonnage * 0.03,  // FIXME: testing
+			maxTurnRate:     VEHICLE_TURN_RATE_FACTOR + (100 / r.Tonnage * VEHICLE_TURN_RATE_FACTOR),
+			maxTurretRate:   VEHICLE_TURRET_RATE_FACTOR + (100 / r.Tonnage * VEHICLE_TURRET_RATE_FACTOR),
 			jumpJets:        0,
 			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
