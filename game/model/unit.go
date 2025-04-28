@@ -79,11 +79,11 @@ type Unit interface {
 	Update() bool
 
 	HasTurret() bool
-	SetHasTurret(bool)
 	TurretAngle() float64
 	SetTurretAngle(float64)
 	TurretRate() float64
 	SetTargetTurretAngle(float64)
+	MaxTurretExtentAngle() float64
 
 	CockpitOffset() *geom.Vector2
 	Ammunition() *Ammo
@@ -136,6 +136,7 @@ type UnitModel struct {
 	turretAngle         float64
 	targetTurretAngle   float64
 	maxTurretRate       float64
+	maxTurretExtent     float64
 	velocity            float64
 	velocityZ           float64
 	targetVelocity      float64
@@ -321,10 +322,6 @@ func (e *UnitModel) HasTurret() bool {
 	return e.hasTurret
 }
 
-func (e *UnitModel) SetHasTurret(hasTurret bool) {
-	e.hasTurret = hasTurret
-}
-
 func (e *UnitModel) TurretAngle() float64 {
 	if e.hasTurret {
 		return e.turretAngle
@@ -353,6 +350,13 @@ func (e *UnitModel) TurretRate() float64 {
 		return e.maxTurretRate
 	}
 	return e.maxTurnRate
+}
+
+func (e *UnitModel) MaxTurretExtentAngle() float64 {
+	if e.hasTurret {
+		return e.maxTurretExtent
+	}
+	return 0
 }
 
 func (e *UnitModel) Ammunition() *Ammo {
@@ -706,20 +710,35 @@ func (e *UnitModel) update() {
 		}
 	}
 
-	if e.hasTurret && e.targetTurretAngle != e.turretAngle {
-		// move towards target turret angle amount allowed by turret rate
-		distA := AngleDistance(e.turretAngle, e.targetTurretAngle)
-
-		twistRate := turretRate
-		if e.isPlayer {
-			// use logarithmic scale to smooth the approach to the target turret angle
-			twistRate = math.Log1p(2*math.Abs(distA)) * turretRate
+	if e.hasTurret {
+		// determine if turret angle needs to be bound by its maximum extent from unit heading
+		tDist := AngleDistance(e.heading, e.targetTurretAngle)
+		tExtent := e.maxTurretExtent
+		switch {
+		case tDist < -tExtent:
+			switch {
+			case tDist < -tExtent:
+				e.targetTurretAngle = ClampAngle2Pi(e.heading - tExtent)
+			case tDist > tExtent:
+				e.targetTurretAngle = ClampAngle2Pi(e.heading + tExtent)
+			}
 		}
 
-		deltaA := geom.Clamp(distA, -twistRate, twistRate)
-		e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA + deltaH)
-		if math.Abs(deltaA) < math.Abs(twistRate) && geom.NearlyEqual(e.targetTurretAngle, e.turretAngle, 0.0001) {
-			e.turretAngle = e.targetTurretAngle
+		if e.targetTurretAngle != e.turretAngle {
+			// move towards target turret angle amount allowed by turret rate
+			distA := AngleDistance(e.turretAngle, e.targetTurretAngle)
+
+			twistRate := turretRate
+			if e.isPlayer {
+				// use logarithmic scale to smooth the approach to the target turret angle
+				twistRate = math.Log1p(2*math.Abs(distA)) * turretRate
+			}
+
+			deltaA := geom.Clamp(distA, -twistRate, twistRate)
+			e.turretAngle = ClampAngle2Pi(e.turretAngle + deltaA + deltaH)
+			if math.Abs(deltaA) < math.Abs(twistRate) && geom.NearlyEqual(e.targetTurretAngle, e.turretAngle, 0.0001) {
+				e.turretAngle = e.targetTurretAngle
+			}
 		}
 	}
 }

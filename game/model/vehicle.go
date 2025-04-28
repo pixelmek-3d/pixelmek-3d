@@ -34,6 +34,7 @@ func NewVehicle(r *ModelVehicleResource, collisionRadius, collisionHeight float6
 			armament:        make([]Weapon, 0),
 			ammunition:      NewAmmoStock(),
 			hasTurret:       true,
+			maxTurretExtent: 2.0 * geom.Pi,
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:     VEHICLE_TURN_RATE_FACTOR + (100 / r.Tonnage * VEHICLE_TURN_RATE_FACTOR),
 			maxTurretRate:   VEHICLE_TURRET_RATE_FACTOR + (100 / r.Tonnage * VEHICLE_TURRET_RATE_FACTOR),
