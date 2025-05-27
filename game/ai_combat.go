@@ -101,11 +101,13 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 
 		// TODO: sort ready weapons based on which is most ideal to fire given the current circumstances
 
+		// TODO: introduce chance to not fire this tick?
+
 		// check for angle/pitch proximity to target center mass
 		if a.gunnery.targetLeadPos != nil {
 			targetLeadLine := &geom3d.Line3d{
 				X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
-				X2: a.gunnery.targetLeadPos.X, Y2: a.gunnery.targetLeadPos.Y, Z2: target.PosZ() + target.CollisionHeight()/2,
+				X2: a.gunnery.targetLeadPos.X, Y2: a.gunnery.targetLeadPos.Y, Z2: target.PosZ(),
 			}
 
 			// use target collision size for proximity check
