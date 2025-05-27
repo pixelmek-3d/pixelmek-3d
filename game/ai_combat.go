@@ -101,6 +101,8 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 
 		// TODO: sort ready weapons based on which is most ideal to fire given the current circumstances
 
+		// TODO: introduce chance to not fire this tick?
+
 		// check for angle/pitch proximity to target center mass
 		if a.gunnery.targetLeadPos != nil {
 			targetLeadLine := &geom3d.Line3d{
