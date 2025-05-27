@@ -159,19 +159,25 @@ func (p *Player) RotateCamera(rSpeed float64) {
 		return
 	}
 
-	// TODO: add config option to allow 360 degree torso rotation
+	// restrict camera rotation to turret extent offset from heading
+	var angle float64
+
+	// TODO: add difficulty option to allow 360 degree torso rotation
 	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
 
-	// restrict camera rotation to only 90 degrees offset from heading
-	var angle float64
-	heading := p.Heading()
-	aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
-	switch {
-	case aDist < -geom.HalfPi:
-		angle = model.ClampAngle2Pi(heading - geom.HalfPi)
-	case aDist > geom.HalfPi:
-		angle = model.ClampAngle2Pi(heading + geom.HalfPi)
-	default:
+	if p.HasTurret() {
+		heading := p.Heading()
+		aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
+		aExtent := p.MaxTurretExtentAngle()
+		switch {
+		case aDist < -aExtent:
+			angle = model.ClampAngle2Pi(heading - aExtent)
+		case aDist > aExtent:
+			angle = model.ClampAngle2Pi(heading + aExtent)
+		default:
+			angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
+		}
+	} else {
 		angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
 	}
 
