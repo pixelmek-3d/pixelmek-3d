@@ -63,9 +63,23 @@ func (a *AIBehavior) TargetIsAlive() func([]bt.Node) (bt.Status, error) {
 
 func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
+		if a.gunnery.ticksSinceFired < math.MaxUint {
+			// use number of AI ticks since last weapon fired to influence random decision to not fire this tick
+			a.gunnery.ticksSinceFired += 1
+		}
+
 		target := model.EntityUnit(a.u.Target())
 		if target == nil {
 			return bt.Failure, nil
+		}
+
+		// chance to fire this tick gradually increases as number of ticks without firing goes up
+		chanceToFire := float64(a.gunnery.ticksSinceFired) / (model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
+		if chanceToFire < 1 {
+			r := model.RandFloat64In(0, 1.0, a.rng)
+			if r > chanceToFire {
+				return bt.Failure, nil
+			}
 		}
 
 		targetDist := model.EntityDistance2D(a.u, target)
@@ -183,6 +197,7 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 
 		if weaponFired != nil {
 			// log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
+			a.gunnery.ticksSinceFired = 0
 			return bt.Success, nil
 		}
 		return bt.Failure, nil

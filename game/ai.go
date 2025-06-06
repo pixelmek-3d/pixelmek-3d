@@ -3,6 +3,8 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/rand"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -36,11 +38,13 @@ type AIBehavior struct {
 	u             model.Unit
 	gunnery       *AIGunnery
 	piloting      *AIPiloting
+	rng           *rand.Rand
 	newInitiative bool
 }
 
 type AIGunnery struct {
-	targetLeadPos *geom.Vector2
+	targetLeadPos   *geom.Vector2
+	ticksSinceFired uint
 }
 
 type AIPiloting struct {
@@ -201,7 +205,13 @@ func NewAIHandler(g *Game) *AIHandler {
 }
 
 func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavior {
-	a := &AIBehavior{g: h.g, u: u, gunnery: &AIGunnery{}, piloting: &AIPiloting{}}
+	a := &AIBehavior{
+		g:        h.g,
+		u:        u,
+		gunnery:  &AIGunnery{ticksSinceFired: math.MaxUint},
+		piloting: &AIPiloting{},
+		rng:      rand.New(rand.NewSource(rand.Int63())),
+	}
 	a.gunnery.Reset()
 	a.piloting.Reset()
 	a.Node = a.LoadBehaviorTree(ai, aiRes)
