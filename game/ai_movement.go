@@ -137,13 +137,12 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 
 		// generate random target offset based on distance for imperfect accuracy at range
 		// TODO: more accuracy for slow or immobile targets
-		rng := model.NewRNG()
 		cR, cH := target.CollisionRadius(), target.CollisionHeight()
 		xyExtent, xyClamp := (tDist/5*cR)+cR, 0.75
 		zExtent, zClamp := (tDist/10*cH)+cH/2, 0.35
-		offX := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, rng), -xyClamp, xyClamp)
-		offY := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, rng), -xyClamp, xyClamp)
-		offZ := geom.Clamp(model.RandFloat64In(-zExtent, zExtent, rng), -zClamp, zClamp)
+		offX := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, a.rng), -xyClamp, xyClamp)
+		offY := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, a.rng), -xyClamp, xyClamp)
+		offZ := geom.Clamp(model.RandFloat64In(-zExtent, zExtent, a.rng), -zClamp, zClamp)
 		// if iWeapon != nil {
 		// 	log.Debugf("[%s] dist %0.2f turretToTarget|offset (%0.2f, %0.2f, %0.2f)", a.u.ID(), tDist, offX, offY, offZ)
 		// }
@@ -298,8 +297,7 @@ func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 			// select a random position within the guard area
 			// TODO: verify random position isn't inside walls that would block reaching the position
 
-			rng := model.NewRNG()
-			rngAngle := model.RandFloat64In(0, 2*geom.Pi, rng)
+			rngAngle := model.RandFloat64In(0, 2*geom.Pi, a.rng)
 			rngLine := geom.LineFromAngle(guardArea.X, guardArea.Y, rngAngle, guardArea.Radius)
 
 			rngX := geom.Clamp(rngLine.X2, 0, float64(a.g.mapWidth))
@@ -410,9 +408,8 @@ func (a *AIBehavior) Wander() func([]bt.Node) (bt.Status, error) {
 			// select a random position within the map area
 			// TODO: verify random position isn't inside walls that would block reaching the position
 
-			rng := model.NewRNG()
-			rngX := model.RandFloat64In(0, float64(a.g.mapWidth), rng)
-			rngY := model.RandFloat64In(0, float64(a.g.mapHeight), rng)
+			rngX := model.RandFloat64In(0, float64(a.g.mapWidth), a.rng)
+			rngY := model.RandFloat64In(0, float64(a.g.mapHeight), a.rng)
 			nextPos = &geom.Vector2{X: rngX, Y: rngY}
 			wanderPath.Push(*nextPos)
 		}
