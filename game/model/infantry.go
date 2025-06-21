@@ -6,6 +6,11 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+const (
+	INFANTRY_TURN_RATE_FACTOR   float64 = (0.5 * geom.Pi) / TICKS_PER_SECOND
+	INFANTRY_TURRET_RATE_FACTOR float64 = 2.0 * INFANTRY_TURN_RATE_FACTOR
+)
+
 type Infantry struct {
 	*UnitModel
 	Resource *ModelInfantryResource
@@ -27,8 +32,8 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 			armament:           make([]Weapon, 0),
 			ammunition:         NewAmmoStock(),
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:        0.05, // FIXME: testing
-			maxTurretRate:      0.05, // FIXME: testing
+			maxTurnRate:        INFANTRY_TURN_RATE_FACTOR,
+			maxTurretRate:      INFANTRY_TURRET_RATE_FACTOR,
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: 1.0,
 			powered:            POWER_ON,
