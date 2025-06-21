@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"slices"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -114,6 +115,16 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 		}
 
 		// TODO: sort ready weapons based on which is most ideal to fire given the current circumstances
+		slices.SortFunc(readyWeapons, func(a, b model.Weapon) int {
+			switch {
+			case a.Distance() < b.Distance():
+				return 1
+			case a.Distance() > b.Distance():
+				return -1
+			default:
+				return 0
+			}
+		})
 
 		// check for angle/pitch proximity to target center mass
 		if a.gunnery.targetLeadPos != nil {
