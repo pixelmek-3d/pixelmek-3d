@@ -108,8 +108,27 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 			return bt.Failure, nil
 		}
 
-		a.updatePathingToPosition(target.Pos(), 8)
-		targetHeading := a.pathingHeading(target.Pos(), target.PosZ())
+		// choose a position near target not directly on top of it
+		uPos, tPos := a.u.Pos(), target.Pos()
+		tLine := geom.Line{
+			X1: uPos.X, Y1: uPos.Y,
+			X2: tPos.X, Y2: tPos.Y,
+		}
+		tDist, tHeading := tLine.Distance(), tLine.Angle()
+
+		// TODO: determine minimum keepaway distance based on some criteria and perhaps a bit of randomness
+		minDist := 1.5
+		if tDist < minDist {
+			// flip tDist negative to opposite direction from target
+			tDist = -tDist - (minDist - tDist)
+		} else {
+			tDist -= minDist
+		}
+		tLine = geom.LineFromAngle(uPos.X, uPos.Y, tHeading, tDist)
+		tPos = &geom.Vector2{X: tLine.X2, Y: tLine.Y2}
+
+		a.updatePathingToPosition(tPos, 8)
+		targetHeading := a.pathingHeading(tPos, target.PosZ())
 
 		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
 		a.u.SetTargetHeading(targetHeading)
