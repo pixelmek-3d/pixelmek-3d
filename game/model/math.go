@@ -195,11 +195,11 @@ func TargetLeadPosition(u, t Unit, w Weapon) *geom3d.Vector3 {
 		X1: u.Pos().X, Y1: u.Pos().Y, Z1: u.PosZ() + u.CockpitOffset().Y,
 		X2: t.Pos().X, Y2: t.Pos().Y, Z2: t.PosZ() + zTargetOffset,
 	}
-	tDist := tLine.Distance()
 
 	// determine approximate lead distance needed for weapon projectile
 	if w != nil {
 		// approximate position of target based on its current heading and speed for projectile flight time
+		tDist := tLine.Distance()
 		tProjectile := w.Projectile()
 		tDelta := tDist / tProjectile.MaxVelocity()
 		tLine = geom3d.Line3dFromAngle(t.Pos().X, t.Pos().Y, t.PosZ()+zTargetOffset, t.Heading(), 0, tDelta*t.Velocity())
