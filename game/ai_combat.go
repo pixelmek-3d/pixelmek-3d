@@ -186,7 +186,7 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 			}
 		}
 
-		var weaponFired model.Weapon
+		weaponsFired := make([]model.Weapon, 0, len(readyWeapons))
 		for _, w := range readyWeapons {
 			if unitHeat+w.Heat() >= a.u.MaxHeat() {
 				// only fire the weapon if it will not lead to overheating
@@ -194,21 +194,42 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 				continue
 			}
 
-			// only fire the weapon at the same time if similar to other weapons fired this cycle
-			if weaponFired != nil && !similarWeapons(weaponFired, w) {
+			// only fire the weapon at the same time if similar to other weapons fired this cycle,
+			// but always allow machine guns to fire with any other weapons
+			allowWeapon := true
+			if w.Classification() != model.BALLISTIC_MACHINEGUN {
+				for _, fW := range weaponsFired {
+					if fW.Classification() == model.BALLISTIC_MACHINEGUN {
+						continue
+					}
+					if !similarWeapons(fW, w) {
+						allowWeapon = false
+						break
+					}
+				}
+			}
+			if !allowWeapon {
 				continue
 			}
 
 			// TODO: weapon convergence toward target
 			if a.g.fireUnitWeapon(a.u, w) {
-				weaponFired = w
+				weaponsFired = append(weaponsFired, w)
 				unitHeat = a.u.Heat()
 			}
 		}
 
-		if weaponFired != nil {
+		if len(weaponsFired) > 0 {
 			// log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
-			a.gunnery.ticksSinceFired = 0
+
+			// reset chances to fire weapons next tick,
+			// unless machine guns were the only weapons fired
+			if slices.ContainsFunc(
+				weaponsFired, func(w model.Weapon) bool {
+					return w.Classification() != model.BALLISTIC_MACHINEGUN
+				}) {
+				a.gunnery.ticksSinceFired = 0
+			}
 			return bt.Success, nil
 		}
 		return bt.Failure, nil
