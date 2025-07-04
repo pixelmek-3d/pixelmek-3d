@@ -125,7 +125,12 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 			tDist -= minDist
 		}
 		tLine = geom.LineFromAngle(uPos.X, uPos.Y, tHeading, tDist)
-		tPos = &geom.Vector2{X: tLine.X2, Y: tLine.Y2}
+
+		boundaryClipDist := a.u.CollisionRadius() * 2
+		tPos = &geom.Vector2{
+			X: geom.Clamp(tLine.X2, boundaryClipDist, float64(a.g.mapWidth)-boundaryClipDist),
+			Y: geom.Clamp(tLine.Y2, boundaryClipDist, float64(a.g.mapHeight)-boundaryClipDist),
+		}
 
 		a.updatePathingToPosition(tPos, 8)
 		targetHeading := a.pathingHeading(tPos, target.PosZ())
