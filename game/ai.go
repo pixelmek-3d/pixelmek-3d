@@ -3,6 +3,8 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/rand"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -36,11 +38,14 @@ type AIBehavior struct {
 	u             model.Unit
 	gunnery       *AIGunnery
 	piloting      *AIPiloting
+	rng           *rand.Rand
 	newInitiative bool
 }
 
 type AIGunnery struct {
-	targetLeadPos *geom.Vector2
+	targetLeadPos        *geom.Vector2
+	ticksSinceFired      uint
+	idealWeaponsDistance float64
 }
 
 type AIPiloting struct {
@@ -201,7 +206,13 @@ func NewAIHandler(g *Game) *AIHandler {
 }
 
 func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavior {
-	a := &AIBehavior{g: h.g, u: u, gunnery: &AIGunnery{}, piloting: &AIPiloting{}}
+	a := &AIBehavior{
+		g:        h.g,
+		u:        u,
+		gunnery:  &AIGunnery{ticksSinceFired: math.MaxUint},
+		piloting: &AIPiloting{},
+		rng:      rand.New(rand.NewSource(rand.Int63())),
+	}
 	a.gunnery.Reset()
 	a.piloting.Reset()
 	a.Node = a.LoadBehaviorTree(ai, aiRes)
@@ -384,8 +395,6 @@ func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
 
 func (a *AIBehavior) Tick() (bt.Status, error) {
 	status, err := a.Node.Tick()
-	// reset flag indicating the current initiative order is no longer new
-	a.newInitiative = false
 	return status, err
 }
 
@@ -425,6 +434,13 @@ func (h *AIHandler) Update() {
 		if a.u.IsDestroyed() || a.u.Powered() != model.POWER_ON {
 			continue
 		}
+
+		if a.newInitiative {
+			// perform only AI updates that occur at the beginning of a new initiative set
+			a.UpdateForNewInitiativeSet()
+			continue
+		}
+
 		_, err := a.Tick()
 		if err != nil {
 			log.Error(err)
