@@ -14,15 +14,7 @@ import (
 func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
 		if a.u.Target() != nil {
-			stayOnTarget := true
-			if a.newInitiative {
-				// only evaluate choosing a new target at beginning of new initiative set
-				// TODO: better criteria for when to change to another target
-				stayOnTarget = false
-			}
-			if stayOnTarget {
-				return bt.Success, nil
-			}
+			return bt.Success, nil
 		}
 
 		// TODO: create separate node for selecting a new target based on some criteria?

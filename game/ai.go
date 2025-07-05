@@ -394,8 +394,6 @@ func (a *AIBehavior) LoadBehaviorTree(ai string, aiRes AIResources) bt.Node {
 
 func (a *AIBehavior) Tick() (bt.Status, error) {
 	status, err := a.Node.Tick()
-	// reset flag indicating the current initiative order is no longer new
-	a.newInitiative = false
 	return status, err
 }
 
@@ -435,6 +433,13 @@ func (h *AIHandler) Update() {
 		if a.u.IsDestroyed() || a.u.Powered() != model.POWER_ON {
 			continue
 		}
+
+		if a.newInitiative {
+			// perform only AI updates that occur at the beginning of a new initiative set
+			a.updateForNewInitiativeSet()
+			continue
+		}
+
 		_, err := a.Tick()
 		if err != nil {
 			log.Error(err)
