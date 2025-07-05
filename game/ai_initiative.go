@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"sort"
 
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -103,16 +104,17 @@ func (n *AIInitiative) Next() []*AIBehavior {
 	return n.stack[slot]
 }
 
-// updateForNewInitiativeSet performs certain updates that only occur
+// UpdateForNewInitiativeSet performs certain updates that only occur
 // at the beginning of a new initiative set
-func (a *AIBehavior) updateForNewInitiativeSet() {
-	a.newInitiativeTargetAcquisition()
+func (a *AIBehavior) UpdateForNewInitiativeSet() {
+	a.initiativeTargetAcquisition()
+	a.initiativeIdealWeaponsDistance()
 	a.newInitiative = false
 }
 
-// newInitiativeTargetAcquisition evaluates if the unit should select a new target
+// initiativeTargetAcquisition evaluates if the unit should select a new target
 // at the beginning of a new initiative set
-func (a *AIBehavior) newInitiativeTargetAcquisition() {
+func (a *AIBehavior) initiativeTargetAcquisition() {
 	if a.u.Target() != nil {
 		stayOnTarget := true
 		if a.newInitiative {
@@ -123,4 +125,30 @@ func (a *AIBehavior) newInitiativeTargetAcquisition() {
 			a.u.SetTarget(nil)
 		}
 	}
+}
+
+// initiativeIdealWeaponsDistance used weighted weapon distances to determine
+// what distance to keep from target for ideal weapon ranges
+func (a *AIBehavior) initiativeIdealWeaponsDistance() {
+	type weaponWeighting struct {
+		distance  float64
+		weighting float64
+	}
+	weights := make([]weaponWeighting, 0, len(a.u.Armament()))
+	for _, w := range a.u.Armament() {
+		if model.WeaponAmmoCount(w) <= 0 {
+			// only consider weapons with ammo remaining
+			continue
+		}
+		dist := w.Distance() / model.METERS_PER_UNIT
+		dps := w.Damage() / w.MaxCooldown()
+
+		weighting := weaponWeighting{
+			distance:  dist,
+			weighting: dps,
+		}
+		weights = append(weights, weighting)
+	}
+	// TODO: short term - just get distance of highest weighted weapon and halve it or something
+	// TODO: long term - use weapon weighting average/median distance?
 }

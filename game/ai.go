@@ -43,8 +43,9 @@ type AIBehavior struct {
 }
 
 type AIGunnery struct {
-	targetLeadPos   *geom.Vector2
-	ticksSinceFired uint
+	targetLeadPos        *geom.Vector2
+	ticksSinceFired      uint
+	idealWeaponsDistance float64
 }
 
 type AIPiloting struct {
@@ -436,7 +437,7 @@ func (h *AIHandler) Update() {
 
 		if a.newInitiative {
 			// perform only AI updates that occur at the beginning of a new initiative set
-			a.updateForNewInitiativeSet()
+			a.UpdateForNewInitiativeSet()
 			continue
 		}
 

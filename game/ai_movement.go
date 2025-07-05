@@ -116,8 +116,8 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 		tDist, tHeading := tLine.Distance(), tLine.Angle()
 
-		// TODO: determine minimum keepaway distance based on some criteria and perhaps a bit of randomness
-		minDist := 1.5
+		// TODO: determine minimum keepaway distance and angle with perhaps a bit of randomness
+		minDist := a.gunnery.idealWeaponsDistance
 		if tDist < minDist {
 			// flip tDist negative to opposite direction from target
 			tDist = -tDist - (minDist - tDist)
