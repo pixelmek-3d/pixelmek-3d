@@ -43,14 +43,20 @@ type AIBehavior struct {
 }
 
 type AIGunnery struct {
-	targetLeadPos        *geom.Vector2
-	ticksSinceFired      uint
-	idealWeaponsDistance float64
+	rangeBrackets   *AIRangeBrackets
+	targetLeadPos   *geom.Vector2
+	ticksSinceFired uint
 }
 
 type AIPiloting struct {
-	pathing   *AIPathing
-	formation *AIFormation
+	pathing        *AIPathing
+	formation      *AIFormation
+	ticksSinceEval uint
+}
+
+type AIRangeBrackets struct {
+	lower map[model.Weapon]float64
+	upper map[model.Weapon]float64
 }
 
 type AIPathing struct {
@@ -209,8 +215,8 @@ func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavio
 	a := &AIBehavior{
 		g:        h.g,
 		u:        u,
-		gunnery:  &AIGunnery{ticksSinceFired: math.MaxUint},
-		piloting: &AIPiloting{},
+		gunnery:  NewAIGunnery(u),
+		piloting: NewAIPiloting(u),
 		rng:      rand.New(rand.NewSource(rand.Int63())),
 	}
 	a.gunnery.Reset()
@@ -448,8 +454,57 @@ func (h *AIHandler) Update() {
 	}
 }
 
+func NewAIGunnery(u model.Unit) *AIGunnery {
+	n := &AIGunnery{
+		ticksSinceFired: math.MaxUint,
+		rangeBrackets: &AIRangeBrackets{
+			lower: make(map[model.Weapon]float64),
+			upper: make(map[model.Weapon]float64),
+		},
+	}
+	if u == nil {
+		return n
+	}
+
+	// initialize weapons distance brackets for each weapon on the unit: where lower=1/3 of max, upper=2/3 of max
+	for _, w := range u.Armament() {
+		maxDist := w.Distance() / model.METERS_PER_UNIT
+		n.rangeBrackets.lower[w] = geom.Clamp(maxDist/3, u.CollisionRadius(), maxDist)
+		n.rangeBrackets.upper[w] = geom.Clamp(2*maxDist/3, u.CollisionRadius(), maxDist)
+	}
+
+	return n
+}
+
 func (n *AIGunnery) Reset() {
 	n.targetLeadPos = nil
+}
+
+func (n *AIGunnery) IdealWeaponsRange() (min, max float64) {
+	// determine range of distance to keep a target at given current weapons capabilities
+	var dpsTotal float64
+	for w, lower := range n.rangeBrackets.lower {
+		if w.AmmoBin() != nil && w.AmmoBin().AmmoCount() == 0 {
+			continue
+		}
+		upper := n.rangeBrackets.upper[w]
+
+		// TODO: could be better, but for simplicity at the moment using linear weapon DPS to range ratio
+		dps := w.Damage() / w.MaxCooldown()
+		dpsTotal += dps
+		min += (dps * lower)
+		max += (dps * upper)
+	}
+	min /= dpsTotal
+	max /= dpsTotal
+	return
+}
+
+func NewAIPiloting(_ model.Unit) *AIPiloting {
+	p := &AIPiloting{
+		ticksSinceEval: math.MaxUint,
+	}
+	return p
 }
 
 func (p *AIPiloting) Reset() {

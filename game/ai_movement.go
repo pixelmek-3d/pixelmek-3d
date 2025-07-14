@@ -108,6 +108,21 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 			return bt.Failure, nil
 		}
 
+		if a.piloting.ticksSinceEval < math.MaxUint {
+			// use number of AI ticks since last evaluation of where to move to influence random decision to reevaluate this tick
+			a.piloting.ticksSinceEval += 1
+		}
+
+		// chance to reevaluate this tick gradually increases as number of ticks without goes up
+		chanceToEval := float64(a.piloting.ticksSinceEval) / (5 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
+		if chanceToEval < 1 {
+			r := model.RandFloat64In(0, 1.0, a.rng)
+			if r > chanceToEval {
+				return bt.Failure, nil
+			}
+		}
+		a.piloting.ticksSinceEval = 0
+
 		// choose a position near target not directly on top of it
 		uPos, tPos := a.u.Pos(), target.Pos()
 		tLine := geom.Line{
@@ -116,13 +131,16 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 		tDist, tHeading := tLine.Distance(), tLine.Angle()
 
-		// TODO: determine minimum keepaway distance and angle with perhaps a bit of randomness
-		minDist := a.gunnery.idealWeaponsDistance
-		if tDist < minDist {
+		// determine keepaway distance and angle with a bit of randomness
+		min, max := a.gunnery.IdealWeaponsRange()
+
+		tHeading += model.RandFloat64In(-geom.Pi/8, geom.Pi/8, a.rng)
+		keepDist := model.RandFloat64In(min, max, a.rng)
+		if tDist < keepDist {
 			// flip tDist negative to opposite direction from target
-			tDist = -tDist - (minDist - tDist)
+			tDist = -tDist - (keepDist - tDist)
 		} else {
-			tDist -= minDist
+			tDist -= keepDist
 		}
 		tLine = geom.LineFromAngle(uPos.X, uPos.Y, tHeading, tDist)
 
