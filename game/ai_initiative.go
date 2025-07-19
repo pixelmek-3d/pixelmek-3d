@@ -102,3 +102,25 @@ func (n *AIInitiative) Next() []*AIBehavior {
 
 	return n.stack[slot]
 }
+
+// UpdateForNewInitiativeSet performs certain updates that only occur
+// at the beginning of a new initiative set
+func (a *AIBehavior) UpdateForNewInitiativeSet() {
+	a.initiativeTargetAcquisition()
+	a.newInitiative = false
+}
+
+// initiativeTargetAcquisition evaluates if the unit should select a new target
+// at the beginning of a new initiative set
+func (a *AIBehavior) initiativeTargetAcquisition() {
+	if a.u.Target() != nil {
+		stayOnTarget := true
+		if a.newInitiative {
+			// TODO: better criteria for when to change to another target
+			stayOnTarget = false
+		}
+		if !stayOnTarget {
+			a.u.SetTarget(nil)
+		}
+	}
+}

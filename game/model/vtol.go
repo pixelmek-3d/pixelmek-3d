@@ -6,6 +6,10 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+const (
+	VTOL_TURN_RATE_FACTOR float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
+)
+
 type VTOL struct {
 	*UnitModel
 	Resource *ModelVTOLResource
@@ -29,8 +33,8 @@ func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, coc
 			armament:        make([]Weapon, 0),
 			ammunition:      NewAmmoStock(),
 			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:     100 / r.Tonnage * 0.03, // FIXME: testing
-			maxTurretRate:   100 / r.Tonnage * 0.03, // FIXME: testing
+			maxTurnRate:     VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
+			maxTurretRate:   VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
 			jumpJets:        0,
 			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
