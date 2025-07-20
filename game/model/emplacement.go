@@ -6,6 +6,10 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+const (
+	EMPLACEMENT_TURRET_RATE_FACTOR float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
+)
+
 type Emplacement struct {
 	*UnitModel
 	Resource *ModelEmplacementResource
@@ -27,8 +31,8 @@ func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeigh
 			armament:        make([]Weapon, 0),
 			ammunition:      NewAmmoStock(),
 			maxVelocity:     0,
-			maxTurnRate:     0.05,     // FIXME: testing
-			maxTurretRate:   0.05,     // FIXME: testing
+			maxTurnRate:     EMPLACEMENT_TURRET_RATE_FACTOR,
+			maxTurretRate:   EMPLACEMENT_TURRET_RATE_FACTOR,
 			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
 	}
