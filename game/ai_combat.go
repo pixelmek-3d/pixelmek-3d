@@ -142,8 +142,10 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 				X2: targetProximityLine2D.X2, Y2: targetProximityLine2D.Y2, Z2: target.PosZ() + target.CollisionHeight(),
 			}
 
-			proximityHeading := math.Abs(model.AngleDistance(targetProximityLine.Heading(), targetLeadLine.Heading())) * 1.1
-			proximityPitch := math.Abs(model.AngleDistance(targetProximityLine.Pitch(), targetLeadLine.Pitch())) * 1.1
+			// TODO: adjust proximity multiplier based on distance to target
+			proximityMult := 1.2
+			proximityHeading := math.Abs(model.AngleDistance(targetProximityLine.Heading(), targetLeadLine.Heading())) * proximityMult
+			proximityPitch := math.Abs(model.AngleDistance(targetProximityLine.Pitch(), targetLeadLine.Pitch())) * proximityMult
 
 			deltaHeading := math.Abs(model.AngleDistance(a.u.TurretAngle(), targetLeadLine.Heading()))
 			deltaPitch := math.Abs(model.AngleDistance(a.u.Pitch(), targetLeadLine.Pitch()))

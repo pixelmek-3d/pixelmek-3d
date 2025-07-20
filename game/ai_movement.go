@@ -114,11 +114,11 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 
 		// chance to reevaluate this tick gradually increases as number of ticks without goes up
-		chanceToEval := float64(a.piloting.ticksSinceEval) / (5 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
+		chanceToEval := float64(a.piloting.ticksSinceEval) / (10 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
 		if chanceToEval < 1 {
 			r := model.RandFloat64In(0, 1.0, a.rng)
 			if r > chanceToEval {
-				return bt.Failure, nil
+				return bt.Success, nil
 			}
 		}
 		a.piloting.ticksSinceEval = 0
@@ -217,6 +217,8 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 		a.u.SetTargetLock(targetLock)
 
+		// TODO: need some temporary override of turning chassis to target when the turret
+		//       cannot reach it given current heading and turret angle restrictions
 		if a.u.HasTurret() {
 			// log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(pHeading), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
