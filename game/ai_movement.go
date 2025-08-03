@@ -11,6 +11,27 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// updateCurrentPathing updates the current pathing to a target if possible and returns next position in path
+func (a *AIBehavior) updateCurrentPathing() (*geom.Vector2, error) {
+	pathing := a.piloting.pathing
+	if pathing == nil || pathing.Len() == 0 {
+		return nil, nil
+	}
+
+	toPos := pathing.destPos
+	err := a.updatePathingToPosition(toPos, 10)
+	if err != nil {
+		return nil, err
+	}
+
+	nextPos := pathing.Next()
+	if nextPos == nil {
+		return nil, nil
+	}
+	return nextPos, nil
+}
+
+// updatePathingToPosition sets the current target of pathing if different and continues to next position in path as needed
 func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) error {
 	uPos := a.u.Pos()
 	findNewPath := false
@@ -114,11 +135,16 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 
 		// chance to reevaluate this tick gradually increases as number of ticks without goes up
-		chanceToEval := float64(a.piloting.ticksSinceEval) / (10 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
+		chanceToEval := float64(a.piloting.ticksSinceEval) / (30 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
 		if chanceToEval < 1 {
 			r := model.RandFloat64In(0, 1.0, a.rng)
 			if r > chanceToEval {
-				return bt.Success, nil
+				nextPos, _ := a.updateCurrentPathing()
+				if nextPos != nil {
+					targetHeading := a.pathingHeading(&geom.Vector2{X: nextPos.X, Y: nextPos.Y}, target.PosZ())
+					a.u.SetTargetHeading(targetHeading)
+					return bt.Success, nil
+				}
 			}
 		}
 		a.piloting.ticksSinceEval = 0
@@ -154,7 +180,7 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 			Y: geom.Clamp(tLine.Y2, boundaryClipDist, float64(a.g.mapHeight)-boundaryClipDist),
 		}
 
-		a.updatePathingToPosition(tPos, 8)
+		a.updatePathingToPosition(tPos, 10)
 		targetHeading := a.pathingHeading(tPos, target.PosZ())
 
 		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
