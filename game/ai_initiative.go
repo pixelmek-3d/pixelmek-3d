@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math"
 	"math/rand"
 	"sort"
 
@@ -107,6 +108,7 @@ func (n *AIInitiative) Next() []*AIBehavior {
 // at the beginning of a new initiative set
 func (a *AIBehavior) UpdateForNewInitiativeSet() {
 	a.initiativeTargetAcquisition()
+	a.initiativePathingEval()
 	a.newInitiative = false
 }
 
@@ -123,4 +125,9 @@ func (a *AIBehavior) initiativeTargetAcquisition() {
 			a.u.SetTarget(nil)
 		}
 	}
+}
+
+// initiativePathingEval lets the AI re-evaluate current pathing at the beginning of a new initiative set
+func (a *AIBehavior) initiativePathingEval() {
+	a.piloting.ticksSinceEval = math.MaxUint
 }

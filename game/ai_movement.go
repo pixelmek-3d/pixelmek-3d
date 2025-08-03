@@ -135,7 +135,7 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 
 		// chance to reevaluate this tick gradually increases as number of ticks without goes up
-		chanceToEval := float64(a.piloting.ticksSinceEval) / (30 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
+		chanceToEval := float64(a.piloting.ticksSinceEval) / (100 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
 		if chanceToEval < 1 {
 			r := model.RandFloat64In(0, 1.0, a.rng)
 			if r > chanceToEval {
