@@ -126,23 +126,27 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		// choose a position near target not directly on top of it
 		uPos, tPos := a.u.Pos(), target.Pos()
 		tLine := geom.Line{
-			X1: uPos.X, Y1: uPos.Y,
-			X2: tPos.X, Y2: tPos.Y,
+			X1: tPos.X, Y1: tPos.Y,
+			X2: uPos.X, Y2: uPos.Y,
 		}
-		tDist, tHeading := tLine.Distance(), tLine.Angle()
+		tDist, tAngle := tLine.Distance(), tLine.Angle()
 
-		// determine keepaway distance and angle with a bit of randomness
+		// determine keepaway distance and angle relative from target with a bit of randomness
 		min, max := a.gunnery.IdealWeaponsRange()
 
-		tHeading += model.RandFloat64In(-geom.Pi/8, geom.Pi/8, a.rng)
+		tAngle += model.RandFloat64In(-geom.Pi/2, geom.Pi/2, a.rng)
 		keepDist := model.RandFloat64In(min, max, a.rng)
 		if tDist < keepDist {
 			// flip tDist negative to opposite direction from target
 			tDist = -tDist - (keepDist - tDist)
 		} else {
-			tDist -= keepDist
+			tDist = keepDist
 		}
-		tLine = geom.LineFromAngle(uPos.X, uPos.Y, tHeading, tDist)
+		keepLine := geom.LineFromAngle(tPos.X, tPos.Y, tAngle, tDist)
+		tLine = geom.Line{
+			X1: uPos.X, Y1: uPos.Y,
+			X2: keepLine.X2, Y2: keepLine.Y2,
+		}
 
 		boundaryClipDist := a.u.CollisionRadius() * 2
 		tPos = &geom.Vector2{
