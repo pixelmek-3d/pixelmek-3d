@@ -78,7 +78,8 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 		targetDist := model.EntityDistance2D(a.u, target)
 
 		unitHeat := a.u.Heat()
-		readyWeapons := make([]model.Weapon, 0, len(a.u.Armament()))
+		numWeapons := len(a.u.Armament())
+		readyWeapons := make([]model.Weapon, 0, numWeapons)
 		for _, w := range a.u.Armament() {
 			if w.Cooldown() > 0 {
 				// only weapons not on cooldown
@@ -108,6 +109,7 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 
 		// TODO: sort ready weapons based on which is most ideal to fire given the current circumstances
 		slices.SortFunc(readyWeapons, func(a, b model.Weapon) int {
+			// sort weapons from highest to lowest max distance
 			switch {
 			case a.Distance() < b.Distance():
 				return 1
@@ -201,7 +203,14 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 						break
 					}
 				}
+				if allowWeapon && len(weaponsFired) >= numWeapons/2 {
+					// TODO: only prevent alpha strike based on target proximity check confidence and range to target
+
+					// prevent unit from alpha striking every time
+					allowWeapon = false
+				}
 			}
+
 			if !allowWeapon {
 				continue
 			}
