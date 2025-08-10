@@ -162,8 +162,9 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 
 		tAngle += model.RandFloat64In(-geom.Pi/2, geom.Pi/2, a.rng)
 		keepDist := model.RandFloat64In(min, max, a.rng)
-		if tDist < keepDist {
-			// flip tDist negative to opposite direction from target
+		if tDist < keepDist && min <= 150/model.METERS_PER_UNIT && keepDist <= min+(max-min)/2 {
+			// for close range builds (within 150m min ideal range), occasionally flip tDist negative
+			// to move towards target instead of away
 			tDist = -tDist - (keepDist - tDist)
 		} else {
 			tDist = keepDist
