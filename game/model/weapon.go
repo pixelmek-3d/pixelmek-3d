@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"math"
+	"reflect"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -74,6 +75,14 @@ type Weapon interface {
 	Audio() string
 	Clone() Weapon
 	Parent() Entity
+}
+
+func WeaponEqualsWeapon(w1, w2 Weapon) bool {
+	if reflect.TypeOf(&w1).Elem() != reflect.TypeOf(&w2).Elem() {
+		return false
+	}
+	return w1.Tech() == w2.Tech() && w1.Type() == w2.Type() &&
+		w1.ShortName() == w2.ShortName() && w1.File() == w2.File()
 }
 
 func WeaponAmmoCount(w Weapon) int {

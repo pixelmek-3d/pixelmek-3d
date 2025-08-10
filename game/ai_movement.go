@@ -11,6 +11,27 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// updateCurrentPathing updates the current pathing to a target if possible and returns next position in path
+func (a *AIBehavior) updateCurrentPathing() (*geom.Vector2, error) {
+	pathing := a.piloting.pathing
+	if pathing == nil || pathing.Len() == 0 {
+		return nil, nil
+	}
+
+	toPos := pathing.destPos
+	err := a.updatePathingToPosition(toPos, 10)
+	if err != nil {
+		return nil, err
+	}
+
+	nextPos := pathing.Next()
+	if nextPos == nil {
+		return nil, nil
+	}
+	return nextPos, nil
+}
+
+// updatePathingToPosition sets the current target of pathing if different and continues to next position in path as needed
 func (a *AIBehavior) updatePathingToPosition(toPos *geom.Vector2, recalcDistFactor float64) error {
 	uPos := a.u.Pos()
 	findNewPath := false
@@ -108,8 +129,60 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 			return bt.Failure, nil
 		}
 
-		a.updatePathingToPosition(target.Pos(), 8)
-		targetHeading := a.pathingHeading(target.Pos(), target.PosZ())
+		if a.piloting.ticksSinceEval < math.MaxUint {
+			// use number of AI ticks since last evaluation of where to move to influence random decision to reevaluate this tick
+			a.piloting.ticksSinceEval += 1
+		}
+
+		// chance to reevaluate this tick gradually increases as number of ticks without goes up
+		chanceToEval := float64(a.piloting.ticksSinceEval) / (100 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
+		if chanceToEval < 1 {
+			r := model.RandFloat64In(0, 1.0, a.rng)
+			if r > chanceToEval {
+				nextPos, _ := a.updateCurrentPathing()
+				if nextPos != nil {
+					targetHeading := a.pathingHeading(&geom.Vector2{X: nextPos.X, Y: nextPos.Y}, target.PosZ())
+					a.u.SetTargetHeading(targetHeading)
+					return bt.Success, nil
+				}
+			}
+		}
+		a.piloting.ticksSinceEval = 0
+
+		// choose a position near target not directly on top of it
+		uPos, tPos := a.u.Pos(), target.Pos()
+		tLine := geom.Line{
+			X1: tPos.X, Y1: tPos.Y,
+			X2: uPos.X, Y2: uPos.Y,
+		}
+		tDist, tAngle := tLine.Distance(), tLine.Angle()
+
+		// determine keepaway distance and angle relative from target with a bit of randomness
+		min, max := a.gunnery.IdealWeaponsRange()
+
+		tAngle += model.RandFloat64In(-geom.Pi/2, geom.Pi/2, a.rng)
+		keepDist := model.RandFloat64In(min, max, a.rng)
+		if tDist < keepDist && min <= 150/model.METERS_PER_UNIT && keepDist <= min+(max-min)/2 {
+			// for close range builds (within 150m min ideal range), occasionally flip tDist negative
+			// to move towards target instead of away
+			tDist = -tDist - (keepDist - tDist)
+		} else {
+			tDist = keepDist
+		}
+		keepLine := geom.LineFromAngle(tPos.X, tPos.Y, tAngle, tDist)
+		tLine = geom.Line{
+			X1: uPos.X, Y1: uPos.Y,
+			X2: keepLine.X2, Y2: keepLine.Y2,
+		}
+
+		boundaryClipDist := a.u.CollisionRadius() * 2
+		tPos = &geom.Vector2{
+			X: geom.Clamp(tLine.X2, boundaryClipDist, float64(a.g.mapWidth)-boundaryClipDist),
+			Y: geom.Clamp(tLine.Y2, boundaryClipDist, float64(a.g.mapHeight)-boundaryClipDist),
+		}
+
+		a.updatePathingToPosition(tPos, 10)
+		targetHeading := a.pathingHeading(tPos, target.PosZ())
 
 		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
 		a.u.SetTargetHeading(targetHeading)
@@ -118,7 +191,6 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 }
 
 func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
-	// TODO: handle units without turrets
 	return func(_ []bt.Node) (bt.Status, error) {
 		target := model.EntityUnit(a.u.Target())
 		if target == nil {
@@ -136,16 +208,28 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 		iWeapon := a.idealWeaponForDistance(tDist)
 		iPos := model.TargetLeadPosition(a.u, target, iWeapon)
 
-		// set intended target lead position for weapons fire decision
-		a.gunnery.targetLeadPos = &geom.Vector2{X: iPos.X, Y: iPos.Y}
+		// generate random target offset based on distance for imperfect accuracy at range
+		// TODO: more accuracy for slow or immobile targets
+		cR, cH := target.CollisionRadius(), target.CollisionHeight()
+		xyExtent, xyClamp := (tDist/5*cR)+cR, 0.75
+		zExtent, zClamp := (tDist/10*cH)+cH/2, 0.35
+		offX := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, a.rng), -xyClamp, xyClamp)
+		offY := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, a.rng), -xyClamp, xyClamp)
+		offZ := geom.Clamp(model.RandFloat64In(-zExtent, zExtent, a.rng), -zClamp, zClamp)
+		// if iWeapon != nil {
+		// 	log.Debugf("[%s] dist %0.2f turretToTarget|offset (%0.2f, %0.2f, %0.2f)", a.u.ID(), tDist, offX, offY, offZ)
+		// }
 
 		// calculate angle/pitch from unit to target
 		pLine := geom3d.Line3d{
 			X1: a.u.Pos().X, Y1: a.u.Pos().Y, Z1: a.u.PosZ() + a.u.CockpitOffset().Y,
-			X2: iPos.X, Y2: iPos.Y, Z2: iPos.Z,
+			X2: iPos.X + offX, Y2: iPos.Y + offY, Z2: iPos.Z + offZ,
 		}
 		pHeading, pPitch := pLine.Heading(), pLine.Pitch()
 		currHeading, currPitch := a.u.TurretAngle(), a.u.Pitch()
+
+		// set intended target lead position for weapons fire decision
+		a.gunnery.targetLeadPos = &geom.Vector2{X: pLine.X2, Y: pLine.Y2}
 
 		// TODO: if more distant, decrease angle/pitch check for target lock proximity
 		acquireLock := model.AngleDistance(currHeading, pHeading) <= 0.5 && model.AngleDistance(currPitch, pPitch) <= 0.5
@@ -164,6 +248,8 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 		}
 		a.u.SetTargetLock(targetLock)
 
+		// TODO: need some temporary override of turning chassis to target when the turret
+		//       cannot reach it given current heading and turret angle restrictions
 		if a.u.HasTurret() {
 			// log.Debugf("[%s] %0.1f|%0.1f turretToTarget @ %s", a.u.ID(), geom.Degrees(pHeading), geom.Degrees(pPitch), target.ID())
 			a.u.SetTargetTurretAngle(pHeading)
@@ -286,8 +372,7 @@ func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 			// select a random position within the guard area
 			// TODO: verify random position isn't inside walls that would block reaching the position
 
-			rng := model.NewRNG()
-			rngAngle := model.RandFloat64In(0, 2*geom.Pi, rng)
+			rngAngle := model.RandFloat64In(0, 2*geom.Pi, a.rng)
 			rngLine := geom.LineFromAngle(guardArea.X, guardArea.Y, rngAngle, guardArea.Radius)
 
 			rngX := geom.Clamp(rngLine.X2, 0, float64(a.g.mapWidth))
@@ -398,9 +483,8 @@ func (a *AIBehavior) Wander() func([]bt.Node) (bt.Status, error) {
 			// select a random position within the map area
 			// TODO: verify random position isn't inside walls that would block reaching the position
 
-			rng := model.NewRNG()
-			rngX := model.RandFloat64In(0, float64(a.g.mapWidth), rng)
-			rngY := model.RandFloat64In(0, float64(a.g.mapHeight), rng)
+			rngX := model.RandFloat64In(0, float64(a.g.mapWidth), a.rng)
+			rngY := model.RandFloat64In(0, float64(a.g.mapHeight), a.rng)
 			nextPos = &geom.Vector2{X: rngX, Y: rngY}
 			wanderPath.Push(*nextPos)
 		}

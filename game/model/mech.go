@@ -54,6 +54,7 @@ func NewMech(r *ModelMechResource, collisionRadius, collisionHeight float64, coc
 			armament:           make([]Weapon, 0),
 			ammunition:         NewAmmoStock(),
 			hasTurret:          true,
+			maxTurretExtent:    0.5 * geom.Pi,
 			maxVelocity:        r.Speed * KPH_TO_VELOCITY,
 			maxTurnRate:        MECH_TURN_RATE_FACTOR + (100 / r.Tonnage * MECH_TURN_RATE_FACTOR),
 			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),

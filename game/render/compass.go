@@ -146,6 +146,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 			var pipDegStr string
 			switch {
+			// TODO: for display purposes: instead of East=0 and increase counter-clockwise, would it be better for North=0 and increase clockwise?
 			case actualDeg == 0:
 				pipDegStr = "E"
 			case actualDeg == 90:

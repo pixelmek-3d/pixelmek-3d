@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"slices"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -13,15 +14,7 @@ import (
 func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
 		if a.u.Target() != nil {
-			stayOnTarget := true
-			if a.newInitiative {
-				// only evaluate choosing a new target at beginning of new initiative set
-				// TODO: better criteria for when to change to another target
-				stayOnTarget = false
-			}
-			if stayOnTarget {
-				return bt.Success, nil
-			}
+			return bt.Success, nil
 		}
 
 		// TODO: create separate node for selecting a new target based on some criteria?
@@ -63,15 +56,30 @@ func (a *AIBehavior) TargetIsAlive() func([]bt.Node) (bt.Status, error) {
 
 func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 	return func(_ []bt.Node) (bt.Status, error) {
+		if a.gunnery.ticksSinceFired < math.MaxUint {
+			// use number of AI ticks since last weapon fired to influence random decision to not fire this tick
+			a.gunnery.ticksSinceFired += 1
+		}
+
 		target := model.EntityUnit(a.u.Target())
 		if target == nil {
 			return bt.Failure, nil
 		}
 
+		// chance to fire this tick gradually increases as number of ticks without firing goes up
+		chanceToFire := float64(a.gunnery.ticksSinceFired) / (model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
+		if chanceToFire < 1 {
+			r := model.RandFloat64In(0, 1.0, a.rng)
+			if r > chanceToFire {
+				return bt.Failure, nil
+			}
+		}
+
 		targetDist := model.EntityDistance2D(a.u, target)
 
 		unitHeat := a.u.Heat()
-		readyWeapons := make([]model.Weapon, 0, len(a.u.Armament()))
+		numWeapons := len(a.u.Armament())
+		readyWeapons := make([]model.Weapon, 0, numWeapons)
 		for _, w := range a.u.Armament() {
 			if w.Cooldown() > 0 {
 				// only weapons not on cooldown
@@ -100,6 +108,17 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 		}
 
 		// TODO: sort ready weapons based on which is most ideal to fire given the current circumstances
+		slices.SortFunc(readyWeapons, func(a, b model.Weapon) int {
+			// sort weapons from highest to lowest max distance
+			switch {
+			case a.Distance() < b.Distance():
+				return 1
+			case a.Distance() > b.Distance():
+				return -1
+			default:
+				return 0
+			}
+		})
 
 		// check for angle/pitch proximity to target center mass
 		if a.gunnery.targetLeadPos != nil {
@@ -125,8 +144,10 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 				X2: targetProximityLine2D.X2, Y2: targetProximityLine2D.Y2, Z2: target.PosZ() + target.CollisionHeight(),
 			}
 
-			proximityHeading := math.Abs(model.AngleDistance(targetProximityLine.Heading(), targetLeadLine.Heading())) * 1.1
-			proximityPitch := math.Abs(model.AngleDistance(targetProximityLine.Pitch(), targetLeadLine.Pitch())) * 1.1
+			// TODO: adjust proximity multiplier based on distance to target
+			proximityMult := 1.2
+			proximityHeading := math.Abs(model.AngleDistance(targetProximityLine.Heading(), targetLeadLine.Heading())) * proximityMult
+			proximityPitch := math.Abs(model.AngleDistance(targetProximityLine.Pitch(), targetLeadLine.Pitch())) * proximityMult
 
 			deltaHeading := math.Abs(model.AngleDistance(a.u.TurretAngle(), targetLeadLine.Heading()))
 			deltaPitch := math.Abs(model.AngleDistance(a.u.Pitch(), targetLeadLine.Pitch()))
@@ -161,7 +182,7 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 			}
 		}
 
-		var weaponFired model.Weapon
+		weaponsFired := make([]model.Weapon, 0, len(readyWeapons))
 		for _, w := range readyWeapons {
 			if unitHeat+w.Heat() >= a.u.MaxHeat() {
 				// only fire the weapon if it will not lead to overheating
@@ -169,20 +190,49 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 				continue
 			}
 
-			// only fire the weapon at the same time if similar to other weapons fired this cycle
-			if weaponFired != nil && !similarWeapons(weaponFired, w) {
+			// only fire the weapon at the same time if similar to other weapons fired this cycle,
+			// but always allow machine guns to fire with any other weapons
+			allowWeapon := true
+			if w.Classification() != model.BALLISTIC_MACHINEGUN {
+				for _, fW := range weaponsFired {
+					if fW.Classification() == model.BALLISTIC_MACHINEGUN {
+						continue
+					}
+					if !similarWeapons(fW, w) {
+						allowWeapon = false
+						break
+					}
+				}
+				if allowWeapon && len(weaponsFired) >= numWeapons/2 {
+					// TODO: only prevent alpha strike based on target proximity check confidence and range to target
+
+					// prevent unit from alpha striking every time
+					allowWeapon = false
+				}
+			}
+
+			if !allowWeapon {
 				continue
 			}
 
 			// TODO: weapon convergence toward target
 			if a.g.fireUnitWeapon(a.u, w) {
-				weaponFired = w
+				weaponsFired = append(weaponsFired, w)
 				unitHeat = a.u.Heat()
 			}
 		}
 
-		if weaponFired != nil {
+		if len(weaponsFired) > 0 {
 			// log.Debugf("[%s] fireWeapons @ %s", a.u.ID(), target.ID())
+
+			// reset chances to fire weapons next tick,
+			// unless machine guns were the only weapons fired
+			if slices.ContainsFunc(
+				weaponsFired, func(w model.Weapon) bool {
+					return w.Classification() != model.BALLISTIC_MACHINEGUN
+				}) {
+				a.gunnery.ticksSinceFired = 0
+			}
 			return bt.Success, nil
 		}
 		return bt.Failure, nil
