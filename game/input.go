@@ -285,11 +285,12 @@ func (g *Game) restoreControls() (input.Keymap, error) {
 
 	// Parse our config file into a keymap object.
 	var actionErrorString string
+	var actionWarningString string
 
 	for actionName, keyNames := range keymapConfig {
 		a := stringAction(actionName)
 		if a == ActionUnknown {
-			actionErrorString += fmt.Sprintf("unexpected action name: %s\n", actionName)
+			actionWarningString += fmt.Sprintf("unexpected action name: %s\n", actionName)
 		}
 		keys := make([]input.Key, len(keyNames))
 		for i, keyString := range keyNames {
@@ -300,6 +301,10 @@ func (g *Game) restoreControls() (input.Keymap, error) {
 			keys[i] = k
 		}
 		keymap[a] = keys
+	}
+
+	if len(actionWarningString) > 0 {
+		log.Warning(actionWarningString)
 	}
 
 	if len(actionErrorString) > 0 {
