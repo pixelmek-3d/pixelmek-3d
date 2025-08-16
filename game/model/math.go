@@ -119,6 +119,18 @@ func AngleDistance(a, b float64) float64 {
 	return math.Mod(math.Mod(b-a+geom.Pi, geom.Pi2)-geom.Pi2, geom.Pi2) + geom.Pi
 }
 
+// AngleToCardinal converts model radian angle based on X/Y plane
+// to cardinal compass in degrees (where North is 0 and goes clockwise)
+func AngleToCardinal(angle float64) float64 {
+	return geom.Degrees(ClampAngle2Pi(geom.HalfPi - angle))
+}
+
+// CardinalToAngle converts cardinal compass in degrees
+// to model radian angle based on X/Y plane (where East is 0 and goes counter-clockwise)
+func CardinalToAngle(compassDegrees float64) float64 {
+	return ClampAngle2Pi(geom.Radians(-compassDegrees) + geom.HalfPi)
+}
+
 func Hypotenuse(a, b float64) float64 {
 	return math.Sqrt(a*a + b*b)
 }

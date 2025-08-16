@@ -101,7 +101,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	// turret angle appears opposite because it is relative to body heading which counts up counter clockwise
 	relTurretAngle := -model.AngleDistance(c.heading, c.turretAngle)
-	headingDeg := geom.Degrees(c.heading)
+	headingDeg := model.AngleToCardinal(c.heading)
 	relTurretDeg := geom.Degrees(relTurretAngle)
 
 	midX, topY := float32(bX)+float32(bW)/2, float32(bY)
@@ -121,42 +121,41 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	c.fontRenderer.SetColor(pipColor)
 
 	for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
-		actualDeg := i + int(math.Round(headingDeg))
-		if actualDeg < 0 {
-			actualDeg += 360
-		} else if actualDeg >= 360 {
-			actualDeg -= 360
+		compassDeg := i + int(math.Round(headingDeg))
+		if compassDeg < 0 {
+			compassDeg += 360
+		} else if compassDeg >= 360 {
+			compassDeg -= 360
 		}
 
 		var pipWidth, pipHeight float32
-		if actualDeg%10 == 0 {
+		if compassDeg%10 == 0 {
 			pipWidth = 2
 			pipHeight = float32(bH) / 4
 		}
-		if actualDeg%30 == 0 {
+		if compassDeg%30 == 0 {
 			pipWidth = 3
 			pipHeight = float32(bH) / 3
 		}
 
 		if pipWidth > 0 {
-			// pip shows relative based on index (i) where negative is right of center, positive is left
-			iRatio := float32(-i) / float32(maxTurretDeg)
+			// clockwise pip shows relative based on index (i) where negative is left of center, positive is right
+			iRatio := float32(i) / float32(maxTurretDeg)
 			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 			vector.DrawFilledRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, pipColor, false)
 
 			var pipDegStr string
 			switch {
-			// TODO: for display purposes: instead of East=0 and increase counter-clockwise, would it be better for North=0 and increase clockwise?
-			case actualDeg == 0:
-				pipDegStr = "E"
-			case actualDeg == 90:
+			case compassDeg == 0:
 				pipDegStr = "N"
-			case actualDeg == 180:
-				pipDegStr = "W"
-			case actualDeg == 270:
+			case compassDeg == 90:
+				pipDegStr = "E"
+			case compassDeg == 180:
 				pipDegStr = "S"
-			case actualDeg%30 == 0:
-				pipDegStr = fmt.Sprintf("%d", actualDeg)
+			case compassDeg == 270:
+				pipDegStr = "W"
+			case compassDeg%30 == 0:
+				pipDegStr = fmt.Sprintf("%d", compassDeg)
 			}
 
 			if pipDegStr != "" {
@@ -174,21 +173,21 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	if c.navIndicator.enabled {
 		// TODO: draw nav indicator slightly better
 		iHeading := c.navIndicator.heading
-		iDeg := int(geom.Degrees(iHeading))
+		iDeg := int(model.AngleToCardinal(iHeading))
 
 		iColor := hudOpts.HudColor(_colorNavPoint)
 
 		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
-			actualDeg := i + int(math.Round(headingDeg))
-			if actualDeg < 0 {
-				actualDeg += 360
-			} else if actualDeg >= 360 {
-				actualDeg -= 360
+			compassDeg := i + int(math.Round(headingDeg))
+			if compassDeg < 0 {
+				compassDeg += 360
+			} else if compassDeg >= 360 {
+				compassDeg -= 360
 			}
-			if iDeg == actualDeg {
+			if iDeg == compassDeg {
 				iRadius := float32(bH) / 8
-				iRatio := float32(-i) / float32(maxTurretDeg)
+				iRatio := float32(i) / float32(maxTurretDeg)
 				iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 
 				vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
@@ -199,14 +198,14 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 		if !iRendered {
 			// draw indicator that target is outside of current compass range
-			actualMinDeg := headingDeg - maxTurretDeg
-			iMinFound := model.IsBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
+			compassMinDeg := headingDeg - maxTurretDeg
+			iMinFound := model.IsBetweenDegrees(compassMinDeg, compassMinDeg-90, float64(iDeg))
 
 			var iRatio float32
 			if iMinFound {
-				iRatio = -1
-			} else {
 				iRatio = 1
+			} else {
+				iRatio = -1
 			}
 
 			iRadius := float32(bH) / 12
@@ -218,7 +217,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	if c.targetIndicator.enabled {
 		// TODO: draw target indicator slightly better
 		iHeading := c.targetIndicator.heading
-		iDeg := int(geom.Degrees(iHeading))
+		iDeg := int(model.AngleToCardinal(iHeading))
 
 		var iColor color.NRGBA
 		if c.targetIndicator.friendly {
@@ -229,15 +228,15 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 		iRendered := false
 		for i := int(-maxTurretDeg); i <= int(maxTurretDeg); i++ {
-			actualDeg := i + int(math.Round(headingDeg))
-			if actualDeg < 0 {
-				actualDeg += 360
-			} else if actualDeg >= 360 {
-				actualDeg -= 360
+			compassDeg := i + int(math.Round(headingDeg))
+			if compassDeg < 0 {
+				compassDeg += 360
+			} else if compassDeg >= 360 {
+				compassDeg -= 360
 			}
-			if iDeg == actualDeg {
+			if iDeg == compassDeg {
 				iRadius := float32(bH) / 4
-				iRatio := float32(-i) / float32(maxTurretDeg)
+				iRatio := float32(i) / float32(maxTurretDeg)
 				iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 
 				//vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
@@ -254,14 +253,14 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 		if !iRendered {
 			// draw indicator that target is outside of current compass range
-			actualMinDeg := headingDeg - maxTurretDeg
-			iMinFound := model.IsBetweenDegrees(actualMinDeg, actualMinDeg-90, float64(iDeg))
+			compassMinDeg := headingDeg - maxTurretDeg
+			iMinFound := model.IsBetweenDegrees(compassMinDeg, compassMinDeg-90, float64(iDeg))
 
 			var iRatio float32
 			if iMinFound {
-				iRatio = -1
-			} else {
 				iRatio = 1
+			} else {
+				iRatio = -1
 			}
 
 			iRadius := float32(bH) / 8

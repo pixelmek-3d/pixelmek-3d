@@ -16,7 +16,7 @@ skyBox:
   image: "skies/sky_blue_evening.png"
 dropZone:
   position: [50, 50]
-  heading: 180
+  heading: 270
 objectives:
   destroy:
     - all: true

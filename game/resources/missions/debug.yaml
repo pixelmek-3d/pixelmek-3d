@@ -7,7 +7,7 @@ map: "debug_land"
 music: "icy_wastes.mp3"
 dropZone:
   position: [50, 50]
-  heading: 45
+  heading: 15
 objectives:
   destroy:
     - unit: "destroy_me"

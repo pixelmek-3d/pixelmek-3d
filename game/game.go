@@ -251,7 +251,7 @@ func (g *Game) initMission() {
 
 	// init player at DZ
 	pX, pY, pDegrees := g.mission.DropZone.Position[0], g.mission.DropZone.Position[1], g.mission.DropZone.Heading
-	pHeading := geom.Radians(pDegrees)
+	pHeading := model.CardinalToAngle(pDegrees)
 	g.player.SetPos(&geom.Vector2{X: pX, Y: pY})
 	g.player.SetHeading(pHeading)
 	g.player.SetTargetHeading(pHeading)

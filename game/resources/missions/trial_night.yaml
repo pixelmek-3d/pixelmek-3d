@@ -16,7 +16,7 @@ skyBox:
   image: "skies/sky_blue_night.png"
 dropZone:
   position: [60, 60]
-  heading: 180
+  heading: 270
 objectives:
   nav:
     visit:
