@@ -40,7 +40,7 @@ func (m *Mission) Map() *Map {
 
 type MissionDropZone struct {
 	Position [2]float64 `yaml:"position" validate:"required"`
-	Heading  float64    `yaml:"heading" validate:"required"`
+	Heading  float64    `yaml:"heading"`
 }
 
 type MissionObjectives struct {
