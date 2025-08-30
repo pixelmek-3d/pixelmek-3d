@@ -20,7 +20,7 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, pxPerCell int) (*ebi
 	mapWidth, mapHeight := m.Size()
 	mapImage := ebiten.NewImage(mapWidth*pxPerCell, mapHeight*pxPerCell)
 
-	// first, draw floor texture layer
+	// draw floor texture layer
 	texScale := float64(pxPerCell) / float64(resources.TexWidth)
 	//level := m.Level(0)
 	for x := range mapWidth {
@@ -33,10 +33,29 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, pxPerCell int) (*ebi
 			op := &ebiten.DrawImageOptions{}
 			op.Filter = ebiten.FilterNearest
 			op.GeoM.Scale(texScale, texScale)
-			op.GeoM.Translate(float64(x*pxPerCell), float64(y*pxPerCell))
+			op.GeoM.Translate(float64(x*pxPerCell), float64((mapHeight-y-1)*pxPerCell))
 			mapImage.DrawImage(cellImg, op)
 		}
 	}
+
+	// draw first level wall texture layer
+	for x := range mapWidth {
+		for y := range mapHeight {
+			cellImg := tex.TextureAt(x, y, 0, 0)
+			if cellImg == nil {
+				continue
+			}
+			op := &ebiten.DrawImageOptions{}
+			op.Filter = ebiten.FilterNearest
+			op.GeoM.Scale(texScale, texScale)
+			op.GeoM.Translate(float64(x*pxPerCell), float64((mapHeight-y-1)*pxPerCell))
+			mapImage.DrawImage(cellImg, op)
+		}
+	}
+
+	// TODO: draw collision lines around walls
+
+	// TODO: draw static map sprites
 
 	return mapImage, nil
 }
