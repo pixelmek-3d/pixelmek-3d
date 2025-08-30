@@ -153,7 +153,7 @@ func NewGame() *Game {
 	}
 
 	// initialize common resources
-	resources.InitResources()
+	resources.InitResources(texWidth)
 
 	// initialize fonts
 	var err error

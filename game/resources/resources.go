@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"io"
 	"os"
 	"path"
@@ -35,6 +36,10 @@ var (
 	UserKeymapFile string
 
 	CrosshairsSheet *CrosshairsSheetConfig
+
+	TexWidth    int
+	imageByPath = make(map[string]*ebiten.Image)
+	rgbaByPath  = make(map[string]*image.RGBA)
 
 	//go:embed ai audio fonts icons maps menu missions shaders sprites textures all:units all:weapons
 	embedded embed.FS
@@ -71,9 +76,11 @@ func InitConfig() {
 	initConfigFS()
 }
 
-func InitResources() {
+func InitResources(texWidth int) {
 	// initialize resource file system handler
 	initFS()
+
+	TexWidth = texWidth
 
 	// load crosshairs sheet configuration
 	crosshairsConfigFile := path.Join("sprites", "hud", "crosshairs_sheet.yaml")
@@ -201,4 +208,66 @@ func IsNil(i interface{}) bool {
 		return reflect.ValueOf(i).IsNil()
 	}
 	return false
+}
+
+func GetRGBAFromFile(texFile string) *image.RGBA {
+	var rgba *image.RGBA
+	resourcePath := "textures"
+	texFilePath := path.Join(resourcePath, texFile)
+	if rgba, ok := rgbaByPath[texFilePath]; ok {
+		return rgba
+	}
+
+	_, tex, err := NewImageFromFile(texFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if tex != nil {
+		rgba = image.NewRGBA(image.Rect(0, 0, TexWidth, TexWidth))
+		// convert into RGBA format
+		for x := 0; x < TexWidth; x++ {
+			for y := 0; y < TexWidth; y++ {
+				clr := tex.At(x, y).(color.RGBA)
+				rgba.SetRGBA(x, y, clr)
+			}
+		}
+	}
+
+	if rgba != nil {
+		rgbaByPath[resourcePath] = rgba
+	}
+
+	return rgba
+}
+
+func GetTextureFromFile(texFile string) *ebiten.Image {
+	resourcePath := path.Join("textures", texFile)
+	if eImg, ok := imageByPath[resourcePath]; ok {
+		return eImg
+	}
+
+	eImg, _, err := NewImageFromFile(resourcePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if eImg != nil {
+		imageByPath[resourcePath] = eImg
+	}
+	return eImg
+}
+
+func GetSpriteFromFile(sFile string) *ebiten.Image {
+	resourcePath := path.Join("sprites", sFile)
+	if eImg, ok := imageByPath[resourcePath]; ok {
+		return eImg
+	}
+
+	eImg, _, err := NewImageFromFile(resourcePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if eImg != nil {
+		imageByPath[resourcePath] = eImg
+	}
+	return eImg
 }

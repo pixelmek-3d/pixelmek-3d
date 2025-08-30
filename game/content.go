@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 	"math"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -20,72 +19,19 @@ import (
 )
 
 var (
-	imageByPath = make(map[string]*ebiten.Image)
-	rgbaByPath  = make(map[string]*image.RGBA)
-
 	projectileSpriteByWeapon = make(map[string]*render.ProjectileSprite)
 )
 
 func getRGBAFromFile(texFile string) *image.RGBA {
-	var rgba *image.RGBA
-	resourcePath := "textures"
-	texFilePath := path.Join(resourcePath, texFile)
-	if rgba, ok := rgbaByPath[texFilePath]; ok {
-		return rgba
-	}
-
-	_, tex, err := resources.NewImageFromFile(texFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if tex != nil {
-		rgba = image.NewRGBA(image.Rect(0, 0, texWidth, texWidth))
-		// convert into RGBA format
-		for x := 0; x < texWidth; x++ {
-			for y := 0; y < texWidth; y++ {
-				clr := tex.At(x, y).(color.RGBA)
-				rgba.SetRGBA(x, y, clr)
-			}
-		}
-	}
-
-	if rgba != nil {
-		rgbaByPath[resourcePath] = rgba
-	}
-
-	return rgba
+	return resources.GetRGBAFromFile(texFile)
 }
 
 func getTextureFromFile(texFile string) *ebiten.Image {
-	resourcePath := path.Join("textures", texFile)
-	if eImg, ok := imageByPath[resourcePath]; ok {
-		return eImg
-	}
-
-	eImg, _, err := resources.NewImageFromFile(resourcePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if eImg != nil {
-		imageByPath[resourcePath] = eImg
-	}
-	return eImg
+	return resources.GetTextureFromFile(texFile)
 }
 
 func getSpriteFromFile(sFile string) *ebiten.Image {
-	resourcePath := path.Join("sprites", sFile)
-	if eImg, ok := imageByPath[resourcePath]; ok {
-		return eImg
-	}
-
-	eImg, _, err := resources.NewImageFromFile(resourcePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if eImg != nil {
-		imageByPath[resourcePath] = eImg
-	}
-	return eImg
+	return resources.GetSpriteFromFile(sFile)
 }
 
 // loadContent loads all map texture and static sprite resources
@@ -165,19 +111,19 @@ func (g *Game) loadContent() {
 	for _, tex := range g.mission.Map().Textures {
 		if tex.Image != "" {
 			if _, ok := g.tex.texMap[tex.Image]; !ok {
-				g.tex.texMap[tex.Image] = getTextureFromFile(tex.Image)
+				g.tex.texMap[tex.Image] = resources.GetTextureFromFile(tex.Image)
 			}
 		}
 
 		if tex.SideX != "" {
 			if _, ok := g.tex.texMap[tex.SideX]; !ok {
-				g.tex.texMap[tex.SideX] = getTextureFromFile(tex.SideX)
+				g.tex.texMap[tex.SideX] = resources.GetTextureFromFile(tex.SideX)
 			}
 		}
 
 		if tex.SideY != "" {
 			if _, ok := g.tex.texMap[tex.SideY]; !ok {
-				g.tex.texMap[tex.SideY] = getTextureFromFile(tex.SideY)
+				g.tex.texMap[tex.SideY] = resources.GetTextureFromFile(tex.SideY)
 			}
 		}
 	}
