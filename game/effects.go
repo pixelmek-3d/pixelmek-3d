@@ -10,6 +10,7 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	renderFx "github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources/effects"
 	log "github.com/sirupsen/logrus"
 )
@@ -66,7 +67,7 @@ func (g *Game) loadSpecialEffects() {
 
 func _getEffectImageFromResource(r *model.ModelEffectResource) *ebiten.Image {
 	effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, r.Image)
-	return getSpriteFromFile(effectRelPath)
+	return resources.GetSpriteFromFile(effectRelPath)
 }
 
 func _loadShaderEffects() {
@@ -97,7 +98,7 @@ func _loadEjectionPodResource(g *Game) {
 	// need to use the projectile image size to find the unit collision conversion from pixels
 	pResource := weaponResource.Projectile
 	projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
-	projectileImg := getSpriteFromFile(projectileRelPath)
+	projectileImg := resources.GetSpriteFromFile(projectileRelPath)
 	pColumns, pRows := 1, 1
 	if pResource.ImageSheet != nil {
 		pColumns = pResource.ImageSheet.Columns
@@ -120,7 +121,7 @@ func _loadEjectionPodResource(g *Game) {
 	// create the projectile and effect sprite templates
 	eResource := weaponResource.Projectile.ImpactEffect
 	effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
-	effectImg := getSpriteFromFile(effectRelPath)
+	effectImg := resources.GetSpriteFromFile(effectRelPath)
 
 	projectileImpactAudioFiles := make([]string, 1)
 	projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)

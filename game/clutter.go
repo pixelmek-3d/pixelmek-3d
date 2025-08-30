@@ -68,7 +68,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 				continue
 			}
 
-			floorTexPath := g.tex.floorTexturePathAt(int(x), int(y))
+			floorTexPath := g.tex.FloorTexturePathAt(int(x), int(y))
 
 			// store sprite objects by position ID to make it easy to remove clutter when it goes outside of view
 			c.spritesByPosition[posId] = make([]*render.Sprite, numClutter)
@@ -87,7 +87,7 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 					continue
 				}
 
-				clutterImg := g.tex.texMap[clutter.Image]
+				clutterImg := g.tex.TextureImage(clutter.Image)
 				clutterScale := clutter.Height / model.METERS_PER_UNIT
 				cSprite := render.NewSprite(
 					model.BasicVisualEntity(

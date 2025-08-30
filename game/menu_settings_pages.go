@@ -504,9 +504,9 @@ func renderPage(m Menu) *settingsPage {
 	distanceRow.AddChild(distanceValueText)
 
 	// floor/ground texturing checkbox
-	floorCheckbox := newCheckbox(m, "Ground Texturing", game.tex.renderFloorTex, func(args *widget.CheckboxChangedEventArgs) {
-		game.tex.renderFloorTex = args.State == widget.WidgetChecked
-		game.initRenderFloorTex = game.tex.renderFloorTex
+	floorCheckbox := newCheckbox(m, "Ground Texturing", game.tex.RenderFloorTex(), func(args *widget.CheckboxChangedEventArgs) {
+		game.tex.SetRenderFloorTex(args.State == widget.WidgetChecked)
+		game.initRenderFloorTex = game.tex.RenderFloorTex()
 	})
 	c.AddChild(floorCheckbox)
 
@@ -660,7 +660,7 @@ func hudPage(m Menu) *settingsPage {
 				Bottom: m.Padding(),
 			}))))
 
-	crosshairSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	crosshairSheet := resources.GetSpriteFromFile("hud/crosshairs_sheet.png")
 	crosshairs := render.NewCrosshairs(
 		crosshairSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, game.hudCrosshairIndex,
 	)

@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"image"
 	"image/color"
 	"math"
 	"path/filepath"
@@ -11,8 +10,8 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
 
 	log "github.com/sirupsen/logrus"
@@ -22,50 +21,24 @@ var (
 	projectileSpriteByWeapon = make(map[string]*render.ProjectileSprite)
 )
 
-func getRGBAFromFile(texFile string) *image.RGBA {
-	return resources.GetRGBAFromFile(texFile)
-}
-
-func getTextureFromFile(texFile string) *ebiten.Image {
-	return resources.GetTextureFromFile(texFile)
-}
-
-func getSpriteFromFile(sFile string) *ebiten.Image {
-	return resources.GetSpriteFromFile(sFile)
-}
-
 // loadContent loads all map texture and static sprite resources
 func (g *Game) loadContent() {
-	// keep a map of textures by name to only load duplicate entries once
-	g.tex.texMap = make(map[string]*ebiten.Image, 128)
-
 	// load textured flooring
 	if g.mission.Map().Flooring.Default != "" {
-		g.tex.floorTexDefault = newFloorTexture(g.mission.Map().Flooring.Default)
+		g.tex.SetDefaultFloorTexture(texture.NewFloorTexture(g.mission.Map().Flooring.Default))
 	}
-
-	// keep track of floor texture positions by name so they can be matched on later
-	var floorTexNames [][]string
-
 	// load texture floor pathing
 	if len(g.mission.Map().Flooring.Pathing) > 0 {
-		g.tex.floorTexMap = make([][]*FloorTexture, g.mapWidth)
-		floorTexNames = make([][]string, g.mapWidth)
-		for x := 0; x < g.mapWidth; x++ {
-			g.tex.floorTexMap[x] = make([]*FloorTexture, g.mapHeight)
-			floorTexNames[x] = make([]string, g.mapHeight)
-		}
 		// create map grid of path image textures for the X/Y coords indicated
 		for _, pathing := range g.mission.Map().Flooring.Pathing {
-			tex := newFloorTexture(pathing.Image)
+			tex := texture.NewFloorTexture(pathing.Image)
 
 			// create filled rectangle paths
 			for _, rect := range pathing.Rects {
 				x0, y0, x1, y1 := rect[0][0], rect[0][1], rect[1][0], rect[1][1]
 				for x := x0; x <= x1; x++ {
 					for y := y0; y <= y1; y++ {
-						g.tex.floorTexMap[x][y] = tex
-						floorTexNames[x][y] = pathing.Image
+						g.tex.SetFloorTextureAt(x, y, tex)
 					}
 				}
 			}
@@ -85,7 +58,7 @@ func (g *Game) loadContent() {
 						dist := geom.Distance(line.X1, line.Y1, line.X2, line.Y2)
 						for d := 0.0; d <= dist; d += 0.1 {
 							nLine := geom.LineFromAngle(line.X1, line.Y1, angle, d)
-							g.tex.floorTexMap[int(nLine.X2)][int(nLine.Y2)] = tex
+							g.tex.SetFloorTextureAt(int(nLine.X2), int(nLine.Y2), tex)
 						}
 					}
 
@@ -99,10 +72,8 @@ func (g *Game) loadContent() {
 	g.clutter = NewClutterHandler()
 	if len(g.mission.Map().Clutter) > 0 {
 		for _, clutter := range g.mission.Map().Clutter {
-			var clutterImg *ebiten.Image
-			if _, ok := g.tex.texMap[clutter.Image]; !ok {
-				clutterImg = getSpriteFromFile(clutter.Image)
-				g.tex.texMap[clutter.Image] = clutterImg
+			if img := g.tex.TextureImage(clutter.Image); img == nil {
+				g.tex.SetTextureImage(clutter.Image, resources.GetSpriteFromFile(clutter.Image))
 			}
 		}
 	}
@@ -110,20 +81,20 @@ func (g *Game) loadContent() {
 	// load textures mapped by path
 	for _, tex := range g.mission.Map().Textures {
 		if tex.Image != "" {
-			if _, ok := g.tex.texMap[tex.Image]; !ok {
-				g.tex.texMap[tex.Image] = resources.GetTextureFromFile(tex.Image)
+			if img := g.tex.TextureImage(tex.Image); img == nil {
+				g.tex.SetTextureImage(tex.Image, resources.GetTextureFromFile(tex.Image))
 			}
 		}
 
 		if tex.SideX != "" {
-			if _, ok := g.tex.texMap[tex.SideX]; !ok {
-				g.tex.texMap[tex.SideX] = resources.GetTextureFromFile(tex.SideX)
+			if img := g.tex.TextureImage(tex.SideX); img == nil {
+				g.tex.SetTextureImage(tex.SideX, resources.GetTextureFromFile(tex.SideX))
 			}
 		}
 
 		if tex.SideY != "" {
-			if _, ok := g.tex.texMap[tex.SideY]; !ok {
-				g.tex.texMap[tex.SideY] = resources.GetTextureFromFile(tex.SideY)
+			if img := g.tex.TextureImage(tex.SideY); img == nil {
+				g.tex.SetTextureImage(tex.SideY, resources.GetTextureFromFile(tex.SideY))
 			}
 		}
 	}
@@ -136,12 +107,10 @@ func (g *Game) loadContent() {
 
 		scale := s.Height / model.METERS_PER_UNIT
 
-		var spriteImg *ebiten.Image
-		if eImg, ok := g.tex.texMap[s.Image]; ok {
-			spriteImg = eImg
-		} else {
-			spriteImg = getSpriteFromFile(s.Image)
-			g.tex.texMap[s.Image] = spriteImg
+		spriteImg := g.tex.TextureImage(s.Image)
+		if spriteImg == nil {
+			spriteImg = resources.GetSpriteFromFile(s.Image)
+			g.tex.SetTextureImage(s.Image, spriteImg)
 		}
 
 		for _, position := range s.Positions {
@@ -384,7 +353,7 @@ func createMissionStaticUnitModel[T model.MissionStaticUnitModels](g *Game, unit
 
 func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource) *model.Mech {
 	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechResource.Image)
-	mechImg := getSpriteFromFile(mechRelPath)
+	mechImg := resources.GetSpriteFromFile(mechRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := mechImg.Bounds().Dx(), mechImg.Bounds().Dy()
@@ -406,7 +375,7 @@ func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource
 
 func (g *Game) createModelVehicleFromResource(vehicleResource *model.ModelVehicleResource) *model.Vehicle {
 	vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
-	vehicleImg := getSpriteFromFile(vehicleRelPath)
+	vehicleImg := resources.GetSpriteFromFile(vehicleRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := vehicleImg.Bounds().Dx(), vehicleImg.Bounds().Dy()
@@ -433,7 +402,7 @@ func (g *Game) createModelVehicleFromResource(vehicleResource *model.ModelVehicl
 
 func (g *Game) createModelVTOLFromResource(vtolResource *model.ModelVTOLResource) *model.VTOL {
 	vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
-	vtolImg := getSpriteFromFile(vtolRelPath)
+	vtolImg := resources.GetSpriteFromFile(vtolRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := vtolImg.Bounds().Dx(), vtolImg.Bounds().Dy()
@@ -460,7 +429,7 @@ func (g *Game) createModelVTOLFromResource(vtolResource *model.ModelVTOLResource
 
 func (g *Game) createModelInfantryFromResource(infantryResource *model.ModelInfantryResource) *model.Infantry {
 	infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
-	infantryImg := getSpriteFromFile(infantryRelPath)
+	infantryImg := resources.GetSpriteFromFile(infantryRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := infantryImg.Bounds().Dx(), infantryImg.Bounds().Dy()
@@ -487,7 +456,7 @@ func (g *Game) createModelInfantryFromResource(infantryResource *model.ModelInfa
 
 func (g *Game) createModelEmplacementFromResource(emplacementResource *model.ModelEmplacementResource) *model.Emplacement {
 	emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
-	emplacementImg := getSpriteFromFile(emplacementRelPath)
+	emplacementImg := resources.GetSpriteFromFile(emplacementRelPath)
 
 	// need to use the image size to find the unit collision conversion from pixels
 	width, height := emplacementImg.Bounds().Dx(), emplacementImg.Bounds().Dy()
@@ -535,7 +504,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			// need to use the projectile image size to find the unit collision conversion from pixels
 			pResource := weaponResource.Projectile
 			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
-			projectileImg := getSpriteFromFile(projectileRelPath)
+			projectileImg := resources.GetSpriteFromFile(projectileRelPath)
 			pColumns, pRows := 1, 1
 			if pResource.ImageSheet != nil {
 				pColumns = pResource.ImageSheet.Columns
@@ -557,7 +526,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				// create the projectile and effect sprite templates
 				eResource := weaponResource.Projectile.ImpactEffect
 				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
-				effectImg := getSpriteFromFile(effectRelPath)
+				effectImg := resources.GetSpriteFromFile(effectRelPath)
 
 				projectileImpactAudioFiles := make([]string, 1)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
@@ -591,7 +560,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			// need to use the projectile image size to find the unit collision conversion from pixels
 			pResource := weaponResource.Projectile
 			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
-			projectileImg := getSpriteFromFile(projectileRelPath)
+			projectileImg := resources.GetSpriteFromFile(projectileRelPath)
 			pColumns, pRows := 1, 1
 			if pResource.ImageSheet != nil {
 				pColumns = pResource.ImageSheet.Columns
@@ -621,7 +590,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				// create the projectile and effect sprite templates
 				eResource := weaponResource.Projectile.ImpactEffect
 				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
-				effectImg := getSpriteFromFile(effectRelPath)
+				effectImg := resources.GetSpriteFromFile(effectRelPath)
 
 				projectileImpactAudioFiles := make([]string, 1)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
@@ -655,7 +624,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			// need to use the projectile image size to find the unit collision conversion from pixels
 			pResource := weaponResource.Projectile
 			projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
-			projectileImg := getSpriteFromFile(projectileRelPath)
+			projectileImg := resources.GetSpriteFromFile(projectileRelPath)
 			pColumns, pRows := 1, 1
 			if pResource.ImageSheet != nil {
 				pColumns = pResource.ImageSheet.Columns
@@ -677,7 +646,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				// create the projectile and effect sprite templates
 				eResource := weaponResource.Projectile.ImpactEffect
 				effectRelPath := fmt.Sprintf("%s/%s", model.EffectsResourceType, eResource.Image)
-				effectImg := getSpriteFromFile(effectRelPath)
+				effectImg := resources.GetSpriteFromFile(effectRelPath)
 
 				projectileImpactAudioFiles := make([]string, 1)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)

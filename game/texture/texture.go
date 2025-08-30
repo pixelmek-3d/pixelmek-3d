@@ -1,9 +1,10 @@
-package game
+package texture
 
 import (
 	"image"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -24,16 +25,36 @@ type FloorTexture struct {
 func NewTextureHandler(mapObj *model.Map) *TextureHandler {
 	t := &TextureHandler{
 		mapObj:         mapObj,
+		texMap:         make(map[string]*ebiten.Image, 128),
 		renderFloorTex: true,
+	}
+	if mapObj != nil {
+		mapWidth, mapHeight := mapObj.Size()
+		t.floorTexMap = make([][]*FloorTexture, mapWidth)
+		for x := 0; x < mapWidth; x++ {
+			t.floorTexMap[x] = make([]*FloorTexture, mapHeight)
+		}
 	}
 	return t
 }
 
-func (t *TextureHandler) textureImage(texturePath string) *ebiten.Image {
+func (t *TextureHandler) RenderFloorTex() bool {
+	return t.renderFloorTex
+}
+
+func (t *TextureHandler) SetRenderFloorTex(renderFloorTex bool) {
+	t.renderFloorTex = renderFloorTex
+}
+
+func (t *TextureHandler) TextureImage(texturePath string) *ebiten.Image {
 	if img, ok := t.texMap[texturePath]; ok {
 		return img
 	}
 	return nil
+}
+
+func (t *TextureHandler) SetTextureImage(texturePath string, textureImg *ebiten.Image) {
+	t.texMap[texturePath] = textureImg
 }
 
 func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
@@ -63,7 +84,15 @@ func (t *TextureHandler) TextureAt(x, y, levelNum, side int) *ebiten.Image {
 	// check if it has a side texture
 	texObj := t.mapObj.GetMapTexture(texNum)
 
-	return t.textureImage(texObj.GetImage(side))
+	return t.TextureImage(texObj.GetImage(side))
+}
+
+func (t *TextureHandler) SetDefaultFloorTexture(floorTex *FloorTexture) {
+	t.floorTexDefault = floorTex
+}
+
+func (t *TextureHandler) SetFloorTextureAt(x, y int, floorTex *FloorTexture) {
+	t.floorTexMap[x][y] = floorTex
 }
 
 func (t *TextureHandler) FloorTextureAt(x, y int) *image.RGBA {
@@ -82,15 +111,15 @@ func (t *TextureHandler) FloorTextureAt(x, y int) *image.RGBA {
 	return nil
 }
 
-func newFloorTexture(texture string) *FloorTexture {
+func NewFloorTexture(texture string) *FloorTexture {
 	f := &FloorTexture{
-		image: getRGBAFromFile(texture),
+		image: resources.GetRGBAFromFile(texture),
 		path:  texture,
 	}
 	return f
 }
 
-func (t *TextureHandler) floorTexturePathAt(x, y int) string {
+func (t *TextureHandler) FloorTexturePathAt(x, y int) string {
 	if len(t.floorTexMap) > 0 {
 		tex := t.floorTexMap[x][y]
 		if tex != nil {

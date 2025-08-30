@@ -98,21 +98,21 @@ func (g *Game) loadHUD() {
 	navStatus := render.NewNavStatus(g.fonts.HUDFont)
 	g.playerHUD[HUD_NAV_STATUS] = navStatus
 
-	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	crosshairsSheet := resources.GetSpriteFromFile("hud/crosshairs_sheet.png")
 	crosshairs := render.NewCrosshairs(
 		crosshairsSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, g.hudCrosshairIndex,
 	)
 	g.playerHUD[HUD_CROSSHAIRS] = crosshairs
 
-	tgtReticleSheet := getSpriteFromFile("hud/target_reticle.png")
+	tgtReticleSheet := resources.GetSpriteFromFile("hud/target_reticle.png")
 	targetReticle := render.NewTargetReticle(tgtReticleSheet)
 	g.playerHUD[HUD_TARGET_RETICLE] = targetReticle
 
-	friendlyReticleSheet := getSpriteFromFile("hud/friendly_reticle.png")
+	friendlyReticleSheet := resources.GetSpriteFromFile("hud/friendly_reticle.png")
 	friendlyReticle := render.NewTargetReticle(friendlyReticleSheet)
 	g.playerHUD[HUD_FRIENDLY_RETICLE] = friendlyReticle
 
-	navReticleSheet := getSpriteFromFile("hud/nav_reticle.png")
+	navReticleSheet := resources.GetSpriteFromFile("hud/nav_reticle.png")
 	navReticle := render.NewNavReticle(navReticleSheet)
 	g.playerHUD[HUD_NAV_RETICLE] = navReticle
 

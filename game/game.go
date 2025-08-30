@@ -13,6 +13,7 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -47,7 +48,7 @@ type Game struct {
 	inputSystem input.System
 
 	//--create slicer and declare slices--//
-	tex                *TextureHandler
+	tex                *texture.TextureHandler
 	initRenderFloorTex bool
 
 	// window resolution and scaling
@@ -187,8 +188,8 @@ func NewGame() *Game {
 	}
 
 	// init texture and sprite handlers
-	g.tex = NewTextureHandler(nil)
-	g.tex.renderFloorTex = g.initRenderFloorTex
+	g.tex = texture.NewTextureHandler(nil)
+	g.tex.SetRenderFloorTex(g.initRenderFloorTex)
 	g.sprites = NewSpriteHandler()
 
 	// setup initial scene
@@ -232,10 +233,10 @@ func (g *Game) initMission() {
 
 	// reload texture handler
 	if g.tex != nil {
-		g.initRenderFloorTex = g.tex.renderFloorTex
+		g.initRenderFloorTex = g.tex.RenderFloorTex()
 	}
-	g.tex = NewTextureHandler(missionMap)
-	g.tex.renderFloorTex = g.initRenderFloorTex
+	g.tex = texture.NewTextureHandler(missionMap)
+	g.tex.SetRenderFloorTex(g.initRenderFloorTex)
 
 	// clear mission sprites
 	g.sprites.clear()
@@ -276,10 +277,10 @@ func (g *Game) initMission() {
 	g.camera.SetAlwaysSetSpriteScreenRect(true)
 
 	if len(g.mission.Map().FloorBox.Image) > 0 {
-		g.camera.SetFloorTexture(getTextureFromFile(g.mission.Map().FloorBox.Image))
+		g.camera.SetFloorTexture(resources.GetTextureFromFile(g.mission.Map().FloorBox.Image))
 	}
 	if len(g.mission.Map().SkyBox.Image) > 0 {
-		g.camera.SetSkyTexture(getTextureFromFile(g.mission.Map().SkyBox.Image))
+		g.camera.SetSkyTexture(resources.GetTextureFromFile(g.mission.Map().SkyBox.Image))
 	}
 
 	// init camera lighting from map settings
