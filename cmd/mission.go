@@ -15,7 +15,7 @@ import (
 func init() {
 	rootCmd.AddCommand(missionCmd)
 
-	missionCmd.Flags().StringVarP(&missionFile, "file", "p", "", "mission file")
+	missionCmd.Flags().StringVarP(&missionFile, "file", "f", "", "mission file")
 	missionCmd.MarkFlagRequired("file")
 
 	missionCmd.Flags().StringVar(&mechFile, "mech", "", "mech file")
