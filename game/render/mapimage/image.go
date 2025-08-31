@@ -3,8 +3,10 @@ package mapimage
 import (
 	"errors"
 	"fmt"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
@@ -53,7 +55,12 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, pxPerCell int) (*ebi
 		}
 	}
 
-	// TODO: draw collision lines around walls
+	// draw collision lines around walls
+	for _, line := range m.GenerateWallCollisionLines(0) {
+		x1, x2 := line.X1*float64(pxPerCell), line.X2*float64(pxPerCell)
+		y1, y2 := (float64(mapHeight)-line.Y1)*float64(pxPerCell), (float64(mapHeight)-line.Y2)*float64(pxPerCell)
+		vector.StrokeLine(mapImage, float32(x1), float32(y1), float32(x2), float32(y2), 1, color.NRGBA{R: 255, G: 0, B: 0, A: 255}, false)
+	}
 
 	// TODO: draw static map sprites
 
