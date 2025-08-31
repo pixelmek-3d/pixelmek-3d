@@ -16,16 +16,14 @@ type MapImageOptions struct {
 	PxPerCell                 int
 	RenderDefaultFloorTexture bool
 	RenderWallLines           bool
+	RenderGridLines           bool
 }
 
 func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions) (*ebiten.Image, error) {
 	if m == nil || tex == nil {
 		return nil, errors.New("map image called with nil map or texture handler")
 	}
-	pxPerCell := opts.PxPerCell
-	if pxPerCell < 1 {
-		pxPerCell = 1
-	}
+	pxPerCell := max(opts.PxPerCell, 1)
 	mapWidth, mapHeight := m.Size()
 	mapImage := ebiten.NewImage(mapWidth*pxPerCell, mapHeight*pxPerCell)
 
@@ -107,6 +105,21 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 			op.GeoM.Scale(scale, scale)
 			op.GeoM.Translate(x, y)
 			mapImage.DrawImage(spriteImg, op)
+		}
+	}
+
+	if opts.RenderGridLines {
+		// draw distance grid lines every 1km worth of map cells
+		kCells := int(1000 / model.METERS_PER_UNIT)
+		for x := 0; x < mapWidth; x += kCells {
+			x1, x2 := float32(x*pxPerCell), float32(x*pxPerCell)
+			y1, y2 := float32(0), float32(mapHeight*pxPerCell)
+			vector.StrokeLine(mapImage, x1, y1, x2, y2, 1, color.White, false)
+		}
+		for y := 0; y < mapHeight; y += kCells {
+			x1, x2 := float32(0), float32(mapWidth*pxPerCell)
+			y1, y2 := float32(y*pxPerCell), float32(y*pxPerCell)
+			vector.StrokeLine(mapImage, x1, y1, x2, y2, 1, color.White, false)
 		}
 	}
 

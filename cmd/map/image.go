@@ -27,6 +27,7 @@ func init() {
 
 	imageCmd.Flags().IntVar(&pxPerCell, "px-per-cell", 16, "number of pixels per map cell to render in each direction")
 	imageCmd.Flags().BoolVar(&renderFloorTexture, "render-floor-texture", true, "render the default floor texture")
+	imageCmd.Flags().BoolVar(&renderGridLines, "render-grid-lines", true, "render 1km grid lines")
 	imageCmd.Flags().BoolVar(&renderWallLines, "render-wall-lines", true, "render the visibility lines surrounding walls")
 }
 
@@ -37,6 +38,7 @@ var (
 	outImagePath       string
 	pxPerCell          int
 	renderFloorTexture bool
+	renderGridLines    bool
 	renderWallLines    bool
 	imageCmd           = &cobra.Command{
 		Use:   "image [MAP_FILE]",
@@ -85,6 +87,7 @@ func doMapExport() {
 	imageOpts := mapimage.MapImageOptions{
 		PxPerCell:                 pxPerCell,
 		RenderDefaultFloorTexture: renderFloorTexture,
+		RenderGridLines:           renderGridLines,
 		RenderWallLines:           renderWallLines,
 	}
 	image, err := mapimage.NewMapImage(m, tex, imageOpts)
