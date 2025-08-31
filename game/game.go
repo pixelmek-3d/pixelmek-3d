@@ -317,6 +317,18 @@ func (g *Game) Run() {
 	}
 }
 
+func (g *Game) Pause() {
+	g.paused = true
+	g.audio.PauseMusic()
+	g.audio.PauseSFX()
+}
+
+func (g *Game) Resume() {
+	g.audio.ResumeMusic()
+	g.audio.ResumeSFX()
+	g.paused = false
+}
+
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

@@ -44,8 +44,8 @@ var (
 		Short: "Export map file as an image",
 		Run: func(cmd *cobra.Command, args []string) {
 			// initialize game resources without running the actual game loop
-			game.NewGame()
-			// TODO: mute game audio, show progress spinner
+			g := game.NewGame()
+			g.Pause()
 
 			// expand tilde as home directory
 			if strings.HasPrefix(outImagePath, "~/") {
