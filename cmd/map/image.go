@@ -1,4 +1,4 @@
-package cmd
+package mapcmd
 
 import (
 	"os"
@@ -22,17 +22,12 @@ const (
 )
 
 func init() {
-	rootCmd.AddCommand(mapCmd)
+	imageCmd.Flags().StringVarP(&outImagePath, "output", "o", "", "[required] output png image path")
+	imageCmd.MarkFlagRequired("output")
 
-	mapCmd.Flags().StringVarP(&mapFile, "file", "f", "", "map file name")
-	mapCmd.MarkFlagRequired("file")
-
-	mapCmd.Flags().StringVarP(&outImagePath, "output", "o", "", "output png image path")
-	mapCmd.MarkFlagRequired("output")
-
-	mapCmd.Flags().IntVar(&pxPerCell, "px-per-cell", 16, "number of pixels per map cell to render in each direction")
-	mapCmd.Flags().BoolVar(&renderFloorTexture, "render-floor-texture", true, "render the default floor texture")
-	mapCmd.Flags().BoolVar(&renderWallLines, "render-wall-lines", true, "render the visibility lines surrounding walls")
+	imageCmd.Flags().IntVar(&pxPerCell, "px-per-cell", 16, "number of pixels per map cell to render in each direction")
+	imageCmd.Flags().BoolVar(&renderFloorTexture, "render-floor-texture", true, "render the default floor texture")
+	imageCmd.Flags().BoolVar(&renderWallLines, "render-wall-lines", true, "render the visibility lines surrounding walls")
 }
 
 var (
@@ -43,10 +38,13 @@ var (
 	pxPerCell          int
 	renderFloorTexture bool
 	renderWallLines    bool
-	mapCmd             = &cobra.Command{
-		Use:   "map",
+	imageCmd           = &cobra.Command{
+		Use:   "image [MAP_FILE]",
 		Short: "Export map file as an image",
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			mapFile = args[0]
+
 			// initialize game resources without running the actual game loop
 			g := game.NewGame()
 			g.Pause()

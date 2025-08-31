@@ -1,4 +1,4 @@
-package cmd
+package mission
 
 import (
 	"os"
@@ -13,24 +13,21 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(missionCmd)
-
-	missionCmd.Flags().StringVarP(&missionFile, "file", "f", "", "mission file")
-	missionCmd.MarkFlagRequired("file")
-
-	missionCmd.Flags().StringVar(&mechFile, "mech", "", "mech file")
+	launchCmd.Flags().StringVar(&mechFile, "mech", "", "mech file")
 }
 
 var (
 	missionFile string
 	mechFile    string
-	missionCmd  = &cobra.Command{
-		Use:   "mission",
-		Short: "Load directly into a mission",
+	launchCmd   = &cobra.Command{
+		Use:   "launch [MISSION_FILE]",
+		Short: "Launch game directly into a mission",
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			g := game.NewGame()
+			missionFile = args[0]
 
 			// load the mission path specified
+			g := game.NewGame()
 			_, err := g.LoadMission(missionFile)
 			if err != nil {
 				log.Error("Error loading mission file: ", missionFile)
