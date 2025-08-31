@@ -26,6 +26,23 @@ func (g *Game) loadContent() {
 	g.clutter = NewClutterHandler()
 
 	// load static sprites
+	g.loadMapSprites()
+
+	// generate nav point sprites
+	g.loadNavSprites()
+
+	// load non-static mission sprites
+	g.loadMissionSprites()
+
+	// load special effects
+	g.loadSpecialEffects()
+
+	// load HUD display elements
+	g.loadHUD()
+}
+
+// loadMapSprites generates static map sprites
+func (g *Game) loadMapSprites() {
 	for _, s := range g.mission.Map().Sprites {
 		if len(s.Image) == 0 {
 			continue
@@ -38,10 +55,10 @@ func (g *Game) loadContent() {
 			spriteImg = resources.GetSpriteFromFile(s.Image)
 			g.tex.SetTextureImage(s.Image, spriteImg)
 		}
+		sWidth, sHeight := spriteImg.Bounds().Dx(), spriteImg.Bounds().Dy()
 
 		for _, position := range s.Positions {
 			// convert collisionRadius/height pixel values to grid format
-			sWidth, sHeight := spriteImg.Bounds().Dx(), spriteImg.Bounds().Dy()
 			x, y, z := position[0], position[1], s.ZPosition
 
 			collisionRadius, collisionHeight := convertOffsetFromPx(
@@ -62,18 +79,6 @@ func (g *Game) loadContent() {
 			g.sprites.addMapSprite(sprite)
 		}
 	}
-
-	// generate nav point sprites
-	g.loadNavSprites()
-
-	// load non-static mission sprites
-	g.loadMissionSprites()
-
-	// load special effects
-	g.loadSpecialEffects()
-
-	// load HUD display elements
-	g.loadHUD()
 }
 
 // loadNavSprites generates nav point sprites

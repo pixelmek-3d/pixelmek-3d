@@ -62,19 +62,24 @@ var (
 )
 
 func doMapExport() {
+	log.Debug("loading map file ", mapFile, "...")
 	m, err := model.LoadMap(mapFile)
 	if err != nil {
 		log.Error("error loading map file: ", mapFile)
 		os.Exit(1)
 	}
 
+	log.Debug("loading map textures...")
 	tex := texture.NewTextureHandler(m)
+
+	log.Debug("creating image from map...")
 	image, err := mapimage.NewMapImage(m, tex, 16) // TODO: make pixels per cell configurable with param
 	if err != nil {
 		log.Error("error creating map image: ", err)
 		os.Exit(1)
 	}
 
+	log.Debug("exporting image to file...")
 	err = render.SaveImageAsPNG(image, outImagePath) // TODO: make export file path configurable with param
 	if err != nil {
 		log.Error("error exporting map image: ", err)

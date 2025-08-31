@@ -24,7 +24,6 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, pxPerCell int) (*ebi
 
 	// draw floor texture layer
 	texScale := float64(pxPerCell) / float64(resources.TexWidth)
-	//level := m.Level(0)
 	for x := range mapWidth {
 		for y := range mapHeight {
 			cellTexPath := tex.FloorTexturePathAt(x, y)
@@ -62,7 +61,34 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, pxPerCell int) (*ebi
 		vector.StrokeLine(mapImage, float32(x1), float32(y1), float32(x2), float32(y2), 1, color.NRGBA{R: 255, G: 0, B: 0, A: 255}, false)
 	}
 
-	// TODO: draw static map sprites
+	// draw static map sprites
+	for _, s := range m.Sprites {
+		if len(s.Image) == 0 {
+			continue
+		}
+
+		spriteImg := tex.TextureImage(s.Image)
+		if spriteImg == nil {
+			spriteImg = resources.GetSpriteFromFile(s.Image)
+			tex.SetTextureImage(s.Image, spriteImg)
+		}
+
+		// convert sprite height to cell size and then use pixels per cell based on sprite height
+		spriteWidth, spriteHeight := float64(spriteImg.Bounds().Dx()), float64(spriteImg.Bounds().Dy())
+		scale := (s.Height / model.METERS_PER_UNIT) * (float64(pxPerCell) / spriteHeight)
+
+		for _, position := range s.Positions {
+			// adjust orientation as sprites are centered at X and bottomed at Y
+			x := (position[0] * float64(pxPerCell)) - (spriteWidth*scale)/2
+			y := ((float64(mapHeight) - position[1]) * float64(pxPerCell)) - (spriteHeight * scale)
+
+			op := &ebiten.DrawImageOptions{}
+			op.Filter = ebiten.FilterNearest
+			op.GeoM.Scale(scale, scale)
+			op.GeoM.Translate(x, y)
+			mapImage.DrawImage(spriteImg, op)
+		}
+	}
 
 	return mapImage, nil
 }
