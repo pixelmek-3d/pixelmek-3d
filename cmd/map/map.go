@@ -22,7 +22,7 @@ var (
 		Short: "Commands related to Maps",
 		Run: func(cmd *cobra.Command, args []string) {
 			if listMaps {
-				resources.InitResources(0)
+				resources.InitResources()
 				mapFilenames := make([]string, 0, 64)
 				mapFiles, err := resources.ReadDir("maps")
 				if err != nil {

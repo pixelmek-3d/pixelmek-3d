@@ -87,7 +87,7 @@ func (g *Game) loadNavSprites() {
 		return
 	}
 
-	navSize := texWidth / 2
+	navSize := resources.TexSize / 2
 	var nColor *color.NRGBA
 	if g.hudUseCustomColor {
 		nColor = g.hudRGBA

@@ -25,9 +25,6 @@ import (
 
 const (
 	title = "PixelMek 3D"
-	//--RaycastEngine constants
-	//--set constant, texture size to be the wall (and sprite) texture size--//
-	texWidth = 256
 
 	// distance to keep away from walls and obstacles to avoid clipping
 	clipDistance = 0.01
@@ -154,7 +151,7 @@ func NewGame() *Game {
 	}
 
 	// initialize common resources
-	resources.InitResources(texWidth)
+	resources.InitResources()
 
 	// initialize fonts
 	var err error
@@ -272,7 +269,7 @@ func (g *Game) initMission() {
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
-	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, texWidth, g.mission.Map(), g.tex)
+	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, resources.TexSize, g.mission.Map(), g.tex)
 	g.camera.SetRenderDistance(g.renderDistance)
 	g.camera.SetAlwaysSetSpriteScreenRect(true)
 

@@ -22,7 +22,7 @@ var (
 		Short: "Commands related to Missions",
 		Run: func(cmd *cobra.Command, args []string) {
 			if listMissions {
-				resources.InitResources(0)
+				resources.InitResources()
 				missionFilenames := make([]string, 0, 64)
 				missionFiles, err := resources.ReadDir("missions")
 				if err != nil {

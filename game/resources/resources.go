@@ -31,13 +31,15 @@ import (
 const SampleRate = 44100
 
 var (
+	//--set constant, texture size to be the wall texture size--//
+	TexSize = 256
+
 	Viper          *v.Viper
 	UserConfigFile string
 	UserKeymapFile string
 
 	CrosshairsSheet *CrosshairsSheetConfig
 
-	TexWidth    int
 	imageByPath = make(map[string]*ebiten.Image)
 	rgbaByPath  = make(map[string]*image.RGBA)
 
@@ -76,11 +78,9 @@ func InitConfig() {
 	initConfigFS()
 }
 
-func InitResources(texWidth int) {
+func InitResources() {
 	// initialize resource file system handler
 	initFS()
-
-	TexWidth = texWidth // FIXME: refactor as a single constant source
 
 	// load crosshairs sheet configuration
 	crosshairsConfigFile := path.Join("sprites", "hud", "crosshairs_sheet.yaml")
@@ -223,10 +223,10 @@ func GetRGBAFromFile(texFile string) *image.RGBA {
 		log.Fatal(err)
 	}
 	if tex != nil {
-		rgba = image.NewRGBA(image.Rect(0, 0, TexWidth, TexWidth))
+		rgba = image.NewRGBA(image.Rect(0, 0, TexSize, TexSize))
 		// convert into RGBA format
-		for x := 0; x < TexWidth; x++ {
-			for y := 0; y < TexWidth; y++ {
+		for x := 0; x < TexSize; x++ {
+			for y := 0; y < TexSize; y++ {
 				clr := tex.At(x, y).(color.RGBA)
 				rgba.SetRGBA(x, y, clr)
 			}

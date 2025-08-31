@@ -38,7 +38,7 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 
 	// draw floor texture layer
 	defaultFloorTexturePath := tex.DefaultFloorTexturePath()
-	texScale := float64(pxPerCell) / float64(resources.TexWidth)
+	texScale := float64(pxPerCell) / float64(resources.TexSize)
 	for x := range mapWidth {
 		for y := range mapHeight {
 			cellTexPath := tex.FloorTexturePathAt(x, y)
