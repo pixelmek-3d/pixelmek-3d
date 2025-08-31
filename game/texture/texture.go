@@ -97,8 +97,12 @@ func NewFloorTexture(texture string) *FloorTexture {
 	return f
 }
 
-func (t *TextureHandler) SetDefaultFloorTexture(floorTex *FloorTexture) {
-	t.floorTexDefault = floorTex
+func (t *TextureHandler) SetDefaultFloorTexturePath(floorTexPath string) {
+	t.floorTexDefault = NewFloorTexture(floorTexPath)
+}
+
+func (t *TextureHandler) DefaultFloorTexturePath() string {
+	return t.floorTexDefault.path
 }
 
 func (t *TextureHandler) SetFloorTextureAt(x, y int, floorTex *FloorTexture) {
@@ -134,7 +138,7 @@ func (t *TextureHandler) FloorTexturePathAt(x, y int) string {
 func (t *TextureHandler) loadMapTextures() {
 	// load textured flooring
 	if t.mapObj.Flooring.Default != "" {
-		t.SetDefaultFloorTexture(NewFloorTexture(t.mapObj.Flooring.Default))
+		t.SetDefaultFloorTexturePath(t.mapObj.Flooring.Default)
 		t.SetTextureImage(t.mapObj.Flooring.Default, resources.GetTextureFromFile(t.mapObj.Flooring.Default))
 	}
 

@@ -13,7 +13,9 @@ import (
 )
 
 type MapImageOptions struct {
-	PxPerCell int
+	PxPerCell                 int
+	RenderDefaultFloorTexture bool
+	RenderWallLines           bool
 }
 
 func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions) (*ebiten.Image, error) {
@@ -27,11 +29,22 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 	mapWidth, mapHeight := m.Size()
 	mapImage := ebiten.NewImage(mapWidth*pxPerCell, mapHeight*pxPerCell)
 
+	// fill with basic floor color layer based on static floor image
+	floorImg := resources.GetTextureFromFile(m.FloorBox.Image)
+	if floorImg != nil {
+		centerX, centerY := floorImg.Bounds().Dx()/2, floorImg.Bounds().Dy()/2
+		mapImage.Fill(floorImg.At(centerX, centerY))
+	}
+
 	// draw floor texture layer
+	defaultFloorTexturePath := tex.DefaultFloorTexturePath()
 	texScale := float64(pxPerCell) / float64(resources.TexWidth)
 	for x := range mapWidth {
 		for y := range mapHeight {
 			cellTexPath := tex.FloorTexturePathAt(x, y)
+			if !opts.RenderDefaultFloorTexture && cellTexPath == defaultFloorTexturePath {
+				continue
+			}
 			cellImg := tex.TextureImage(cellTexPath)
 			if cellImg == nil {
 				return nil, fmt.Errorf("map image failed to load cell texture at (%d,%d): %s", x, y, cellTexPath)
@@ -59,11 +72,13 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 		}
 	}
 
-	// draw collision lines around walls
-	for _, line := range m.GenerateWallCollisionLines(0) {
-		x1, x2 := line.X1*float64(pxPerCell), line.X2*float64(pxPerCell)
-		y1, y2 := (float64(mapHeight)-line.Y1)*float64(pxPerCell), (float64(mapHeight)-line.Y2)*float64(pxPerCell)
-		vector.StrokeLine(mapImage, float32(x1), float32(y1), float32(x2), float32(y2), 1, color.NRGBA{R: 255, G: 0, B: 0, A: 255}, false)
+	if opts.RenderWallLines {
+		// draw collision lines around walls
+		for _, line := range m.GenerateWallCollisionLines(0) {
+			x1, x2 := line.X1*float64(pxPerCell), line.X2*float64(pxPerCell)
+			y1, y2 := (float64(mapHeight)-line.Y1)*float64(pxPerCell), (float64(mapHeight)-line.Y2)*float64(pxPerCell)
+			vector.StrokeLine(mapImage, float32(x1), float32(y1), float32(x2), float32(y2), 1, color.NRGBA{R: 255, G: 0, B: 0, A: 255}, false)
+		}
 	}
 
 	// draw static map sprites
