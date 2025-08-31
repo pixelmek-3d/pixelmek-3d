@@ -57,6 +57,10 @@ var (
 				outImagePath = filepath.Join(dirname, outImagePath[2:])
 			}
 
+			if err := os.MkdirAll(filepath.Dir(outImagePath), 0755); err != nil {
+				log.Fatal(err)
+			}
+
 			// mock game loop required for certain offscreen ebitengine render functions
 			ebiten.SetFullscreen(false)
 			ebiten.SetWindowSize(mapExportScreenWidth, mapExportScreenHeight)
