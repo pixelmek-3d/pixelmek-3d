@@ -29,6 +29,8 @@ func init() {
 
 	mapCmd.Flags().StringVarP(&outImagePath, "output", "o", "", "output png image path")
 	mapCmd.MarkFlagRequired("output")
+
+	mapCmd.Flags().IntVar(&pxPerCell, "px-per-cell", 16, "number of pixels per map cell to render in each direction")
 }
 
 var (
@@ -36,6 +38,7 @@ var (
 	exportCounter int
 	mapFile       string
 	outImagePath  string
+	pxPerCell     int
 	mapCmd        = &cobra.Command{
 		Use:   "map",
 		Short: "Export map file as an image",
@@ -73,14 +76,17 @@ func doMapExport() {
 	tex := texture.NewTextureHandler(m)
 
 	log.Debug("creating image from map...")
-	image, err := mapimage.NewMapImage(m, tex, 16) // TODO: make pixels per cell configurable with param
+	imageOpts := mapimage.MapImageOptions{
+		PxPerCell: pxPerCell,
+	}
+	image, err := mapimage.NewMapImage(m, tex, imageOpts)
 	if err != nil {
 		log.Error("error creating map image: ", err)
 		os.Exit(1)
 	}
 
 	log.Debug("exporting image to file...")
-	err = render.SaveImageAsPNG(image, outImagePath) // TODO: make export file path configurable with param
+	err = render.SaveImageAsPNG(image, outImagePath)
 	if err != nil {
 		log.Error("error exporting map image: ", err)
 		os.Exit(1)

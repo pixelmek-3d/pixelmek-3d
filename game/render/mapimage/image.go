@@ -12,10 +12,15 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 )
 
-func NewMapImage(m *model.Map, tex *texture.TextureHandler, pxPerCell int) (*ebiten.Image, error) {
+type MapImageOptions struct {
+	PxPerCell int
+}
+
+func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions) (*ebiten.Image, error) {
 	if m == nil || tex == nil {
 		return nil, errors.New("map image called with nil map or texture handler")
 	}
+	pxPerCell := opts.PxPerCell
 	if pxPerCell < 1 {
 		pxPerCell = 1
 	}
