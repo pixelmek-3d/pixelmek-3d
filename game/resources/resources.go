@@ -80,7 +80,7 @@ func InitResources(texWidth int) {
 	// initialize resource file system handler
 	initFS()
 
-	TexWidth = texWidth
+	TexWidth = texWidth // FIXME: refactor as a single constant source
 
 	// load crosshairs sheet configuration
 	crosshairsConfigFile := path.Join("sprites", "hud", "crosshairs_sheet.yaml")
