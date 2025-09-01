@@ -220,7 +220,6 @@ func ListMissionFilenames() ([]string, error) {
 			// only folder with mission files expected
 			continue
 		}
-
 		missionFilenames = append(missionFilenames, f.Name())
 	}
 

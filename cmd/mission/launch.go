@@ -17,9 +17,8 @@ func init() {
 }
 
 var (
-	missionFile string
-	mechFile    string
-	launchCmd   = &cobra.Command{
+	mechFile  string
+	launchCmd = &cobra.Command{
 		Use:   "launch [MISSION_FILE]",
 		Short: "Launch game directly into a mission",
 		Args:  cobra.ExactArgs(1),
