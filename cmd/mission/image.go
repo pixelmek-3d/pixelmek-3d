@@ -18,17 +18,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type MissionImageFlags struct {
+	renderDropZone      bool
+	renderNavPoints     bool
+	renderEnemyUnits    bool
+	renderFriendlyUnits bool
+}
+
 func init() {
 	imageCmd.Flags().StringVarP(&outImagePath, "output", "o", "", "[required] output png image path")
 	imageCmd.MarkFlagRequired("output")
 
 	mapcmd.BindMapImageFlags(imageCmd, &mapImageFlags)
+
+	imageCmd.Flags().BoolVar(&missionImageFlags.renderDropZone, "render-drop-zone", true, "render the drop zone")
+	imageCmd.Flags().BoolVar(&missionImageFlags.renderNavPoints, "render-nav-points", true, "render the nav points")
+	imageCmd.Flags().BoolVar(&missionImageFlags.renderEnemyUnits, "render-enemy units", true, "render all enemy units")
+	imageCmd.Flags().BoolVar(&missionImageFlags.renderFriendlyUnits, "render-friendly-units", true, "render all friendly units")
 }
 
 var (
-	outImagePath  string
-	mapImageFlags mapcmd.MapImageFlags
-	imageCmd      = &cobra.Command{
+	outImagePath      string
+	mapImageFlags     mapcmd.MapImageFlags
+	missionImageFlags MissionImageFlags
+	imageCmd          = &cobra.Command{
 		Use:   "image [MISSION_FILE]",
 		Short: "Export mission file as an image",
 		Args:  cobra.ExactArgs(1),
@@ -77,7 +90,12 @@ func doMissionExport() {
 		RenderGridLines:           mapImageFlags.RenderGridLines,
 		RenderWallLines:           mapImageFlags.RenderWallLines,
 	}
-	missionOpts := missionimage.MissionImageOptions{}
+	missionOpts := missionimage.MissionImageOptions{
+		RenderDropZone:      missionImageFlags.renderDropZone,
+		RenderNavPoints:     missionImageFlags.renderNavPoints,
+		RenderEnemyUnits:    missionImageFlags.renderEnemyUnits,
+		RenderFriendlyUnits: missionImageFlags.renderFriendlyUnits,
+	}
 	image, err := missionimage.NewMissionImage(m, tex, mapOpts, missionOpts)
 	if err != nil {
 		log.Error("error creating mission image: ", err)
