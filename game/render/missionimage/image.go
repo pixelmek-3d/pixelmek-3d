@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/mapimage"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/shapes"
 	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 )
 
@@ -37,17 +38,9 @@ func NewMissionImage(m *model.Mission, tex *texture.TextureHandler, mapOpts mapi
 	// draw mission nav points
 	for _, navPoint := range m.NavPoints {
 		navX, navY := float32(navPoint.Position[0]), float32(navPoint.Position[1])
-		navX, navY = navX*float32(pxPerCell), ((float32(mapHeight) - navY) * float32(pxPerCell))
+		midX, midY := navX*float32(pxPerCell), ((float32(mapHeight) - navY) * float32(pxPerCell))
 		navColor := color.NRGBA{R: 255, G: 206, B: 0, A: 255}
-
-		// draw nav diamond shape
-		minX, minY := navX-float32(pxPerCell), navY-float32(pxPerCell)
-		maxX, maxY := navX+float32(pxPerCell), navY+float32(pxPerCell)
-		midX, midY := navX, navY
-		vector.StrokeLine(mapImage, minX, midY, midX, minY, 1, navColor, false)
-		vector.StrokeLine(mapImage, midX, minY, maxX, midY, 1, navColor, false)
-		vector.StrokeLine(mapImage, minX, midY, midX, maxY, 1, navColor, false)
-		vector.StrokeLine(mapImage, midX, maxY, maxX, midY, 1, navColor, false)
+		shapes.StrokeDiamond(mapImage, midX, midY, float32(pxPerCell), float32(pxPerCell), 1, navColor, false)
 	}
 
 	// draw mission units
