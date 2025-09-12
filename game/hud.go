@@ -49,18 +49,18 @@ func (g *Game) GetHUDElement(t HUDElementType) HUDElement {
 	return nil
 }
 
-func (g *Game) initInteractiveTypes() {
-	g.interactiveSpriteTypes = map[SpriteType]bool{
-		MechSpriteType:        true,
-		VehicleSpriteType:     true,
-		VTOLSpriteType:        true,
-		InfantrySpriteType:    true,
-		EmplacementSpriteType: true,
+func init() {
+	interactiveSpriteTypes = map[sprites.SpriteType]bool{
+		sprites.MechSpriteType:        true,
+		sprites.VehicleSpriteType:     true,
+		sprites.VTOLSpriteType:        true,
+		sprites.InfantrySpriteType:    true,
+		sprites.EmplacementSpriteType: true,
 	}
 }
 
-func (g *Game) isInteractiveType(spriteType SpriteType) bool {
-	if _, containsType := g.interactiveSpriteTypes[spriteType]; containsType {
+func isInteractiveType(spriteType sprites.SpriteType) bool {
+	if _, containsType := interactiveSpriteTypes[spriteType]; containsType {
 		return true
 	}
 	return false

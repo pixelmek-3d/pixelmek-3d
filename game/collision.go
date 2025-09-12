@@ -9,6 +9,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 )
 
 type EntityCollision struct {
@@ -17,19 +18,19 @@ type EntityCollision struct {
 	collisionZ float64
 }
 
-func (g *Game) initCollisionTypes() {
-	g.collisonSpriteTypes = map[SpriteType]bool{
-		MapSpriteType:         true,
-		MechSpriteType:        true,
-		VehicleSpriteType:     true,
-		VTOLSpriteType:        true,
-		InfantrySpriteType:    true,
-		EmplacementSpriteType: true,
+func init() {
+	collisonSpriteTypes = map[sprites.SpriteType]bool{
+		sprites.MapSpriteType:         true,
+		sprites.MechSpriteType:        true,
+		sprites.VehicleSpriteType:     true,
+		sprites.VTOLSpriteType:        true,
+		sprites.InfantrySpriteType:    true,
+		sprites.EmplacementSpriteType: true,
 	}
 }
 
-func (g *Game) isCollisionType(spriteType SpriteType) bool {
-	if _, containsType := g.collisonSpriteTypes[spriteType]; containsType {
+func (g *Game) isCollisionType(spriteType sprites.SpriteType) bool {
+	if _, containsType := collisonSpriteTypes[spriteType]; containsType {
 		return true
 	}
 	return false
@@ -126,12 +127,12 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 	}
 
 	// check sprite collisions
-	for spriteType, spriteMap := range g.sprites.sprites {
+	for _, spriteType := range g.sprites.SpriteTypes() {
 		if !g.isCollisionType(spriteType) {
 			// only check collision against certain sprite types (skip projectiles, effects, etc.)
 			continue
 		}
-		spriteMap.Range(func(k, _ interface{}) bool {
+		g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
 			spriteInterface := k.(raycaster.Sprite)
 			sEntity := getEntityFromInterface(spriteInterface)
 			if entity == sEntity || entity.Parent() == sEntity || sEntity.CollisionRadius() <= 0 || sEntity.IsDestroyed() {

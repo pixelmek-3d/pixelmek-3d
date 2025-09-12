@@ -166,7 +166,7 @@ func (g *Game) spawnEjectionPod(s *sprites.Sprite) *sprites.ProjectileSprite {
 	podSprite.SetVelocity(0)
 	podSprite.Projectile.SetAcceleration(podSprite.Projectile.MaxVelocity() / (2 * model.TICKS_PER_SECOND))
 
-	g.sprites.addProjectile(podSprite)
+	g.sprites.AddProjectile(podSprite)
 	g.audio.PlayLocalWeaponFireAudio(ejectLauncher)
 
 	return podSprite
@@ -190,7 +190,7 @@ func (g *Game) spawnEjectionPodSmokeEffects(s *sprites.ProjectileSprite) (durati
 	zFx := z + randFloat(-h/2, h/2)
 
 	smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-	g.sprites.addEffect(smokeFx)
+	g.sprites.AddEffect(smokeFx)
 
 	fxDuration := smokeFx.AnimationDuration()
 	if fxDuration > duration {
@@ -214,7 +214,7 @@ func (g *Game) spawnJumpJetEffect(s *sprites.Sprite) {
 	jumpFx.AttachedTo = s
 	jumpFx.AttachedDepth = 0.01
 
-	g.sprites.addEffect(jumpFx)
+	g.sprites.AddEffect(jumpFx)
 
 	// illuminate source sprite unit jump jetting
 	s.SetIlluminationPeriod(5000, 0.35)
@@ -226,7 +226,7 @@ func (g *Game) spawnJumpJetEffect(s *sprites.Sprite) {
 func (g *Game) removeJumpJetEffect(s *sprites.Sprite) {
 	jumpFx, found := attachedJJEffects[s]
 	if found {
-		g.sprites.deleteEffect(jumpFx)
+		g.sprites.DeleteEffect(jumpFx)
 		delete(attachedJJEffects, s)
 	}
 }
@@ -249,7 +249,7 @@ func (g *Game) spawnGenericDestroyEffects(s *sprites.Sprite, spawnFires bool) (d
 
 		if spawnFires {
 			fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
-			g.sprites.addEffect(fireFx)
+			g.sprites.AddEffect(fireFx)
 
 			fxDuration := fireFx.AnimationDuration()
 			if fxDuration > duration {
@@ -258,7 +258,7 @@ func (g *Game) spawnGenericDestroyEffects(s *sprites.Sprite, spawnFires bool) (d
 		}
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
+		g.sprites.AddEffect(smokeFx)
 		if !spawnFires {
 			// when not spawning fires, no duration implied
 			duration = 0
@@ -289,10 +289,10 @@ func (g *Game) spawnPlayerDestroyEffects() (duration int) {
 		zFx := z + randFloat(h/4, h)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(explosionFx)
+		g.sprites.AddEffect(explosionFx)
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
+		g.sprites.AddEffect(smokeFx)
 
 		if i == 0 {
 			// only play one audio track at a time
@@ -335,10 +335,10 @@ func (g *Game) spawnMechDestroyEffects(s *sprites.MechSprite) (duration int) {
 		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(explosionFx)
+		g.sprites.AddEffect(explosionFx)
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
+		g.sprites.AddEffect(smokeFx)
 
 		if i == 0 {
 			// only play one audio track at a time
@@ -368,7 +368,7 @@ func (g *Game) spawnInfantryDestroyEffects(s *sprites.InfantrySprite) (duration 
 		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		bloodFx := g.randBloodEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(bloodFx)
+		g.sprites.AddEffect(bloodFx)
 
 		fxDuration := bloodFx.AnimationDuration()
 		if fxDuration > duration {
@@ -392,10 +392,10 @@ func (g *Game) spawnVehicleDestroyEffects(s *sprites.VehicleSprite) (duration in
 		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(explosionFx)
+		g.sprites.AddEffect(explosionFx)
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
+		g.sprites.AddEffect(smokeFx)
 
 		if i == 0 || i == numFx/2 {
 			// only play two audio tracks for now since they are played at once
@@ -432,7 +432,7 @@ func (g *Game) spawnVTOLDestroyEffects(s *sprites.VTOLSprite, spawnExplosions bo
 
 		if spawnExplosions {
 			explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
-			g.sprites.addEffect(explosionFx)
+			g.sprites.AddEffect(explosionFx)
 			if i == 0 || i == numFx/2 {
 				// only play two audio tracks for now since they are played at once
 				g.audio.PlayEffectAudio(g, explosionFx)
@@ -446,7 +446,7 @@ func (g *Game) spawnVTOLDestroyEffects(s *sprites.VTOLSprite, spawnExplosions bo
 
 		if fxCounter == 0 {
 			smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-			g.sprites.addEffect(smokeFx)
+			g.sprites.AddEffect(smokeFx)
 			if !spawnExplosions {
 				fxDuration := smokeFx.AnimationDuration()
 				if fxDuration > duration {
@@ -479,10 +479,10 @@ func (g *Game) spawnEmplacementDestroyEffects(s *sprites.EmplacementSprite) (dur
 		xFx, yFx = g.clampToCameraSpriteView(xFx, yFx, x, y)
 
 		explosionFx := g.randExplosionEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(explosionFx)
+		g.sprites.AddEffect(explosionFx)
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
+		g.sprites.AddEffect(smokeFx)
 
 		if i == 0 || i == numFx/2 {
 			// only play two audio tracks for now since they are played at once
@@ -503,10 +503,10 @@ func (g *Game) spawnEmplacementDestroyEffects(s *sprites.EmplacementSprite) (dur
 		zFx := z + randFloat(h/8, h)
 
 		fireFx := g.randFireEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(fireFx)
+		g.sprites.AddEffect(fireFx)
 
 		smokeFx := g.randSmokeEffect(xFx, yFx, zFx, s.Heading(), 0)
-		g.sprites.addEffect(smokeFx)
+		g.sprites.AddEffect(smokeFx)
 
 		fxDuration := fireFx.AnimationDuration()
 		if fxDuration > duration {

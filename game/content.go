@@ -76,7 +76,7 @@ func (g *Game) loadMapSprites() {
 				spriteImg,
 			)
 
-			g.sprites.addMapSprite(sprite)
+			g.sprites.AddMapSprite(sprite)
 		}
 	}
 }
@@ -112,7 +112,7 @@ func (g *Game) loadMissionSprites() {
 			continue
 		}
 		mech := g.createUnitSprite(modelMech).(*sprites.MechSprite)
-		g.sprites.addMechSprite(mech)
+		g.sprites.AddMechSprite(mech)
 	}
 
 	for _, missionVehicle := range g.mission.Vehicles {
@@ -122,7 +122,7 @@ func (g *Game) loadMissionSprites() {
 			continue
 		}
 		vehicle := g.createUnitSprite(modelVehicle).(*sprites.VehicleSprite)
-		g.sprites.addVehicleSprite(vehicle)
+		g.sprites.AddVehicleSprite(vehicle)
 	}
 
 	for _, missionInfantry := range g.mission.Infantry {
@@ -132,7 +132,7 @@ func (g *Game) loadMissionSprites() {
 			continue
 		}
 		infantry := g.createUnitSprite(modelInfantry).(*sprites.InfantrySprite)
-		g.sprites.addInfantrySprite(infantry)
+		g.sprites.AddInfantrySprite(infantry)
 	}
 
 	for _, missionVTOL := range g.mission.VTOLs {
@@ -142,7 +142,7 @@ func (g *Game) loadMissionSprites() {
 			continue
 		}
 		vtol := g.createUnitSprite(modelVTOL).(*sprites.VTOLSprite)
-		g.sprites.addVTOLSprite(vtol)
+		g.sprites.AddVTOLSprite(vtol)
 	}
 
 	for _, missionEmplacement := range g.mission.Emplacements {
@@ -152,7 +152,7 @@ func (g *Game) loadMissionSprites() {
 			continue
 		}
 		emplacement := g.createUnitSprite(modelEmplacement).(*sprites.EmplacementSprite)
-		g.sprites.addEmplacementSprite(emplacement)
+		g.sprites.AddEmplacementSprite(emplacement)
 	}
 }
 
@@ -413,7 +413,7 @@ func (g *Game) createModelEmplacementFromResource(emplacementResource *model.Mod
 }
 
 func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
-	projectileSpriteTemplates := g.sprites.projectileSpriteTemplates
+	projectileSpriteTemplates := g.sprites.ProjectileSpriteTemplates
 
 	for _, armament := range armamentList {
 		var weapon model.Weapon

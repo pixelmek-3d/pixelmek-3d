@@ -32,6 +32,11 @@ const (
 	clipDistance = 0.01
 )
 
+var (
+	collisonSpriteTypes    map[sprites.SpriteType]bool
+	interactiveSpriteTypes map[sprites.SpriteType]bool
+)
+
 // Game - This is the main type for your game.
 type Game struct {
 	scene  Scene
@@ -105,11 +110,9 @@ type Game struct {
 	mission             *model.Mission
 	collisionMap        []*geom.Line
 
-	sprites                *SpriteHandler
-	clutter                *ClutterHandler
-	collisonSpriteTypes    map[SpriteType]bool
-	interactiveSpriteTypes map[SpriteType]bool
-	delayedProjectiles     map[*ProjectileSpawn]struct{}
+	sprites            *sprites.SpriteHandler
+	clutter            *ClutterHandler
+	delayedProjectiles map[*ProjectileSpawn]struct{}
 
 	// Gameplay
 	objectives *ObjectivesHandler
@@ -167,8 +170,6 @@ func NewGame() *Game {
 	g.audio = NewAudioHandler()
 	g.audio.StartMenuMusic()
 
-	g.initInteractiveTypes()
-	g.initCollisionTypes()
 	g.initCombatVariables()
 
 	ebiten.SetWindowTitle(title)
@@ -189,7 +190,7 @@ func NewGame() *Game {
 	// init texture and sprite handlers
 	g.tex = texture.NewTextureHandler(nil)
 	g.tex.SetRenderFloorTex(g.initRenderFloorTex)
-	g.sprites = NewSpriteHandler()
+	g.sprites = sprites.NewSpriteHandler()
 
 	// setup initial scene
 	g.scene = NewSplashScene(g)
@@ -238,7 +239,7 @@ func (g *Game) initMission() {
 	g.tex.SetRenderFloorTex(g.initRenderFloorTex)
 
 	// clear mission sprites
-	g.sprites.clear()
+	g.sprites.Clear()
 
 	g.collisionMap = missionMap.GenerateWallCollisionLines(clipDistance)
 	g.mapWidth, g.mapHeight = missionMap.Size()
@@ -640,9 +641,9 @@ func (g *Game) spriteInCrosshairs() *sprites.Sprite {
 			image.Point{X: (g.screenWidth / 2) - (crosshairs.Width() / 2), Y: (g.screenHeight / 2) - (crosshairs.Height() / 2)})
 
 		var cSpriteArea int
-		for spriteType := range g.sprites.sprites {
-			g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-				if !g.isInteractiveType(spriteType) {
+		for _, spriteType := range g.sprites.SpriteTypes() {
+			g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
+				if !isInteractiveType(spriteType) {
 					// only cycle on certain sprite types (skip projectiles, effects, etc.)
 					return true
 				}

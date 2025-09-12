@@ -169,11 +169,11 @@ func (g *Game) updateProjectiles() {
 	// perform concurrent projectile updates
 	var wg sync.WaitGroup
 
-	g.sprites.sprites[ProjectileSpriteType].Range(func(k, _ interface{}) bool {
+	g.sprites.RangeByType(sprites.ProjectileSpriteType, func(k, _ interface{}) bool {
 		p := k.(*sprites.ProjectileSprite)
 		p.DecreaseLifespan(1)
 		if p.Lifespan() <= 0 {
-			g.sprites.deleteProjectile(p)
+			g.sprites.DeleteProjectile(p)
 			return true
 		}
 
@@ -184,11 +184,11 @@ func (g *Game) updateProjectiles() {
 	})
 
 	// Update animated effects
-	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
+	g.sprites.RangeByType(sprites.EffectSpriteType, func(k, _ interface{}) bool {
 		e := k.(*sprites.EffectSprite)
 		e.Update(g.player.CameraPosXY())
 		if e.LoopCounter() >= e.LoopCount {
-			g.sprites.deleteEffect(e)
+			g.sprites.DeleteEffect(e)
 		}
 
 		return true
@@ -328,7 +328,7 @@ func (g *Game) asyncProjectileUpdate(p *sprites.ProjectileSprite, wg *sync.WaitG
 				}
 
 				effect := p.SpawnEffect(newPos.X, newPos.Y, newPosZ, p.Heading(), p.Pitch())
-				g.sprites.addEffect(effect)
+				g.sprites.AddEffect(effect)
 			}
 
 			// play impact effect audio
@@ -445,7 +445,7 @@ func (g *Game) spawnProjectile(p *ProjectileSpawn) *model.Projectile {
 		pSprite := pTemplate.Clone()
 		pSprite.Projectile = projectile
 		pSprite.Entity = projectile
-		g.sprites.addProjectile(pSprite)
+		g.sprites.AddProjectile(pSprite)
 
 		if p.sfxEnabled {
 			if u == g.player.Unit {
