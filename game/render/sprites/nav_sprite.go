@@ -1,4 +1,4 @@
-package render
+package sprites
 
 import (
 	"image/color"
@@ -6,6 +6,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/shapes"
 	"github.com/tinne26/etxt"
 )
@@ -35,7 +37,7 @@ func NewNavSprite(
 	return n
 }
 
-func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *color.NRGBA) *ebiten.Image {
+func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *fonts.Font, clr *color.NRGBA) *ebiten.Image {
 	if navPoint == nil {
 		return nil
 	}
@@ -44,7 +46,7 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 	renderer := etxt.NewRenderer()
 
 	if clr == nil {
-		clr = &_colorNavPoint
+		clr = &colors.NavPoint
 	}
 
 	nColor := color.NRGBA{R: clr.R, G: clr.G, B: clr.B, A: 255}

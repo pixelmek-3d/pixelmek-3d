@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -21,7 +22,7 @@ type JumpJetIndicator struct {
 }
 
 // NewJumpJetIndicator creates a jump jet indicator image to be rendered on demand
-func NewJumpJetIndicator(font *Font) *JumpJetIndicator {
+func NewJumpJetIndicator(font *fonts.Font) *JumpJetIndicator {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())

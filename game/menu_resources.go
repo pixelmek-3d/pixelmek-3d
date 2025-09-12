@@ -42,7 +42,7 @@ const (
 )
 
 type uiResources struct {
-	fonts           *fonts
+	fonts           *menuFonts
 	background      *image.NineSlice
 	backgroundColor color.Color
 	separatorColor  color.Color
@@ -151,7 +151,7 @@ type toolTipResources struct {
 	color      color.Color
 }
 
-type fonts struct {
+type menuFonts struct {
 	scale        float64
 	face         text.Face
 	titleFace    text.Face
@@ -160,7 +160,7 @@ type fonts struct {
 	toolTipMono  text.Face
 }
 
-func NewUIResources(fonts *fonts) (*uiResources, error) {
+func NewUIResources(fonts *menuFonts) (*uiResources, error) {
 	background := image.NewNineSliceColor(hexToColorAlpha(backgroundColor, 96))
 
 	button, err := newButtonResources(fonts)
@@ -242,7 +242,7 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 	}, nil
 }
 
-func loadFonts(fontScale float64) (*fonts, error) {
+func loadFonts(fontScale float64) (*menuFonts, error) {
 	fontFace, err := resources.LoadFont(fontFaceRegular, 20.0*fontScale)
 	if err != nil {
 		return nil, err
@@ -268,7 +268,7 @@ func loadFonts(fontScale float64) (*fonts, error) {
 		return nil, err
 	}
 
-	return &fonts{
+	return &menuFonts{
 		scale:        fontScale,
 		face:         fontFace,
 		titleFace:    titleFontFace,
@@ -326,7 +326,7 @@ func resourceScaleFromFontScale(fontScale float64) float64 {
 	return fontScale
 }
 
-func newButtonResources(fonts *fonts) (*buttonResources, error) {
+func newButtonResources(fonts *menuFonts) (*buttonResources, error) {
 	cH := centerHeightFromFontScale(fonts.scale)
 	rS := resourceScaleFromFontScale(fonts.scale)
 	idle, err := loadImageNineSlice("menu/button-idle.png", 12, cH, rS)
@@ -377,7 +377,7 @@ func newButtonResources(fonts *fonts) (*buttonResources, error) {
 	}, nil
 }
 
-func newCheckboxResources(fonts *fonts) (*checkboxResources, error) {
+func newCheckboxResources(fonts *menuFonts) (*checkboxResources, error) {
 	cH := centerHeightFromFontScale(fonts.scale)
 	rS := resourceScaleFromFontScale(fonts.scale)
 	idle, err := loadImageNineSlice("menu/checkbox-idle.png", 20, cH, rS)
@@ -428,7 +428,7 @@ func newCheckboxResources(fonts *fonts) (*checkboxResources, error) {
 	}, nil
 }
 
-func newLabelResources(fonts *fonts) *labelResources {
+func newLabelResources(fonts *menuFonts) *labelResources {
 	return &labelResources{
 		text: &widget.LabelColor{
 			Idle:     hexToColor(labelIdleColor),
@@ -439,7 +439,7 @@ func newLabelResources(fonts *fonts) *labelResources {
 	}
 }
 
-func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
+func newComboButtonResources(fonts *menuFonts) (*comboButtonResources, error) {
 	cH := centerHeightFromFontScale(fonts.scale)
 	rS := resourceScaleFromFontScale(fonts.scale)
 	idle, err := loadImageNineSlice("menu/combo-button-idle.png", 12, cH, rS)
@@ -493,7 +493,7 @@ func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
 	}, nil
 }
 
-func newListResources(fonts *fonts) (*listResources, error) {
+func newListResources(fonts *menuFonts) (*listResources, error) {
 	idle, _, err := resources.NewImageFromFile("menu/list-idle.png")
 	if err != nil {
 		return nil, err
@@ -650,7 +650,7 @@ func newPanelResources() (*panelResources, error) {
 	}, nil
 }
 
-func newTabBookResources(fonts *fonts) (*tabBookResources, error) {
+func newTabBookResources(fonts *menuFonts) (*tabBookResources, error) {
 
 	return &tabBookResources{
 		buttonFace: fonts.face,
@@ -667,7 +667,7 @@ func newTabBookResources(fonts *fonts) (*tabBookResources, error) {
 	}, nil
 }
 
-func newHeaderResources(fonts *fonts) (*headerResources, error) {
+func newHeaderResources(fonts *menuFonts) (*headerResources, error) {
 	bg, err := loadImageNineSlice("menu/header.png", 446, 9, 1.0)
 	if err != nil {
 		return nil, err
@@ -688,7 +688,7 @@ func newHeaderResources(fonts *fonts) (*headerResources, error) {
 	}, nil
 }
 
-func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
+func newTextAreaResources(fonts *menuFonts) (*textAreaResources, error) {
 	idle, _, err := resources.NewImageFromFile("menu/list-idle.png")
 	if err != nil {
 		return nil, err
@@ -761,7 +761,7 @@ func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
 	}, nil
 }
 
-func newToolTipResources(fonts *fonts) (*toolTipResources, error) {
+func newToolTipResources(fonts *menuFonts) (*toolTipResources, error) {
 	bg, _, err := resources.NewImageFromFile("menu/tool-tip.png")
 	if err != nil {
 		return nil, err

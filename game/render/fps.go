@@ -3,6 +3,7 @@ package render
 import (
 	"image"
 
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -17,7 +18,7 @@ type FPSIndicator struct {
 }
 
 // NewFPSIndicator creates an FPS indicator to be rendered on demand
-func NewFPSIndicator(font *Font) *FPSIndicator {
+func NewFPSIndicator(font *fonts.Font) *FPSIndicator {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())

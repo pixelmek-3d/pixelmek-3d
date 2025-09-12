@@ -9,7 +9,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 )
 
 type UnitMenu struct {
@@ -441,10 +441,10 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	cardContainer.AddChild(unitTable)
 
 	// show unit image graphic
-	var sprite *render.Sprite
+	var sprite *sprites.Sprite
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
-		sprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
+		sprite = g.createUnitSprite(unit).(*sprites.MechSprite).Sprite
 	case nil:
 		// nil represents random unit selection
 		sprite = nil

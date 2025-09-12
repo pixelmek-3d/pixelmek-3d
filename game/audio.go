@@ -11,7 +11,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/solarlune/resound"
 	"github.com/solarlune/resound/effects"
@@ -673,7 +673,7 @@ func (a *AudioHandler) PlayExternalWeaponFireAudio(g *Game, weapon model.Weapon,
 }
 
 // PlayProjectileImpactAudio plays projectile impact audio near the player
-func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSprite) {
+func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *sprites.ProjectileSprite) {
 	impactAudio := p.ImpactAudio()
 	if len(impactAudio) > 0 {
 		// TODO: introduce volume modifier based on projectile's weapon type, classification, and size
@@ -683,7 +683,7 @@ func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSp
 }
 
 // PlayEffectAudio plays effect audio near the player
-func (a *AudioHandler) PlayEffectAudio(g *Game, p *render.EffectSprite) {
+func (a *AudioHandler) PlayEffectAudio(g *Game, p *sprites.EffectSprite) {
 	fxAudio := p.AudioFile
 	if len(fxAudio) > 0 {
 		extPos, extPosZ := p.Pos(), p.PosZ()

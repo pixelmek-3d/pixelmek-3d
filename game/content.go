@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/harbdog/raycaster-go/geom"
@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	projectileSpriteByWeapon = make(map[string]*render.ProjectileSprite)
+	projectileSpriteByWeapon = make(map[string]*sprites.ProjectileSprite)
 )
 
 // loadContent loads all map texture and static sprite resources
@@ -70,7 +70,7 @@ func (g *Game) loadMapSprites() {
 				hitPoints = s.HitPoints
 			}
 
-			sprite := render.NewSprite(
+			sprite := sprites.NewSprite(
 				model.BasicCollisionEntity(x, y, z, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight, hitPoints),
 				scale,
 				spriteImg,
@@ -94,7 +94,7 @@ func (g *Game) loadNavSprites() {
 	}
 
 	for _, navPoint := range g.mission.NavPoints {
-		navImage := render.GenerateNavImage(navPoint, navSize, g.fonts.HUDFont, nColor)
+		navImage := sprites.GenerateNavImage(navPoint, navSize, g.fonts.HUDFont, nColor)
 		navPoint.SetImage(navImage)
 	}
 }
@@ -111,7 +111,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission mech: %v", err)
 			continue
 		}
-		mech := g.createUnitSprite(modelMech).(*render.MechSprite)
+		mech := g.createUnitSprite(modelMech).(*sprites.MechSprite)
 		g.sprites.addMechSprite(mech)
 	}
 
@@ -121,7 +121,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission vehicle: %v", err)
 			continue
 		}
-		vehicle := g.createUnitSprite(modelVehicle).(*render.VehicleSprite)
+		vehicle := g.createUnitSprite(modelVehicle).(*sprites.VehicleSprite)
 		g.sprites.addVehicleSprite(vehicle)
 	}
 
@@ -131,7 +131,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission infantry: %v", err)
 			continue
 		}
-		infantry := g.createUnitSprite(modelInfantry).(*render.InfantrySprite)
+		infantry := g.createUnitSprite(modelInfantry).(*sprites.InfantrySprite)
 		g.sprites.addInfantrySprite(infantry)
 	}
 
@@ -141,7 +141,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission VTOL: %v", err)
 			continue
 		}
-		vtol := g.createUnitSprite(modelVTOL).(*render.VTOLSprite)
+		vtol := g.createUnitSprite(modelVTOL).(*sprites.VTOLSprite)
 		g.sprites.addVTOLSprite(vtol)
 	}
 
@@ -151,7 +151,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission emplacement: %v", err)
 			continue
 		}
-		emplacement := g.createUnitSprite(modelEmplacement).(*render.EmplacementSprite)
+		emplacement := g.createUnitSprite(modelEmplacement).(*sprites.EmplacementSprite)
 		g.sprites.addEmplacementSprite(emplacement)
 	}
 }
@@ -463,8 +463,8 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
-				eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
-				pSpriteTemplate := render.NewAnimatedProjectile(
+				eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
+				pSpriteTemplate := sprites.NewAnimatedProjectile(
 					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
@@ -527,8 +527,8 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
-				eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
-				pSpriteTemplate := render.NewAnimatedProjectile(
+				eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
+				pSpriteTemplate := sprites.NewAnimatedProjectile(
 					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
@@ -583,8 +583,8 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
 				projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
-				eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
-				pSpriteTemplate := render.NewAnimatedProjectile(
+				eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
+				pSpriteTemplate := sprites.NewAnimatedProjectile(
 					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
@@ -710,12 +710,12 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 	}
 }
 
-func projectileSpriteForWeapon(w model.Weapon) *render.ProjectileSprite {
+func projectileSpriteForWeapon(w model.Weapon) *sprites.ProjectileSprite {
 	wKey := model.TechBaseString(w.Tech()) + "_" + w.Name()
 	return projectileSpriteByWeapon[wKey]
 }
 
-func setProjectileSpriteForWeapon(w model.Weapon, p *render.ProjectileSprite) {
+func setProjectileSpriteForWeapon(w model.Weapon, p *sprites.ProjectileSprite) {
 	wKey := model.TechBaseString(w.Tech()) + "_" + w.Name()
 	projectileSpriteByWeapon[wKey] = p
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -27,7 +28,7 @@ type Altimeter struct {
 }
 
 // NewAltimeter creates a compass image to be rendered on demand
-func NewAltimeter(font *Font) *Altimeter {
+func NewAltimeter(font *fonts.Font) *Altimeter {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())

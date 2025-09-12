@@ -12,6 +12,8 @@ import (
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 
@@ -64,7 +66,7 @@ type Game struct {
 
 	player    *Player
 	playerHUD map[HUDElementType]HUDElement
-	fonts     *render.FontHandler
+	fonts     *fonts.FontHandler
 
 	hudEnabled        bool
 	hudFont           string
@@ -155,7 +157,7 @@ func NewGame() *Game {
 
 	// initialize fonts
 	var err error
-	g.fonts, err = render.NewFontHandler(g.hudFont)
+	g.fonts, err = fonts.NewFontHandler(g.hudFont)
 	if err != nil {
 		log.Error("Error loading font handler:", err)
 		exit(1)
@@ -610,7 +612,7 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 		newNav = navPoints[0]
 	}
 
-	g.player.currentNav = render.NewNavSprite(newNav, 1.0)
+	g.player.currentNav = sprites.NewNavSprite(newNav, 1.0)
 }
 
 func (g *Game) targetCrosshairs() model.Entity {
@@ -625,7 +627,7 @@ func (g *Game) targetCrosshairs() model.Entity {
 	return nil
 }
 
-func (g *Game) spriteInCrosshairs() *render.Sprite {
+func (g *Game) spriteInCrosshairs() *sprites.Sprite {
 	cSprite := g.player.convergenceSprite
 	if cSprite == nil {
 		// check for target in crosshairs bounds if not directly at the single center raycasted pixel
@@ -673,7 +675,7 @@ func (g *Game) spriteInCrosshairs() *render.Sprite {
 
 func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 	pSprites := g.getProximityUnitSprites(g.player.Pos(), 1000/model.METERS_PER_UNIT)
-	targetables := make([]*render.Sprite, 0, len(pSprites))
+	targetables := make([]*sprites.Sprite, 0, len(pSprites))
 
 	if cycleType == TARGET_PREVIOUS {
 		// reverse sort by distance
@@ -694,7 +696,7 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 		return nil
 	}
 
-	var newTarget *render.Sprite
+	var newTarget *sprites.Sprite
 
 	if cycleType != TARGET_NEAREST {
 		currentTarget := g.player.Target()

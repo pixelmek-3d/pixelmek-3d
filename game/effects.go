@@ -8,8 +8,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	renderFx "github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources/effects"
 	log "github.com/sirupsen/logrus"
@@ -23,23 +23,23 @@ var (
 	crtShader *renderFx.CRT
 
 	ejectLauncher model.Weapon
-	ejectPod      *render.ProjectileSprite
+	ejectPod      *sprites.ProjectileSprite
 
-	jumpJetEffect     *render.EffectSprite
-	attachedJJEffects map[*render.Sprite]*render.EffectSprite
+	jumpJetEffect     *sprites.EffectSprite
+	attachedJJEffects map[*sprites.Sprite]*sprites.EffectSprite
 
-	bloodEffects     map[string]*render.EffectSprite
-	explosionEffects map[string]*render.EffectSprite
-	fireEffects      map[string]*render.EffectSprite
-	smokeEffects     map[string]*render.EffectSprite
+	bloodEffects     map[string]*sprites.EffectSprite
+	explosionEffects map[string]*sprites.EffectSprite
+	fireEffects      map[string]*sprites.EffectSprite
+	smokeEffects     map[string]*sprites.EffectSprite
 )
 
 func init() {
-	attachedJJEffects = make(map[*render.Sprite]*render.EffectSprite)
-	bloodEffects = make(map[string]*render.EffectSprite)
-	explosionEffects = make(map[string]*render.EffectSprite)
-	fireEffects = make(map[string]*render.EffectSprite)
-	smokeEffects = make(map[string]*render.EffectSprite)
+	attachedJJEffects = make(map[*sprites.Sprite]*sprites.EffectSprite)
+	bloodEffects = make(map[string]*sprites.EffectSprite)
+	explosionEffects = make(map[string]*sprites.EffectSprite)
+	fireEffects = make(map[string]*sprites.EffectSprite)
+	smokeEffects = make(map[string]*sprites.EffectSprite)
 }
 
 func (g *Game) loadSpecialEffects() {
@@ -77,7 +77,7 @@ func _loadShaderEffects() {
 func _loadJumpJetEffectResource() {
 	if jumpJetEffect == nil {
 		jumpJetImg := _getEffectImageFromResource(effects.JumpJet)
-		jumpJetEffect = render.NewAnimatedEffect(effects.JumpJet, jumpJetImg, math.MaxInt)
+		jumpJetEffect = sprites.NewAnimatedEffect(effects.JumpJet, jumpJetImg, math.MaxInt)
 	}
 	for s := range attachedJJEffects {
 		delete(attachedJJEffects, s)
@@ -127,26 +127,26 @@ func _loadEjectionPodResource(g *Game) {
 	projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.Audio)
 	projectileImpactAudioFiles = append(projectileImpactAudioFiles, pResource.ImpactEffect.RandAudio...)
 
-	eSpriteTemplate := render.NewAnimatedEffect(eResource, effectImg, 1)
-	ejectPod = render.NewAnimatedProjectile(
+	eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
+	ejectPod = sprites.NewAnimatedProjectile(
 		&modelPod, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 	)
 }
 
 func _loadEffectSpritesFromResourceList(
-	resourceMap map[string]*model.ModelEffectResource, spriteMap map[string]*render.EffectSprite,
+	resourceMap map[string]*model.ModelEffectResource, spriteMap map[string]*sprites.EffectSprite,
 ) {
 	for key, fx := range resourceMap {
 		if _, ok := spriteMap[key]; ok {
 			continue
 		}
 		// load the blood effect sprite template
-		eSpriteTemplate := render.NewAnimatedEffect(fx, _getEffectImageFromResource(fx), 1)
+		eSpriteTemplate := sprites.NewAnimatedEffect(fx, _getEffectImageFromResource(fx), 1)
 		spriteMap[key] = eSpriteTemplate
 	}
 }
 
-func (g *Game) spawnEjectionPod(s *render.Sprite) *render.ProjectileSprite {
+func (g *Game) spawnEjectionPod(s *sprites.Sprite) *sprites.ProjectileSprite {
 	podSprite := ejectPod.Clone()
 	podSprite.SetParent(s.Entity)
 	podSprite.Projectile.SetWeapon(ejectLauncher)
@@ -172,7 +172,7 @@ func (g *Game) spawnEjectionPod(s *render.Sprite) *render.ProjectileSprite {
 	return podSprite
 }
 
-func (g *Game) spawnEjectionPodSmokeEffects(s *render.ProjectileSprite) (duration int) {
+func (g *Game) spawnEjectionPodSmokeEffects(s *sprites.ProjectileSprite) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
@@ -201,7 +201,7 @@ func (g *Game) spawnEjectionPodSmokeEffects(s *render.ProjectileSprite) (duratio
 	return
 }
 
-func (g *Game) spawnJumpJetEffect(s *render.Sprite) {
+func (g *Game) spawnJumpJetEffect(s *sprites.Sprite) {
 	_, found := attachedJJEffects[s]
 	if found {
 		// do not spawn another effect
@@ -223,7 +223,7 @@ func (g *Game) spawnJumpJetEffect(s *render.Sprite) {
 	attachedJJEffects[s] = jumpFx
 }
 
-func (g *Game) removeJumpJetEffect(s *render.Sprite) {
+func (g *Game) removeJumpJetEffect(s *sprites.Sprite) {
 	jumpFx, found := attachedJJEffects[s]
 	if found {
 		g.sprites.deleteEffect(jumpFx)
@@ -231,7 +231,7 @@ func (g *Game) removeJumpJetEffect(s *render.Sprite) {
 	}
 }
 
-func (g *Game) spawnGenericDestroyEffects(s *render.Sprite, spawnFires bool) (duration int) {
+func (g *Game) spawnGenericDestroyEffects(s *sprites.Sprite, spawnFires bool) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
@@ -308,7 +308,7 @@ func (g *Game) spawnPlayerDestroyEffects() (duration int) {
 	return
 }
 
-func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
+func (g *Game) spawnMechDestroyEffects(s *sprites.MechSprite) (duration int) {
 	// limit effects to only spawn every few frames to reduce performance impact
 	fxCounter := s.EffectCounter()
 	if fxCounter > 0 {
@@ -354,7 +354,7 @@ func (g *Game) spawnMechDestroyEffects(s *render.MechSprite) (duration int) {
 	return
 }
 
-func (g *Game) spawnInfantryDestroyEffects(s *render.InfantrySprite) (duration int) {
+func (g *Game) spawnInfantryDestroyEffects(s *sprites.InfantrySprite) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
@@ -378,7 +378,7 @@ func (g *Game) spawnInfantryDestroyEffects(s *render.InfantrySprite) (duration i
 	return
 }
 
-func (g *Game) spawnVehicleDestroyEffects(s *render.VehicleSprite) (duration int) {
+func (g *Game) spawnVehicleDestroyEffects(s *sprites.VehicleSprite) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
@@ -410,7 +410,7 @@ func (g *Game) spawnVehicleDestroyEffects(s *render.VehicleSprite) (duration int
 	return
 }
 
-func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions bool) (duration int) {
+func (g *Game) spawnVTOLDestroyEffects(s *sprites.VTOLSprite, spawnExplosions bool) (duration int) {
 	// only spawn smoke every few frames
 	fxCounter := s.EffectCounter()
 
@@ -465,7 +465,7 @@ func (g *Game) spawnVTOLDestroyEffects(s *render.VTOLSprite, spawnExplosions boo
 	return
 }
 
-func (g *Game) spawnEmplacementDestroyEffects(s *render.EmplacementSprite) (duration int) {
+func (g *Game) spawnEmplacementDestroyEffects(s *sprites.EmplacementSprite) (duration int) {
 	x, y, z := s.Pos().X, s.Pos().Y, s.PosZ()
 	r, h := s.CollisionRadius(), s.CollisionHeight()
 
@@ -517,7 +517,7 @@ func (g *Game) spawnEmplacementDestroyEffects(s *render.EmplacementSprite) (dura
 	return
 }
 
-func (g *Game) randBloodEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+func (g *Game) randBloodEffect(x, y, z, angle, pitch float64) *sprites.EffectSprite {
 	// return random blood effect
 	randKey := effects.RandBloodKey()
 	e := bloodEffects[randKey].Clone()
@@ -526,7 +526,7 @@ func (g *Game) randBloodEffect(x, y, z, angle, pitch float64) *render.EffectSpri
 	return e
 }
 
-func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *sprites.EffectSprite {
 	// return random explosion effect
 	randKey := effects.RandExplosionKey()
 	e := explosionEffects[randKey].Clone()
@@ -537,7 +537,7 @@ func (g *Game) randExplosionEffect(x, y, z, angle, pitch float64) *render.Effect
 	return e
 }
 
-func (g *Game) randFireEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+func (g *Game) randFireEffect(x, y, z, angle, pitch float64) *sprites.EffectSprite {
 	// return random fire effect
 	randKey := effects.RandFireKey()
 	e := fireEffects[randKey].Clone()
@@ -546,7 +546,7 @@ func (g *Game) randFireEffect(x, y, z, angle, pitch float64) *render.EffectSprit
 	return e
 }
 
-func (g *Game) randSmokeEffect(x, y, z, angle, pitch float64) *render.EffectSprite {
+func (g *Game) randSmokeEffect(x, y, z, angle, pitch float64) *sprites.EffectSprite {
 	// return random smoke effect
 	randKey := effects.RandSmokeKey()
 	e := smokeEffects[randKey].Clone()

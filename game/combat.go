@@ -8,7 +8,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 )
 
 type ProjectileSpawn struct {
@@ -170,7 +170,7 @@ func (g *Game) updateProjectiles() {
 	var wg sync.WaitGroup
 
 	g.sprites.sprites[ProjectileSpriteType].Range(func(k, _ interface{}) bool {
-		p := k.(*render.ProjectileSprite)
+		p := k.(*sprites.ProjectileSprite)
 		p.DecreaseLifespan(1)
 		if p.Lifespan() <= 0 {
 			g.sprites.deleteProjectile(p)
@@ -185,7 +185,7 @@ func (g *Game) updateProjectiles() {
 
 	// Update animated effects
 	g.sprites.sprites[EffectSpriteType].Range(func(k, _ interface{}) bool {
-		e := k.(*render.EffectSprite)
+		e := k.(*sprites.EffectSprite)
 		e.Update(g.player.CameraPosXY())
 		if e.LoopCounter() >= e.LoopCount {
 			g.sprites.deleteEffect(e)
@@ -198,7 +198,7 @@ func (g *Game) updateProjectiles() {
 }
 
 // asyncProjectileUpdate updates the positions of a projectile in a parallel fashion
-func (g *Game) asyncProjectileUpdate(p *render.ProjectileSprite, wg *sync.WaitGroup) {
+func (g *Game) asyncProjectileUpdate(p *sprites.ProjectileSprite, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	_, isEnergy := p.Projectile.Weapon().(*model.EnergyWeapon)

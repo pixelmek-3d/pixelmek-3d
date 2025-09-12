@@ -8,6 +8,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
@@ -738,7 +739,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	// only get sprites in proximity of radar range
 	pSprites := g.getProximityUnitSprites(camPos, maxDistanceUnits)
-	sprites := make([]*render.Sprite, 0, len(pSprites))
+	sprites := make([]*sprites.Sprite, 0, len(pSprites))
 	for _, p := range pSprites {
 		sprites = append(sprites, p.sprite)
 	}

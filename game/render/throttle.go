@@ -5,6 +5,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -26,7 +27,7 @@ type Throttle struct {
 }
 
 // NewThrottle creates a speed indicator image to be rendered on demand
-func NewThrottle(font *Font) *Throttle {
+func NewThrottle(font *fonts.Font) *Throttle {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())

@@ -6,6 +6,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -25,7 +26,7 @@ type HeatIndicator struct {
 }
 
 // NewHeatIndicator creates a heat indicator image to be rendered on demand
-func NewHeatIndicator(font *Font) *HeatIndicator {
+func NewHeatIndicator(font *fonts.Font) *HeatIndicator {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
