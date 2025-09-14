@@ -82,13 +82,19 @@ func doMissionExport() {
 
 	log.Debug("loading mission map textures...")
 	tex := texture.NewTextureHandler(m.Map())
+	res, err := model.LoadModelResources()
+	if err != nil {
+		log.Error("error loading model resources: ", res)
+		os.Exit(1)
+	}
 
 	log.Debug("creating image from mission...")
 	mapOpts := mapimage.MapImageOptions{
 		PxPerCell:                 mapImageFlags.PxPerCell,
 		RenderDefaultFloorTexture: mapImageFlags.RenderFloorTexture,
-		RenderGridLines:           mapImageFlags.RenderGridLines,
 		RenderWallLines:           mapImageFlags.RenderWallLines,
+		RenderGridLines:           mapImageFlags.RenderGridLines,
+		GridCellDistance:          mapImageFlags.GridCellDistance,
 	}
 	missionOpts := missionimage.MissionImageOptions{
 		RenderDropZone:      missionImageFlags.renderDropZone,
@@ -96,7 +102,7 @@ func doMissionExport() {
 		RenderEnemyUnits:    missionImageFlags.renderEnemyUnits,
 		RenderFriendlyUnits: missionImageFlags.renderFriendlyUnits,
 	}
-	image, err := missionimage.NewMissionImage(m, tex, mapOpts, missionOpts)
+	image, err := missionimage.NewMissionImage(m, res, tex, mapOpts, missionOpts)
 	if err != nil {
 		log.Error("error creating mission image: ", err)
 		os.Exit(1)

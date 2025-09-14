@@ -283,136 +283,42 @@ func createMissionStaticUnitModel[T model.MissionStaticUnitModels](g *Game, unit
 }
 
 func (g *Game) createModelMechFromResource(mechResource *model.ModelMechResource) *model.Mech {
-	mechRelPath := fmt.Sprintf("%s/%s", model.MechResourceType, mechResource.Image)
-	mechImg := resources.GetSpriteFromFile(mechRelPath)
-
-	// need to use the image size to find the unit collision conversion from pixels
-	width, height := mechImg.Bounds().Dx(), mechImg.Bounds().Dy()
-	width = width / 6 // all mech images are required to be six columns of images in a sheet
-	scale := convertHeightToScale(mechResource.Height, height, mechResource.HeightPxGap)
-	collisionRadius, collisionHeight := convertOffsetFromPx(
-		mechResource.CollisionPxRadius, mechResource.CollisionPxHeight, width, height, scale,
-	)
-
-	cockpitPxX, cockpitPxY := mechResource.CockpitPxOffset[0], mechResource.CockpitPxOffset[1]
-	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
-
-	modelMech := model.NewMech(mechResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
-	g.loadUnitWeapons(modelMech, mechResource.Armament, width, height, scale)
-	g.loadUnitAmmo(modelMech, mechResource.Ammo)
-
-	return modelMech
+	m := model.NewMech(mechResource)
+	g.loadUnitWeapons(m, mechResource.Armament, m.PixelWidth(), m.PixelHeight(), m.PixelScale())
+	g.loadUnitAmmo(m, mechResource.Ammo)
+	return m
 }
 
 func (g *Game) createModelVehicleFromResource(vehicleResource *model.ModelVehicleResource) *model.Vehicle {
-	vehicleRelPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, vehicleResource.Image)
-	vehicleImg := resources.GetSpriteFromFile(vehicleRelPath)
-
-	// need to use the image size to find the unit collision conversion from pixels
-	width, height := vehicleImg.Bounds().Dx(), vehicleImg.Bounds().Dy()
-	// handle if image has multiple rows/cols
-	if vehicleResource.ImageSheet != nil {
-		width = int(float64(width) / float64(vehicleResource.ImageSheet.Columns))
-		height = int(float64(height) / float64(vehicleResource.ImageSheet.Rows))
-	}
-
-	scale := convertHeightToScale(vehicleResource.Height, height, vehicleResource.HeightPxGap)
-	collisionRadius, collisionHeight := convertOffsetFromPx(
-		vehicleResource.CollisionPxRadius, vehicleResource.CollisionPxHeight, width, height, scale,
-	)
-
-	cockpitPxX, cockpitPxY := vehicleResource.CockpitPxOffset[0], vehicleResource.CockpitPxOffset[1]
-	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
-
-	modelVehicle := model.NewVehicle(vehicleResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
-	g.loadUnitWeapons(modelVehicle, vehicleResource.Armament, width, height, scale)
-	g.loadUnitAmmo(modelVehicle, vehicleResource.Ammo)
-
-	return modelVehicle
+	m := model.NewVehicle(vehicleResource)
+	g.loadUnitWeapons(m, vehicleResource.Armament, m.PixelWidth(), m.PixelHeight(), m.PixelScale())
+	g.loadUnitAmmo(m, vehicleResource.Ammo)
+	return m
 }
 
 func (g *Game) createModelVTOLFromResource(vtolResource *model.ModelVTOLResource) *model.VTOL {
-	vtolRelPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, vtolResource.Image)
-	vtolImg := resources.GetSpriteFromFile(vtolRelPath)
-
-	// need to use the image size to find the unit collision conversion from pixels
-	width, height := vtolImg.Bounds().Dx(), vtolImg.Bounds().Dy()
-	// handle if image has multiple rows/cols
-	if vtolResource.ImageSheet != nil {
-		width = int(float64(width) / float64(vtolResource.ImageSheet.Columns))
-		height = int(float64(height) / float64(vtolResource.ImageSheet.Rows))
-	}
-
-	scale := convertHeightToScale(vtolResource.Height, height, vtolResource.HeightPxGap)
-	collisionRadius, collisionHeight := convertOffsetFromPx(
-		vtolResource.CollisionPxRadius, vtolResource.CollisionPxHeight, width, height, scale,
-	)
-
-	cockpitPxX, cockpitPxY := vtolResource.CockpitPxOffset[0], vtolResource.CockpitPxOffset[1]
-	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
-
-	modelVTOL := model.NewVTOL(vtolResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
-	g.loadUnitWeapons(modelVTOL, vtolResource.Armament, width, height, scale)
-	g.loadUnitAmmo(modelVTOL, vtolResource.Ammo)
-
-	return modelVTOL
+	m := model.NewVTOL(vtolResource)
+	g.loadUnitWeapons(m, vtolResource.Armament, m.PixelWidth(), m.PixelHeight(), m.PixelScale())
+	g.loadUnitAmmo(m, vtolResource.Ammo)
+	return m
 }
 
 func (g *Game) createModelInfantryFromResource(infantryResource *model.ModelInfantryResource) *model.Infantry {
-	infantryRelPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, infantryResource.Image)
-	infantryImg := resources.GetSpriteFromFile(infantryRelPath)
-
-	// need to use the image size to find the unit collision conversion from pixels
-	width, height := infantryImg.Bounds().Dx(), infantryImg.Bounds().Dy()
-	// handle if image has multiple rows/cols
-	if infantryResource.ImageSheet != nil {
-		width = int(float64(width) / float64(infantryResource.ImageSheet.Columns))
-		height = int(float64(height) / float64(infantryResource.ImageSheet.Rows))
-	}
-
-	scale := convertHeightToScale(infantryResource.Height, height, infantryResource.HeightPxGap)
-	collisionRadius, collisionHeight := convertOffsetFromPx(
-		infantryResource.CollisionPxRadius, infantryResource.CollisionPxHeight, width, height, scale,
-	)
-
-	cockpitPxX, cockpitPxY := infantryResource.CockpitPxOffset[0], infantryResource.CockpitPxOffset[1]
-	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
-
-	modelInfantry := model.NewInfantry(infantryResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
-	g.loadUnitWeapons(modelInfantry, infantryResource.Armament, width, height, scale)
-	g.loadUnitAmmo(modelInfantry, infantryResource.Ammo)
-
-	return modelInfantry
+	m := model.NewInfantry(infantryResource)
+	g.loadUnitWeapons(m, infantryResource.Armament, m.PixelWidth(), m.PixelHeight(), m.PixelScale())
+	g.loadUnitAmmo(m, infantryResource.Ammo)
+	return m
 }
 
 func (g *Game) createModelEmplacementFromResource(emplacementResource *model.ModelEmplacementResource) *model.Emplacement {
-	emplacementRelPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, emplacementResource.Image)
-	emplacementImg := resources.GetSpriteFromFile(emplacementRelPath)
-
-	// need to use the image size to find the unit collision conversion from pixels
-	width, height := emplacementImg.Bounds().Dx(), emplacementImg.Bounds().Dy()
-	// handle if image has multiple rows/cols
-	if emplacementResource.ImageSheet != nil {
-		width = int(float64(width) / float64(emplacementResource.ImageSheet.Columns))
-		height = int(float64(height) / float64(emplacementResource.ImageSheet.Rows))
-	}
-
-	scale := convertHeightToScale(emplacementResource.Height, height, emplacementResource.HeightPxGap)
-	collisionRadius, collisionHeight := convertOffsetFromPx(
-		emplacementResource.CollisionPxRadius, emplacementResource.CollisionPxHeight, width, height, scale,
-	)
-
-	cockpitPxX, cockpitPxY := emplacementResource.CockpitPxOffset[0], emplacementResource.CockpitPxOffset[1]
-	cockpitOffX, cockPitOffY := convertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
-
-	modelEmplacement := model.NewEmplacement(emplacementResource, collisionRadius, collisionHeight, &geom.Vector2{X: cockpitOffX, Y: cockPitOffY})
-	g.loadUnitWeapons(modelEmplacement, emplacementResource.Armament, width, height, scale)
-	g.loadUnitAmmo(modelEmplacement, emplacementResource.Ammo)
-
-	return modelEmplacement
+	m := model.NewEmplacement(emplacementResource)
+	g.loadUnitWeapons(m, emplacementResource.Armament, m.PixelWidth(), m.PixelHeight(), m.PixelScale())
+	g.loadUnitAmmo(m, emplacementResource.Ammo)
+	return m
 }
 
 func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
+	// TODO: refactor to load weapons in model package
 	projectileSpriteTemplates := g.sprites.ProjectileSpriteTemplates
 
 	for _, armament := range armamentList {
@@ -604,6 +510,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 }
 
 func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo) {
+	// TODO: refactor to load ammo in model package
 	// load stock ammo
 	ammo := unit.Ammunition()
 	for _, ammoResource := range ammoList {

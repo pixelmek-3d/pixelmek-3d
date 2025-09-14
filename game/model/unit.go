@@ -86,6 +86,10 @@ type Unit interface {
 	MaxTurretExtentAngle() float64
 
 	CockpitOffset() *geom.Vector2
+	PixelWidth() int
+	PixelHeight() int
+	PixelScale() float64
+
 	Ammunition() *Ammo
 	Armament() []Weapon
 	AddArmament(Weapon)
@@ -145,6 +149,9 @@ type UnitModel struct {
 	collisionRadius     float64
 	collisionHeight     float64
 	cockpitOffset       *geom.Vector2
+	pxWidth             int
+	pxHeight            int
+	pxScale             float64
 	armor               float64
 	structure           float64
 	heat                float64
@@ -489,6 +496,18 @@ func (e *UnitModel) SetCollisionHeight(collisionHeight float64) {
 
 func (e *UnitModel) CockpitOffset() *geom.Vector2 {
 	return e.cockpitOffset
+}
+
+func (e *UnitModel) PixelWidth() int {
+	return e.pxWidth
+}
+
+func (e *UnitModel) PixelHeight() int {
+	return e.pxHeight
+}
+
+func (e *UnitModel) PixelScale() float64 {
+	return e.pxScale
 }
 
 func (e *UnitModel) ApplyDamage(damage float64) {

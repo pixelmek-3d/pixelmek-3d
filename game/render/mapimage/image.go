@@ -17,6 +17,7 @@ type MapImageOptions struct {
 	RenderDefaultFloorTexture bool
 	RenderWallLines           bool
 	RenderGridLines           bool
+	GridCellDistance          int
 }
 
 func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions) (*ebiten.Image, error) {
@@ -109,8 +110,11 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 	}
 
 	if opts.RenderGridLines {
-		// draw distance grid lines every 1km worth of map cells
-		kCells := int(1000 / model.METERS_PER_UNIT)
+		kCells := opts.GridCellDistance
+		if kCells <= 0 {
+			// default drawing distance grid lines every 1km worth of map cells
+			kCells = int(1000 / model.METERS_PER_UNIT)
+		}
 		for x := 0; x < mapWidth; x += kCells {
 			x1, x2 := float32(x*pxPerCell), float32(x*pxPerCell)
 			y1, y2 := float32(0), float32(mapHeight*pxPerCell)

@@ -19,8 +19,9 @@ import (
 type MapImageFlags struct {
 	PxPerCell          int
 	RenderFloorTexture bool
-	RenderGridLines    bool
 	RenderWallLines    bool
+	RenderGridLines    bool
+	GridCellDistance   int
 }
 
 func init() {
@@ -33,8 +34,9 @@ func init() {
 func BindMapImageFlags(cmd *cobra.Command, imageFlags *MapImageFlags) {
 	cmd.Flags().IntVar(&imageFlags.PxPerCell, "px-per-cell", 16, "number of pixels per map cell to render in each direction")
 	cmd.Flags().BoolVar(&imageFlags.RenderFloorTexture, "render-floor-texture", true, "render the default floor texture")
-	cmd.Flags().BoolVar(&imageFlags.RenderGridLines, "render-grid-lines", true, "render 1km grid lines")
 	cmd.Flags().BoolVar(&imageFlags.RenderWallLines, "render-wall-lines", true, "render the visibility lines surrounding walls")
+	cmd.Flags().BoolVar(&imageFlags.RenderGridLines, "render-grid-lines", true, "render grid lines")
+	cmd.Flags().IntVar(&imageFlags.GridCellDistance, "grid-cell-distance", 0, "cells per grid line (default: 1km of cells)")
 }
 
 var (
@@ -86,8 +88,9 @@ func doMapExport() {
 	mapOpts := mapimage.MapImageOptions{
 		PxPerCell:                 mapImageFlags.PxPerCell,
 		RenderDefaultFloorTexture: mapImageFlags.RenderFloorTexture,
-		RenderGridLines:           mapImageFlags.RenderGridLines,
 		RenderWallLines:           mapImageFlags.RenderWallLines,
+		RenderGridLines:           mapImageFlags.RenderGridLines,
+		GridCellDistance:          mapImageFlags.GridCellDistance,
 	}
 	image, err := mapimage.NewMapImage(m, tex, mapOpts)
 	if err != nil {

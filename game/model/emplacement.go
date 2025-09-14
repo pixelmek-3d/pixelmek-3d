@@ -1,9 +1,12 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 const (
@@ -15,27 +18,47 @@ type Emplacement struct {
 	Resource *ModelEmplacementResource
 }
 
-func NewEmplacement(r *ModelEmplacementResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Emplacement {
+func NewEmplacement(r *ModelEmplacementResource) *Emplacement {
 	m := &Emplacement{
 		Resource: r,
 		UnitModel: &UnitModel{
-			name:            r.Name,
-			variant:         r.Variant,
-			unitType:        EmplacementUnitType,
-			anchor:          raycaster.AnchorBottom,
-			collisionRadius: collisionRadius,
-			collisionHeight: collisionHeight,
-			cockpitOffset:   cockpitOffset,
-			armor:           r.Armor,
-			structure:       r.Structure,
-			armament:        make([]Weapon, 0),
-			ammunition:      NewAmmoStock(),
-			maxVelocity:     0,
-			maxTurnRate:     EMPLACEMENT_TURRET_RATE_FACTOR,
-			maxTurretRate:   EMPLACEMENT_TURRET_RATE_FACTOR,
-			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
+			name:          r.Name,
+			variant:       r.Variant,
+			unitType:      EmplacementUnitType,
+			anchor:        raycaster.AnchorBottom,
+			armor:         r.Armor,
+			structure:     r.Structure,
+			armament:      make([]Weapon, 0),
+			ammunition:    NewAmmoStock(),
+			maxVelocity:   0,
+			maxTurnRate:   EMPLACEMENT_TURRET_RATE_FACTOR,
+			maxTurretRate: EMPLACEMENT_TURRET_RATE_FACTOR,
+			powered:       POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
 	}
+
+	// need to use the image size to find the unit collision conversion from pixels
+	emplacementRelPath := fmt.Sprintf("%s/%s", EmplacementResourceType, r.Image)
+	emplacementImg := resources.GetSpriteFromFile(emplacementRelPath)
+	width, height := emplacementImg.Bounds().Dx(), emplacementImg.Bounds().Dy()
+	// handle if image has multiple rows/cols
+	if r.ImageSheet != nil {
+		width = int(float64(width) / float64(r.ImageSheet.Columns))
+		height = int(float64(height) / float64(r.ImageSheet.Rows))
+	}
+	scale := ConvertHeightToScale(r.Height, height, r.HeightPxGap)
+	collisionRadius, collisionHeight := ConvertOffsetFromPx(
+		r.CollisionPxRadius, r.CollisionPxHeight, width, height, scale,
+	)
+	cockpitPxX, cockpitPxY := r.CockpitPxOffset[0], r.CockpitPxOffset[1]
+	cockpitOffX, cockpitOffY := ConvertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	m.pxWidth, m.pxHeight = width, height
+	m.pxScale = scale
+	m.collisionRadius = collisionRadius
+	m.collisionHeight = collisionHeight
+	m.cockpitOffset = &geom.Vector2{X: cockpitOffX, Y: cockpitOffY}
+
 	return m
 }
 

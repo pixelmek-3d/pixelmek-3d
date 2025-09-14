@@ -757,3 +757,16 @@ func (r *ModelResources) GetBallisticWeaponResource(weapon string) (*ModelBallis
 	}
 	return nil, fmt.Errorf("ballistic weapon resource does not exist %s", weapon)
 }
+
+func ConvertHeightToScale(unitHeight float64, imageHeight, heightPxGap int) float64 {
+	pxRatio := float64(imageHeight) / float64(imageHeight-heightPxGap)
+	return pxRatio * unitHeight / METERS_PER_UNIT
+}
+
+func ConvertOffsetFromPx(xPx, yPx float64, width, height int, scaleY float64) (offX float64, offY float64) {
+	// scale given based on height, calculate scale for width for images that are not 1:1
+	scaleX := scaleY * float64(width) / float64(height)
+	offX = (scaleX * xPx) / float64(width)
+	offY = (scaleY * yPx) / float64(height)
+	return
+}
