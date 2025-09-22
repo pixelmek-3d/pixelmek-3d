@@ -219,16 +219,19 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			nextPage := args.Entry.(*settingsPage)
 			pageContainer.setPage(nextPage)
-			if missionSettings != nil && (nextPage == hudSettings || (debugLightingSettings != nil && nextPage == debugLightingSettings)) {
-				// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
-				m.Root().SetBackgroundImage(nil)
-				pageContainer.widget.(*widget.Container).SetBackgroundImage(nil)
-				nextPage.content.(*widget.Container).SetBackgroundImage(res.panel.filled)
-			} else {
-				m.Root().SetBackgroundImage(res.background)
-				pageContainer.widget.(*widget.Container).SetBackgroundImage(res.panel.image)
-			}
-			m.Root().RequestRelayout()
+
+			// FIXME: modifying the widget here caused infinite deferred updates, which somehow reran this handler function forever until commented out
+			//
+			// if missionSettings != nil && (nextPage == hudSettings || (debugLightingSettings != nil && nextPage == debugLightingSettings)) {
+			// 	// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
+			// 	m.Root().SetBackgroundImage(nil)
+			// 	pageContainer.widget.(*widget.Container).SetBackgroundImage(nil)
+			// 	nextPage.content.(*widget.Container).SetBackgroundImage(res.panel.filled)
+			// } else {
+			// 	m.Root().SetBackgroundImage(res.background)
+			// 	pageContainer.widget.(*widget.Container).SetBackgroundImage(res.panel.image)
+			// }
+			//m.Root().RequestRelayout()
 		}))
 	c.AddChild(pageList)
 
