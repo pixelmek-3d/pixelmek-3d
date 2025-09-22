@@ -74,7 +74,7 @@ func createUnitMenu(g *Game) *UnitMenu {
 
 func (m *UnitMenu) initMenu() {
 	m.MenuModel.initMenu()
-	m.root.BackgroundImage = m.Resources().background
+	m.root.SetBackgroundImage(m.Resources().background)
 
 	// menu title
 	titleBar := unitTitleContainer(m)
@@ -104,7 +104,7 @@ func unitTitleContainer(m *UnitMenu) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -127,7 +127,7 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
 			widget.GridLayoutOpts.Stretch([]bool{false, true, false}, []bool{false}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -188,7 +188,7 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  m.Spacing(),
 				Right: m.Spacing(),
 			}),
@@ -239,12 +239,13 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(*unitPage).title
 		}),
-		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.ListOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
-		),
+		widget.ListOpts.ScrollContainerImage(res.list.image),
+		widget.ListOpts.SliderParams(&widget.SliderParams{
+			TrackImage:    res.list.track,
+			HandleImage:   res.list.handle,
+			MinHandleSize: res.list.handleSize,
+			TrackPadding:  res.list.trackPadding,
+		}),
 		widget.ListOpts.EntryColor(res.list.entry),
 		widget.ListOpts.EntryFontFace(res.list.face),
 		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
@@ -280,7 +281,7 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 
 	variantContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  0,
 				Right: 0,
 			}),
@@ -480,7 +481,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	// unit content container
 	unitCard.unitContent = widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  g.menu.Spacing(),
 				Right: g.menu.Spacing(),
 			}),
