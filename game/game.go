@@ -16,6 +16,7 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
+	globalViper "github.com/spf13/viper"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -193,7 +194,12 @@ func NewGame() *Game {
 	g.sprites = sprites.NewSpriteHandler()
 
 	// setup initial scene
-	g.scene = NewSplashScene(g)
+	if globalViper.GetBool(PARAM_KEY_SKIP_INTRO) {
+		// skip intro, straight into main menu
+		g.scene = NewMenuScene(g)
+	} else {
+		g.scene = NewSplashScene(g)
+	}
 
 	// set window icon
 	_, icon, err := resources.NewImageFromFile("icons/pixelmek_icon.png")
