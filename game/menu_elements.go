@@ -58,6 +58,9 @@ func newListComboButton(entries []any, selectedEntry any, buttonLabel widget.Sel
 		c.SetSelectedEntry(selectedEntry)
 	}
 
+	// force validation to fix ebitenui lib nil SelectComboButton panic
+	c.Validate()
+
 	return c
 }
 
