@@ -175,8 +175,8 @@ func displayPage(m Menu) *settingsPage {
 	resolutionLabel := widget.NewLabel(widget.LabelOpts.Text("Resolution", res.label.face, res.label.text))
 	resolutionRow.AddChild(resolutionLabel)
 
-	resolutions := []interface{}{}
-	var selectedResolution interface{}
+	resolutions := []any{}
+	var selectedResolution any
 	for _, r := range m.Resolutions() {
 		resolutions = append(resolutions, r)
 		if game.screenWidth == r.width && game.screenHeight == r.height {
@@ -190,49 +190,49 @@ func displayPage(m Menu) *settingsPage {
 			width:  game.screenWidth,
 			height: game.screenHeight,
 		}
-		resolutions = append([]interface{}{r}, resolutions...)
+		resolutions = append([]any{r}, resolutions...)
 	}
 
 	var fovSlider *widget.Slider
-	// resolutionCombo := newListComboButton(
-	// 	resolutions,
-	// 	selectedResolution,
-	// 	func(e interface{}) string {
-	// 		return fmt.Sprintf("%s", e)
-	// 	},
-	// 	func(e interface{}) string {
-	// 		return fmt.Sprintf("%s", e)
-	// 	},
-	// 	func(args *widget.ListComboButtonEntrySelectedEventArgs) {
-	// 		r := args.Entry.(MenuResolution)
-	// 		if game.screenWidth != r.width || game.screenHeight != r.height {
-	// 			game.setResolution(r.width, r.height)
+	resolutionCombo := newListComboButton(
+		resolutions,
+		selectedResolution,
+		func(e any) string {
+			return fmt.Sprintf("%s", e)
+		},
+		func(e any) string {
+			return fmt.Sprintf("%s", e)
+		},
+		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+			r := args.Entry.(MenuResolution)
+			if game.screenWidth != r.width || game.screenHeight != r.height {
+				game.setResolution(r.width, r.height)
 
-	// 			// pre-select ideal FOV for the aspect ratio
-	// 			game.setFovAngle(float64(r.aspectRatio.fov))
+				// pre-select ideal FOV for the aspect ratio
+				game.setFovAngle(float64(r.aspectRatio.fov))
 
-	// 			gameMenu, _ := m.(*GameMenu)
-	// 			settingsMenu, _ := m.(*SettingsMenu)
-	// 			switch {
-	// 			case gameMenu != nil:
-	// 				// re-initialize the in-game menu with the Display settings pre-selected
-	// 				gameMenu.preSelectedPage = 2
-	// 				gameMenu.initResources()
-	// 				gameMenu.initMenu()
-	// 			case settingsMenu != nil:
-	// 				menuScene, ok := game.scene.(*MenuScene)
-	// 				if ok {
-	// 					menuScene.settings.preSelectedPage = 0
-	// 					menuScene.settings.initResources()
-	// 					menuScene.settings.initMenu()
-	// 					menuScene.main.initResources()
-	// 					menuScene.main.initMenu()
-	// 				}
-	// 			}
-	// 		}
-	// 	},
-	// 	res)
-	// resolutionRow.AddChild(resolutionCombo)
+				gameMenu, _ := m.(*GameMenu)
+				settingsMenu, _ := m.(*SettingsMenu)
+				switch {
+				case gameMenu != nil:
+					// re-initialize the in-game menu with the Display settings pre-selected
+					gameMenu.preSelectedPage = 2
+					gameMenu.initResources()
+					gameMenu.initMenu()
+				case settingsMenu != nil:
+					menuScene, ok := game.scene.(*MenuScene)
+					if ok {
+						menuScene.settings.preSelectedPage = 0
+						menuScene.settings.initResources()
+						menuScene.settings.initMenu()
+						menuScene.main.initResources()
+						menuScene.main.initMenu()
+					}
+				}
+			}
+		},
+		res)
+	resolutionRow.AddChild(resolutionCombo)
 
 	// horizontal FOV slider
 	fovRow := widget.NewContainer(
@@ -285,35 +285,35 @@ func displayPage(m Menu) *settingsPage {
 	scalingLabel := widget.NewLabel(widget.LabelOpts.Text("Render Scaling", res.label.face, res.label.text))
 	scalingRow.AddChild(scalingLabel)
 
-	// scalings := []interface{}{
-	// 	0.25,
-	// 	0.5,
-	// 	0.75,
-	// 	1.0,
-	// }
+	scalings := []any{
+		0.25,
+		0.5,
+		0.75,
+		1.0,
+	}
 
-	// var selectedScaling interface{}
-	// for _, s := range scalings {
-	// 	if s == game.renderScale {
-	// 		selectedScaling = s
-	// 	}
-	// }
+	var selectedScaling any
+	for _, s := range scalings {
+		if s == game.renderScale {
+			selectedScaling = s
+		}
+	}
 
-	// scalingCombo := newListComboButton(
-	// 	scalings,
-	// 	selectedScaling,
-	// 	func(e interface{}) string {
-	// 		return fmt.Sprintf("%0.0f%%", e.(float64)*100)
-	// 	},
-	// 	func(e interface{}) string {
-	// 		return fmt.Sprintf("%0.0f%%", e.(float64)*100)
-	// 	},
-	// 	func(args *widget.ListComboButtonEntrySelectedEventArgs) {
-	// 		s := args.Entry.(float64)
-	// 		game.setRenderScale(s)
-	// 	},
-	// 	res)
-	// scalingRow.AddChild(scalingCombo)
+	scalingCombo := newListComboButton(
+		scalings,
+		selectedScaling,
+		func(e any) string {
+			return fmt.Sprintf("%0.0f%%", e.(float64)*100)
+		},
+		func(e any) string {
+			return fmt.Sprintf("%0.0f%%", e.(float64)*100)
+		},
+		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+			s := args.Entry.(float64)
+			game.setRenderScale(s)
+		},
+		res)
+	scalingRow.AddChild(scalingCombo)
 
 	// fullscreen checkbox
 	fsCheckbox := newCheckbox(m, "Fullscreen", game.fullscreen, func(args *widget.CheckboxChangedEventArgs) {
