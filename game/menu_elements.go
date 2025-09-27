@@ -13,8 +13,7 @@ func newCheckbox(m Menu, label string, checked bool, changedHandler widget.Check
 	res := m.Resources()
 	c := widget.NewCheckbox(
 		widget.CheckboxOpts.Spacing(res.checkbox.spacing),
-		//widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.checkbox.image)),
-		widget.CheckboxOpts.Image(res.checkbox.graphic),
+		widget.CheckboxOpts.Image(res.checkbox.image),
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
 			if changedHandler != nil {
 				changedHandler(args)
