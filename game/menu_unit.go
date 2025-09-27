@@ -220,7 +220,7 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 		})
 	}
 
-	pages := make([]interface{}, 0, 1+len(chassisMap))
+	pages := make([]any, 0, 1+len(chassisMap))
 
 	// add entry for random unit
 	randomUnitPage := unitSelectionPage(m, nil, []model.Unit{})
@@ -236,7 +236,7 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*unitPage).title
 		}),
 		widget.ListOpts.ScrollContainerImage(res.list.image),
@@ -324,7 +324,7 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 
 	// show unit variant selection
 	if page.unit != nil {
-		comboVariants := []interface{}{}
+		comboVariants := []any{}
 		for _, v := range page.variants {
 			comboVariants = append(comboVariants, v)
 		}
@@ -332,14 +332,14 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 		variantCombo := newListComboButton(
 			comboVariants,
 			page.unit,
-			func(e interface{}) string {
+			func(e any) string {
 				u := e.(model.Unit)
 				if u != nil {
 					return u.Variant()
 				}
 				return "?"
 			},
-			func(e interface{}) string {
+			func(e any) string {
 				u := e.(model.Unit)
 				if u != nil {
 					return u.Variant()

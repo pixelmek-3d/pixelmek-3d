@@ -171,7 +171,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	hudSettings := hudPage(m)
 	audioSettings := audioPage(m)
 
-	pages := make([]interface{}, 0, 8)
+	pages := make([]any, 0, 8)
 	if missionSettings != nil {
 		pages = append(pages, missionSettings)
 	}
@@ -204,7 +204,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*settingsPage).title
 		}),
 		widget.ListOpts.ScrollContainerImage(res.list.image),

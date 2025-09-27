@@ -10,7 +10,7 @@ import (
 func (g *Game) UpdateSprites() {
 	// Update for animated sprite movement
 	for _, spriteType := range g.sprites.SpriteTypes() {
-		g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
+		g.sprites.RangeByType(spriteType, func(k, _ any) bool {
 			g.updateSprite(spriteType, k.(raycaster.Sprite))
 			return true
 		})

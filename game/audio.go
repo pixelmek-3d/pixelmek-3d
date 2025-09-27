@@ -294,7 +294,7 @@ func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, so
 
 	// check if entity is already playing a looping source to update instead of playing as new source
 	var source *SFXSource
-	a.sfx.entitySources.Range(func(k, v interface{}) bool {
+	a.sfx.entitySources.Range(func(k, v any) bool {
 		if entity == k.(model.Entity) {
 			source = v.(*SFXSource)
 			return false
@@ -331,7 +331,7 @@ func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, so
 // StopLoopEntitySFX stops given looping sound effect as emitted from an Entity object
 func (a *AudioHandler) StopLoopEntitySFX(sfxFile string, entity model.Entity) {
 	var source *SFXSource
-	a.sfx.entitySources.Range(func(k, v interface{}) bool {
+	a.sfx.entitySources.Range(func(k, v any) bool {
 		if entity == k.(model.Entity) {
 			source = v.(*SFXSource)
 			return false
@@ -481,7 +481,7 @@ func (a *AudioHandler) StopSFX() {
 			s.player.Close()
 		}
 	}
-	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
 		s.Close()
 		return true
@@ -497,7 +497,7 @@ func (a *AudioHandler) PauseSFX() {
 	for _, s := range a.sfx.mainSources {
 		s.Pause()
 	}
-	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
 		s.Pause()
 		return true
@@ -513,7 +513,7 @@ func (a *AudioHandler) ResumeSFX() {
 	for _, s := range a.sfx.mainSources {
 		s.Resume()
 	}
-	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
 		s.Resume()
 		return true

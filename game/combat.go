@@ -169,7 +169,7 @@ func (g *Game) updateProjectiles() {
 	// perform concurrent projectile updates
 	var wg sync.WaitGroup
 
-	g.sprites.RangeByType(sprites.ProjectileSpriteType, func(k, _ interface{}) bool {
+	g.sprites.RangeByType(sprites.ProjectileSpriteType, func(k, _ any) bool {
 		p := k.(*sprites.ProjectileSprite)
 		p.DecreaseLifespan(1)
 		if p.Lifespan() <= 0 {
@@ -184,7 +184,7 @@ func (g *Game) updateProjectiles() {
 	})
 
 	// Update animated effects
-	g.sprites.RangeByType(sprites.EffectSpriteType, func(k, _ interface{}) bool {
+	g.sprites.RangeByType(sprites.EffectSpriteType, func(k, _ any) bool {
 		e := k.(*sprites.EffectSprite)
 		e.Update(g.player.CameraPosXY())
 		if e.LoopCounter() >= e.LoopCount {

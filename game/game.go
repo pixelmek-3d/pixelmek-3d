@@ -648,7 +648,7 @@ func (g *Game) spriteInCrosshairs() *sprites.Sprite {
 
 		var cSpriteArea int
 		for _, spriteType := range g.sprites.SpriteTypes() {
-			g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
+			g.sprites.RangeByType(spriteType, func(k, _ any) bool {
 				if !isInteractiveType(spriteType) {
 					// only cycle on certain sprite types (skip projectiles, effects, etc.)
 					return true

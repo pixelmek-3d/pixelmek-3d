@@ -132,7 +132,7 @@ func (g *Game) getValidMove(entity model.Entity, moveX, moveY, moveZ float64, ch
 			// only check collision against certain sprite types (skip projectiles, effects, etc.)
 			continue
 		}
-		g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
+		g.sprites.RangeByType(spriteType, func(k, _ any) bool {
 			spriteInterface := k.(raycaster.Sprite)
 			sEntity := getEntityFromInterface(spriteInterface)
 			if entity == sEntity || entity.Parent() == sEntity || sEntity.CollisionRadius() <= 0 || sEntity.IsDestroyed() {

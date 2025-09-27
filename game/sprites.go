@@ -105,7 +105,7 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 	camPos := g.player.CameraPosXY()
 
 	count := 0
-	g.sprites.Range(func(k, _ interface{}) bool {
+	g.sprites.Range(func(k, _ any) bool {
 		spriteInterface := k.(raycaster.Sprite)
 		sprite := getSpriteFromInterface(spriteInterface)
 		// for now this is sufficient, but for much larger amounts of sprites may need goroutines to divide up the work
@@ -147,7 +147,7 @@ func (g *Game) getRaycastSprites() []raycaster.Sprite {
 func (g *Game) getUnitSprites() []*sprites.Sprite {
 	sprites := make([]*sprites.Sprite, 0, 64)
 	for _, spriteType := range g.sprites.SpriteTypes() {
-		g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
+		g.sprites.RangeByType(spriteType, func(k, _ any) bool {
 			if !isInteractiveType(spriteType) {
 				// only include certain sprite types (skip projectiles, effects, etc.)
 				return true
@@ -180,7 +180,7 @@ func (g *Game) getSpriteUnits() []model.Unit {
 func (g *Game) getProximityUnitSprites(pos *geom.Vector2, distance float64) []*proximitySprite {
 	sprites := make([]*proximitySprite, 0, 64)
 	for _, spriteType := range g.sprites.SpriteTypes() {
-		g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
+		g.sprites.RangeByType(spriteType, func(k, _ any) bool {
 			if !isInteractiveType(spriteType) {
 				// only include certain sprite types (skip projectiles, effects, etc.)
 				return true
@@ -294,7 +294,7 @@ func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
 func (g *Game) getSpriteFromEntity(entity model.Entity) *sprites.Sprite {
 	var found *sprites.Sprite
 	for _, spriteType := range g.sprites.SpriteTypes() {
-		g.sprites.RangeByType(spriteType, func(k, _ interface{}) bool {
+		g.sprites.RangeByType(spriteType, func(k, _ any) bool {
 			if !isInteractiveType(spriteType) {
 				// only include certain sprite types (skip projectiles, effects, etc.)
 				return true
@@ -320,7 +320,7 @@ func (g *Game) getSpriteFromEntity(entity model.Entity) *sprites.Sprite {
 func (g *Game) getMapSpriteFromEntity(entity model.Entity) *sprites.Sprite {
 	var found *sprites.Sprite
 
-	g.sprites.RangeByType(sprites.MapSpriteType, func(k, _ interface{}) bool {
+	g.sprites.RangeByType(sprites.MapSpriteType, func(k, _ any) bool {
 		s := getSpriteFromInterface(k.(raycaster.Sprite))
 		if entity == s.Entity {
 			found = s

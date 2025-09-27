@@ -180,7 +180,7 @@ func missionMenuSelectionContainer(m *MissionMenu) widget.PreferredSizeLocateabl
 			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
 
-	pages := make([]interface{}, 0, len(missionList))
+	pages := make([]any, 0, len(missionList))
 
 	// TODO: add entry for random mission
 
@@ -197,7 +197,7 @@ func missionMenuSelectionContainer(m *MissionMenu) widget.PreferredSizeLocateabl
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*missionMenuPage).title
 		}),
 		widget.ListOpts.ScrollContainerImage(res.list.image),

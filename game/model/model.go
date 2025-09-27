@@ -302,7 +302,7 @@ func PointsToVector2(points [][2]float64) []geom.Vector2 {
 	return vectors
 }
 
-func InArray(array, search interface{}) bool {
+func InArray(array, search any) bool {
 	a := reflect.ValueOf(array)
 	a = a.Convert(a.Type())
 	t := reflect.TypeOf(array).Kind()
