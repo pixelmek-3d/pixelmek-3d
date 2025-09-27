@@ -141,13 +141,13 @@ func launchMenuBriefingContainer(m *LaunchMenu) *widget.Container {
 	return c
 }
 
-func (m *LaunchMenu) loadBriefing() {
+func (m *LaunchMenu) loadBriefing(mission *model.Mission) {
 	m.content.RemoveChildren()
 	res := m.Resources()
 	g := m.game
 
 	// show mission card
-	missionCard := createMissionCard(g, res, g.mission, MissionCardLaunch)
+	missionCard := createMissionCard(g, res, mission, MissionCardLaunch)
 	m.content.AddChild(missionCard)
 
 	// show player unit card

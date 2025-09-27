@@ -7,7 +7,11 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/mapimage"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/missionimage"
+	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -342,33 +346,37 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		mapText := widget.NewText(widget.TextOpts.Text(mapString, res.text.face, res.text.idleColor))
 		cardContainer.AddChild(mapText)
 
+		// mission map thumbnail
+		missionThumb := createMissionThumbnail(g, mission)
+		cardContainer.AddChild(missionThumb)
+
 		// mission briefing text
+		briefingLabel := widget.NewText(widget.TextOpts.Text("Mission Briefing", res.text.face, res.text.idleColor))
+		cardContainer.AddChild(briefingLabel)
 		briefingText := newTextArea(mission.Briefing, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-			MaxHeight: g.uiRect().Dy() / 3,
+			MaxHeight: g.uiRect().Dy() / 5,
 		}))
 		cardContainer.AddChild(briefingText)
 
 		// mission objectives text
-		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives:", res.text.face, res.text.idleColor))
+		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
 		cardContainer.AddChild(objectivesLabel)
 
 		objectivesText = newTextArea(mission.Objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-			MaxHeight: g.uiRect().Dy() / 3,
+			MaxHeight: g.uiRect().Dy() / 5,
 		}))
 		cardContainer.AddChild(objectivesText)
 
 	case MissionCardGame, MissionCardDebrief:
 		// in-game mission objectives text
-		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives:", res.text.face, res.text.idleColor))
+		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
 		cardContainer.AddChild(objectivesLabel)
 
 		objectivesText = newTextArea(g.objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-			MaxHeight: g.uiRect().Dy() / 3,
+			MaxHeight: g.uiRect().Dy() / 5,
 		}))
 		cardContainer.AddChild(objectivesText)
 	}
-
-	// TODO: show mission map image preview
 
 	missionCard := &MissionCard{
 		Container:      cardContainer,
@@ -377,6 +385,37 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 	}
 
 	return missionCard
+}
+
+func createMissionThumbnail(g *Game, mission *model.Mission) *widget.Container {
+	mapOpts := mapimage.MapImageOptions{PxPerCell: 2, RenderDefaultFloorTexture: false}
+	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
+			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
+		)),
+	)
+
+	var mapTex *texture.TextureHandler
+	if g.mission == mission {
+		mapTex = g.tex
+	} else {
+		mapTex = texture.NewTextureHandler(mission.Map())
+	}
+	missionImage, err := missionimage.NewMissionImage(mission, g.resources, mapTex, mapOpts, missionOpts)
+	if err != nil {
+		log.Error("Error loading mission image: ", err)
+	} else if missionImage != nil {
+		// scale image down to fit thumbnail space
+		missionImage = common.ScaleImageToHeight(missionImage, g.uiRect().Dy()/5, ebiten.FilterNearest)
+		imageLabel := widget.NewGraphic(
+			widget.GraphicOpts.Image(missionImage),
+		)
+		c.AddChild(imageLabel)
+	}
+	return c
 }
 
 func (c *MissionCard) update(g *Game) {
