@@ -199,6 +199,9 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 
 	pageContainer := newSettingsPageContainer(m)
 
+	// prevent infinite relayout issue caused by toggling background shown only in certain tabs
+	missionSettingsShowBackground := false
+
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
@@ -220,18 +223,24 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 			nextPage := args.Entry.(*settingsPage)
 			pageContainer.setPage(nextPage)
 
-			// FIXME: modifying the widget here caused infinite deferred updates, which somehow reran this handler function forever until commented out
-			//
-			// if missionSettings != nil && (nextPage == hudSettings || (debugLightingSettings != nil && nextPage == debugLightingSettings)) {
-			// 	// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
-			// 	m.Root().SetBackgroundImage(nil)
-			// 	pageContainer.widget.(*widget.Container).SetBackgroundImage(nil)
-			// 	nextPage.content.(*widget.Container).SetBackgroundImage(res.panel.filled)
-			// } else {
-			// 	m.Root().SetBackgroundImage(res.background)
-			// 	pageContainer.widget.(*widget.Container).SetBackgroundImage(res.panel.image)
-			// }
-			//m.Root().RequestRelayout()
+			if missionSettings != nil && (nextPage == hudSettings || (debugLightingSettings != nil && nextPage == debugLightingSettings)) {
+				if missionSettingsShowBackground {
+					// for in-game HUD and lighting setting, apply transparent background so we can see behind while adjusting
+					m.Root().SetBackgroundImage(nil)
+					pageContainer.widget.(*widget.Container).SetBackgroundImage(nil)
+					nextPage.content.(*widget.Container).SetBackgroundImage(res.panel.filled)
+					missionSettingsShowBackground = false
+				}
+			} else {
+				if !missionSettingsShowBackground {
+					m.Root()
+					m.Root().SetBackgroundImage(res.background)
+					pageContainer.widget.(*widget.Container).SetBackgroundImage(res.panel.image)
+					missionSettingsShowBackground = true
+				}
+			}
+			m.Root().RequestRelayout()
+
 		}))
 	c.AddChild(pageList)
 
