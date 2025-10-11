@@ -60,11 +60,8 @@ var (
 				}
 			}
 
-			// initialize the menu system
-			g.SetScene(game.NewMenuScene(g))
-
 			// jump straight to the game scene
-			g.SetScene(game.NewGameScene(g))
+			g.SetInitialSceneFunc(game.NewGameScene)
 
 			g.Run()
 		},

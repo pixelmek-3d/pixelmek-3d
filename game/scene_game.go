@@ -12,7 +12,7 @@ type GameScene struct {
 	benchmark  *BenchmarkHandler
 }
 
-func NewGameScene(g *Game) *GameScene {
+func NewGameScene(g *Game) Scene {
 	// load mission resources and launch
 	g.initMission()
 

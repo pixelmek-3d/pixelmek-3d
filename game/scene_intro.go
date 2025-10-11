@@ -29,7 +29,7 @@ type IntroScene struct {
 	bufferScreen  *ebiten.Image
 }
 
-func NewIntroScene(g *Game) *IntroScene {
+func NewIntroScene(g *Game) Scene {
 	// PixelMek 3D intro animation
 
 	// load all intro image frames

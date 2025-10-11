@@ -368,6 +368,10 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		cardContainer.AddChild(objectivesText)
 
 	case MissionCardGame, MissionCardDebrief:
+		// mission map thumbnail
+		missionThumb := createMissionThumbnail(g, mission)
+		cardContainer.AddChild(missionThumb)
+
 		// in-game mission objectives text
 		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
 		cardContainer.AddChild(objectivesLabel)

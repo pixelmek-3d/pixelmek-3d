@@ -34,7 +34,7 @@ type SplashScreen struct {
 	transitionOpts *transitions.TransitionOptions
 }
 
-func NewSplashScene(g *Game) *SplashScene {
+func NewSplashScene(g *Game) Scene {
 	// load intro splash images
 	var splashes = make([]*SplashScreen, 0)
 	splashRect := g.uiRect()

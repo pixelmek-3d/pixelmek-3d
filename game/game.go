@@ -40,6 +40,9 @@ var (
 
 // Game - This is the main type for your game.
 type Game struct {
+	// if set, overrides initial scene when the game is first run
+	initSceneFunc func(g *Game) Scene
+
 	scene  Scene
 	menu   Menu
 	paused bool
@@ -193,12 +196,12 @@ func NewGame() *Game {
 	g.tex.SetRenderFloorTex(g.initRenderFloorTex)
 	g.sprites = sprites.NewSpriteHandler()
 
-	// setup initial scene
-	if globalViper.GetBool(PARAM_KEY_SKIP_INTRO) {
-		// skip intro, straight into main menu
-		g.scene = NewMenuScene(g)
-	} else {
-		g.scene = NewSplashScene(g)
+	// initialize the menu system
+	g.scene = NewMenuScene(g)
+
+	if !globalViper.GetBool(PARAM_KEY_SKIP_INTRO) {
+		// show intro scene
+		g.SetInitialSceneFunc(NewSplashScene)
 	}
 
 	// set window icon
@@ -215,6 +218,10 @@ func NewGame() *Game {
 
 func (g *Game) Resources() *model.ModelResources {
 	return g.resources
+}
+
+func (g *Game) SetInitialSceneFunc(sceneFunc func(g *Game) Scene) {
+	g.initSceneFunc = sceneFunc
 }
 
 func (g *Game) SetScene(scene Scene) {
@@ -346,6 +353,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
 	g.inputSystem.Update()
+
+	if g.initSceneFunc != nil {
+		g.scene = g.initSceneFunc(g)
+		g.initSceneFunc = nil
+	}
 	return g.scene.Update()
 }
 

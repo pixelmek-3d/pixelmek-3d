@@ -12,7 +12,7 @@ type InstantActionScene struct {
 	launchBriefing *LaunchMenu
 }
 
-func NewInstantActionScene(g *Game) *InstantActionScene {
+func NewInstantActionScene(g *Game) Scene {
 	missionSelect := createMissionMenu(g)
 	unitSelect := createUnitMenu(g)
 	launchBriefing := createLaunchMenu(g)
