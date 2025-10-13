@@ -228,6 +228,18 @@ func (g *Game) SetScene(scene Scene) {
 	g.scene = scene
 }
 
+func (g *Game) StopSceneTransition() {
+	if g.scene == nil {
+		return
+	}
+	switch g.scene.(type) {
+	case *MenuScene:
+		g.scene.(*MenuScene).transition = nil
+	case *GameScene:
+		g.scene.(*GameScene).transition = nil
+	}
+}
+
 func (g *Game) LoadMission(missionFile string) (*model.Mission, error) {
 	mission, err := model.LoadMission(missionFile)
 	if err != nil {

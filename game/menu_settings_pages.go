@@ -215,6 +215,9 @@ func displayPage(m Menu) *settingsPage {
 				settingsMenu, _ := m.(*SettingsMenu)
 				switch {
 				case gameMenu != nil:
+					// stop any scene transitions that may panic when resolution is changed before completion
+					game.StopSceneTransition()
+
 					// re-initialize the in-game menu with the Display settings pre-selected
 					gameMenu.preSelectedPage = 2
 					gameMenu.initResources()
