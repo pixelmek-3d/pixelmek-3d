@@ -399,6 +399,13 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 	return missionCard
 }
 
+func (c *MissionCard) update(g *Game) {
+	switch c.style {
+	case MissionCardGame:
+		c.objectivesText.SetText(g.objectives.Text())
+	}
+}
+
 func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *widget.Container {
 	mapOpts := mapimage.MapImageOptions{PxPerCell: 2, RenderDefaultFloorTexture: false}
 	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
@@ -433,7 +440,8 @@ func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *
 			}),
 			widget.ButtonOpts.GraphicPadding(widget.Insets{Top: 4, Bottom: 4, Left: 25, Right: 25}),
 			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-				// TODO: show pop-up with with large map
+				// show pop-up with large map
+				openMapWindow(g, res, mission)
 			}),
 		)
 		c.AddChild(imageButton)
@@ -442,9 +450,82 @@ func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *
 	return c
 }
 
-func (c *MissionCard) update(g *Game) {
-	switch c.style {
-	case MissionCardGame:
-		c.objectivesText.SetText(g.objectives.Text())
+func openMapWindow(g *Game, res *uiResources, mission *model.Mission) {
+	// TODO: render current player position and position of enemies that are in range
+	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true}
+	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
+
+	var rmWindow widget.RemoveWindowFunc
+	var window *widget.Window
+
+	m := g.menu
+	uiRect := g.uiRect()
+	padding := m.Padding()
+	spacing := m.Spacing()
+
+	titleBar := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}), widget.GridLayoutOpts.Padding(&widget.Insets{
+			Left:   padding,
+			Right:  padding,
+			Top:    padding,
+			Bottom: padding,
+		}))))
+
+	titleBar.AddChild(widget.NewText(
+		widget.TextOpts.Text("Map", res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	))
+
+	titleBar.AddChild(widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			rmWindow()
+		}),
+		widget.ButtonOpts.TabOrder(99),
+	))
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(
+			widget.NewGridLayout(
+				widget.GridLayoutOpts.Columns(1),
+				widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, false, true}),
+				widget.GridLayoutOpts.Padding(res.panel.padding),
+				widget.GridLayoutOpts.Spacing(1, spacing),
+			),
+		),
+	)
+
+	var mapTex *texture.TextureHandler
+	if g.mission == mission {
+		mapTex = g.tex
+	} else {
+		mapTex = texture.NewTextureHandler(mission.Map())
 	}
+	missionImage, err := missionimage.NewMissionImage(mission, g.resources, mapTex, mapOpts, missionOpts)
+	if err != nil {
+		log.Error("Error loading mission image: ", err)
+	} else if missionImage != nil {
+		imageLabel := widget.NewGraphic(
+			widget.GraphicOpts.Image(missionImage),
+		)
+		c.AddChild(imageLabel)
+	}
+
+	// TODO: map navigation/zoom controls
+
+	window = widget.NewWindow(
+		widget.WindowOpts.Modal(),
+		widget.WindowOpts.Contents(c),
+		widget.WindowOpts.TitleBar(titleBar, uiRect.Dy()/12),
+	)
+
+	wRect := uiRect.Inset(uiRect.Dy() / 6)
+	window.SetLocation(wRect)
+
+	rmWindow = m.UI().AddWindow(window)
+	m.SetWindow(window)
 }
