@@ -208,14 +208,13 @@ func newSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
 	return c
 }
 
-func newBlankSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
-	res := m.Resources()
+func newBlankSeparator(res *uiResources, spacing int, ld any) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(&widget.Insets{
-				Top:    m.Spacing(),
-				Bottom: m.Spacing(),
+				Top:    spacing,
+				Bottom: spacing,
 			}))),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(ld)))
 

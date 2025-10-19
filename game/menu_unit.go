@@ -148,7 +148,7 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 	)
 	c.AddChild(back)
 
-	c.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+	c.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 

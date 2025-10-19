@@ -143,7 +143,7 @@ func missionMenuFooterContainer(m *MissionMenu) *widget.Container {
 	)
 	c.AddChild(back)
 
-	c.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+	c.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -309,7 +309,6 @@ func (p *missionMenuPage) setMission(m *MissionMenu) {
 }
 
 func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style MissionCardStyle) *MissionCard {
-
 	cardContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -347,7 +346,7 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		cardContainer.AddChild(mapText)
 
 		// mission map thumbnail
-		missionThumb := createMissionThumbnail(g, mission)
+		missionThumb := createMissionThumbnail(g, res, mission)
 		cardContainer.AddChild(missionThumb)
 
 		// mission briefing text
@@ -369,7 +368,7 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 
 	case MissionCardGame:
 		// mission map thumbnail
-		missionThumb := createMissionThumbnail(g, mission)
+		missionThumb := createMissionThumbnail(g, res, mission)
 		cardContainer.AddChild(missionThumb)
 
 		// in-game mission objectives text
@@ -400,10 +399,11 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 	return missionCard
 }
 
-func createMissionThumbnail(g *Game, mission *model.Mission) *widget.Container {
+func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *widget.Container {
 	mapOpts := mapimage.MapImageOptions{PxPerCell: 2, RenderDefaultFloorTexture: false}
 	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
+	// container for mission map image and button to show map larger in window
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
@@ -423,11 +423,22 @@ func createMissionThumbnail(g *Game, mission *model.Mission) *widget.Container {
 	} else if missionImage != nil {
 		// scale image down to fit thumbnail space
 		missionImage = common.ScaleImageToHeight(missionImage, g.uiRect().Dy()/5, ebiten.FilterNearest)
-		imageLabel := widget.NewGraphic(
-			widget.GraphicOpts.Image(missionImage),
+		imageButton := widget.NewButton(
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.Graphic(&widget.GraphicImage{
+				Idle: missionImage,
+			}),
+			widget.ButtonOpts.GraphicPadding(widget.Insets{Top: 4, Bottom: 4, Left: 25, Right: 25}),
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				// TODO: show pop-up with with large map
+			}),
 		)
-		c.AddChild(imageLabel)
+		c.AddChild(imageButton)
 	}
+
 	return c
 }
 

@@ -75,7 +75,7 @@ func gameMissionPage(m Menu) *settingsPage {
 
 	if g.osType == osTypeBrowser {
 		// exit in browser kills but freezes the application, users can just close the tab/window
-		bContainer.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+		bContainer.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 			Stretch: true,
 		}))
 	} else {
@@ -93,7 +93,7 @@ func gameMissionPage(m Menu) *settingsPage {
 		bContainer.AddChild(exit)
 	}
 
-	bContainer.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+	bContainer.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 
