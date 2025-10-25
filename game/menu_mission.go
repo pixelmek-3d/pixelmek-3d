@@ -509,8 +509,22 @@ func openMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 	if err != nil {
 		log.Error("Error loading mission image: ", err)
 	} else if missionImage != nil {
+		// resize map image to fit window
+		iWidth, iHeight := missionImage.Bounds().Dx(), missionImage.Bounds().Dy()
+
+		iScale := (float64(uiRect.Dy()) / 2) / float64(iHeight)
+		if int(float64(iWidth)*iScale) > uiRect.Dx()/2 {
+			// handle ultrawide maps
+			iScale = (float64(uiRect.Dx()) / 2) / float64(iWidth)
+		}
+
+		scaledImage := ebiten.NewImage(int(float64(iWidth)*iScale), int(float64(iHeight)*iScale))
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Scale(iScale, iScale)
+		scaledImage.DrawImage(missionImage, op)
+
 		imageLabel := widget.NewGraphic(
-			widget.GraphicOpts.Image(missionImage),
+			widget.GraphicOpts.Image(scaledImage),
 		)
 		c.AddChild(imageLabel)
 	}
