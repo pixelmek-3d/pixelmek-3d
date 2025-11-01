@@ -50,6 +50,13 @@ type MissionCard struct {
 	objectivesText *widget.TextArea
 }
 
+var missionImage *missionMapImage
+
+type missionMapImage struct {
+	mission *model.Mission
+	image   *ebiten.Image
+}
+
 func createMissionMenu(g *Game) *MissionMenu {
 	var ui *ebitenui.UI = &ebitenui.UI{}
 
@@ -451,7 +458,9 @@ func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *
 }
 
 func openMapWindow(g *Game, res *uiResources, mission *model.Mission) {
+
 	// TODO: render current player position and position of enemies that are in range
+
 	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true}
 	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
@@ -499,18 +508,26 @@ func openMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 		),
 	)
 
-	var mapTex *texture.TextureHandler
-	if g.mission == mission {
-		mapTex = g.tex
-	} else {
-		mapTex = texture.NewTextureHandler(mission.Map())
+	if missionImage == nil || missionImage.mission != mission || missionImage.image == nil {
+		var mapTex *texture.TextureHandler
+		if g.mission == mission {
+			mapTex = g.tex
+		} else {
+			mapTex = texture.NewTextureHandler(mission.Map())
+		}
+		img, err := missionimage.NewMissionImage(mission, g.resources, mapTex, mapOpts, missionOpts)
+		if err != nil {
+			log.Error("Error loading mission image: ", err)
+		}
+		missionImage = &missionMapImage{
+			mission: mission,
+			image:   img,
+		}
 	}
-	missionImage, err := missionimage.NewMissionImage(mission, g.resources, mapTex, mapOpts, missionOpts)
-	if err != nil {
-		log.Error("Error loading mission image: ", err)
-	} else if missionImage != nil {
+
+	if missionImage != nil && missionImage.image != nil {
 		// resize map image to fit window
-		iWidth, iHeight := missionImage.Bounds().Dx(), missionImage.Bounds().Dy()
+		iWidth, iHeight := missionImage.image.Bounds().Dx(), missionImage.image.Bounds().Dy()
 
 		iScale := (float64(uiRect.Dy()) / 2) / float64(iHeight)
 		if int(float64(iWidth)*iScale) > uiRect.Dx()/2 {
@@ -521,7 +538,7 @@ func openMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 		scaledImage := ebiten.NewImage(int(float64(iWidth)*iScale), int(float64(iHeight)*iScale))
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Scale(iScale, iScale)
-		scaledImage.DrawImage(missionImage, op)
+		scaledImage.DrawImage(missionImage.image, op)
 
 		imageLabel := widget.NewGraphic(
 			widget.GraphicOpts.Image(scaledImage),
