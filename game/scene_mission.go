@@ -5,19 +5,19 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
-type InstantActionScene struct {
+type MissionScene struct {
 	Game           *Game
 	missionSelect  *MissionMenu
 	unitSelect     *UnitMenu
 	launchBriefing *LaunchMenu
 }
 
-func NewInstantActionScene(g *Game) Scene {
+func NewMissionScene(g *Game) Scene {
 	missionSelect := createMissionMenu(g)
 	unitSelect := createUnitMenu(g)
 	launchBriefing := createLaunchMenu(g)
 
-	scene := &InstantActionScene{
+	scene := &MissionScene{
 		Game:           g,
 		missionSelect:  missionSelect,
 		unitSelect:     unitSelect,
@@ -27,11 +27,11 @@ func NewInstantActionScene(g *Game) Scene {
 	return scene
 }
 
-func (s *InstantActionScene) SetMenu(m Menu) {
+func (s *MissionScene) SetMenu(m Menu) {
 	s.Game.menu = m
 }
 
-func (s *InstantActionScene) Update() error {
+func (s *MissionScene) Update() error {
 	g := s.Game
 
 	if g.input.ActionIsJustPressed(ActionBack) {
@@ -44,14 +44,14 @@ func (s *InstantActionScene) Update() error {
 	return nil
 }
 
-func (s *InstantActionScene) Draw(screen *ebiten.Image) {
+func (s *MissionScene) Draw(screen *ebiten.Image) {
 	g := s.Game
 
 	// draw menu
 	g.menu.Draw(screen)
 }
 
-func (s *InstantActionScene) back() {
+func (s *MissionScene) back() {
 	g := s.Game
 
 	switch g.menu {
@@ -71,7 +71,7 @@ func (s *InstantActionScene) back() {
 	}
 }
 
-func (s *InstantActionScene) next() {
+func (s *MissionScene) next() {
 	g := s.Game
 
 	switch g.menu {
