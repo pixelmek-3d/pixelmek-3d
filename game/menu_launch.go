@@ -31,7 +31,7 @@ func createLaunchMenu(g *Game) *LaunchMenu {
 
 func (m *LaunchMenu) initMenu() {
 	m.MenuModel.initMenu()
-	m.root.BackgroundImage = m.Resources().background
+	m.root.SetBackgroundImage(m.Resources().background)
 
 	// menu title
 	titleBar := launchTitleContainer(m)
@@ -61,7 +61,7 @@ func launchTitleContainer(m *LaunchMenu) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -84,7 +84,7 @@ func launchMenuFooterContainer(m *LaunchMenu) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
 			widget.GridLayoutOpts.Stretch([]bool{false, true, false}, []bool{false}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -99,13 +99,13 @@ func launchMenuFooterContainer(m *LaunchMenu) *widget.Container {
 		widget.ButtonOpts.Text("Back", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*InstantActionScene)
+			iScene, _ := game.scene.(*MissionScene)
 			iScene.back()
 		}),
 	)
 	c.AddChild(back)
 
-	c.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+	c.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -117,7 +117,7 @@ func launchMenuFooterContainer(m *LaunchMenu) *widget.Container {
 		widget.ButtonOpts.Text("Launch", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*InstantActionScene)
+			iScene, _ := game.scene.(*MissionScene)
 			iScene.next()
 		}),
 	)
@@ -129,7 +129,7 @@ func launchMenuFooterContainer(m *LaunchMenu) *widget.Container {
 func launchMenuBriefingContainer(m *LaunchMenu) *widget.Container {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  m.Spacing(),
 				Right: m.Spacing(),
 			}),
@@ -141,13 +141,13 @@ func launchMenuBriefingContainer(m *LaunchMenu) *widget.Container {
 	return c
 }
 
-func (m *LaunchMenu) loadBriefing() {
+func (m *LaunchMenu) loadBriefing(mission *model.Mission) {
 	m.content.RemoveChildren()
 	res := m.Resources()
 	g := m.game
 
 	// show mission card
-	missionCard := createMissionCard(g, res, g.mission, MissionCardLaunch)
+	missionCard := createMissionCard(g, res, mission, MissionCardLaunch)
 	m.content.AddChild(missionCard)
 
 	// show player unit card

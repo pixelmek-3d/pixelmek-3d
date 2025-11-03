@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 
 	"github.com/harbdog/raycaster-go/geom"
 
@@ -27,7 +27,7 @@ const (
 
 type Player struct {
 	model.Unit
-	sprite            *render.Sprite
+	sprite            *sprites.Sprite
 	cameraAngle       float64
 	cameraPitch       float64
 	cameraZ           float64
@@ -36,20 +36,20 @@ type Player struct {
 	strideStomp       bool
 	strideStompDir    int
 	moved             bool
-	convergenceSprite *render.Sprite
+	convergenceSprite *sprites.Sprite
 	weaponGroups      [][]model.Weapon
 	selectedWeapon    uint
 	selectedGroup     uint
 	fireMode          model.WeaponFireMode
-	reticleLead       *render.ReticleLead
-	currentNav        *render.NavSprite
-	ejectionPod       *render.ProjectileSprite
+	reticleLead       *sprites.ReticleLead
+	currentNav        *sprites.NavSprite
+	ejectionPod       *sprites.ProjectileSprite
 
 	debugCameraTgt model.Unit
 	debugCameraMu  sync.Mutex
 }
 
-func NewPlayer(unit model.Unit, sprite *render.Sprite, x, y, z, angle, pitch float64) *Player {
+func NewPlayer(unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch float64) *Player {
 	p := &Player{
 		Unit:        unit,
 		sprite:      sprite,
@@ -257,7 +257,7 @@ func (p *Player) SetDebugCameraTarget(t model.Unit) {
 }
 
 func (g *Game) SetPlayerUnit(unit model.Unit) {
-	var unitSprite *render.Sprite
+	var unitSprite *sprites.Sprite
 
 	var pX, pY, pZ, pH float64
 	if g.player != nil {
@@ -269,7 +269,7 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 
 	switch unitType := unit.(type) {
 	case *model.Mech:
-		unitSprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
+		unitSprite = g.createUnitSprite(unit).(*sprites.MechSprite).Sprite
 
 		mechStompFile, err := StompSFXForMech(unit.(*model.Mech))
 		if err == nil {
@@ -277,17 +277,17 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		}
 
 	case *model.Vehicle:
-		unitSprite = g.createUnitSprite(unit).(*render.VehicleSprite).Sprite
+		unitSprite = g.createUnitSprite(unit).(*sprites.VehicleSprite).Sprite
 
 	case *model.VTOL:
-		unitSprite = g.createUnitSprite(unit).(*render.VTOLSprite).Sprite
+		unitSprite = g.createUnitSprite(unit).(*sprites.VTOLSprite).Sprite
 		if pZ < unit.CollisionHeight() {
 			// for VTOL, adjust Z position to not be stuck in the ground
 			pZ = unit.CollisionHeight()
 		}
 
 	case *model.Infantry:
-		unitSprite = g.createUnitSprite(unit).(*render.InfantrySprite).Sprite
+		unitSprite = g.createUnitSprite(unit).(*sprites.InfantrySprite).Sprite
 
 	default:
 		log.Fatalf("unable to set player unit, resource type %s not handled", unitType)
@@ -425,7 +425,7 @@ func (p *Player) Update() bool {
 		}
 		iPos := model.TargetLeadPosition(p, target, iWeapon)
 		if p.reticleLead == nil {
-			p.reticleLead = render.NewReticleLead(*iPos)
+			p.reticleLead = sprites.NewReticleLead(*iPos)
 		} else {
 			p.reticleLead.SetPosition(*iPos)
 		}

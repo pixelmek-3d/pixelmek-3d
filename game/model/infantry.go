@@ -1,9 +1,12 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 const (
@@ -16,7 +19,7 @@ type Infantry struct {
 	Resource *ModelInfantryResource
 }
 
-func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *Infantry {
+func NewInfantry(r *ModelInfantryResource) *Infantry {
 	m := &Infantry{
 		Resource: r,
 		UnitModel: &UnitModel{
@@ -24,9 +27,6 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 			variant:            r.Variant,
 			unitType:           InfantryUnitType,
 			anchor:             raycaster.AnchorBottom,
-			collisionRadius:    collisionRadius,
-			collisionHeight:    collisionHeight,
-			cockpitOffset:      cockpitOffset,
 			armor:              r.Armor,
 			structure:          r.Structure,
 			armament:           make([]Weapon, 0),
@@ -39,6 +39,29 @@ func NewInfantry(r *ModelInfantryResource, collisionRadius, collisionHeight floa
 			powered:            POWER_ON,
 		},
 	}
+
+	// need to use the image size to find the unit collision conversion from pixels
+	infantryRelPath := fmt.Sprintf("%s/%s", InfantryResourceType, r.Image)
+	infantryImg := resources.GetSpriteFromFile(infantryRelPath)
+	width, height := infantryImg.Bounds().Dx(), infantryImg.Bounds().Dy()
+	// handle if image has multiple rows/cols
+	if r.ImageSheet != nil {
+		width = int(float64(width) / float64(r.ImageSheet.Columns))
+		height = int(float64(height) / float64(r.ImageSheet.Rows))
+	}
+	scale := ConvertHeightToScale(r.Height, height, r.HeightPxGap)
+	collisionRadius, collisionHeight := ConvertOffsetFromPx(
+		r.CollisionPxRadius, r.CollisionPxHeight, width, height, scale,
+	)
+	cockpitPxX, cockpitPxY := r.CockpitPxOffset[0], r.CockpitPxOffset[1]
+	cockpitOffX, cockpitOffY := ConvertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	m.pxWidth, m.pxHeight = width, height
+	m.pxScale = scale
+	m.collisionRadius = collisionRadius
+	m.collisionHeight = collisionHeight
+	m.cockpitOffset = &geom.Vector2{X: cockpitOffX, Y: cockpitOffY}
+
 	return m
 }
 

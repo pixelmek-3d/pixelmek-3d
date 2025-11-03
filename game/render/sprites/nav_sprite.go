@@ -1,12 +1,14 @@
-package render
+package sprites
 
 import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/shapes"
 	"github.com/tinne26/etxt"
 )
 
@@ -35,7 +37,7 @@ func NewNavSprite(
 	return n
 }
 
-func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *color.NRGBA) *ebiten.Image {
+func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *fonts.Font, clr *color.NRGBA) *ebiten.Image {
 	if navPoint == nil {
 		return nil
 	}
@@ -44,7 +46,7 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 	renderer := etxt.NewRenderer()
 
 	if clr == nil {
-		clr = &_colorNavPoint
+		clr = &colors.NavPoint
 	}
 
 	nColor := color.NRGBA{R: clr.R, G: clr.G, B: clr.B, A: 255}
@@ -67,13 +69,9 @@ func GenerateNavImage(navPoint *model.NavPoint, imageSize int, font *Font, clr *
 
 	// draw nav diamond shape
 	oT := float32(2)
-	minX, minY := float32(imageSize)/8, float32(imageSize)/8
-	maxX, maxY := 7*float32(imageSize)/8, 7*float32(imageSize)/8
+	r := float32(3*imageSize) / 8
 	midX, midY := float32(imageSize)/2, float32(imageSize/2)
-	vector.StrokeLine(navImage, minX, midY, midX, minY, oT, nColor, false)
-	vector.StrokeLine(navImage, midX, minY, maxX, midY, oT, nColor, false)
-	vector.StrokeLine(navImage, minX, midY, midX, maxY, oT, nColor, false)
-	vector.StrokeLine(navImage, midX, maxY, maxX, midY, oT, nColor, false)
+	shapes.StrokeDiamond(navImage, midX, midY, r, r, oT, nColor, false)
 
 	return navImage
 }

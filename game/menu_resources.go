@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -42,7 +43,7 @@ const (
 )
 
 type uiResources struct {
-	fonts           *fonts
+	fonts           *menuFonts
 	background      *image.NineSlice
 	backgroundColor color.Color
 	separatorColor  color.Color
@@ -64,47 +65,46 @@ type uiResources struct {
 type textResources struct {
 	idleColor     color.Color
 	disabledColor color.Color
-	face          text.Face
-	titleFace     text.Face
-	bigTitleFace  text.Face
-	smallFace     text.Face
+	face          *text.Face
+	titleFace     *text.Face
+	bigTitleFace  *text.Face
+	smallFace     *text.Face
 }
 
 type buttonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
-	face    text.Face
-	padding widget.Insets
+	face    *text.Face
+	padding *widget.Insets
 }
 
 type checkboxResources struct {
-	image   *widget.ButtonImage
-	graphic *widget.CheckboxGraphicImage
+	image   *widget.CheckboxImage
 	spacing int
 }
 
 type labelResources struct {
 	text *widget.LabelColor
-	face text.Face
+	face *text.Face
 }
 
 type comboButtonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
-	face    text.Face
+	face    *text.Face
 	graphic *widget.GraphicImage
-	padding widget.Insets
+	padding *widget.Insets
 }
 
 type listResources struct {
 	image        *widget.ScrollContainerImage
 	track        *widget.SliderTrackImage
-	trackPadding widget.Insets
+	trackPadding *widget.Insets
 	handle       *widget.ButtonImage
-	handleSize   int
-	face         text.Face
+	handleSize   *int
+	face         *text.Face
 	entry        *widget.ListEntryColor
-	entryPadding widget.Insets
+	entryPadding *widget.Insets
 }
 
 type sliderResources struct {
@@ -117,19 +117,19 @@ type panelResources struct {
 	image    *image.NineSlice
 	filled   *image.NineSlice
 	titleBar *image.NineSlice
-	padding  widget.Insets
+	padding  *widget.Insets
 }
 
 type tabBookResources struct {
-	buttonFace    text.Face
+	buttonFace    *text.Face
 	buttonText    *widget.ButtonTextColor
-	buttonPadding widget.Insets
+	buttonPadding *widget.Insets
 }
 
 type headerResources struct {
 	background *image.NineSlice
-	padding    widget.Insets
-	face       text.Face
+	padding    *widget.Insets
+	face       *text.Face
 	color      color.Color
 }
 
@@ -139,28 +139,28 @@ type textAreaResources struct {
 	trackPadding widget.Insets
 	handle       *widget.ButtonImage
 	handleSize   int
-	face         text.Face
-	entryPadding widget.Insets
+	face         *text.Face
+	entryPadding *widget.Insets
 }
 
 type toolTipResources struct {
 	background *image.NineSlice
-	padding    widget.Insets
-	face       text.Face
-	monoFace   text.Face
+	padding    *widget.Insets
+	face       *text.Face
+	monoFace   *text.Face
 	color      color.Color
 }
 
-type fonts struct {
+type menuFonts struct {
 	scale        float64
-	face         text.Face
-	titleFace    text.Face
-	bigTitleFace text.Face
-	toolTipFace  text.Face
-	toolTipMono  text.Face
+	face         *text.Face
+	titleFace    *text.Face
+	bigTitleFace *text.Face
+	toolTipFace  *text.Face
+	toolTipMono  *text.Face
 }
 
-func NewUIResources(fonts *fonts) (*uiResources, error) {
+func NewUIResources(fonts *menuFonts) (*uiResources, error) {
 	background := image.NewNineSliceColor(hexToColorAlpha(backgroundColor, 96))
 
 	button, err := newButtonResources(fonts)
@@ -242,7 +242,7 @@ func NewUIResources(fonts *fonts) (*uiResources, error) {
 	}, nil
 }
 
-func loadFonts(fontScale float64) (*fonts, error) {
+func loadFonts(fontScale float64) (*menuFonts, error) {
 	fontFace, err := resources.LoadFont(fontFaceRegular, 20.0*fontScale)
 	if err != nil {
 		return nil, err
@@ -268,13 +268,13 @@ func loadFonts(fontScale float64) (*fonts, error) {
 		return nil, err
 	}
 
-	return &fonts{
+	return &menuFonts{
 		scale:        fontScale,
-		face:         fontFace,
-		titleFace:    titleFontFace,
-		bigTitleFace: bigTitleFontFace,
-		toolTipFace:  toolTipFace,
-		toolTipMono:  toolTipMono,
+		face:         &fontFace,
+		titleFace:    &titleFontFace,
+		bigTitleFace: &bigTitleFontFace,
+		toolTipFace:  &toolTipFace,
+		toolTipMono:  &toolTipMono,
 	}, nil
 }
 
@@ -310,6 +310,14 @@ func loadImageNineSlice(path string, centerWidth int, centerHeight int, scale fl
 		nil
 }
 
+func loadImageFixedNineSlice(path string, scale float64) (*image.NineSlice, error) {
+	i, _, err := resources.NewScaledImageFromFile(path, scale)
+	if err != nil {
+		return nil, err
+	}
+	return image.NewFixedNineSlice(i), nil
+}
+
 func centerHeightFromFontScale(fontScale float64) int {
 	if fontScale > 1.0 {
 		// value must be 1 when font scale goes over 1.0
@@ -326,7 +334,7 @@ func resourceScaleFromFontScale(fontScale float64) float64 {
 	return fontScale
 }
 
-func newButtonResources(fonts *fonts) (*buttonResources, error) {
+func newButtonResources(fonts *menuFonts) (*buttonResources, error) {
 	cH := centerHeightFromFontScale(fonts.scale)
 	rS := resourceScaleFromFontScale(fonts.scale)
 	idle, err := loadImageNineSlice("menu/button-idle.png", 12, cH, rS)
@@ -370,65 +378,78 @@ func newButtonResources(fonts *fonts) (*buttonResources, error) {
 
 		face: fonts.face,
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:  30,
 			Right: 30,
 		},
 	}, nil
 }
 
-func newCheckboxResources(fonts *fonts) (*checkboxResources, error) {
-	cH := centerHeightFromFontScale(fonts.scale)
+func newCheckboxResources(fonts *menuFonts) (*checkboxResources, error) {
 	rS := resourceScaleFromFontScale(fonts.scale)
-	idle, err := loadImageNineSlice("menu/checkbox-idle.png", 20, cH, rS)
+	idle, err := loadImageFixedNineSlice("menu/checkbox-idle.png", rS)
 	if err != nil {
 		return nil, err
 	}
 
-	hover, err := loadImageNineSlice("menu/checkbox-hover.png", 20, cH, rS)
+	checked, err := loadImageFixedNineSlice("menu/checkbox-checked.png", rS)
 	if err != nil {
 		return nil, err
 	}
 
-	disabled, err := loadImageNineSlice("menu/checkbox-disabled.png", 20, cH, rS)
+	greyed, err := loadImageFixedNineSlice("menu/checkbox-greyed.png", rS)
 	if err != nil {
 		return nil, err
 	}
 
-	checked, err := loadGraphicImages("menu/checkbox-checked-idle.png", "menu/checkbox-checked-disabled.png", rS)
+	idle_hovered, err := loadImageFixedNineSlice("menu/checkbox-hover.png", rS)
 	if err != nil {
 		return nil, err
 	}
 
-	unchecked, err := loadGraphicImages("menu/checkbox-unchecked-idle.png", "menu/checkbox-unchecked-disabled.png", rS)
+	checked_hovered, err := loadImageFixedNineSlice("menu/checkbox-checked-hover.png", rS)
 	if err != nil {
 		return nil, err
 	}
 
-	greyed, err := loadGraphicImages("menu/checkbox-greyed-idle.png", "menu/checkbox-greyed-disabled.png", rS)
+	greyed_hovered, err := loadImageFixedNineSlice("menu/checkbox-greyed-hover.png", rS)
+	if err != nil {
+		return nil, err
+	}
+
+	idle_disabled, err := loadImageFixedNineSlice("menu/checkbox-disabled.png", rS)
+	if err != nil {
+		return nil, err
+	}
+
+	checked_disabled, err := loadImageFixedNineSlice("menu/checkbox-checked-disabled.png", rS)
+	if err != nil {
+		return nil, err
+	}
+
+	greyed_disabled, err := loadImageFixedNineSlice("menu/checkbox-greyed-disabled.png", rS)
 	if err != nil {
 		return nil, err
 	}
 
 	return &checkboxResources{
-		image: &widget.ButtonImage{
-			Idle:     idle,
-			Hover:    hover,
-			Pressed:  hover,
-			Disabled: disabled,
-		},
-
-		graphic: &widget.CheckboxGraphicImage{
-			Checked:   checked,
-			Unchecked: unchecked,
-			Greyed:    greyed,
+		image: &widget.CheckboxImage{
+			Unchecked:         idle,
+			Checked:           checked,
+			Greyed:            greyed,
+			UncheckedHovered:  idle_hovered,
+			CheckedHovered:    checked_hovered,
+			GreyedHovered:     greyed_hovered,
+			UncheckedDisabled: idle_disabled,
+			CheckedDisabled:   checked_disabled,
+			GreyedDisabled:    greyed_disabled,
 		},
 
 		spacing: 5,
 	}, nil
 }
 
-func newLabelResources(fonts *fonts) *labelResources {
+func newLabelResources(fonts *menuFonts) *labelResources {
 	return &labelResources{
 		text: &widget.LabelColor{
 			Idle:     hexToColor(labelIdleColor),
@@ -439,7 +460,7 @@ func newLabelResources(fonts *fonts) *labelResources {
 	}
 }
 
-func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
+func newComboButtonResources(fonts *menuFonts) (*comboButtonResources, error) {
 	cH := centerHeightFromFontScale(fonts.scale)
 	rS := resourceScaleFromFontScale(fonts.scale)
 	idle, err := loadImageNineSlice("menu/combo-button-idle.png", 12, cH, rS)
@@ -470,7 +491,7 @@ func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
 	}
 
 	// adjusted disabled combo box state to show as normal text color but not show selection arrow
-	arrowDown, err := loadGraphicImages("menu/arrow-down-idle.png", "menu/arrow-down-hidden.png", rS)
+	arrowDown, err := loadGraphicImages("menu/arrow-down-idle.png", "menu/arrow-down-disabled.png", rS)
 	if err != nil {
 		return nil, err
 	}
@@ -486,14 +507,14 @@ func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
 		face:    fonts.face,
 		graphic: arrowDown,
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:  30,
 			Right: 30,
 		},
 	}, nil
 }
 
-func newListResources(fonts *fonts) (*listResources, error) {
+func newListResources(fonts *menuFonts) (*listResources, error) {
 	idle, _, err := resources.NewImageFromFile("menu/list-idle.png")
 	if err != nil {
 		return nil, err
@@ -542,7 +563,7 @@ func newListResources(fonts *fonts) (*listResources, error) {
 			Disabled: image.NewNineSlice(trackDisabled, [3]int{0, 5, 0}, [3]int{25, 12, 25}),
 		},
 
-		trackPadding: widget.Insets{
+		trackPadding: &widget.Insets{
 			Top:    5,
 			Bottom: 24,
 		},
@@ -554,7 +575,7 @@ func newListResources(fonts *fonts) (*listResources, error) {
 			Disabled: image.NewNineSliceSimple(handleIdle, 0, 5),
 		},
 
-		handleSize: 5,
+		handleSize: constantutil.ConstantToPointer(5),
 		face:       fonts.face,
 
 		entry: &widget.ListEntryColor{
@@ -571,7 +592,7 @@ func newListResources(fonts *fonts) (*listResources, error) {
 			SelectedFocusedBackground: hexToColor(listSelectedBackground),
 		},
 
-		entryPadding: widget.Insets{
+		entryPadding: &widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    2,
@@ -641,7 +662,7 @@ func newPanelResources() (*panelResources, error) {
 		image:    i,
 		filled:   f,
 		titleBar: t,
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    20,
@@ -650,7 +671,7 @@ func newPanelResources() (*panelResources, error) {
 	}, nil
 }
 
-func newTabBookResources(fonts *fonts) (*tabBookResources, error) {
+func newTabBookResources(fonts *menuFonts) (*tabBookResources, error) {
 
 	return &tabBookResources{
 		buttonFace: fonts.face,
@@ -660,14 +681,14 @@ func newTabBookResources(fonts *fonts) (*tabBookResources, error) {
 			Disabled: hexToColor(buttonDisabledColor),
 		},
 
-		buttonPadding: widget.Insets{
+		buttonPadding: &widget.Insets{
 			Left:  30,
 			Right: 30,
 		},
 	}, nil
 }
 
-func newHeaderResources(fonts *fonts) (*headerResources, error) {
+func newHeaderResources(fonts *menuFonts) (*headerResources, error) {
 	bg, err := loadImageNineSlice("menu/header.png", 446, 9, 1.0)
 	if err != nil {
 		return nil, err
@@ -676,7 +697,7 @@ func newHeaderResources(fonts *fonts) (*headerResources, error) {
 	return &headerResources{
 		background: bg,
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:   25,
 			Right:  25,
 			Top:    4,
@@ -688,7 +709,7 @@ func newHeaderResources(fonts *fonts) (*headerResources, error) {
 	}, nil
 }
 
-func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
+func newTextAreaResources(fonts *menuFonts) (*textAreaResources, error) {
 	idle, _, err := resources.NewImageFromFile("menu/list-idle.png")
 	if err != nil {
 		return nil, err
@@ -752,7 +773,7 @@ func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
 		handleSize: 5,
 		face:       fonts.face,
 
-		entryPadding: widget.Insets{
+		entryPadding: &widget.Insets{
 			Left:   20,
 			Right:  20,
 			Top:    2,
@@ -761,7 +782,7 @@ func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
 	}, nil
 }
 
-func newToolTipResources(fonts *fonts) (*toolTipResources, error) {
+func newToolTipResources(fonts *menuFonts) (*toolTipResources, error) {
 	bg, _, err := resources.NewImageFromFile("menu/tool-tip.png")
 	if err != nil {
 		return nil, err
@@ -770,7 +791,7 @@ func newToolTipResources(fonts *fonts) (*toolTipResources, error) {
 	return &toolTipResources{
 		background: image.NewNineSlice(bg, [3]int{19, 6, 13}, [3]int{19, 5, 13}),
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:   15,
 			Right:  15,
 			Top:    10,

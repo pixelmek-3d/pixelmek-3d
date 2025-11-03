@@ -1,4 +1,4 @@
-package render
+package sprites
 
 import (
 	"github.com/harbdog/raycaster-go/geom"

@@ -30,7 +30,7 @@ func createMainMenu(g *Game) *MainMenu {
 
 func (m *MainMenu) initMenu() {
 	m.MenuModel.initMenu()
-	m.root.BackgroundImage = m.Resources().background
+	m.root.SetBackgroundImage(m.Resources().background)
 
 	// menu title
 	titleBar := mainMenuTitleContainer(m)
@@ -60,7 +60,7 @@ func mainMenuTitleContainer(m *MainMenu) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -81,18 +81,18 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 
 	c := newPageContentContainer()
 
-	instantAction := widget.NewButton(
+	missions := widget.NewButton(
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.button.text),
+		widget.ButtonOpts.Text("Missions", res.text.titleFace, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			game.scene = NewInstantActionScene(game)
+			game.scene = NewMissionScene(game)
 		}),
 	)
-	c.AddChild(instantAction)
+	c.AddChild(missions)
 
 	settings := widget.NewButton(
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -141,7 +141,7 @@ func mainMenuFooterContainer(m *MainMenu) *widget.Container {
 	res := m.Resources()
 
 	c := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
-		widget.RowLayoutOpts.Padding(widget.Insets{
+		widget.RowLayoutOpts.Padding(&widget.Insets{
 			Left:  m.Spacing(),
 			Right: m.Spacing(),
 		}),

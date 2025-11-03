@@ -1,4 +1,4 @@
-package render
+package sprites
 
 import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"

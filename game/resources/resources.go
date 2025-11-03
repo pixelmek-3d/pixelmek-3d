@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"io"
 	"os"
 	"path"
@@ -30,11 +31,17 @@ import (
 const SampleRate = 44100
 
 var (
+	//--set constant, texture size to be the wall texture size--//
+	TexSize = 256
+
 	Viper          *v.Viper
 	UserConfigFile string
 	UserKeymapFile string
 
 	CrosshairsSheet *CrosshairsSheetConfig
+
+	imageByPath = make(map[string]*ebiten.Image)
+	rgbaByPath  = make(map[string]*image.RGBA)
 
 	//go:embed ai audio fonts icons maps menu missions shaders sprites textures all:units all:weapons
 	embedded embed.FS
@@ -192,7 +199,7 @@ func BaseNameWithoutExtension(file string) string {
 	return strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
 }
 
-func IsNil(i interface{}) bool {
+func IsNil(i any) bool {
 	if i == nil {
 		return true
 	}
@@ -201,4 +208,66 @@ func IsNil(i interface{}) bool {
 		return reflect.ValueOf(i).IsNil()
 	}
 	return false
+}
+
+func GetRGBAFromFile(texFile string) *image.RGBA {
+	var rgba *image.RGBA
+	resourcePath := "textures"
+	texFilePath := path.Join(resourcePath, texFile)
+	if rgba, ok := rgbaByPath[texFilePath]; ok {
+		return rgba
+	}
+
+	_, tex, err := NewImageFromFile(texFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if tex != nil {
+		rgba = image.NewRGBA(image.Rect(0, 0, TexSize, TexSize))
+		// convert into RGBA format
+		for x := 0; x < TexSize; x++ {
+			for y := 0; y < TexSize; y++ {
+				clr := tex.At(x, y).(color.RGBA)
+				rgba.SetRGBA(x, y, clr)
+			}
+		}
+	}
+
+	if rgba != nil {
+		rgbaByPath[resourcePath] = rgba
+	}
+
+	return rgba
+}
+
+func GetTextureFromFile(texFile string) *ebiten.Image {
+	resourcePath := path.Join("textures", texFile)
+	if eImg, ok := imageByPath[resourcePath]; ok {
+		return eImg
+	}
+
+	eImg, _, err := NewImageFromFile(resourcePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if eImg != nil {
+		imageByPath[resourcePath] = eImg
+	}
+	return eImg
+}
+
+func GetSpriteFromFile(sFile string) *ebiten.Image {
+	resourcePath := path.Join("sprites", sFile)
+	if eImg, ok := imageByPath[resourcePath]; ok {
+		return eImg
+	}
+
+	eImg, _, err := NewImageFromFile(resourcePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if eImg != nil {
+		imageByPath[resourcePath] = eImg
+	}
+	return eImg
 }

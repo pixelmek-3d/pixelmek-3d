@@ -9,7 +9,7 @@ type MissionDebriefScene struct {
 	missionDebrief *DebriefMenu
 }
 
-func NewMissionDebriefScene(g *Game) *MissionDebriefScene {
+func NewMissionDebriefScene(g *Game) Scene {
 	missionDebrief := createDebriefMenu(g)
 
 	scene := &MissionDebriefScene{

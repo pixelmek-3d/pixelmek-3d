@@ -76,6 +76,15 @@ type MissionGuardArea struct {
 	Radius   float64    `yaml:"radius"`
 }
 
+type MissionUnitInterface interface {
+	GetUnit() string
+	GetPosition() geom.Vector2
+}
+
+type AllMissionUnitModels interface {
+	Mech | Vehicle | Infantry | VTOL | Emplacement
+}
+
 type MissionUnitModels interface {
 	Mech | Vehicle | Infantry
 }
@@ -89,6 +98,14 @@ type MissionUnit struct {
 	PatrolPath [][2]float64     `yaml:"patrolPath"`
 	GuardArea  MissionGuardArea `yaml:"guardArea"`
 	GuardUnit  string           `yaml:"guardUnit"`
+}
+
+func (m MissionUnit) GetUnit() string {
+	return m.Unit
+}
+
+func (m MissionUnit) GetPosition() geom.Vector2 {
+	return geom.Vector2{X: m.Position[0], Y: m.Position[1]}
 }
 
 type MissionFlyingUnitModels interface {
@@ -107,6 +124,14 @@ type MissionFlyingUnit struct {
 	GuardUnit  string           `yaml:"guardUnit"`
 }
 
+func (m MissionFlyingUnit) GetUnit() string {
+	return m.Unit
+}
+
+func (m MissionFlyingUnit) GetPosition() geom.Vector2 {
+	return geom.Vector2{X: m.Position[0], Y: m.Position[1]}
+}
+
 type MissionStaticUnitModels interface {
 	Emplacement
 }
@@ -117,6 +142,14 @@ type MissionStaticUnit struct {
 	Unit     string     `yaml:"unit" validate:"required"`
 	Position [2]float64 `yaml:"position" validate:"required"`
 	Heading  float64    `yaml:"heading"`
+}
+
+func (m MissionStaticUnit) GetUnit() string {
+	return m.Unit
+}
+
+func (m MissionStaticUnit) GetPosition() geom.Vector2 {
+	return geom.Vector2{X: m.Position[0], Y: m.Position[1]}
 }
 
 type NavObjective int
@@ -220,7 +253,6 @@ func ListMissionFilenames() ([]string, error) {
 			// only folder with mission files expected
 			continue
 		}
-
 		missionFilenames = append(missionFilenames, f.Name())
 	}
 

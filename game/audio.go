@@ -11,7 +11,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/solarlune/resound"
 	"github.com/solarlune/resound/effects"
@@ -294,7 +294,7 @@ func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, so
 
 	// check if entity is already playing a looping source to update instead of playing as new source
 	var source *SFXSource
-	a.sfx.entitySources.Range(func(k, v interface{}) bool {
+	a.sfx.entitySources.Range(func(k, v any) bool {
 		if entity == k.(model.Entity) {
 			source = v.(*SFXSource)
 			return false
@@ -331,7 +331,7 @@ func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, so
 // StopLoopEntitySFX stops given looping sound effect as emitted from an Entity object
 func (a *AudioHandler) StopLoopEntitySFX(sfxFile string, entity model.Entity) {
 	var source *SFXSource
-	a.sfx.entitySources.Range(func(k, v interface{}) bool {
+	a.sfx.entitySources.Range(func(k, v any) bool {
 		if entity == k.(model.Entity) {
 			source = v.(*SFXSource)
 			return false
@@ -481,7 +481,7 @@ func (a *AudioHandler) StopSFX() {
 			s.player.Close()
 		}
 	}
-	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
 		s.Close()
 		return true
@@ -497,7 +497,7 @@ func (a *AudioHandler) PauseSFX() {
 	for _, s := range a.sfx.mainSources {
 		s.Pause()
 	}
-	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
 		s.Pause()
 		return true
@@ -513,7 +513,7 @@ func (a *AudioHandler) ResumeSFX() {
 	for _, s := range a.sfx.mainSources {
 		s.Resume()
 	}
-	a.sfx.entitySources.Range(func(_, v interface{}) bool {
+	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
 		s.Resume()
 		return true
@@ -673,7 +673,7 @@ func (a *AudioHandler) PlayExternalWeaponFireAudio(g *Game, weapon model.Weapon,
 }
 
 // PlayProjectileImpactAudio plays projectile impact audio near the player
-func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSprite) {
+func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *sprites.ProjectileSprite) {
 	impactAudio := p.ImpactAudio()
 	if len(impactAudio) > 0 {
 		// TODO: introduce volume modifier based on projectile's weapon type, classification, and size
@@ -683,7 +683,7 @@ func (a *AudioHandler) PlayProjectileImpactAudio(g *Game, p *render.ProjectileSp
 }
 
 // PlayEffectAudio plays effect audio near the player
-func (a *AudioHandler) PlayEffectAudio(g *Game, p *render.EffectSprite) {
+func (a *AudioHandler) PlayEffectAudio(g *Game, p *sprites.EffectSprite) {
 	fxAudio := p.AudioFile
 	if len(fxAudio) > 0 {
 		extPos, extPosZ := p.Pos(), p.PosZ()

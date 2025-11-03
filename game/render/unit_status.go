@@ -9,6 +9,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/tinne26/etxt"
 )
 
@@ -23,7 +25,7 @@ var (
 type UnitStatus struct {
 	HUDSprite
 	fontRenderer   *etxt.Renderer
-	unit           *Sprite
+	unit           *sprites.Sprite
 	unitDistance   float64
 	showTargetLock bool
 	targetLock     float64
@@ -33,7 +35,7 @@ type UnitStatus struct {
 }
 
 // NewUnitStatus creates a unit status element image to be rendered on demand
-func NewUnitStatus(isPlayer bool, font *Font) *UnitStatus {
+func NewUnitStatus(isPlayer bool, font *fonts.Font) *UnitStatus {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())
@@ -57,11 +59,11 @@ func (u *UnitStatus) SetIsSpectating(isSpectating bool) {
 	u.isSpectating = isSpectating
 }
 
-func (u *UnitStatus) Unit() *Sprite {
+func (u *UnitStatus) Unit() *sprites.Sprite {
 	return u.unit
 }
 
-func (u *UnitStatus) SetUnit(unit *Sprite) {
+func (u *UnitStatus) SetUnit(unit *sprites.Sprite) {
 	u.unit = unit
 }
 

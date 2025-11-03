@@ -162,7 +162,7 @@ func (m *MenuModel) initMenu() {
 			// - a fixed sized footer
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true, false}),
 			// Padding defines how much space to put around the outside of the grid.
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Top:    m.marginY,
 				Bottom: m.marginY,
 				Left:   m.marginX,
@@ -181,8 +181,7 @@ func (g *Game) openMenu() {
 
 	switch {
 	case gameMenu != nil:
-		g.paused = true
-		g.audio.PauseSFX()
+		g.Pause()
 		g.mouseMode = MouseModeCursor
 		ebiten.SetCursorMode(ebiten.CursorModeVisible)
 		if gameMenu.root == nil {
@@ -204,9 +203,8 @@ func (g *Game) closeMenu() {
 		g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 		gameMenu.active = false
 		gameMenu.closing = true
-		g.audio.ResumeSFX()
-		g.paused = false
 		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
+		g.Resume()
 	case settingsMenu != nil:
 		menuScene, ok := g.scene.(*MenuScene)
 		if ok {

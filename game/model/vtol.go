@@ -1,9 +1,12 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/jinzhu/copier"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 const (
@@ -15,33 +18,52 @@ type VTOL struct {
 	Resource *ModelVTOLResource
 }
 
-func NewVTOL(r *ModelVTOLResource, collisionRadius, collisionHeight float64, cockpitOffset *geom.Vector2) *VTOL {
+func NewVTOL(r *ModelVTOLResource) *VTOL {
 	m := &VTOL{
 		Resource: r,
 		UnitModel: &UnitModel{
-			name:            r.Name,
-			variant:         r.Variant,
-			unitType:        VTOLUnitType,
-			anchor:          raycaster.AnchorCenter,
-			collisionRadius: collisionRadius,
-			collisionHeight: collisionHeight,
-			cockpitOffset:   cockpitOffset,
-			armor:           r.Armor,
-			structure:       r.Structure,
-			heatSinks:       r.HeatSinks.Quantity,
-			heatSinkType:    r.HeatSinks.Type.HeatSinkType,
-			armament:        make([]Weapon, 0),
-			ammunition:      NewAmmoStock(),
-			maxVelocity:     r.Speed * KPH_TO_VELOCITY,
-			maxTurnRate:     VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
-			maxTurretRate:   VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
-			jumpJets:        0,
-			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
+			name:          r.Name,
+			variant:       r.Variant,
+			unitType:      VTOLUnitType,
+			anchor:        raycaster.AnchorCenter,
+			armor:         r.Armor,
+			structure:     r.Structure,
+			heatSinks:     r.HeatSinks.Quantity,
+			heatSinkType:  r.HeatSinks.Type.HeatSinkType,
+			armament:      make([]Weapon, 0),
+			ammunition:    NewAmmoStock(),
+			maxVelocity:   r.Speed * KPH_TO_VELOCITY,
+			maxTurnRate:   VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
+			maxTurretRate: VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
+			jumpJets:      0,
+			powered:       POWER_ON, // TODO: define initial power status or power on event in mission resource
 		},
 	}
 
 	// calculate heat dissipation per tick
 	m.heatDissipation = SECONDS_PER_TICK / 4 * float64(m.heatSinks) * float64(m.heatSinkType)
+
+	// need to use the image size to find the unit collision conversion from pixels
+	vtolRelPath := fmt.Sprintf("%s/%s", VTOLResourceType, r.Image)
+	vtolImg := resources.GetSpriteFromFile(vtolRelPath)
+	width, height := vtolImg.Bounds().Dx(), vtolImg.Bounds().Dy()
+	// handle if image has multiple rows/cols
+	if r.ImageSheet != nil {
+		width = int(float64(width) / float64(r.ImageSheet.Columns))
+		height = int(float64(height) / float64(r.ImageSheet.Rows))
+	}
+	scale := ConvertHeightToScale(r.Height, height, r.HeightPxGap)
+	collisionRadius, collisionHeight := ConvertOffsetFromPx(
+		r.CollisionPxRadius, r.CollisionPxHeight, width, height, scale,
+	)
+	cockpitPxX, cockpitPxY := r.CockpitPxOffset[0], r.CockpitPxOffset[1]
+	cockpitOffX, cockpitOffY := ConvertOffsetFromPx(cockpitPxX, cockpitPxY, width, height, scale)
+
+	m.pxWidth, m.pxHeight = width, height
+	m.pxScale = scale
+	m.collisionRadius = collisionRadius
+	m.collisionHeight = collisionHeight
+	m.cockpitOffset = &geom.Vector2{X: cockpitOffX, Y: cockpitOffY}
 
 	return m
 }

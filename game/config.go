@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	PARAM_KEY_SKIP_INTRO    = "skip-intro"
 	PARAM_KEY_DEBUG         = "debug"
 	PARAM_KEY_BENCHMARK     = "benchmark"
 	PARAM_KEY_IGNORE_PLAYER = "ignore-player"

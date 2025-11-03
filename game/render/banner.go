@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -20,7 +21,7 @@ type MissionBanner struct {
 }
 
 // NewMissionBanner creates an in-mission banner to be rendered
-func NewMissionBanner(font *Font) *MissionBanner {
+func NewMissionBanner(font *fonts.Font) *MissionBanner {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())

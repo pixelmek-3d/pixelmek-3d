@@ -8,6 +8,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
@@ -48,18 +49,18 @@ func (g *Game) GetHUDElement(t HUDElementType) HUDElement {
 	return nil
 }
 
-func (g *Game) initInteractiveTypes() {
-	g.interactiveSpriteTypes = map[SpriteType]bool{
-		MechSpriteType:        true,
-		VehicleSpriteType:     true,
-		VTOLSpriteType:        true,
-		InfantrySpriteType:    true,
-		EmplacementSpriteType: true,
+func init() {
+	interactiveSpriteTypes = map[sprites.SpriteType]bool{
+		sprites.MechSpriteType:        true,
+		sprites.VehicleSpriteType:     true,
+		sprites.VTOLSpriteType:        true,
+		sprites.InfantrySpriteType:    true,
+		sprites.EmplacementSpriteType: true,
 	}
 }
 
-func (g *Game) isInteractiveType(spriteType SpriteType) bool {
-	if _, containsType := g.interactiveSpriteTypes[spriteType]; containsType {
+func isInteractiveType(spriteType sprites.SpriteType) bool {
+	if _, containsType := interactiveSpriteTypes[spriteType]; containsType {
 		return true
 	}
 	return false
@@ -98,21 +99,21 @@ func (g *Game) loadHUD() {
 	navStatus := render.NewNavStatus(g.fonts.HUDFont)
 	g.playerHUD[HUD_NAV_STATUS] = navStatus
 
-	crosshairsSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	crosshairsSheet := resources.GetSpriteFromFile("hud/crosshairs_sheet.png")
 	crosshairs := render.NewCrosshairs(
 		crosshairsSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, g.hudCrosshairIndex,
 	)
 	g.playerHUD[HUD_CROSSHAIRS] = crosshairs
 
-	tgtReticleSheet := getSpriteFromFile("hud/target_reticle.png")
+	tgtReticleSheet := resources.GetSpriteFromFile("hud/target_reticle.png")
 	targetReticle := render.NewTargetReticle(tgtReticleSheet)
 	g.playerHUD[HUD_TARGET_RETICLE] = targetReticle
 
-	friendlyReticleSheet := getSpriteFromFile("hud/friendly_reticle.png")
+	friendlyReticleSheet := resources.GetSpriteFromFile("hud/friendly_reticle.png")
 	friendlyReticle := render.NewTargetReticle(friendlyReticleSheet)
 	g.playerHUD[HUD_FRIENDLY_RETICLE] = friendlyReticle
 
-	navReticleSheet := getSpriteFromFile("hud/nav_reticle.png")
+	navReticleSheet := resources.GetSpriteFromFile("hud/nav_reticle.png")
 	navReticle := render.NewNavReticle(navReticleSheet)
 	g.playerHUD[HUD_NAV_RETICLE] = navReticle
 
@@ -738,7 +739,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	// only get sprites in proximity of radar range
 	pSprites := g.getProximityUnitSprites(camPos, maxDistanceUnits)
-	sprites := make([]*render.Sprite, 0, len(pSprites))
+	sprites := make([]*sprites.Sprite, 0, len(pSprites))
 	for _, p := range pSprites {
 		sprites = append(sprites, p.sprite)
 	}

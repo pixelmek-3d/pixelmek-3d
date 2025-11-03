@@ -1,4 +1,4 @@
-package render
+package sprites
 
 import (
 	"image"
@@ -226,7 +226,7 @@ func (s *Sprite) SetTextureFacingMap(texFacingMap map[float64]int) {
 
 func (s *Sprite) getTextureFacingKeyForAngle(facingAngle float64) float64 {
 	var closestKeyAngle float64 = -1
-	if s.texFacingMap == nil || len(s.texFacingMap) == 0 || s.texFacingKeys == nil || len(s.texFacingKeys) == 0 {
+	if len(s.texFacingMap) == 0 || s.texFacingKeys == nil || len(s.texFacingKeys) == 0 {
 		return closestKeyAngle
 	}
 

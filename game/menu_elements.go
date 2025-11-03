@@ -9,19 +9,17 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-func newCheckbox(m Menu, label string, checked bool, changedHandler widget.CheckboxChangedHandlerFunc) *widget.LabeledCheckbox {
+func newCheckbox(m Menu, label string, checked bool, changedHandler widget.CheckboxChangedHandlerFunc) *widget.Checkbox {
 	res := m.Resources()
-	c := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(res.checkbox.spacing),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.checkbox.image)),
-			widget.CheckboxOpts.Image(res.checkbox.graphic),
-			widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-				if changedHandler != nil {
-					changedHandler(args)
-				}
-			})),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text(label, res.label.face, res.label.text)))
+	c := widget.NewCheckbox(
+		widget.CheckboxOpts.Spacing(res.checkbox.spacing),
+		widget.CheckboxOpts.Image(res.checkbox.image),
+		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+			if changedHandler != nil {
+				changedHandler(args)
+			}
+		}),
+		widget.CheckboxOpts.Text(label, res.label.face, res.label.text))
 
 	if checked {
 		c.SetState(widget.WidgetChecked)
@@ -34,34 +32,33 @@ func newListComboButton(entries []any, selectedEntry any, buttonLabel widget.Sel
 	entrySelectedHandler widget.ListComboButtonEntrySelectedHandlerFunc, res *uiResources) *widget.ListComboButton {
 
 	c := widget.NewListComboButton(
-		widget.ListComboButtonOpts.SelectComboButtonOpts(
-			widget.SelectComboButtonOpts.ComboButtonOpts(
-				widget.ComboButtonOpts.ButtonOpts(
-					widget.ButtonOpts.Image(res.comboButton.image),
-					widget.ButtonOpts.TextPadding(res.comboButton.padding),
-				),
-			),
-		),
+		widget.ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.ButtonParams(&widget.ButtonParams{
+			Image:       res.comboButton.image,
+			TextPadding: res.comboButton.padding,
+		}),
 		widget.ListComboButtonOpts.Text(res.comboButton.face, res.comboButton.graphic, res.comboButton.text),
-		widget.ListComboButtonOpts.ListOpts(
-			widget.ListOpts.Entries(entries),
-			widget.ListOpts.ScrollContainerOpts(
-				widget.ScrollContainerOpts.Image(res.list.image),
-			),
-			widget.ListOpts.SliderOpts(
-				widget.SliderOpts.Images(res.list.track, res.list.handle),
-				widget.SliderOpts.MinHandleSize(res.list.handleSize),
-				widget.SliderOpts.TrackPadding(res.list.trackPadding)),
-			widget.ListOpts.EntryFontFace(res.list.face),
-			widget.ListOpts.EntryColor(res.list.entry),
-			widget.ListOpts.EntryTextPadding(res.list.entryPadding),
-		),
+		widget.ListComboButtonOpts.ListParams(&widget.ListParams{
+			ScrollContainerImage: res.list.image,
+			Slider: &widget.SliderParams{
+				TrackImage:    res.list.track,
+				HandleImage:   res.list.handle,
+				MinHandleSize: res.list.handleSize,
+				TrackPadding:  res.list.trackPadding,
+			},
+			EntryFace:        res.list.face,
+			EntryColor:       res.list.entry,
+			EntryTextPadding: res.list.entryPadding,
+		}),
 		widget.ListComboButtonOpts.EntryLabelFunc(buttonLabel, entryLabel),
 		widget.ListComboButtonOpts.EntrySelectedHandler(entrySelectedHandler))
 
 	if selectedEntry != nil {
 		c.SetSelectedEntry(selectedEntry)
 	}
+
+	// force validation to fix ebitenui lib nil SelectComboButton panic
+	c.Validate()
 
 	return c
 }
@@ -95,7 +92,7 @@ func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderCh
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
 			rText.Label = fmt.Sprintf("R: %d", args.Current)
 			clr.R = uint8(args.Current)
-			rgbValue.BackgroundImage = image.NewNineSliceColor(*clr)
+			rgbValue.SetBackgroundImage(image.NewNineSliceColor(*clr))
 		}),
 		widget.SliderOpts.ChangedHandler(f),
 	)
@@ -112,7 +109,7 @@ func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderCh
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
 			gText.Label = fmt.Sprintf("G: %d", args.Current)
 			clr.G = uint8(args.Current)
-			rgbValue.BackgroundImage = image.NewNineSliceColor(*clr)
+			rgbValue.SetBackgroundImage(image.NewNineSliceColor(*clr))
 		}),
 		widget.SliderOpts.ChangedHandler(f),
 	)
@@ -129,7 +126,7 @@ func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderCh
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
 			bText.Label = fmt.Sprintf("B: %d", args.Current)
 			clr.B = uint8(args.Current)
-			rgbValue.BackgroundImage = image.NewNineSliceColor(*clr)
+			rgbValue.SetBackgroundImage(image.NewNineSliceColor(*clr))
 		}),
 		widget.SliderOpts.ChangedHandler(f),
 	)
@@ -144,7 +141,7 @@ func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderCh
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: false,
 		})),
-		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Padding(widget.Insets{
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Padding(&widget.Insets{
 			Top:    padding,
 			Bottom: padding,
 			Left:   padding,
@@ -171,18 +168,20 @@ func newColorPickerRGB(m Menu, label string, clr *color.NRGBA, f widget.SliderCh
 func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) *widget.TextArea {
 	return widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widgetOpts...)),
-		widget.TextAreaOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.TextAreaOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
+		widget.TextAreaOpts.ScrollContainerImage(res.list.image),
+		widget.TextAreaOpts.SliderParams(&widget.SliderParams{
+			TrackImage:    res.list.track,
+			HandleImage:   res.list.handle,
+			MinHandleSize: res.list.handleSize,
+			TrackPadding:  res.list.trackPadding,
+		},
 		),
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		// widget.TextAreaOpts.VerticalScrollMode(widget.PositionAtEnd),
 		widget.TextAreaOpts.ProcessBBCode(true),
 		widget.TextAreaOpts.FontFace(res.textArea.face),
 		widget.TextAreaOpts.FontColor(color.NRGBA{R: 200, G: 100, B: 0, A: 255}),
-		widget.TextAreaOpts.TextPadding(res.textArea.entryPadding),
+		widget.TextAreaOpts.TextPadding(*res.textArea.entryPadding),
 		widget.TextAreaOpts.Text(text),
 	)
 }
@@ -192,7 +191,7 @@ func newSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.Insets{
+			widget.RowLayoutOpts.Padding(&widget.Insets{
 				Top:    m.Spacing(),
 				Bottom: m.Spacing(),
 			}))),
@@ -209,14 +208,13 @@ func newSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
 	return c
 }
 
-func newBlankSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
-	res := m.Resources()
+func newBlankSeparator(res *uiResources, spacing int, ld any) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.Insets{
-				Top:    m.Spacing(),
-				Bottom: m.Spacing(),
+			widget.RowLayoutOpts.Padding(&widget.Insets{
+				Top:    spacing,
+				Bottom: spacing,
 			}))),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(ld)))
 
@@ -259,7 +257,7 @@ func openExitWindow(m Menu) {
 
 	titleBar := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
-		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}), widget.GridLayoutOpts.Padding(widget.Insets{
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}), widget.GridLayoutOpts.Padding(&widget.Insets{
 			Left:   padding,
 			Right:  padding,
 			Top:    padding,

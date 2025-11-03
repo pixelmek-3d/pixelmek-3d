@@ -9,7 +9,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 )
 
 type UnitMenu struct {
@@ -74,7 +74,7 @@ func createUnitMenu(g *Game) *UnitMenu {
 
 func (m *UnitMenu) initMenu() {
 	m.MenuModel.initMenu()
-	m.root.BackgroundImage = m.Resources().background
+	m.root.SetBackgroundImage(m.Resources().background)
 
 	// menu title
 	titleBar := unitTitleContainer(m)
@@ -104,7 +104,7 @@ func unitTitleContainer(m *UnitMenu) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -127,7 +127,7 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
 			widget.GridLayoutOpts.Stretch([]bool{false, true, false}, []bool{false}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -142,13 +142,13 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ButtonOpts.Text("Back", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*InstantActionScene)
+			iScene, _ := game.scene.(*MissionScene)
 			iScene.back()
 		}),
 	)
 	c.AddChild(back)
 
-	c.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+	c.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -160,7 +160,7 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ButtonOpts.Text("Next", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*InstantActionScene)
+			iScene, _ := game.scene.(*MissionScene)
 			iScene.next()
 		}),
 	)
@@ -188,7 +188,7 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  m.Spacing(),
 				Right: m.Spacing(),
 			}),
@@ -220,7 +220,7 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 		})
 	}
 
-	pages := make([]interface{}, 0, 1+len(chassisMap))
+	pages := make([]any, 0, 1+len(chassisMap))
 
 	// add entry for random unit
 	randomUnitPage := unitSelectionPage(m, nil, []model.Unit{})
@@ -236,15 +236,16 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*unitPage).title
 		}),
-		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.ListOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
-		),
+		widget.ListOpts.ScrollContainerImage(res.list.image),
+		widget.ListOpts.SliderParams(&widget.SliderParams{
+			TrackImage:    res.list.track,
+			HandleImage:   res.list.handle,
+			MinHandleSize: res.list.handleSize,
+			TrackPadding:  res.list.trackPadding,
+		}),
 		widget.ListOpts.EntryColor(res.list.entry),
 		widget.ListOpts.EntryFontFace(res.list.face),
 		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
@@ -280,7 +281,7 @@ func newUnitPageContainer(m *UnitMenu) *unitPageContainer {
 
 	variantContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  0,
 				Right: 0,
 			}),
@@ -323,7 +324,7 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 
 	// show unit variant selection
 	if page.unit != nil {
-		comboVariants := []interface{}{}
+		comboVariants := []any{}
 		for _, v := range page.variants {
 			comboVariants = append(comboVariants, v)
 		}
@@ -331,14 +332,14 @@ func (p *unitPageContainer) setPage(page *unitPage) {
 		variantCombo := newListComboButton(
 			comboVariants,
 			page.unit,
-			func(e interface{}) string {
+			func(e any) string {
 				u := e.(model.Unit)
 				if u != nil {
 					return u.Variant()
 				}
 				return "?"
 			},
-			func(e interface{}) string {
+			func(e any) string {
 				u := e.(model.Unit)
 				if u != nil {
 					return u.Variant()
@@ -441,10 +442,10 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	cardContainer.AddChild(unitTable)
 
 	// show unit image graphic
-	var sprite *render.Sprite
+	var sprite *sprites.Sprite
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
-		sprite = g.createUnitSprite(unit).(*render.MechSprite).Sprite
+		sprite = g.createUnitSprite(unit).(*sprites.MechSprite).Sprite
 	case nil:
 		// nil represents random unit selection
 		sprite = nil
@@ -480,7 +481,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	// unit content container
 	unitCard.unitContent = widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  g.menu.Spacing(),
 				Right: g.menu.Spacing(),
 			}),

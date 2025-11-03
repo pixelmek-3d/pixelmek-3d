@@ -14,7 +14,7 @@ type MenuScene struct {
 	transitionScreen *ebiten.Image
 }
 
-func NewMenuScene(g *Game) *MenuScene {
+func NewMenuScene(g *Game) Scene {
 	if !g.audio.IsMusicPlaying() {
 		g.audio.StartMenuMusic()
 	}

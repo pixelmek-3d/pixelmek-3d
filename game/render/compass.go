@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -34,7 +35,7 @@ type compassIndicator struct {
 }
 
 // NewCompass creates a compass image to be rendered on demand
-func NewCompass(font *Font) *Compass {
+func NewCompass(font *fonts.Font) *Compass {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())

@@ -114,7 +114,7 @@ func settingsTitleContainer(m Menu, inGame bool) *widget.Container {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2),
 			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -144,7 +144,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  m.Spacing(),
 				Right: m.Spacing(),
 			}),
@@ -171,7 +171,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	hudSettings := hudPage(m)
 	audioSettings := audioPage(m)
 
-	pages := make([]interface{}, 0, 8)
+	pages := make([]any, 0, 8)
 	if missionSettings != nil {
 		pages = append(pages, missionSettings)
 	}
@@ -199,17 +199,21 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 
 	pageContainer := newSettingsPageContainer(m)
 
+	// prevent infinite relayout issue caused by toggling background shown only in certain tabs
+	missionSettingsShowBackground := false
+
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*settingsPage).title
 		}),
-		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.ListOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
-		),
+		widget.ListOpts.ScrollContainerImage(res.list.image),
+		widget.ListOpts.SliderParams(&widget.SliderParams{
+			TrackImage:    res.list.track,
+			HandleImage:   res.list.handle,
+			MinHandleSize: res.list.handleSize,
+			TrackPadding:  res.list.trackPadding,
+		}),
 		widget.ListOpts.EntryColor(res.list.entry),
 		widget.ListOpts.EntryFontFace(res.list.face),
 		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
@@ -218,16 +222,25 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			nextPage := args.Entry.(*settingsPage)
 			pageContainer.setPage(nextPage)
+
 			if missionSettings != nil && (nextPage == hudSettings || (debugLightingSettings != nil && nextPage == debugLightingSettings)) {
-				// for in-game HUD and lighting setting, apply custom background so can see behind while adjusting
-				m.Root().BackgroundImage = nil
-				pageContainer.widget.(*widget.Container).BackgroundImage = nil
-				nextPage.content.(*widget.Container).BackgroundImage = res.panel.filled
+				if missionSettingsShowBackground {
+					// for in-game HUD and lighting setting, apply transparent background so we can see behind while adjusting
+					m.Root().SetBackgroundImage(nil)
+					pageContainer.widget.(*widget.Container).SetBackgroundImage(nil)
+					nextPage.content.(*widget.Container).SetBackgroundImage(res.panel.filled)
+					missionSettingsShowBackground = false
+				}
 			} else {
-				m.Root().BackgroundImage = res.background
-				pageContainer.widget.(*widget.Container).BackgroundImage = res.panel.image
+				if !missionSettingsShowBackground {
+					m.Root()
+					m.Root().SetBackgroundImage(res.background)
+					pageContainer.widget.(*widget.Container).SetBackgroundImage(res.panel.image)
+					missionSettingsShowBackground = true
+				}
 			}
 			m.Root().RequestRelayout()
+
 		}))
 	c.AddChild(pageList)
 

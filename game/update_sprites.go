@@ -4,23 +4,23 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 )
 
 func (g *Game) UpdateSprites() {
 	// Update for animated sprite movement
-	for spriteType := range g.sprites.sprites {
-		g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
+	for _, spriteType := range g.sprites.SpriteTypes() {
+		g.sprites.RangeByType(spriteType, func(k, _ any) bool {
 			g.updateSprite(spriteType, k.(raycaster.Sprite))
 			return true
 		})
 	}
 }
 
-func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) {
+func (g *Game) updateSprite(spriteType sprites.SpriteType, sInterface raycaster.Sprite) {
 	switch spriteType {
-	case MapSpriteType:
-		s := sInterface.(*render.Sprite)
+	case sprites.MapSpriteType:
+		s := sInterface.(*sprites.Sprite)
 		if s.IsDestroyed() {
 			destroyCounter := s.DestroyCounter()
 			if destroyCounter == 0 {
@@ -30,7 +30,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				s.SetDestroyCounter(geom.ClampInt(fxDuration, 1, fxDuration))
 			} else if destroyCounter == 1 {
 				// delete when the counter is basically done (to differentiate with default int value 0)
-				g.sprites.deleteMapSprite(s)
+				g.sprites.DeleteMapSprite(s)
 			} else {
 				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
@@ -41,20 +41,20 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 		g.updateSpritePosition(s)
 		s.Update(g.player.CameraPosXY())
 
-	case MechSpriteType:
-		s := sInterface.(*render.MechSprite)
+	case sprites.MechSpriteType:
+		s := sInterface.(*sprites.MechSprite)
 		sUnit := model.EntityUnit(s.Entity)
 		if s.IsDestroyed() {
-			if s.MechAnimation() != render.MECH_ANIMATE_DESTRUCT {
+			if s.MechAnimation() != sprites.MECH_ANIMATE_DESTRUCT {
 				// play unit destruction animation
-				s.SetMechAnimation(render.MECH_ANIMATE_DESTRUCT, false)
+				s.SetMechAnimation(sprites.MECH_ANIMATE_DESTRUCT, false)
 
 				// spawn ejection pod
 				g.spawnEjectionPod(s.Sprite)
 
 			} else if s.LoopCounter() >= 1 {
 				// delete when animation is over
-				g.sprites.deleteMechSprite(s)
+				g.sprites.DeleteMechSprite(s)
 			} else {
 				s.Update(g.player.CameraPosXY())
 			}
@@ -75,46 +75,46 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 		if sUnit.Powered() != model.POWER_ON {
 			poweringOn := s.AnimationReversed()
 			if mech.PowerOffTimer > 0 &&
-				(s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN || poweringOn) {
+				(s.MechAnimation() != sprites.MECH_ANIMATE_SHUTDOWN || poweringOn) {
 
 				// start shutdown animation since unit is powering off
-				s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, false)
+				s.SetMechAnimation(sprites.MECH_ANIMATE_SHUTDOWN, false)
 			}
 			if mech.PowerOffTimer <= 0 && mech.PowerOnTimer > 0 &&
-				(s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN || !poweringOn) {
+				(s.MechAnimation() != sprites.MECH_ANIMATE_SHUTDOWN || !poweringOn) {
 
 				// reverse shutdown animation since unit is powering on
-				s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, true)
+				s.SetMechAnimation(sprites.MECH_ANIMATE_SHUTDOWN, true)
 
 			}
-			if s.MechAnimation() != render.MECH_ANIMATE_SHUTDOWN {
-				s.SetMechAnimation(render.MECH_ANIMATE_SHUTDOWN, true)
+			if s.MechAnimation() != sprites.MECH_ANIMATE_SHUTDOWN {
+				s.SetMechAnimation(sprites.MECH_ANIMATE_SHUTDOWN, true)
 			}
 		} else {
 			if mech.JumpJetsActive() {
 				falling := s.AnimationReversed()
-				if s.MechAnimation() != render.MECH_ANIMATE_JUMP_JET || falling {
-					s.SetMechAnimation(render.MECH_ANIMATE_JUMP_JET, false)
+				if s.MechAnimation() != sprites.MECH_ANIMATE_JUMP_JET || falling {
+					s.SetMechAnimation(sprites.MECH_ANIMATE_JUMP_JET, false)
 
 					// spawn jump jet effect when first starting jump jet
 					g.spawnJumpJetEffect(s.Sprite)
 				}
 			} else if s.VelocityZ() < 0 {
 				falling := s.AnimationReversed()
-				if s.MechAnimation() != render.MECH_ANIMATE_JUMP_JET || !falling {
+				if s.MechAnimation() != sprites.MECH_ANIMATE_JUMP_JET || !falling {
 					// reverse jump jet animation for falling
-					s.SetMechAnimation(render.MECH_ANIMATE_JUMP_JET, true)
+					s.SetMechAnimation(sprites.MECH_ANIMATE_JUMP_JET, true)
 
 					// remove jump jet effect since jump jet no longer active
 					g.removeJumpJetEffect(s.Sprite)
 				}
 			} else if s.Velocity() == 0 && s.VelocityZ() == 0 {
-				if s.MechAnimation() != render.MECH_ANIMATE_IDLE {
-					s.SetMechAnimation(render.MECH_ANIMATE_IDLE, false)
+				if s.MechAnimation() != sprites.MECH_ANIMATE_IDLE {
+					s.SetMechAnimation(sprites.MECH_ANIMATE_IDLE, false)
 				}
 			} else {
-				if s.MechAnimation() != render.MECH_ANIMATE_STRUT {
-					s.SetMechAnimation(render.MECH_ANIMATE_STRUT, false)
+				if s.MechAnimation() != sprites.MECH_ANIMATE_STRUT {
+					s.SetMechAnimation(sprites.MECH_ANIMATE_STRUT, false)
 				}
 			}
 		}
@@ -142,8 +142,8 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 			}
 		}
 
-	case VehicleSpriteType:
-		s := sInterface.(*render.VehicleSprite)
+	case sprites.VehicleSpriteType:
+		s := sInterface.(*sprites.VehicleSprite)
 		if s.IsDestroyed() {
 			destroyCounter := s.DestroyCounter()
 			if destroyCounter == 0 {
@@ -152,7 +152,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				s.SetDestroyCounter(fxDuration)
 			} else if destroyCounter == 1 {
 				// delete when the counter is basically done (to differentiate with default int value 0)
-				g.sprites.deleteVehicleSprite(s)
+				g.sprites.DeleteVehicleSprite(s)
 			} else {
 				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
@@ -164,8 +164,8 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
-	case VTOLSpriteType:
-		s := sInterface.(*render.VTOLSprite)
+	case sprites.VTOLSpriteType:
+		s := sInterface.(*sprites.VTOLSprite)
 		if s.IsDestroyed() {
 			// unique VTOL destroy effect where it crashes towards the ground spinning
 			destroyCounter := s.DestroyCounter()
@@ -179,7 +179,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				s.SetDestroyCounter(1)
 			} else if s.PosZ() <= 0 {
 				// instantly delete if it gets below the ground
-				g.sprites.deleteVTOLSprite(s)
+				g.sprites.DeleteVTOLSprite(s)
 				break
 			} else {
 				// spawn only smoke effects
@@ -198,7 +198,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 			if hasCollision {
 				// instantly remove on collision with some more explosions
 				g.spawnVTOLDestroyEffects(s, true)
-				g.sprites.deleteVTOLSprite(s)
+				g.sprites.DeleteVTOLSprite(s)
 				break
 			}
 
@@ -210,13 +210,13 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
-	case InfantrySpriteType:
-		s := sInterface.(*render.InfantrySprite)
+	case sprites.InfantrySpriteType:
+		s := sInterface.(*sprites.InfantrySprite)
 		if s.IsDestroyed() {
 			// infantry are destroyed immediately
 			// TODO: if an infantry unit has death animation prior to deletion
 			g.spawnInfantryDestroyEffects(s)
-			g.sprites.deleteInfantrySprite(s)
+			g.sprites.DeleteInfantrySprite(s)
 			break
 		}
 
@@ -224,8 +224,8 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 		s.Update(g.player.CameraPosXY())
 		g.updateWeaponCooldowns(model.EntityUnit(s.Entity))
 
-	case EmplacementSpriteType:
-		s := sInterface.(*render.EmplacementSprite)
+	case sprites.EmplacementSpriteType:
+		s := sInterface.(*sprites.EmplacementSprite)
 		if s.IsDestroyed() {
 			destroyCounter := s.DestroyCounter()
 			if destroyCounter == 0 {
@@ -234,7 +234,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 				s.SetDestroyCounter(fxDuration)
 			} else if destroyCounter == 1 {
 				// delete when the counter is basically done (to differentiate with default int value 0)
-				g.sprites.deleteEmplacementSprite(s)
+				g.sprites.DeleteEmplacementSprite(s)
 			} else {
 				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
@@ -248,7 +248,7 @@ func (g *Game) updateSprite(spriteType SpriteType, sInterface raycaster.Sprite) 
 	}
 }
 
-func (g *Game) updateSpritePosition(s *render.Sprite) bool {
+func (g *Game) updateSpritePosition(s *sprites.Sprite) bool {
 	if s.Velocity() != 0 || s.VelocityZ() != 0 {
 		sPosition := s.Pos()
 		vLine := geom.LineFromAngle(sPosition.X, sPosition.Y, s.Heading(), s.Velocity())

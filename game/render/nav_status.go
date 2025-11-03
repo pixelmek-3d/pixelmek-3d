@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
 
@@ -24,7 +25,7 @@ type NavStatus struct {
 }
 
 // NewNavStatus creates a nav status element image to be rendered on demand
-func NewNavStatus(font *Font) *NavStatus {
+func NewNavStatus(font *fonts.Font) *NavStatus {
 	// create and configure font renderer
 	renderer := etxt.NewRenderer()
 	renderer.SetCacheHandler(font.FontCache.NewHandler())

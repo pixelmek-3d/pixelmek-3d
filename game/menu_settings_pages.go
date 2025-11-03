@@ -48,7 +48,7 @@ func gameMissionPage(m Menu) *settingsPage {
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Top:    0,
 				Bottom: 0,
 				Left:   0,
@@ -65,7 +65,7 @@ func gameMissionPage(m Menu) *settingsPage {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
 			widget.GridLayoutOpts.Stretch([]bool{false, true, false}, []bool{false}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
@@ -75,7 +75,7 @@ func gameMissionPage(m Menu) *settingsPage {
 
 	if g.osType == osTypeBrowser {
 		// exit in browser kills but freezes the application, users can just close the tab/window
-		bContainer.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+		bContainer.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 			Stretch: true,
 		}))
 	} else {
@@ -93,7 +93,7 @@ func gameMissionPage(m Menu) *settingsPage {
 		bContainer.AddChild(exit)
 	}
 
-	bContainer.AddChild(newBlankSeparator(m, widget.RowLayoutData{
+	bContainer.AddChild(newBlankSeparator(m.Resources(), m.Padding(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -133,7 +133,7 @@ func gameUnitPage(m Menu) *settingsPage {
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Top:    0,
 				Bottom: 0,
 				Left:   0,
@@ -175,8 +175,8 @@ func displayPage(m Menu) *settingsPage {
 	resolutionLabel := widget.NewLabel(widget.LabelOpts.Text("Resolution", res.label.face, res.label.text))
 	resolutionRow.AddChild(resolutionLabel)
 
-	resolutions := []interface{}{}
-	var selectedResolution interface{}
+	resolutions := []any{}
+	var selectedResolution any
 	for _, r := range m.Resolutions() {
 		resolutions = append(resolutions, r)
 		if game.screenWidth == r.width && game.screenHeight == r.height {
@@ -190,17 +190,17 @@ func displayPage(m Menu) *settingsPage {
 			width:  game.screenWidth,
 			height: game.screenHeight,
 		}
-		resolutions = append([]interface{}{r}, resolutions...)
+		resolutions = append([]any{r}, resolutions...)
 	}
 
 	var fovSlider *widget.Slider
 	resolutionCombo := newListComboButton(
 		resolutions,
 		selectedResolution,
-		func(e interface{}) string {
+		func(e any) string {
 			return fmt.Sprintf("%s", e)
 		},
-		func(e interface{}) string {
+		func(e any) string {
 			return fmt.Sprintf("%s", e)
 		},
 		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
@@ -215,6 +215,9 @@ func displayPage(m Menu) *settingsPage {
 				settingsMenu, _ := m.(*SettingsMenu)
 				switch {
 				case gameMenu != nil:
+					// stop any scene transitions that may panic when resolution is changed before completion
+					game.StopSceneTransition()
+
 					// re-initialize the in-game menu with the Display settings pre-selected
 					gameMenu.preSelectedPage = 2
 					gameMenu.initResources()
@@ -285,14 +288,14 @@ func displayPage(m Menu) *settingsPage {
 	scalingLabel := widget.NewLabel(widget.LabelOpts.Text("Render Scaling", res.label.face, res.label.text))
 	scalingRow.AddChild(scalingLabel)
 
-	scalings := []interface{}{
+	scalings := []any{
 		0.25,
 		0.5,
 		0.75,
 		1.0,
 	}
 
-	var selectedScaling interface{}
+	var selectedScaling any
 	for _, s := range scalings {
 		if s == game.renderScale {
 			selectedScaling = s
@@ -302,10 +305,10 @@ func displayPage(m Menu) *settingsPage {
 	scalingCombo := newListComboButton(
 		scalings,
 		selectedScaling,
-		func(e interface{}) string {
+		func(e any) string {
 			return fmt.Sprintf("%0.0f%%", e.(float64)*100)
 		},
-		func(e interface{}) string {
+		func(e any) string {
 			return fmt.Sprintf("%0.0f%%", e.(float64)*100)
 		},
 		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
@@ -504,9 +507,9 @@ func renderPage(m Menu) *settingsPage {
 	distanceRow.AddChild(distanceValueText)
 
 	// floor/ground texturing checkbox
-	floorCheckbox := newCheckbox(m, "Ground Texturing", game.tex.renderFloorTex, func(args *widget.CheckboxChangedEventArgs) {
-		game.tex.renderFloorTex = args.State == widget.WidgetChecked
-		game.initRenderFloorTex = game.tex.renderFloorTex
+	floorCheckbox := newCheckbox(m, "Ground Texturing", game.tex.RenderFloorTex(), func(args *widget.CheckboxChangedEventArgs) {
+		game.tex.SetRenderFloorTex(args.State == widget.WidgetChecked)
+		game.initRenderFloorTex = game.tex.RenderFloorTex()
 	})
 	c.AddChild(floorCheckbox)
 
@@ -653,14 +656,14 @@ func hudPage(m Menu) *settingsPage {
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
 			widget.GridLayoutOpts.Stretch([]bool{false, true, false}, []bool{false}),
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:   m.Padding(),
 				Right:  m.Padding(),
 				Top:    m.Padding(),
 				Bottom: m.Padding(),
 			}))))
 
-	crosshairSheet := getSpriteFromFile("hud/crosshairs_sheet.png")
+	crosshairSheet := resources.GetSpriteFromFile("hud/crosshairs_sheet.png")
 	crosshairs := render.NewCrosshairs(
 		crosshairSheet, resources.CrosshairsSheet.Columns, resources.CrosshairsSheet.Rows, game.hudCrosshairIndex,
 	)

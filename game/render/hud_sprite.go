@@ -6,15 +6,17 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 )
 
 var (
-	_colorDefaultRed    = color.NRGBA{R: 225, G: 0, B: 0, A: 255}
-	_colorDefaultGreen  = color.NRGBA{R: 0, G: 214, B: 0, A: 255}
-	_colorDefaultBlue   = color.NRGBA{R: 0, G: 0, B: 203, A: 255}
-	_colorDefaultYellow = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
-	_colorEnemy         = color.NRGBA{R: 255, G: 0, B: 12, A: 255}
-	_colorFriendly      = color.NRGBA{R: 0, G: 255, B: 12, A: 255}
+	_colorDefaultRed    = colors.DefaultRed
+	_colorDefaultGreen  = colors.DefaultGreen
+	_colorDefaultBlue   = colors.DefaultBlue
+	_colorDefaultYellow = colors.DefaultYellow
+	_colorEnemy         = colors.Enemy
+	_colorFriendly      = colors.Friendly
 )
 
 type HUDSprite interface {
@@ -64,7 +66,7 @@ func NewHUDSprite(img *ebiten.Image, scale float64) *BasicHUD {
 
 	if img != nil {
 		b.w, b.h = img.Bounds().Dx(), img.Bounds().Dy()
-		b.textures, _ = GetSpriteSheetSlices(img, 1, 1)
+		b.textures, _ = sprites.GetSpriteSheetSlices(img, 1, 1)
 	}
 
 	return b
@@ -80,7 +82,7 @@ func NewHUDSpriteFromSheet(img *ebiten.Image, scale float64, columns, rows, fram
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
 	b.w, b.h = int(wFloat), int(hFloat)
 
-	b.textures, _ = GetSpriteSheetSlices(img, columns, rows)
+	b.textures, _ = sprites.GetSpriteSheetSlices(img, columns, rows)
 
 	return b
 }

@@ -12,7 +12,11 @@ import (
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
+	globalViper "github.com/spf13/viper"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -24,16 +28,21 @@ import (
 
 const (
 	title = "PixelMek 3D"
-	//--RaycastEngine constants
-	//--set constant, texture size to be the wall (and sprite) texture size--//
-	texWidth = 256
 
 	// distance to keep away from walls and obstacles to avoid clipping
 	clipDistance = 0.01
 )
 
+var (
+	collisonSpriteTypes    map[sprites.SpriteType]bool
+	interactiveSpriteTypes map[sprites.SpriteType]bool
+)
+
 // Game - This is the main type for your game.
 type Game struct {
+	// if set, overrides initial scene when the game is first run
+	initSceneFunc func(g *Game) Scene
+
 	scene  Scene
 	menu   Menu
 	paused bool
@@ -47,7 +56,7 @@ type Game struct {
 	inputSystem input.System
 
 	//--create slicer and declare slices--//
-	tex                *TextureHandler
+	tex                *texture.TextureHandler
 	initRenderFloorTex bool
 
 	// window resolution and scaling
@@ -66,7 +75,7 @@ type Game struct {
 
 	player    *Player
 	playerHUD map[HUDElementType]HUDElement
-	fonts     *render.FontHandler
+	fonts     *fonts.FontHandler
 
 	hudEnabled        bool
 	hudFont           string
@@ -105,11 +114,9 @@ type Game struct {
 	mission             *model.Mission
 	collisionMap        []*geom.Line
 
-	sprites                *SpriteHandler
-	clutter                *ClutterHandler
-	collisonSpriteTypes    map[SpriteType]bool
-	interactiveSpriteTypes map[SpriteType]bool
-	delayedProjectiles     map[*ProjectileSpawn]struct{}
+	sprites            *sprites.SpriteHandler
+	clutter            *ClutterHandler
+	delayedProjectiles map[*ProjectileSpawn]struct{}
 
 	// Gameplay
 	objectives *ObjectivesHandler
@@ -157,7 +164,7 @@ func NewGame() *Game {
 
 	// initialize fonts
 	var err error
-	g.fonts, err = render.NewFontHandler(g.hudFont)
+	g.fonts, err = fonts.NewFontHandler(g.hudFont)
 	if err != nil {
 		log.Error("Error loading font handler:", err)
 		exit(1)
@@ -167,8 +174,6 @@ func NewGame() *Game {
 	g.audio = NewAudioHandler()
 	g.audio.StartMenuMusic()
 
-	g.initInteractiveTypes()
-	g.initCollisionTypes()
 	g.initCombatVariables()
 
 	ebiten.SetWindowTitle(title)
@@ -187,12 +192,17 @@ func NewGame() *Game {
 	}
 
 	// init texture and sprite handlers
-	g.tex = NewTextureHandler(nil)
-	g.tex.renderFloorTex = g.initRenderFloorTex
-	g.sprites = NewSpriteHandler()
+	g.tex = texture.NewTextureHandler(nil)
+	g.tex.SetRenderFloorTex(g.initRenderFloorTex)
+	g.sprites = sprites.NewSpriteHandler()
 
-	// setup initial scene
-	g.scene = NewSplashScene(g)
+	// initialize the menu system
+	g.scene = NewMenuScene(g)
+
+	if !globalViper.GetBool(PARAM_KEY_SKIP_INTRO) {
+		// show intro scene
+		g.SetInitialSceneFunc(NewSplashScene)
+	}
 
 	// set window icon
 	_, icon, err := resources.NewImageFromFile("icons/pixelmek_icon.png")
@@ -210,8 +220,24 @@ func (g *Game) Resources() *model.ModelResources {
 	return g.resources
 }
 
+func (g *Game) SetInitialSceneFunc(sceneFunc func(g *Game) Scene) {
+	g.initSceneFunc = sceneFunc
+}
+
 func (g *Game) SetScene(scene Scene) {
 	g.scene = scene
+}
+
+func (g *Game) StopSceneTransition() {
+	if g.scene == nil {
+		return
+	}
+	switch g.scene.(type) {
+	case *MenuScene:
+		g.scene.(*MenuScene).transition = nil
+	case *GameScene:
+		g.scene.(*GameScene).transition = nil
+	}
 }
 
 func (g *Game) LoadMission(missionFile string) (*model.Mission, error) {
@@ -232,13 +258,13 @@ func (g *Game) initMission() {
 
 	// reload texture handler
 	if g.tex != nil {
-		g.initRenderFloorTex = g.tex.renderFloorTex
+		g.initRenderFloorTex = g.tex.RenderFloorTex()
 	}
-	g.tex = NewTextureHandler(missionMap)
-	g.tex.renderFloorTex = g.initRenderFloorTex
+	g.tex = texture.NewTextureHandler(missionMap)
+	g.tex.SetRenderFloorTex(g.initRenderFloorTex)
 
 	// clear mission sprites
-	g.sprites.clear()
+	g.sprites.Clear()
 
 	g.collisionMap = missionMap.GenerateWallCollisionLines(clipDistance)
 	g.mapWidth, g.mapHeight = missionMap.Size()
@@ -271,15 +297,15 @@ func (g *Game) initMission() {
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
-	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, texWidth, g.mission.Map(), g.tex)
+	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, resources.TexSize, g.mission.Map(), g.tex)
 	g.camera.SetRenderDistance(g.renderDistance)
 	g.camera.SetAlwaysSetSpriteScreenRect(true)
 
 	if len(g.mission.Map().FloorBox.Image) > 0 {
-		g.camera.SetFloorTexture(getTextureFromFile(g.mission.Map().FloorBox.Image))
+		g.camera.SetFloorTexture(resources.GetTextureFromFile(g.mission.Map().FloorBox.Image))
 	}
 	if len(g.mission.Map().SkyBox.Image) > 0 {
-		g.camera.SetSkyTexture(getTextureFromFile(g.mission.Map().SkyBox.Image))
+		g.camera.SetSkyTexture(resources.GetTextureFromFile(g.mission.Map().SkyBox.Image))
 	}
 
 	// init camera lighting from map settings
@@ -316,6 +342,18 @@ func (g *Game) Run() {
 	}
 }
 
+func (g *Game) Pause() {
+	g.paused = true
+	g.audio.PauseMusic()
+	g.audio.PauseSFX()
+}
+
+func (g *Game) Resume() {
+	g.audio.ResumeMusic()
+	g.audio.ResumeSFX()
+	g.paused = false
+}
+
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -327,6 +365,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
 	g.inputSystem.Update()
+
+	if g.initSceneFunc != nil {
+		g.scene = g.initSceneFunc(g)
+		g.initSceneFunc = nil
+	}
 	return g.scene.Update()
 }
 
@@ -600,7 +643,7 @@ func (g *Game) navPointCycle(replaceTarget bool) {
 		newNav = navPoints[0]
 	}
 
-	g.player.currentNav = render.NewNavSprite(newNav, 1.0)
+	g.player.currentNav = sprites.NewNavSprite(newNav, 1.0)
 }
 
 func (g *Game) targetCrosshairs() model.Entity {
@@ -615,7 +658,7 @@ func (g *Game) targetCrosshairs() model.Entity {
 	return nil
 }
 
-func (g *Game) spriteInCrosshairs() *render.Sprite {
+func (g *Game) spriteInCrosshairs() *sprites.Sprite {
 	cSprite := g.player.convergenceSprite
 	if cSprite == nil {
 		// check for target in crosshairs bounds if not directly at the single center raycasted pixel
@@ -628,9 +671,9 @@ func (g *Game) spriteInCrosshairs() *render.Sprite {
 			image.Point{X: (g.screenWidth / 2) - (crosshairs.Width() / 2), Y: (g.screenHeight / 2) - (crosshairs.Height() / 2)})
 
 		var cSpriteArea int
-		for spriteType := range g.sprites.sprites {
-			g.sprites.sprites[spriteType].Range(func(k, _ interface{}) bool {
-				if !g.isInteractiveType(spriteType) {
+		for _, spriteType := range g.sprites.SpriteTypes() {
+			g.sprites.RangeByType(spriteType, func(k, _ any) bool {
+				if !isInteractiveType(spriteType) {
 					// only cycle on certain sprite types (skip projectiles, effects, etc.)
 					return true
 				}
@@ -663,7 +706,7 @@ func (g *Game) spriteInCrosshairs() *render.Sprite {
 
 func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 	pSprites := g.getProximityUnitSprites(g.player.Pos(), 1000/model.METERS_PER_UNIT)
-	targetables := make([]*render.Sprite, 0, len(pSprites))
+	targetables := make([]*sprites.Sprite, 0, len(pSprites))
 
 	if cycleType == TARGET_PREVIOUS {
 		// reverse sort by distance
@@ -684,7 +727,7 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 		return nil
 	}
 
-	var newTarget *render.Sprite
+	var newTarget *sprites.Sprite
 
 	if cycleType != TARGET_NEAREST {
 		currentTarget := g.player.Target()

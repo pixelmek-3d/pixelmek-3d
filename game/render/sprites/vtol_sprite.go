@@ -1,4 +1,4 @@
-package render
+package sprites
 
 import (
 	"github.com/harbdog/raycaster-go/geom"
@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/copier"
 )
 
-type VehicleSprite struct {
+type VTOLSprite struct {
 	*Sprite
 
 	// TODO: move to separate AI handler
@@ -16,18 +16,17 @@ type VehicleSprite struct {
 	PatrolPath      [][2]float64
 }
 
-func NewVehicleSprite(
-	vehicle *model.Vehicle, scale float64, img *ebiten.Image,
-) *VehicleSprite {
+func NewVTOLSprite(
+	vtol *model.VTOL, scale float64, img *ebiten.Image,
+) *VTOLSprite {
 	var p *Sprite
-	sheet := vehicle.Resource.ImageSheet
-
+	sheet := vtol.Resource.ImageSheet
 	if sheet == nil {
 		p = NewSprite(
-			vehicle, scale, img,
+			vtol, scale, img,
 		)
 	} else {
-		p = NewAnimatedSprite(vehicle, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(vtol, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {
@@ -36,25 +35,25 @@ func NewVehicleSprite(
 			}
 			p.SetTextureFacingMap(facingMap)
 		}
-		p.staticTexNum = vehicle.Resource.ImageSheet.StaticIndex
+		p.staticTexNum = vtol.Resource.ImageSheet.StaticIndex
 	}
 
-	s := &VehicleSprite{
+	s := &VTOLSprite{
 		Sprite: p,
 	}
 
 	return s
 }
 
-func (v *VehicleSprite) Vehicle() *model.Vehicle {
+func (v *VTOLSprite) VTOL() *model.VTOL {
 	if v.Entity == nil {
 		return nil
 	}
-	return v.Entity.(*model.Vehicle)
+	return v.Entity.(*model.VTOL)
 }
 
-func (v *VehicleSprite) Clone(asUnit model.Unit) *VehicleSprite {
-	vClone := &VehicleSprite{}
+func (v *VTOLSprite) Clone(asUnit model.Unit) *VTOLSprite {
+	vClone := &VTOLSprite{}
 	sClone := &Sprite{}
 
 	copier.Copy(vClone, v)
