@@ -217,10 +217,20 @@ func LoadMission(missionFile string) (*Mission, error) {
 	}
 
 	// load mission map
+	err = m.LoadMissionMap()
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+func (m *Mission) LoadMissionMap() error {
+	var err error
 	m.missionMap, err = LoadMap(m.MapPath)
 	if err != nil {
 		log.Error("Error loading map: ", m.MapPath)
-		return nil, err
+		return err
 	}
 
 	// initialize map pathing
@@ -236,8 +246,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 	if m.SkyBox != nil {
 		m.missionMap.SkyBox = *m.SkyBox
 	}
-
-	return m, nil
+	return nil
 }
 
 func ListMissionFilenames() ([]string, error) {

@@ -11,6 +11,7 @@ import (
 )
 
 func init() {
+	MapCmd.AddCommand(launchCmd)
 	MapCmd.AddCommand(imageCmd)
 
 	MapCmd.Flags().BoolVar(&listMaps, "list", false, "lists all map files")

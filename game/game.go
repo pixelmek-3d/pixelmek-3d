@@ -240,6 +240,41 @@ func (g *Game) StopSceneTransition() {
 	}
 }
 
+func (g *Game) LoadInstantAction(mapFile string) (*model.Mission, error) {
+
+	// FIXME: refactor to model.instant_action.go?
+
+	iaMission := &model.Mission{
+		MapPath:  mapFile,
+		Title:    "Instant Action - <map.MapName>", // FIXME: new spec to require map name in map yaml
+		Briefing: "Destroy never ending waves of enemies.",
+		DropZone: &model.MissionDropZone{
+			Position: [2]float64{50, 50}, // FIXME: random generated or new spec in map yaml
+			Heading:  15,
+		},
+		MusicPath: "icy_wastes.mp3", // FIXME: random pick or new spec in map yaml
+	}
+
+	// load mission map
+	err := iaMission.LoadMissionMap()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: implement enemy waves for instant action map play
+
+	// place enemy units
+	iaMission.Mechs = []model.MissionUnit{
+		{
+			Unit:     "fire_moth_prime",  // FIXME: random generated or selected by user
+			Position: [2]float64{57, 65}, // FIXME: random generated or new spec in map yaml
+		},
+	}
+
+	g.mission = iaMission
+	return iaMission, nil
+}
+
 func (g *Game) LoadMission(missionFile string) (*model.Mission, error) {
 	mission, err := model.LoadMission(missionFile)
 	if err != nil {
