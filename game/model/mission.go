@@ -236,6 +236,11 @@ func (m *Mission) LoadMissionMap() error {
 	// initialize map pathing
 	m.Pathing = initPathing(m)
 
+	// apply any defaults from map
+	if m.MusicPath == "" && m.missionMap.MusicPath != "" {
+		m.MusicPath = m.missionMap.MusicPath
+	}
+
 	// apply optional overrides to map
 	if m.Lighting != nil {
 		m.missionMap.Lighting = *m.Lighting

@@ -1,7 +1,9 @@
 # For proper mech scale:
 #   1 unit cell   = 20 meters (in each direction)
 #   50 unit cells = 1 kilometer across
+name: Proving Grounds
 seed: 12345
+music: "bone_remains.mp3"
 lighting:
   falloff: -100
   illumination: 500

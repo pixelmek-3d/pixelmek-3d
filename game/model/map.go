@@ -75,19 +75,21 @@ func (cd CardinalDirection) String() string {
 }
 
 type Map struct {
+	Name             string             `yaml:"name" validate:"required"`
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
 	GenerateLevels   MapGenerateLevels  `yaml:"generateLevels"`
-	Lighting         MapLighting        `yaml:"lighting"`
-	Textures         map[int]MapTexture `yaml:"textures"`
-	FloorBox         MapTexture         `yaml:"floorBox"`
-	SkyBox           MapTexture         `yaml:"skyBox"`
-	Flooring         MapFlooring        `yaml:"flooring"`
+	Lighting         MapLighting        `yaml:"lighting" validate:"required"`
+	Textures         map[int]MapTexture `yaml:"textures" validate:"gt=0"`
+	FloorBox         MapTexture         `yaml:"floorBox" validate:"required"`
+	SkyBox           MapTexture         `yaml:"skyBox" validate:"required"`
+	Flooring         MapFlooring        `yaml:"flooring" validate:"required"`
 	Clutter          []MapClutter       `yaml:"clutter"`
 	Sprites          []MapSprite        `yaml:"sprites"`
 	SpriteFill       []MapSpriteFill    `yaml:"spriteFill"`
 	SpriteStamps     []MapSpriteStamp   `yaml:"spriteStamps"`
 	Seed             int64              `yaml:"seed"`
+	MusicPath        string             `yaml:"music"`
 
 	spritesByID map[string]MapSprite `yaml:"-"`
 }
