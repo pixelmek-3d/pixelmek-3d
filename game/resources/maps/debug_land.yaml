@@ -4,6 +4,9 @@
 name: Debuglandia
 seed: 42
 music: icy_wastes.mp3
+dropZone:
+  position: [50, 50]
+  heading: 15
 lighting:
   falloff: -100
   illumination: 500

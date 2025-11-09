@@ -4,6 +4,9 @@
 name: Proving Grounds
 seed: 12345
 music: "bone_remains.mp3"
+dropZone:
+  position: [15, 10]
+  heading: 0
 lighting:
   falloff: -100
   illumination: 500

@@ -21,7 +21,7 @@ type Mission struct {
 	Briefing     string              `yaml:"briefing" validate:"required"`
 	MapPath      string              `yaml:"map" validate:"required"`
 	MusicPath    string              `yaml:"music"`
-	DropZone     *MissionDropZone    `yaml:"dropZone" validate:"required"`
+	DropZone     *DropZone           `yaml:"dropZone"`
 	Lighting     *MapLighting        `yaml:"lighting,omitempty"`
 	FloorBox     *MapTexture         `yaml:"floorBox,omitempty"`
 	SkyBox       *MapTexture         `yaml:"skyBox,omitempty"`
@@ -36,11 +36,6 @@ type Mission struct {
 
 func (m *Mission) Map() *Map {
 	return m.missionMap
-}
-
-type MissionDropZone struct {
-	Position [2]float64 `yaml:"position" validate:"required"`
-	Heading  float64    `yaml:"heading"`
 }
 
 type MissionObjectives struct {
@@ -237,6 +232,9 @@ func (m *Mission) LoadMissionMap() error {
 	m.Pathing = initPathing(m)
 
 	// apply any defaults from map
+	if m.DropZone == nil {
+		m.DropZone = m.missionMap.DropZone
+	}
 	if m.MusicPath == "" && m.missionMap.MusicPath != "" {
 		m.MusicPath = m.missionMap.MusicPath
 	}

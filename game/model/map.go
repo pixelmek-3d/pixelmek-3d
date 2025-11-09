@@ -76,6 +76,7 @@ func (cd CardinalDirection) String() string {
 
 type Map struct {
 	Name             string             `yaml:"name" validate:"required"`
+	DropZone         *DropZone          `yaml:"dropZone" validate:"required"`
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
 	GenerateLevels   MapGenerateLevels  `yaml:"generateLevels"`
@@ -92,6 +93,11 @@ type Map struct {
 	MusicPath        string             `yaml:"music"`
 
 	spritesByID map[string]MapSprite `yaml:"-"`
+}
+
+type DropZone struct {
+	Position [2]float64 `yaml:"position"`
+	Heading  float64    `yaml:"heading"`
 }
 
 type MapTexture struct {

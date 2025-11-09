@@ -3,13 +3,7 @@ package game
 import "github.com/pixelmek-3d/pixelmek-3d/game/model"
 
 func (g *Game) LoadInstantAction(mapFile string) (*model.Mission, error) {
-	mission := &model.Mission{
-		MapPath: mapFile,
-		DropZone: &model.MissionDropZone{
-			Position: [2]float64{50, 50}, // FIXME: random generated or new spec in map yaml
-			Heading:  15,
-		},
-	}
+	mission := &model.Mission{MapPath: mapFile}
 
 	// load mission map
 	err := mission.LoadMissionMap()
