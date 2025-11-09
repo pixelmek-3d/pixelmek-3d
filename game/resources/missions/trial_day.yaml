@@ -3,7 +3,7 @@ briefing: |
   A call to trial during the day.
 
   Justice by combat.
-map: "testing_grounds"
+map: "proving_grounds"
 dropZone:
   position: [31.5, 3.5]
   heading: 45

@@ -3,7 +3,7 @@ briefing: |
   A call to trial at dusk.
 
   Justice by combat.
-map: "testing_grounds"
+map: "proving_grounds"
 music: "scanner_tek.mp3"
 lighting:
   falloff: -500
