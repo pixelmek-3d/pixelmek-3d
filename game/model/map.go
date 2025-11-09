@@ -77,6 +77,7 @@ func (cd CardinalDirection) String() string {
 type Map struct {
 	Name             string             `yaml:"name" validate:"required"`
 	DropZone         *DropZone          `yaml:"dropZone" validate:"required"`
+	SpawnPoints      [][2]float64       `yaml:"spawnPoints"`
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
 	GenerateLevels   MapGenerateLevels  `yaml:"generateLevels"`

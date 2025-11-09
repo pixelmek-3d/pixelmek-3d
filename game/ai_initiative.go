@@ -85,7 +85,7 @@ func (n *AIInitiative) roll() {
 		log.Debug("rolled initiative:")
 		for i := 0; i < len(n.stack); i++ {
 			for j := 0; j < len(n.stack[i]); j++ {
-				log.Debugf("  %d.%d - %v", i, j, n.stack[i][j].u.ID())
+				log.Debugf("  %d.%d - %v @ %v", i, j, n.stack[i][j].u.ID(), n.stack[i][j].u.Pos())
 			}
 		}
 	}

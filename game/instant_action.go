@@ -1,6 +1,8 @@
 package game
 
-import "github.com/pixelmek-3d/pixelmek-3d/game/model"
+import (
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+)
 
 func (g *Game) LoadInstantAction(mapFile string) (*model.Mission, error) {
 	mission := &model.Mission{MapPath: mapFile}
@@ -11,19 +13,44 @@ func (g *Game) LoadInstantAction(mapFile string) (*model.Mission, error) {
 		return nil, err
 	}
 
-	mission.Title = "Instant Action\n" + mission.Map().Name
-	mission.Briefing = "Destroy never ending waves of enemies."
+	missionMap := mission.Map()
+	mission.Title = "Instant Action\n" + missionMap.Name
 
-	// TODO: implement enemy waves for instant action map play
+	// TODO: implement actual enemy waves for instant action map play
+	mission.Briefing = "Destroy never-ending waves of enemies."
 
 	// place enemy units
-	mission.Mechs = []model.MissionUnit{
-		{
-			Unit:     "fire_moth_prime",  // FIXME: random generated or selected by user
-			Position: [2]float64{57, 65}, // FIXME: random generated or new spec in map yaml
-		},
-	}
+	mission.Mechs = make([]model.MissionUnit, 0, 1)
+	instantActionSpawnUnit(mission, "fire_moth_prime") // FIXME: use unit selected by user
 
 	g.mission = mission
 	return mission, nil
+}
+
+func instantActionSpawnUnit(mission *model.Mission, unit string) {
+	missionMap := mission.Map()
+	rng := model.NewRNG()
+
+	var spawnPos [2]float64
+	switch len(missionMap.SpawnPoints) {
+	case 0:
+		// generate random spawn point
+		// TODO: pick spawn point within some min/max distance of player
+		// TODO: check randomized location if in a wall, if so re-roll
+		w, h := missionMap.Size()
+		spawnPos = [2]float64{float64(rng.Intn(w)) + 0.5, float64(rng.Intn(h)) + 0.5}
+	case 1:
+		spawnPos = missionMap.SpawnPoints[0]
+	default:
+		// TODO: pick random spawn point that was not picked last time
+		spawnPos = missionMap.SpawnPoints[rng.Intn(len(missionMap.SpawnPoints))]
+	}
+
+	mission.Mechs = append(
+		mission.Mechs,
+		model.MissionUnit{
+			Unit:     unit, // FIXME: if enemy not selected by user, pick one at random
+			Position: spawnPos,
+		},
+	)
 }
