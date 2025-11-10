@@ -76,7 +76,7 @@ func (cd CardinalDirection) String() string {
 
 type Map struct {
 	Name             string             `yaml:"name" validate:"required"`
-	DropZone         *DropZone          `yaml:"dropZone" validate:"required"`
+	DropZone         DropZone           `yaml:"dropZone" validate:"required"`
 	SpawnPoints      [][2]float64       `yaml:"spawnPoints"`
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
@@ -93,12 +93,8 @@ type Map struct {
 	Seed             int64              `yaml:"seed"`
 	MusicPath        string             `yaml:"music"`
 
+	// Sprite ID mapping is initialized when map data is being loaded
 	spritesByID map[string]MapSprite `yaml:"-"`
-}
-
-type DropZone struct {
-	Position [2]float64 `yaml:"position"`
-	Heading  float64    `yaml:"heading"`
 }
 
 type MapTexture struct {

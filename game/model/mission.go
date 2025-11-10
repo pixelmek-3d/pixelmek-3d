@@ -16,7 +16,6 @@ import (
 
 type Mission struct {
 	missionMap   *Map
-	Pathing      *Pathing            `yaml:"-"`
 	Title        string              `yaml:"title" validate:"required"`
 	Briefing     string              `yaml:"briefing" validate:"required"`
 	MapPath      string              `yaml:"map" validate:"required"`
@@ -32,10 +31,25 @@ type Mission struct {
 	Infantry     []MissionUnit       `yaml:"infantry"`
 	VTOLs        []MissionFlyingUnit `yaml:"vtols"`
 	Emplacements []MissionStaticUnit `yaml:"emplacements"`
+
+	// AI Pathing is initialized after map is loaded
+	Pathing *Pathing `yaml:"-"`
+
+	// spawnPoints used only in Instant Action for now
+	SpawnPoints []*SpawnPoint `yaml:"-"`
 }
 
 func (m *Mission) Map() *Map {
 	return m.missionMap
+}
+
+type DropZone struct {
+	Position [2]float64 `yaml:"position"`
+	Heading  float64    `yaml:"heading"`
+}
+
+type SpawnPoint struct {
+	Position [2]float64 `yaml:"position"`
 }
 
 type MissionObjectives struct {
@@ -47,6 +61,9 @@ type MissionObjectives struct {
 type MissionDestroyObjectives struct {
 	All  bool   `yaml:"all,omitempty"`
 	Unit string `yaml:"unit,omitempty"`
+
+	// Enemy waves objective used only in Instant Action for now
+	Waves bool `yaml:"-"`
 }
 
 type MissionProtectObjectives struct {
@@ -156,8 +173,9 @@ const (
 )
 
 type NavPoint struct {
-	Name      string     `yaml:"name" validate:"required"`
-	Position  [2]float64 `yaml:"position" validate:"required"`
+	Name     string     `yaml:"name" validate:"required"`
+	Position [2]float64 `yaml:"position" validate:"required"`
+
 	image     *ebiten.Image
 	visited   bool
 	objective NavObjective
@@ -233,7 +251,7 @@ func (m *Mission) LoadMissionMap() error {
 
 	// apply any defaults from map
 	if m.DropZone == nil {
-		m.DropZone = m.missionMap.DropZone
+		m.DropZone = &m.missionMap.DropZone
 	}
 	if m.MusicPath == "" && m.missionMap.MusicPath != "" {
 		m.MusicPath = m.missionMap.MusicPath
