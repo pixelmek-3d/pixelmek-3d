@@ -367,9 +367,12 @@ func (o *DestroyObjective) Update(g *Game) {
 	}
 
 	if o.objective.Waves {
-		log.Debug("wave destroyed, spawning next wave")
-		panic("FIXME: not yet implemented!")
-		return
+		log.Debug("spawning next wave")
+		unit := g.spawnUnit("fire_moth_prime") // FIXME: use unit selected by user
+		if unit != nil {
+			o.units = append(o.units, unit)
+			return
+		}
 	}
 
 	destroyedStr := o.objective.Unit

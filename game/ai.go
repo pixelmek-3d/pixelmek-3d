@@ -202,16 +202,16 @@ func NewAIHandler(g *Game) *AIHandler {
 	}
 
 	for _, u := range units {
-		aiHandler.ai = append(aiHandler.ai, aiHandler.NewAI(u, "unit", aiRes))
+		aiHandler.NewUnitAI(u)
 	}
 
 	aiHandler.LoadFormations()
-	aiHandler.initiative = NewAIInitiative(aiHandler.ai)
+	aiHandler.initiative = NewAIInitiative(aiHandler)
 
 	return aiHandler
 }
 
-func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavior {
+func (h *AIHandler) NewUnitAI(u model.Unit) *AIBehavior {
 	a := &AIBehavior{
 		g:        h.g,
 		u:        u,
@@ -221,7 +221,9 @@ func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavio
 	}
 	a.gunnery.Reset()
 	a.piloting.Reset()
-	a.Node = a.LoadBehaviorTree(ai, aiRes)
+	a.Node = a.LoadBehaviorTree("unit", h.resources)
+
+	h.ai = append(h.ai, a)
 	if h.g.debug {
 		fmt.Printf("--- %s\n%s\n", u.ID(), a.Node)
 	}

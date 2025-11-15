@@ -17,13 +17,13 @@ const (
 )
 
 type AIInitiative struct {
-	ai    []*AIBehavior
-	stack [][]*AIBehavior
-	timer uint
+	aiHandler *AIHandler
+	stack     [][]*AIBehavior
+	timer     uint
 }
 
-func NewAIInitiative(aiList []*AIBehavior) *AIInitiative {
-	a := &AIInitiative{ai: aiList}
+func NewAIInitiative(aiHandler *AIHandler) *AIInitiative {
+	a := &AIInitiative{aiHandler: aiHandler}
 	a.roll()
 	return a
 }
@@ -44,8 +44,8 @@ func (n *AIInitiative) roll() {
 	}
 
 	// determine initiative for each AI (higher is better)
-	rolls := make([]*initiativeRoll, 0, len(n.ai))
-	for _, ai := range n.ai {
+	rolls := make([]*initiativeRoll, 0, len(n.aiHandler.ai))
+	for _, ai := range n.aiHandler.ai {
 		if ai.u.IsDestroyed() {
 			continue
 		}

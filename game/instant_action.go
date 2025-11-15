@@ -33,38 +33,6 @@ func (g *Game) LoadInstantAction(mapFile string) (*model.Mission, error) {
 		},
 	}
 
-	// place enemy units
-	// mission.Mechs = make([]model.MissionUnit, 0, 1)
-	// instantActionSpawnUnit(mission, "fire_moth_prime") // FIXME: use unit selected by user
-
 	g.mission = mission
 	return mission, nil
-}
-
-func instantActionSpawnUnit(mission *model.Mission, unit string) {
-	// missionMap := mission.Map()
-	// rng := model.NewRNG()
-
-	// var spawnPos [2]float64
-	// switch len(missionMap.SpawnPoints) {
-	// case 0:
-	// 	// generate random spawn point
-	// 	// TODO: pick spawn point within some min/max distance of player
-	// 	// TODO: check randomized location if in a wall, if so re-roll
-	// 	w, h := missionMap.Size()
-	// 	spawnPos = [2]float64{float64(rng.Intn(w)) + 0.5, float64(rng.Intn(h)) + 0.5}
-	// case 1:
-	// 	spawnPos = missionMap.SpawnPoints[0]
-	// default:
-	// 	// TODO: pick random spawn point that was not picked last time
-	// 	spawnPos = missionMap.SpawnPoints[rng.Intn(len(missionMap.SpawnPoints))]
-	// }
-
-	// mission.Mechs = append(
-	// 	mission.Mechs,
-	// 	model.MissionUnit{
-	// 		Unit:     unit, // FIXME: if enemy not selected by user, pick one at random
-	// 		Position: spawnPos,
-	// 	},
-	// )
 }
