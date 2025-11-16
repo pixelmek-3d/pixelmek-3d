@@ -69,7 +69,7 @@ func (a *AIBehavior) FireWeapons() func([]bt.Node) (bt.Status, error) {
 		// chance to fire this tick gradually increases as number of ticks without firing goes up
 		chanceToFire := float64(a.gunnery.ticksSinceFired) / (model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
 		if chanceToFire < 1 {
-			r := model.RandFloat64In(0, 1.0, a.rng)
+			r := a.rng.RandFloat64In(0, 1.0)
 			if r > chanceToFire {
 				return bt.Failure, nil
 			}

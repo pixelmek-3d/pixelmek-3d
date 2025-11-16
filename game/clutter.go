@@ -1,8 +1,6 @@
 package game
 
 import (
-	"math/rand"
-
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
@@ -12,7 +10,7 @@ import (
 type ClutterHandler struct {
 	sprites           map[*sprites.Sprite]struct{}
 	spritesByPosition map[int64][]*sprites.Sprite
-	rng               *rand.Rand
+	rng               *model.Rand
 }
 
 func NewClutterHandler() *ClutterHandler {

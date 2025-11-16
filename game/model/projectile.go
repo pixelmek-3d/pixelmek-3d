@@ -1,8 +1,6 @@
 package model
 
 import (
-	"math/rand"
-
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -29,7 +27,7 @@ type Projectile struct {
 	weapon          Weapon
 	lockOnOffset    *geom3d.Vector3
 	team            int
-	rng             *rand.Rand
+	rng             *Rand
 	parent          Entity
 }
 
@@ -64,9 +62,9 @@ func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
 		missileWeapon, isMissile := e.weapon.(*MissileWeapon)
 		if isMissile && missileWeapon.IsLockOn() {
 			groupRadius := missileWeapon.LockOnGroupRadius()
-			randRadius := RandFloat64In(-groupRadius, groupRadius, e.rng)
-			randHeading := RandFloat64In(-geom.Pi, geom.Pi, e.rng)
-			randPitch := RandFloat64In(-geom.Pi, geom.Pi, e.rng)
+			randRadius := e.rng.RandFloat64In(-groupRadius, groupRadius)
+			randHeading := e.rng.RandFloat64In(-geom.Pi, geom.Pi)
+			randPitch := e.rng.RandFloat64In(-geom.Pi, geom.Pi)
 
 			randLine := geom3d.Line3dFromAngle(0, 0, 0, randHeading, randPitch, randRadius)
 			e.lockOnOffset = &geom3d.Vector3{X: randLine.X2, Y: randLine.Y2, Z: randLine.Z2}

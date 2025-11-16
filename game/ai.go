@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"math/rand"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -38,7 +37,7 @@ type AIBehavior struct {
 	u             model.Unit
 	gunnery       *AIGunnery
 	piloting      *AIPiloting
-	rng           *rand.Rand
+	rng           *model.Rand
 	newInitiative bool
 }
 
@@ -217,7 +216,7 @@ func (h *AIHandler) NewUnitAI(u model.Unit) *AIBehavior {
 		u:        u,
 		gunnery:  NewAIGunnery(u),
 		piloting: NewAIPiloting(u),
-		rng:      rand.New(rand.NewSource(rand.Int63())),
+		rng:      model.NewRNG(),
 	}
 	a.gunnery.Reset()
 	a.piloting.Reset()

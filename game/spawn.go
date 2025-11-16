@@ -14,13 +14,13 @@ func (g *Game) spawnUnit(unit string) model.Unit {
 	var spawnPos [2]float64
 	switch len(missionMap.SpawnPoints) {
 	case 0:
-		// generate random spawn point
-		// TODO: pick spawn point within some min/max distance of player
+		// generate random spawn point within some min/max distance of player
 		w, h := missionMap.Size()
-		rX, rY := rng.Intn(w), rng.Intn(h)
+		x, y := int(g.player.Pos().X), int(g.player.Pos().Y)
+		rX, rY := rng.RandRelativeLocation(x, y, 10, 20, w, h) // TODO: pick better min/max
 		for missionMap.IsWallAt(0, rX, rY) {
 			// location is in a wall, re-roll
-			rX, rY = rng.Intn(w), rng.Intn(h)
+			rX, rY = rng.RandRelativeLocation(x, y, 10, 20, w, h) // TODO: pick better min/max
 		}
 		spawnPos = [2]float64{float64(rX) + 0.5, float64(rY) + 0.5}
 	case 1:

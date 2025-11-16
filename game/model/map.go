@@ -376,12 +376,12 @@ func (m *Map) generateFillerSprites() error {
 		x1, y1 := float64(fill.Rect[1][0]), float64(fill.Rect[1][1])
 
 		for i := 0; i < fill.Quantity; i++ {
-			fX, fY := RandFloat64In(x0, x1, rng), RandFloat64In(y0, y1, rng)
+			fX, fY := rng.RandFloat64In(x0, x1), rng.RandFloat64In(y0, y1)
 
 			var height float64
 			if len(fill.HeightRange) == 2 {
 				// generate random height value within height range
-				height = RandFloat64In(fill.HeightRange[0], fill.HeightRange[1], rng)
+				height = rng.RandFloat64In(fill.HeightRange[0], fill.HeightRange[1])
 			}
 
 			mapSprite, ok := m.spritesByID[fill.SpriteID]
