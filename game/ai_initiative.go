@@ -3,6 +3,7 @@ package game
 import (
 	"math"
 	"math/rand"
+	"slices"
 	"sort"
 
 	log "github.com/sirupsen/logrus"
@@ -26,6 +27,24 @@ func NewAIInitiative(aiHandler *AIHandler) *AIInitiative {
 	a := &AIInitiative{aiHandler: aiHandler}
 	a.roll()
 	return a
+}
+
+func (n *AIInitiative) add(a *AIBehavior) {
+	if a == nil || n.has(a) {
+		// do not add an AI that is already assigned an initiative
+		return
+	}
+	lastSlot := AI_INITIATIVE_SLOTS - 1
+	n.stack[lastSlot] = append(n.stack[lastSlot], a)
+}
+
+func (n *AIInitiative) has(a *AIBehavior) bool {
+	for _, arr := range n.stack {
+		if slices.Contains(arr, a) {
+			return true
+		}
+	}
+	return false
 }
 
 func (n *AIInitiative) clear() {

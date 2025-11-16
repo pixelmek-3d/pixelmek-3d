@@ -223,11 +223,16 @@ func (h *AIHandler) NewUnitAI(u model.Unit) *AIBehavior {
 	a.piloting.Reset()
 	a.Node = a.LoadBehaviorTree("unit", h.resources)
 
-	h.ai = append(h.ai, a)
+	h.Add(a)
 	if h.g.debug {
 		fmt.Printf("--- %s\n%s\n", u.ID(), a.Node)
 	}
 	return a
+}
+
+func (h *AIHandler) Add(a *AIBehavior) {
+	h.ai = append(h.ai, a)
+	h.initiative.add(a)
 }
 
 func (h *AIHandler) UnitAI(u model.Unit) *AIBehavior {

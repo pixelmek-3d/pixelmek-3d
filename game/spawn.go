@@ -16,9 +16,13 @@ func (g *Game) spawnUnit(unit string) model.Unit {
 	case 0:
 		// generate random spawn point
 		// TODO: pick spawn point within some min/max distance of player
-		// TODO: check randomized location if in a wall, if so re-roll
 		w, h := missionMap.Size()
-		spawnPos = [2]float64{float64(rng.Intn(w)) + 0.5, float64(rng.Intn(h)) + 0.5}
+		rX, rY := rng.Intn(w), rng.Intn(h)
+		for missionMap.IsWallAt(0, rX, rY) {
+			// location is in a wall, re-roll
+			rX, rY = rng.Intn(w), rng.Intn(h)
+		}
+		spawnPos = [2]float64{float64(rX) + 0.5, float64(rY) + 0.5}
 	case 1:
 		spawnPos = missionMap.SpawnPoints[0]
 	default:
@@ -40,8 +44,8 @@ func (g *Game) spawnUnit(unit string) model.Unit {
 	spriteMech := g.createUnitSprite(modelMech).(*sprites.MechSprite)
 	g.sprites.AddMechSprite(spriteMech)
 
+	// attach AI to unit
 	g.ai.NewUnitAI(modelMech)
-	g.ai.initiative.roll()
 
 	return modelMech
 }
