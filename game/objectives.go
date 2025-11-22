@@ -368,7 +368,9 @@ func (o *DestroyObjective) Update(g *Game) {
 
 	if o.objective.Waves {
 		log.Debug("spawning next wave")
-		unit := spawnUnit[model.Mech](g, "fire_moth_prime") // FIXME: use unit selected by user
+		// TODO: support unit selected by user or random unit in appropriate weight class
+		//unit := spawnUnit[model.Mech](g, "fire_moth_prime")
+		unit := spawnRandomUnit[model.Mech](g)
 		if unit != nil {
 			o.units = append(o.units, unit)
 			return

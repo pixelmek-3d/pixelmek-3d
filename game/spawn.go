@@ -58,3 +58,17 @@ func spawnUnit[T model.AnyUnitModel](g *Game, unit string) *T {
 
 	return any(u).(*T)
 }
+
+// TODO: add constraints to randomness, such as tech base and weight class
+func spawnRandomUnit[T model.AnyUnitModel](g *Game) *T {
+	var unit string
+	var t T
+	switch interfaceType := any(t).(type) {
+	case model.Mech:
+		unit = model.RandomMapKey(g.resources.Mechs)
+	default:
+		panic(fmt.Errorf("spawn random unit type not implemented: %v", interfaceType))
+	}
+
+	return spawnUnit[T](g, unit)
+}

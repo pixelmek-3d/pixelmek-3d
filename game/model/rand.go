@@ -34,3 +34,19 @@ func RandFloat64In(lo, hi float64, rng *rand.Rand) float64 {
 	}
 	return lo + (hi-lo)*randFloat
 }
+
+func RandomMapKey[K comparable, V any](m map[K]V) K {
+	var k K
+	if len(m) == 0 {
+		return k
+	}
+
+	r := rand.Intn(len(m))
+	for k = range m {
+		if r == 0 {
+			return k
+		}
+		r--
+	}
+	return k
+}
