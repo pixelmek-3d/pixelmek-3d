@@ -450,7 +450,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 		// nil represents random unit selection
 		sprite = nil
 	default: // TODO: handle any unit type
-		panic(fmt.Errorf("currently unable to handle selection of model.Unit for type %v", interfaceType))
+		panic(fmt.Errorf("create unit card for unit type not implemented: %v", interfaceType))
 	}
 
 	var imageLabel widget.PreferredSizeLocateableWidget

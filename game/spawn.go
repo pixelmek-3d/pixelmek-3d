@@ -1,13 +1,15 @@
 package game
 
 import (
+	"fmt"
+
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func (g *Game) spawnUnit(unit string) model.Unit {
+func spawnUnit[T model.AnyUnitModel](g *Game, unit string) *T {
 	missionMap := g.mission.Map()
 	rng := model.NewRNG()
 
@@ -35,17 +37,24 @@ func (g *Game) spawnUnit(unit string) model.Unit {
 		Position: spawnPos,
 	}
 
-	// TODO: support non-mech unit types
-	modelMech, err := createMissionUnitModel[model.Mech](g, missionUnit)
-	if err != nil {
-		log.Errorf("error spawning mission unit: %v", err)
-		return nil
+	var u model.Unit
+	var t T
+	switch interfaceType := any(t).(type) {
+	case model.Mech:
+		m, err := createMissionUnitModel[model.Mech](g, missionUnit)
+		if err != nil {
+			log.Errorf("error spawning mission unit: %v", err)
+			return nil
+		}
+		spriteMech := g.createUnitSprite(m).(*sprites.MechSprite)
+		g.sprites.AddMechSprite(spriteMech)
+		u = m
+	default:
+		panic(fmt.Errorf("spawn unit type not implemented: %v", interfaceType))
 	}
-	spriteMech := g.createUnitSprite(modelMech).(*sprites.MechSprite)
-	g.sprites.AddMechSprite(spriteMech)
 
 	// attach AI to unit
-	g.ai.NewUnitAI(modelMech)
+	g.ai.NewUnitAI(u)
 
-	return modelMech
+	return any(u).(*T)
 }

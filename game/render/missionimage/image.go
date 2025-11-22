@@ -115,7 +115,7 @@ func NewMissionImage(m *model.Mission, res *model.ModelResources, tex *texture.T
 	return mapImage, nil
 }
 
-func renderMissionUnit[T model.AllMissionUnitModels](m *missionImage, missionUnit model.MissionUnitInterface) error {
+func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.MissionUnitInterface) error {
 	var s *sprites.Sprite
 
 	var t T

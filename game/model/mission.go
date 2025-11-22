@@ -93,10 +93,6 @@ type MissionUnitInterface interface {
 	GetPosition() geom.Vector2
 }
 
-type AllMissionUnitModels interface {
-	Mech | Vehicle | Infantry | VTOL | Emplacement
-}
-
 type MissionUnitModels interface {
 	Mech | Vehicle | Infantry
 }

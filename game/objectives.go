@@ -368,7 +368,7 @@ func (o *DestroyObjective) Update(g *Game) {
 
 	if o.objective.Waves {
 		log.Debug("spawning next wave")
-		unit := g.spawnUnit("fire_moth_prime") // FIXME: use unit selected by user
+		unit := spawnUnit[model.Mech](g, "fire_moth_prime") // FIXME: use unit selected by user
 		if unit != nil {
 			o.units = append(o.units, unit)
 			return

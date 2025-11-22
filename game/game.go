@@ -662,7 +662,7 @@ func (g *Game) LoadUnit(unitResourceType, unitFile string) model.Unit {
 			return g.createModelMechFromResource(resource)
 		}
 	default:
-		panic(fmt.Errorf("currently unable to handle load model.Unit for resource type %v", unitResourceType))
+		panic(fmt.Errorf("loading model.Unit for resource type not implemented: %v", unitResourceType))
 	}
 	return nil
 }
@@ -676,7 +676,7 @@ func (g *Game) RandomUnit(unitResourceType string) model.Unit {
 		randResource := mechResources[randIndex]
 		return g.createModelMechFromResource(randResource)
 	default:
-		panic(fmt.Errorf("currently unable to handle random model.Unit for resource type %v", unitResourceType))
+		panic(fmt.Errorf("random model.Unit for resource type not implemented: %v", unitResourceType))
 	}
 }
 

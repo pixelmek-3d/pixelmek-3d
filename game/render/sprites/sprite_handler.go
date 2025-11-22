@@ -99,7 +99,7 @@ func GetSpriteType(sInterface raycaster.Sprite) SpriteType {
 	case *EffectSprite:
 		return EffectSpriteType
 	default:
-		panic(fmt.Errorf("unable to get SpriteType from sprite interface type %v", interfaceType))
+		panic(fmt.Errorf("get SpriteType from sprite not implemented: %v", interfaceType))
 	}
 }
 

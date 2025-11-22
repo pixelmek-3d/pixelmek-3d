@@ -27,6 +27,10 @@ const (
 	TotalUnitTypes
 )
 
+type AnyUnitModel interface {
+	Mech | Vehicle | Infantry | VTOL | Emplacement
+}
+
 type UnitObjective int
 
 const (
