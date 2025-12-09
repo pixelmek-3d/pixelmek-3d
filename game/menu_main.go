@@ -115,7 +115,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.Text("Settings", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			mScene, ok := game.scene.(*MenuScene)
+			mScene, ok := game.scene.(*MainMenuScene)
 			if ok {
 				mScene.SetMenu(mScene.settings)
 			}

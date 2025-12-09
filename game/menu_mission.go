@@ -144,7 +144,7 @@ func missionMenuFooterContainer(m *MissionMenu) *widget.Container {
 		widget.ButtonOpts.Text("Back", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*MissionScene)
+			iScene, _ := game.scene.(MenuScene)
 			iScene.back()
 		}),
 	)
@@ -162,7 +162,7 @@ func missionMenuFooterContainer(m *MissionMenu) *widget.Container {
 		widget.ButtonOpts.Text("Next", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*MissionScene)
+			iScene, _ := game.scene.(MenuScene)
 			iScene.next()
 		}),
 	)

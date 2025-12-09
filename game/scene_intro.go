@@ -150,7 +150,7 @@ func (s *IntroScene) Update() error {
 		splash.transitionOpts.HoldDuration = 0
 	} else if skip && splash.transitionOpts.HoldDuration >= 0 {
 		// second key press skips transition to go straight to menu
-		s.Game.scene = NewMenuScene(s.Game)
+		s.Game.scene = NewMainMenuScene(s.Game)
 	}
 
 	return nil

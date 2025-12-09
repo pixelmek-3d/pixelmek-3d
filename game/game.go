@@ -197,7 +197,7 @@ func NewGame() *Game {
 	g.sprites = sprites.NewSpriteHandler()
 
 	// initialize the menu system
-	g.scene = NewMenuScene(g)
+	g.scene = NewMainMenuScene(g)
 
 	if !globalViper.GetBool(PARAM_KEY_SKIP_INTRO) {
 		// show intro scene

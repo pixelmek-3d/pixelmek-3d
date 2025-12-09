@@ -6,7 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type MenuScene struct {
+type MainMenuScene struct {
 	Game             *Game
 	main             *MainMenu
 	settings         *SettingsMenu
@@ -14,7 +14,7 @@ type MenuScene struct {
 	transitionScreen *ebiten.Image
 }
 
-func NewMenuScene(g *Game) Scene {
+func NewMainMenuScene(g *Game) Scene {
 	if !g.audio.IsMusicPlaying() {
 		g.audio.StartMenuMusic()
 	}
@@ -30,7 +30,7 @@ func NewMenuScene(g *Game) Scene {
 	}
 	transition := transitions.NewFade(transitionScreen, tOpts, ebiten.GeoM{})
 
-	scene := &MenuScene{
+	scene := &MainMenuScene{
 		Game:             g,
 		main:             main,
 		settings:         settings,
@@ -41,11 +41,11 @@ func NewMenuScene(g *Game) Scene {
 	return scene
 }
 
-func (s *MenuScene) SetMenu(m Menu) {
+func (s *MainMenuScene) SetMenu(m Menu) {
 	s.Game.menu = m
 }
 
-func (s *MenuScene) Update() error {
+func (s *MainMenuScene) Update() error {
 	g := s.Game
 
 	if g.input.ActionIsJustPressed(ActionBack) {
@@ -77,7 +77,7 @@ func (s *MenuScene) Update() error {
 	return nil
 }
 
-func (s *MenuScene) Draw(screen *ebiten.Image) {
+func (s *MainMenuScene) Draw(screen *ebiten.Image) {
 	g := s.Game
 
 	if s.transition != nil {

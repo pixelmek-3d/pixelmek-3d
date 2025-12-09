@@ -7,6 +7,13 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 
+type MenuScene interface {
+	Scene
+	SetMenu(m Menu)
+	back()
+	next()
+}
+
 type SceneEffect interface {
 	Update() error
 	Draw(screen *ebiten.Image)
@@ -37,8 +44,8 @@ func (g *Game) StopSceneTransition() {
 		return
 	}
 	switch g.scene.(type) {
-	case *MenuScene:
-		g.scene.(*MenuScene).transition = nil
+	case *MainMenuScene:
+		g.scene.(*MainMenuScene).transition = nil
 	case *GameScene:
 		g.scene.(*GameScene).transition = nil
 	}

@@ -6,10 +6,10 @@ import (
 )
 
 type MissionScene struct {
-	Game           *Game
-	missionSelect  *MissionMenu
-	unitSelect     *UnitMenu
-	launchBriefing *LaunchMenu
+	Game             *Game
+	missionSelect    *MissionMenu
+	playerUnitSelect *UnitMenu
+	launchBriefing   *LaunchMenu
 }
 
 func NewMissionScene(g *Game) Scene {
@@ -18,10 +18,10 @@ func NewMissionScene(g *Game) Scene {
 	launchBriefing := createLaunchMenu(g)
 
 	scene := &MissionScene{
-		Game:           g,
-		missionSelect:  missionSelect,
-		unitSelect:     unitSelect,
-		launchBriefing: launchBriefing,
+		Game:             g,
+		missionSelect:    missionSelect,
+		playerUnitSelect: unitSelect,
+		launchBriefing:   launchBriefing,
 	}
 	scene.SetMenu(missionSelect)
 	return scene
@@ -57,9 +57,9 @@ func (s *MissionScene) back() {
 	switch g.menu {
 	case s.launchBriefing:
 		// back to unit select
-		s.SetMenu(s.unitSelect)
+		s.SetMenu(s.playerUnitSelect)
 
-	case s.unitSelect:
+	case s.playerUnitSelect:
 		// back to mission select
 		s.SetMenu(s.missionSelect)
 
@@ -67,7 +67,7 @@ func (s *MissionScene) back() {
 		fallthrough
 	default:
 		// back to main menu
-		g.scene = NewMenuScene(g)
+		g.scene = NewMainMenuScene(g)
 	}
 }
 
@@ -76,7 +76,7 @@ func (s *MissionScene) next() {
 
 	switch g.menu {
 	case s.launchBriefing:
-		// launch mission scene
+		// launch game scene into mission
 		if g.player == nil {
 			// pick player unit at random
 			g.SetPlayerUnit(g.RandomUnit(model.MechResourceType))
@@ -85,13 +85,13 @@ func (s *MissionScene) next() {
 		g.mission = s.missionSelect.selectedMission
 		g.scene = NewGameScene(g)
 
-	case s.unitSelect:
+	case s.playerUnitSelect:
 		// to pre-launch briefing after setting player unit and mission
-		if s.unitSelect.selectedUnit == nil {
+		if s.playerUnitSelect.selectedUnit == nil {
 			// set player unit nil to indicate randomized pick for launch briefing
 			g.player = nil
 		} else {
-			g.SetPlayerUnit(s.unitSelect.selectedUnit)
+			g.SetPlayerUnit(s.playerUnitSelect.selectedUnit)
 		}
 
 		s.launchBriefing.loadBriefing(s.missionSelect.selectedMission)
@@ -99,10 +99,10 @@ func (s *MissionScene) next() {
 
 	case s.missionSelect:
 		// to unit select
-		s.SetMenu(s.unitSelect)
+		s.SetMenu(s.playerUnitSelect)
 
 	default:
 		// back to main menu
-		g.scene = NewMenuScene(g)
+		g.scene = NewMainMenuScene(g)
 	}
 }
