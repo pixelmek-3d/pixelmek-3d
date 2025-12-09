@@ -5,25 +5,26 @@ import (
 )
 
 type InstantActionScene struct {
-	Game *Game
-	// mapSelect  *MissionMenu // TODO: MapMenu
+	Game             *Game
+	mapSelect        *MapMenu
 	playerUnitSelect *UnitMenu
 	enemyUnitSelect  *UnitMenu
 	// launchBriefing *LaunchMenu // TODO: launch briefing menu
 }
 
 func NewInstantActionScene(g *Game) Scene {
-	// mapSelect
+	mapSelect := createMapMenu(g)
 	unitSelect := createUnitMenu(g)
 	enemySelect := createUnitMenu(g)
 	// launchBriefing
 
 	scene := &InstantActionScene{
 		Game:             g,
+		mapSelect:        mapSelect,
 		playerUnitSelect: unitSelect,
 		enemyUnitSelect:  enemySelect,
 	}
-	scene.SetMenu(unitSelect)
+	scene.SetMenu(mapSelect)
 	return scene
 }
 
@@ -62,9 +63,10 @@ func (s *InstantActionScene) back() {
 		s.SetMenu(s.playerUnitSelect)
 
 	case s.playerUnitSelect:
-		// TODO: back to map select, then s.mapSelect is the fallthrough case
+		// back to map select
+		s.SetMenu(s.mapSelect)
 
-		// TODO: case s.mapSelect:
+	case s.mapSelect:
 		fallthrough
 	default:
 		// back to main menu
@@ -73,7 +75,6 @@ func (s *InstantActionScene) back() {
 }
 
 func (s *InstantActionScene) next() {
-	// FIXME: refactor back/next to work properly when not MissionScene
 	g := s.Game
 
 	switch g.menu {
@@ -83,9 +84,9 @@ func (s *InstantActionScene) next() {
 	case s.enemyUnitSelect:
 		// to pre-launch briefing after enemy player unit and map
 		if s.enemyUnitSelect.selectedUnit == nil {
-			// set enemy unit nil to indicate randomized pick
+			// TODO: set enemy unit nil to indicate randomized pick
 		} else {
-
+			// TODO: set enemy unit for mission spawning
 		}
 
 		// TODO: s.SetMenu(s.launchBriefing)
@@ -102,8 +103,9 @@ func (s *InstantActionScene) next() {
 
 		s.SetMenu(s.enemyUnitSelect)
 
-	// TODO: case s.mapSelect:
-	//           to unit select
+	case s.mapSelect:
+		// to unit select
+		s.SetMenu(s.playerUnitSelect)
 
 	default:
 		// back to main menu
