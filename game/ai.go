@@ -199,13 +199,15 @@ func NewAIHandler(g *Game) *AIHandler {
 		ai:        make([]*AIBehavior, 0, len(units)),
 		resources: aiRes,
 	}
+	aiHandler.initiative = NewAIInitiative(aiHandler)
 
 	for _, u := range units {
 		aiHandler.NewUnitAI(u)
 	}
-
-	aiHandler.LoadFormations()
-	aiHandler.initiative = NewAIInitiative(aiHandler)
+	if len(units) > 0 {
+		aiHandler.LoadFormations()
+		aiHandler.initiative.roll()
+	}
 
 	return aiHandler
 }

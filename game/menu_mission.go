@@ -426,7 +426,7 @@ func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *
 	)
 
 	var mapTex *texture.TextureHandler
-	if g.mission == mission {
+	if g.tex != nil && g.tex.IsHandlerForMap(mission.Map()) {
 		mapTex = g.tex
 	} else {
 		mapTex = texture.NewTextureHandler(mission.Map())

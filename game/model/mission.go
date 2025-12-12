@@ -39,6 +39,24 @@ type Mission struct {
 	SpawnPoints []*SpawnPoint `yaml:"-"`
 }
 
+func NewMissionFromMapPath(mapPath string) (*Mission, error) {
+	m := &Mission{MapPath: mapPath}
+	err := m.loadMissionMap()
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func NewMissionFromMap(missionMap *Map) (*Mission, error) {
+	m := &Mission{missionMap: missionMap}
+	err := m.loadMissionMap()
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (m *Mission) Map() *Map {
 	return m.missionMap
 }
@@ -226,7 +244,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 	}
 
 	// load mission map
-	err = m.LoadMissionMap()
+	err = m.loadMissionMap()
 	if err != nil {
 		return nil, err
 	}
@@ -234,12 +252,14 @@ func LoadMission(missionFile string) (*Mission, error) {
 	return m, nil
 }
 
-func (m *Mission) LoadMissionMap() error {
-	var err error
-	m.missionMap, err = LoadMap(m.MapPath)
-	if err != nil {
-		log.Error("Error loading map: ", m.MapPath)
-		return err
+func (m *Mission) loadMissionMap() error {
+	if m.missionMap == nil {
+		var err error
+		m.missionMap, err = LoadMap(m.MapPath)
+		if err != nil {
+			log.Error("Error loading map: ", m.MapPath)
+			return err
+		}
 	}
 
 	// initialize map pathing

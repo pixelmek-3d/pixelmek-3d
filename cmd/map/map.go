@@ -19,7 +19,7 @@ func init() {
 
 var (
 	listMaps bool
-	mapFile  string
+	mapPath  string
 	MapCmd   = &cobra.Command{
 		Use:   "map",
 		Short: "Commands related to Maps",

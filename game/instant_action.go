@@ -4,15 +4,27 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
-func (g *Game) LoadInstantAction(mapFile string) (*model.Mission, error) {
-	mission := &model.Mission{MapPath: mapFile}
-
-	// load mission map
-	err := mission.LoadMissionMap()
+func (g *Game) LoadInstantActionFromMapPath(mapPath string) (*model.Mission, error) {
+	mission, err := model.NewMissionFromMapPath(mapPath)
 	if err != nil {
 		return nil, err
 	}
+	initInstantActionMission(mission)
+	g.mission = mission
+	return mission, nil
+}
 
+func (g *Game) LoadInstantActionFromMap(missionMap *model.Map) (*model.Mission, error) {
+	mission, err := model.NewMissionFromMap(missionMap)
+	if err != nil {
+		return nil, err
+	}
+	initInstantActionMission(mission)
+	g.mission = mission
+	return mission, nil
+}
+
+func initInstantActionMission(mission *model.Mission) {
 	missionMap := mission.Map()
 	mission.Title = "Instant Action\n" + missionMap.Name
 	mission.Briefing = "Destroy never-ending waves of enemies."
@@ -32,7 +44,4 @@ func (g *Game) LoadInstantAction(mapFile string) (*model.Mission, error) {
 			},
 		},
 	}
-
-	g.mission = mission
-	return mission, nil
 }

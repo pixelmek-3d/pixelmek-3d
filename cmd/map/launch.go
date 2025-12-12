@@ -23,18 +23,18 @@ var (
 		Short: "Launch game directly into a map for instant action",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			mapFile = args[0]
+			mapPath = args[0]
 
 			// load the map path specified
 			g := game.NewGame()
-			_, err := g.LoadInstantAction(mapFile)
+			_, err := g.LoadInstantActionFromMapPath(mapPath)
 			if err != nil {
-				log.Error("Error loading map file: ", mapFile)
+				log.Error("Error loading map file: ", mapPath)
 				log.Error(err)
 
-				mapFilenames, _ := model.ListMapFilenames()
-				if len(mapFilenames) > 0 {
-					log.Error("Map files available:\n", strings.Join(mapFilenames[:], "\n"))
+				mapPathList, _ := model.ListMapFilenames()
+				if len(mapPathList) > 0 {
+					log.Error("Map files available:\n", strings.Join(mapPathList[:], "\n"))
 				}
 				os.Exit(1)
 			}

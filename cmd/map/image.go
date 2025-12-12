@@ -47,7 +47,7 @@ var (
 		Short: "Export map file as an image",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			mapFile = args[0]
+			mapPath = args[0]
 
 			// initialize game resources without running the actual game loop
 			g := game.NewGame()
@@ -64,7 +64,7 @@ var (
 			}
 
 			// mock game loop required for certain offscreen ebitengine render functions
-			ebiten.SetWindowTitle("Exporting map image " + mapFile + " ...")
+			ebiten.SetWindowTitle("Exporting map image " + mapPath + " ...")
 			mapExport := export.NewExportLoop(doMapExport)
 			if err := ebiten.RunGame(mapExport); err != nil {
 				log.Fatal(err)
@@ -74,10 +74,10 @@ var (
 )
 
 func doMapExport() {
-	log.Debug("loading map file ", mapFile, "...")
-	m, err := model.LoadMap(mapFile)
+	log.Debug("loading map file ", mapPath, "...")
+	m, err := model.LoadMap(mapPath)
 	if err != nil {
-		log.Error("error loading map file: ", mapFile)
+		log.Error("error loading map file: ", mapPath)
 		os.Exit(1)
 	}
 

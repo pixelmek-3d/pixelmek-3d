@@ -2,6 +2,9 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type InstantActionScene struct {
@@ -9,20 +12,21 @@ type InstantActionScene struct {
 	mapSelect        *MapMenu
 	playerUnitSelect *UnitMenu
 	enemyUnitSelect  *UnitMenu
-	// launchBriefing *LaunchMenu // TODO: launch briefing menu
+	launchBriefing   *LaunchMenu
 }
 
 func NewInstantActionScene(g *Game) Scene {
 	mapSelect := createMapMenu(g)
 	unitSelect := createUnitMenu(g)
 	enemySelect := createUnitMenu(g)
-	// launchBriefing
+	launchBriefing := createLaunchMenu(g)
 
 	scene := &InstantActionScene{
 		Game:             g,
 		mapSelect:        mapSelect,
 		playerUnitSelect: unitSelect,
 		enemyUnitSelect:  enemySelect,
+		launchBriefing:   launchBriefing,
 	}
 	scene.SetMenu(mapSelect)
 	return scene
@@ -56,10 +60,12 @@ func (s *InstantActionScene) back() {
 	g := s.Game
 
 	switch g.menu {
-	// TODO: case s.launchBriefing:
-	//           back to enemy unit select
+	case s.launchBriefing:
+		// back to enemy unit select
+		s.SetMenu(s.enemyUnitSelect)
 
 	case s.enemyUnitSelect:
+		// back to player unit select
 		s.SetMenu(s.playerUnitSelect)
 
 	case s.playerUnitSelect:
@@ -78,8 +84,14 @@ func (s *InstantActionScene) next() {
 	g := s.Game
 
 	switch g.menu {
-	// TODO: case s.launchBriefing:
-	//           launch game scene into map mission
+	case s.launchBriefing:
+		// launch game scene into map mission
+		if g.player == nil {
+			// pick player unit at random
+			g.SetPlayerUnit(g.RandomUnit(model.MechResourceType))
+		}
+
+		g.scene = NewGameScene(g)
 
 	case s.enemyUnitSelect:
 		// to pre-launch briefing after enemy player unit and map
@@ -89,8 +101,14 @@ func (s *InstantActionScene) next() {
 			// TODO: set enemy unit for mission spawning
 		}
 
-		// TODO: s.SetMenu(s.launchBriefing)
-		// TODO: move launch game scene step to launchBriefing case
+		mission, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap)
+		if err != nil {
+			log.Error("Error loading mission from map: ", s.mapSelect.selectedMap.Name)
+			log.Error(err)
+			exit(1)
+		}
+		s.launchBriefing.loadBriefing(mission)
+		s.SetMenu(s.launchBriefing)
 
 	case s.playerUnitSelect:
 		// to enemy unit select after setting player unit
