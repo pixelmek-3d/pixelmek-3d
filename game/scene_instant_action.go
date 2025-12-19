@@ -17,8 +17,8 @@ type InstantActionScene struct {
 
 func NewInstantActionScene(g *Game) Scene {
 	mapSelect := createMapMenu(g)
-	unitSelect := createUnitMenu(g)
-	enemySelect := createUnitMenu(g)
+	unitSelect := createUnitMenu(g, PlayerUnitMenu)
+	enemySelect := createUnitMenu(g, EnemyUnitMenu)
 	launchBriefing := createLaunchMenu(g)
 
 	scene := &InstantActionScene{

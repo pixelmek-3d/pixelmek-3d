@@ -14,7 +14,7 @@ type MissionScene struct {
 
 func NewMissionScene(g *Game) Scene {
 	missionSelect := createMissionMenu(g)
-	unitSelect := createUnitMenu(g)
+	unitSelect := createUnitMenu(g, PlayerUnitMenu)
 	launchBriefing := createLaunchMenu(g)
 
 	scene := &MissionScene{
