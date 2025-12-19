@@ -10,6 +10,7 @@ import (
 )
 
 type BallisticWeapon struct {
+	Equipment
 	Resource        *ModelBallisticWeaponResource
 	name            string
 	short           string
