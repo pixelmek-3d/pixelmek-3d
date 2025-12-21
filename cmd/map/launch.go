@@ -27,7 +27,7 @@ var (
 
 			// load the map path specified
 			g := game.NewGame()
-			_, err := g.LoadInstantActionFromMapPath(mapPath)
+			_, err := g.LoadInstantActionFromMapPath(mapPath, nil)
 			if err != nil {
 				log.Error("Error loading map file: ", mapPath)
 				log.Error(err)

@@ -81,7 +81,11 @@ type MissionDestroyObjectives struct {
 	Unit string `yaml:"unit,omitempty"`
 
 	// Enemy waves objective used only in Instant Action for now
-	Waves bool `yaml:"-"`
+	Waves *UnitWaves `yaml:"-"`
+}
+
+type UnitWaves struct {
+	Units []Unit `yaml:"-"`
 }
 
 type MissionProtectObjectives struct {

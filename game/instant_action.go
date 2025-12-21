@@ -4,30 +4,39 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
-func (g *Game) LoadInstantActionFromMapPath(mapPath string) (*model.Mission, error) {
+type InstantActionMissionOpts struct {
+	enemies []model.Unit
+}
+
+func (g *Game) LoadInstantActionFromMapPath(mapPath string, opts *InstantActionMissionOpts) (*model.Mission, error) {
 	mission, err := model.NewMissionFromMapPath(mapPath)
 	if err != nil {
 		return nil, err
 	}
-	initInstantActionMission(mission)
+	initInstantActionMission(mission, opts)
 	g.mission = mission
 	return mission, nil
 }
 
-func (g *Game) LoadInstantActionFromMap(missionMap *model.Map) (*model.Mission, error) {
+func (g *Game) LoadInstantActionFromMap(missionMap *model.Map, opts *InstantActionMissionOpts) (*model.Mission, error) {
 	mission, err := model.NewMissionFromMap(missionMap)
 	if err != nil {
 		return nil, err
 	}
-	initInstantActionMission(mission)
+	initInstantActionMission(mission, opts)
 	g.mission = mission
 	return mission, nil
 }
 
-func initInstantActionMission(mission *model.Mission) {
+func initInstantActionMission(mission *model.Mission, opts *InstantActionMissionOpts) {
 	missionMap := mission.Map()
 	mission.Title = "Instant Action\n" + missionMap.Name
 	mission.Briefing = "Destroy never-ending waves of enemies."
+
+	var enemies []model.Unit
+	if opts != nil {
+		enemies = opts.enemies
+	}
 
 	// initialize enemy spawns
 	mission.SpawnPoints = make([]*model.SpawnPoint, 0, len(missionMap.SpawnPoints))
@@ -40,7 +49,7 @@ func initInstantActionMission(mission *model.Mission) {
 		Destroy: []*model.MissionDestroyObjectives{
 			{
 				All:   true,
-				Waves: true,
+				Waves: &model.UnitWaves{Units: enemies},
 			},
 		},
 	}

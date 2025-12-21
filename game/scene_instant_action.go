@@ -95,13 +95,13 @@ func (s *InstantActionScene) next() {
 
 	case s.enemyUnitSelect:
 		// to pre-launch briefing after enemy player unit and map
-		if s.enemyUnitSelect.selectedUnit == nil {
-			// TODO: set enemy unit nil to indicate randomized pick
-		} else {
-			// TODO: set enemy unit for mission spawning
+		opts := &InstantActionMissionOpts{enemies: make([]model.Unit, 0, 1)}
+		if s.enemyUnitSelect.selectedUnit != nil {
+			// set enemy unit for mission spawning
+			opts.enemies = append(opts.enemies, s.enemyUnitSelect.selectedUnit)
 		}
 
-		mission, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap)
+		mission, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, opts)
 		if err != nil {
 			log.Error("Error loading mission from map: ", s.mapSelect.selectedMap.Name)
 			log.Error(err)

@@ -366,11 +366,18 @@ func (o *DestroyObjective) Update(g *Game) {
 		return
 	}
 
-	if o.objective.Waves {
+	waves := o.objective.Waves
+	if waves != nil {
 		log.Debug("spawning next wave")
-		// TODO: support unit selected by user or random unit in appropriate weight class
-		//unit := spawnUnit[model.Mech](g, "fire_moth_prime")
-		unit := spawnRandomUnit[model.Mech](g)
+
+		var unit model.Unit
+		if len(waves.Units) == 0 {
+			// TODO: support random unit in appropriate weight class
+			unit = spawnRandomUnit[model.Mech](g)
+		} else {
+			// TODO: support waves of more than one unit
+			unit = spawnUnit[model.Mech](g, waves.Units[0])
+		}
 		if unit != nil {
 			o.units = append(o.units, unit)
 			return

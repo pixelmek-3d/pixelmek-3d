@@ -3,13 +3,16 @@ package game
 import (
 	"fmt"
 
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func spawnUnit[T model.AnyUnitModel](g *Game, unit string) *T {
+func spawnUnit[T model.AnyUnitModel](g *Game, u model.Unit) *T {
+	unit := u.CloneUnit()
+
 	missionMap := g.mission.Map()
 	rng := model.NewRNG()
 
@@ -32,10 +35,28 @@ func spawnUnit[T model.AnyUnitModel](g *Game, unit string) *T {
 		spawnPos = missionMap.SpawnPoints[rng.Intn(len(missionMap.SpawnPoints))]
 	}
 
-	missionUnit := model.MissionUnit{
-		Unit:     unit,
-		Position: spawnPos,
+	unit.SetPos(&geom.Vector2{X: spawnPos[0], Y: spawnPos[1]})
+
+	// attach AI to unit
+	g.ai.NewUnitAI(unit)
+
+	// add sprite to game
+	sprite := g.createUnitSprite(unit)
+
+	var t T
+	switch interfaceType := any(t).(type) {
+	case model.Mech:
+		g.sprites.AddMechSprite(sprite.(*sprites.MechSprite))
+	default:
+		panic(fmt.Errorf("spawn unit type not implemented: %v", interfaceType))
 	}
+
+	return any(unit).(*T)
+}
+
+func spawnMissionUnit[T model.AnyUnitModel](g *Game, unit string) *T {
+
+	missionUnit := model.MissionUnit{Unit: unit}
 
 	var u model.Unit
 	var t T
@@ -46,17 +67,12 @@ func spawnUnit[T model.AnyUnitModel](g *Game, unit string) *T {
 			log.Errorf("error spawning mission unit: %v", err)
 			return nil
 		}
-		spriteMech := g.createUnitSprite(m).(*sprites.MechSprite)
-		g.sprites.AddMechSprite(spriteMech)
 		u = m
 	default:
-		panic(fmt.Errorf("spawn unit type not implemented: %v", interfaceType))
+		panic(fmt.Errorf("spawn mission unit type not implemented: %v", interfaceType))
 	}
 
-	// attach AI to unit
-	g.ai.NewUnitAI(u)
-
-	return any(u).(*T)
+	return spawnUnit[T](g, u)
 }
 
 // TODO: add constraints to randomness, such as tech base and weight class
@@ -70,5 +86,5 @@ func spawnRandomUnit[T model.AnyUnitModel](g *Game) *T {
 		panic(fmt.Errorf("spawn random unit type not implemented: %v", interfaceType))
 	}
 
-	return spawnUnit[T](g, unit)
+	return spawnMissionUnit[T](g, unit)
 }

@@ -122,7 +122,7 @@ func (m *UnitMenu) Draw(screen *ebiten.Image) {
 func unitTitleContainer(m *UnitMenu) *widget.Container {
 	res := m.Resources()
 
-	title := UnitMenuPurposeString(m.purpose) + " Unit Selection"
+	title := "Unit Selection: " + UnitMenuPurposeString(m.purpose)
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
