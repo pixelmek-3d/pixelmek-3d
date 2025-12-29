@@ -489,12 +489,12 @@ func openMapWindow(g *Game, res *uiResources, modelMap *model.Map) {
 	)
 
 	if mapImage == nil || mapImage.modelMap != modelMap || mapImage.image == nil {
-		// var mapTex *texture.TextureHandler
-		// if g.modelMap == modelMap {
-		// 	mapTex = g.tex
-		// } else {
-		mapTex := texture.NewTextureHandler(modelMap)
-		// }
+		var mapTex *texture.TextureHandler
+		if g.tex != nil && g.tex.IsHandlerForMap(modelMap) {
+			mapTex = g.tex
+		} else {
+			mapTex = texture.NewTextureHandler(modelMap)
+		}
 		img, err := mapimage.NewMapImage(modelMap, mapTex, mapOpts)
 		if err != nil {
 			log.Error("Error loading map image: ", err)

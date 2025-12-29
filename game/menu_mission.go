@@ -510,7 +510,7 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 
 	if missionImage == nil || missionImage.mission != mission || missionImage.image == nil {
 		var mapTex *texture.TextureHandler
-		if g.mission == mission {
+		if g.tex != nil && g.tex.IsHandlerForMap(mission.Map()) {
 			mapTex = g.tex
 		} else {
 			mapTex = texture.NewTextureHandler(mission.Map())
