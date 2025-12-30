@@ -39,34 +39,16 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 		mapImage.Fill(floorImg.At(centerX, centerY))
 	}
 
-	defaultFloorTexturePath := tex.DefaultFloorTexturePath()
-
 	if opts.RenderDefaultFloorTexture {
-
-		// FIXME: refactor below loops to reduce code duplication
-
 		if opts.FilterDefaultFloorTexture {
 			// draw default floor texture layer at higher resolution then scale down to reduce hatch grid effect
 			hiResFloorPxPerCell := geom.ClampInt(pxPerCell*int(math.Pow(2, 3)), 1, 64)
 			hiResFloorImg := ebiten.NewImage(mapWidth*hiResFloorPxPerCell, mapHeight*hiResFloorPxPerCell)
-			hiResTexScale := float64(hiResFloorPxPerCell) / float64(resources.TexSize)
-			for x := range mapWidth {
-				for y := range mapHeight {
-					cellTexPath := tex.FloorTexturePathAt(x, y)
-					if cellTexPath != defaultFloorTexturePath {
-						continue
-					}
-					cellImg := tex.TextureImage(cellTexPath)
-					if cellImg == nil {
-						return nil, fmt.Errorf("map image failed to load cell texture at (%d,%d): %s", x, y, cellTexPath)
-					}
-					op := &ebiten.DrawImageOptions{}
-					op.Filter = ebiten.FilterLinear
-					op.GeoM.Scale(hiResTexScale, hiResTexScale)
-					op.GeoM.Translate(float64(x*hiResFloorPxPerCell), float64((mapHeight-y-1)*hiResFloorPxPerCell))
-					hiResFloorImg.DrawImage(cellImg, op)
-				}
-			}
+			drawFloorTextures(m, tex, hiResFloorImg, drawFloorTexturesOptions{
+				drawDefaultFloorTexture: true,
+				pxPerCell:               hiResFloorPxPerCell,
+				filter:                  ebiten.FilterLinear,
+			})
 
 			// draw downscaled default floor texture image to fit target
 			hiResDownScale := float64(hiResFloorPxPerCell) / float64(pxPerCell)
@@ -76,44 +58,20 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 			mapImage.DrawImage(hiResFloorImg, op)
 		} else {
 			// draw default first floor textures
-			for x := range mapWidth {
-				for y := range mapHeight {
-					cellTexPath := tex.FloorTexturePathAt(x, y)
-					if cellTexPath != defaultFloorTexturePath {
-						continue
-					}
-					cellImg := tex.TextureImage(cellTexPath)
-					if cellImg == nil {
-						return nil, fmt.Errorf("map image failed to load cell texture at (%d,%d): %s", x, y, cellTexPath)
-					}
-					op := &ebiten.DrawImageOptions{}
-					op.Filter = ebiten.FilterNearest
-					op.GeoM.Scale(texScale, texScale)
-					op.GeoM.Translate(float64(x*pxPerCell), float64((mapHeight-y-1)*pxPerCell))
-					mapImage.DrawImage(cellImg, op)
-				}
-			}
+			drawFloorTextures(m, tex, mapImage, drawFloorTexturesOptions{
+				drawDefaultFloorTexture: true,
+				pxPerCell:               pxPerCell,
+				filter:                  ebiten.FilterNearest,
+			})
 		}
 	}
 
 	// draw non-default first floor textures
-	for x := range mapWidth {
-		for y := range mapHeight {
-			cellTexPath := tex.FloorTexturePathAt(x, y)
-			if cellTexPath == defaultFloorTexturePath {
-				continue
-			}
-			cellImg := tex.TextureImage(cellTexPath)
-			if cellImg == nil {
-				return nil, fmt.Errorf("map image failed to load cell texture at (%d,%d): %s", x, y, cellTexPath)
-			}
-			op := &ebiten.DrawImageOptions{}
-			op.Filter = ebiten.FilterNearest
-			op.GeoM.Scale(texScale, texScale)
-			op.GeoM.Translate(float64(x*pxPerCell), float64((mapHeight-y-1)*pxPerCell))
-			mapImage.DrawImage(cellImg, op)
-		}
-	}
+	drawFloorTextures(m, tex, mapImage, drawFloorTexturesOptions{
+		drawOtherFloorTexture: true,
+		pxPerCell:             pxPerCell,
+		filter:                ebiten.FilterNearest,
+	})
 
 	// draw first level wall texture layer
 	for x := range mapWidth {
@@ -187,4 +145,36 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 	}
 
 	return mapImage, nil
+}
+
+type drawFloorTexturesOptions struct {
+	pxPerCell               int
+	filter                  ebiten.Filter
+	drawDefaultFloorTexture bool
+	drawOtherFloorTexture   bool
+}
+
+func drawFloorTextures(m *model.Map, tex *texture.TextureHandler, mapImage *ebiten.Image, opts drawFloorTexturesOptions) error {
+	mapWidth, mapHeight := m.Size()
+	defaultFloorTexturePath := tex.DefaultFloorTexturePath()
+	texScale := float64(opts.pxPerCell) / float64(resources.TexSize)
+	for x := range mapWidth {
+		for y := range mapHeight {
+			cellTexPath := tex.FloorTexturePathAt(x, y)
+			if (!opts.drawDefaultFloorTexture && cellTexPath == defaultFloorTexturePath) ||
+				(!opts.drawOtherFloorTexture && cellTexPath != defaultFloorTexturePath) {
+				continue
+			}
+			cellImg := tex.TextureImage(cellTexPath)
+			if cellImg == nil {
+				return fmt.Errorf("map image failed to load cell texture at (%d,%d): %s", x, y, cellTexPath)
+			}
+			op := &ebiten.DrawImageOptions{}
+			op.Filter = opts.filter
+			op.GeoM.Scale(texScale, texScale)
+			op.GeoM.Translate(float64(x*opts.pxPerCell), float64((mapHeight-y-1)*opts.pxPerCell))
+			mapImage.DrawImage(cellImg, op)
+		}
+	}
+	return nil
 }
