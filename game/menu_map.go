@@ -441,7 +441,7 @@ func createMapThumbnail(g *Game, res *uiResources, modelMap *model.Map) *widget.
 func openMapWindow(g *Game, res *uiResources, modelMap *model.Map) {
 	// TODO: refactor shared functionality with menumission.openMissionMapWindow
 
-	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true}
+	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true, FilterDefaultFloorTexture: true}
 	//mapOpts := mapimage.MapImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
 	var rmWindow widget.RemoveWindowFunc

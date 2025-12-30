@@ -461,7 +461,7 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 
 	// TODO: render current player position and position of enemies that are in range
 
-	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true}
+	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true, FilterDefaultFloorTexture: true}
 	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
 	var rmWindow widget.RemoveWindowFunc
