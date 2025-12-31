@@ -625,10 +625,9 @@ func (g *Game) handleInput() {
 				groups := model.GetGroupsForWeapon(weapon, g.player.weaponGroups)
 				for _, gIndex := range groups {
 					if int(gIndex) == setGroupIndex {
-						// already in group
+						// already in group, remove it
 						addToGroup = false
-					} else {
-						// remove from current group
+
 						weaponsInGroup := g.player.weaponGroups[gIndex]
 						g.player.weaponGroups[gIndex] = make([]model.Weapon, 0, len(weaponsInGroup)-1)
 						for _, chkWeapon := range weaponsInGroup {
@@ -636,6 +635,7 @@ func (g *Game) handleInput() {
 								g.player.weaponGroups[gIndex] = append(g.player.weaponGroups[gIndex], chkWeapon)
 							}
 						}
+						break
 					}
 				}
 
