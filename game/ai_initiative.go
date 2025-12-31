@@ -3,6 +3,7 @@ package game
 import (
 	"math"
 	"math/rand"
+	"slices"
 	"sort"
 
 	log "github.com/sirupsen/logrus"
@@ -17,15 +18,33 @@ const (
 )
 
 type AIInitiative struct {
-	ai    []*AIBehavior
-	stack [][]*AIBehavior
-	timer uint
+	aiHandler *AIHandler
+	stack     [][]*AIBehavior
+	timer     uint
 }
 
-func NewAIInitiative(aiList []*AIBehavior) *AIInitiative {
-	a := &AIInitiative{ai: aiList}
+func NewAIInitiative(aiHandler *AIHandler) *AIInitiative {
+	a := &AIInitiative{aiHandler: aiHandler}
 	a.roll()
 	return a
+}
+
+func (n *AIInitiative) add(a *AIBehavior) {
+	if a == nil || n.has(a) {
+		// do not add an AI that is already assigned an initiative
+		return
+	}
+	lastSlot := AI_INITIATIVE_SLOTS - 1
+	n.stack[lastSlot] = append(n.stack[lastSlot], a)
+}
+
+func (n *AIInitiative) has(a *AIBehavior) bool {
+	for _, arr := range n.stack {
+		if slices.Contains(arr, a) {
+			return true
+		}
+	}
+	return false
 }
 
 func (n *AIInitiative) clear() {
@@ -44,8 +63,8 @@ func (n *AIInitiative) roll() {
 	}
 
 	// determine initiative for each AI (higher is better)
-	rolls := make([]*initiativeRoll, 0, len(n.ai))
-	for _, ai := range n.ai {
+	rolls := make([]*initiativeRoll, 0, len(n.aiHandler.ai))
+	for _, ai := range n.aiHandler.ai {
 		if ai.u.IsDestroyed() {
 			continue
 		}
@@ -85,7 +104,7 @@ func (n *AIInitiative) roll() {
 		log.Debug("rolled initiative:")
 		for i := 0; i < len(n.stack); i++ {
 			for j := 0; j < len(n.stack[i]); j++ {
-				log.Debugf("  %d.%d - %v", i, j, n.stack[i][j].u.ID())
+				log.Debugf("  %d.%d - %v @ %v", i, j, n.stack[i][j].u.ID(), n.stack[i][j].u.Pos())
 			}
 		}
 	}

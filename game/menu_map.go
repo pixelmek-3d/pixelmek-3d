@@ -10,57 +10,53 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/mapimage"
-	"github.com/pixelmek-3d/pixelmek-3d/game/render/missionimage"
 	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 
 	log "github.com/sirupsen/logrus"
 )
 
-type MissionMenu struct {
+type MapMenu struct {
 	*MenuModel
-	selectedMission *model.Mission
+	selectedMap *model.Map
 }
 
-type missionMenuPageContainer struct {
-	missionMenu *MissionMenu
-	widget      *widget.Container
-	titleText   *widget.Text
-	flipBook    *widget.FlipBook
+type mapMenuPageContainer struct {
+	mapMenu   *MapMenu
+	widget    *widget.Container
+	titleText *widget.Text
+	flipBook  *widget.FlipBook
 }
 
-type missionMenuPage struct {
-	title       string
-	missionFile string
-	content     *widget.Container
-	mission     *model.Mission
+type mapMenuPage struct {
+	title    string
+	mapFile  string
+	content  *widget.Container
+	modelMap *model.Map
 }
 
-type MissionCardStyle int
+type MapCardStyle int
 
 const (
-	MissionCardSelect MissionCardStyle = iota
-	MissionCardLaunch
-	MissionCardGame
-	MissionCardDebrief
+	MapCardSelect MapCardStyle = iota
 )
 
-type MissionCard struct {
+type MapCard struct {
 	*widget.Container
-	style          MissionCardStyle
+	style          MapCardStyle
 	objectivesText *widget.TextArea
 }
 
-var missionImage *missionMapImage
+var mapImage *mapMapImage
 
-type missionMapImage struct {
-	mission *model.Mission
-	image   *ebiten.Image
+type mapMapImage struct {
+	modelMap *model.Map
+	image    *ebiten.Image
 }
 
-func createMissionMenu(g *Game) *MissionMenu {
+func createMapMenu(g *Game) *MapMenu {
 	var ui *ebitenui.UI = &ebitenui.UI{}
 
-	menu := &MissionMenu{
+	menu := &MapMenu{
 		MenuModel: &MenuModel{
 			game:   g,
 			ui:     ui,
@@ -74,32 +70,32 @@ func createMissionMenu(g *Game) *MissionMenu {
 	return menu
 }
 
-func (m *MissionMenu) initMenu() {
+func (m *MapMenu) initMenu() {
 	m.MenuModel.initMenu()
 	m.root.SetBackgroundImage(m.Resources().background)
 
 	// menu title
-	titleBar := missionTitleContainer(m)
+	titleBar := mapTitleContainer(m)
 	m.root.AddChild(titleBar)
 
-	// mission selection
-	selection := missionMenuSelectionContainer(m)
+	// map selection
+	selection := mapMenuSelectionContainer(m)
 	m.root.AddChild(selection)
 
 	// footer
-	footer := missionMenuFooterContainer(m)
+	footer := mapMenuFooterContainer(m)
 	m.root.AddChild(footer)
 }
 
-func (m *MissionMenu) Update() {
+func (m *MapMenu) Update() {
 	m.ui.Update()
 }
 
-func (m *MissionMenu) Draw(screen *ebiten.Image) {
+func (m *MapMenu) Draw(screen *ebiten.Image) {
 	m.ui.Draw(screen)
 }
 
-func missionTitleContainer(m *MissionMenu) *widget.Container {
+func mapTitleContainer(m *MapMenu) *widget.Container {
 	res := m.Resources()
 
 	c := widget.NewContainer(
@@ -114,14 +110,14 @@ func missionTitleContainer(m *MissionMenu) *widget.Container {
 			}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Mission Selection", res.text.bigTitleFace, res.text.idleColor),
+		widget.TextOpts.Text("Map Selection", res.text.bigTitleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
 	return c
 }
 
-func missionMenuFooterContainer(m *MissionMenu) *widget.Container {
+func mapMenuFooterContainer(m *MapMenu) *widget.Container {
 	game := m.Game()
 	res := m.Resources()
 
@@ -171,11 +167,11 @@ func missionMenuFooterContainer(m *MissionMenu) *widget.Container {
 	return c
 }
 
-func missionMenuSelectionContainer(m *MissionMenu) widget.PreferredSizeLocateableWidget {
+func mapMenuSelectionContainer(m *MapMenu) widget.PreferredSizeLocateableWidget {
 	res := m.Resources()
 	g := m.Game()
 
-	missionList, err := model.ListMissionFilenames()
+	mapList, err := model.ListMapFilenames()
 	if err != nil {
 		log.Error(err)
 	}
@@ -191,25 +187,25 @@ func missionMenuSelectionContainer(m *MissionMenu) widget.PreferredSizeLocateabl
 			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
 
-	pages := make([]any, 0, len(missionList))
+	pages := make([]any, 0, len(mapList))
 
-	// TODO: add entry for random mission
+	// TODO: add entry for random map
 
-	for _, missionFile := range missionList {
-		if !g.debug && strings.HasPrefix(strings.ToLower(missionFile), "debug") {
-			// only show debug prefixed missions in debug mode
+	for _, mapFile := range mapList {
+		if !g.debug && strings.HasPrefix(strings.ToLower(mapFile), "debug") {
+			// only show debug prefixed maps in debug mode
 			continue
 		}
-		missionPage := missionSelectionPage(m, missionFile)
-		pages = append(pages, missionPage)
+		mapPage := mapSelectionPage(m, mapFile)
+		pages = append(pages, mapPage)
 	}
 
-	pageContainer := newMissionMenuPageContainer(m)
+	pageContainer := newMapMenuPageContainer(m)
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
 		widget.ListOpts.EntryLabelFunc(func(e any) string {
-			return e.(*missionMenuPage).title
+			return e.(*mapMenuPage).title
 		}),
 		widget.ListOpts.ScrollContainerImage(res.list.image),
 		widget.ListOpts.SliderParams(&widget.SliderParams{
@@ -225,11 +221,11 @@ func missionMenuSelectionContainer(m *MissionMenu) widget.PreferredSizeLocateabl
 		widget.ListOpts.HideHorizontalSlider(),
 		widget.ListOpts.EntryTextPosition(widget.TextPositionStart, widget.TextPositionCenter),
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
-			nextPage := args.Entry.(*missionMenuPage)
+			nextPage := args.Entry.(*mapMenuPage)
 			pageContainer.setPage(nextPage)
 			m.Root().RequestRelayout()
 
-			m.selectedMission = nextPage.mission
+			m.selectedMap = nextPage.modelMap
 		}))
 
 	c.AddChild(pageList)
@@ -241,7 +237,7 @@ func missionMenuSelectionContainer(m *MissionMenu) widget.PreferredSizeLocateabl
 	return c
 }
 
-func newMissionMenuPageContainer(m *MissionMenu) *missionMenuPageContainer {
+func newMapMenuPageContainer(m *MapMenu) *mapMenuPageContainer {
 	res := m.Resources()
 
 	c := widget.NewContainer(
@@ -266,56 +262,56 @@ func newMissionMenuPageContainer(m *MissionMenu) *missionMenuPageContainer {
 	)
 	c.AddChild(flipBook)
 
-	return &missionMenuPageContainer{
-		missionMenu: m,
-		widget:      c,
-		titleText:   titleText,
-		flipBook:    flipBook,
+	return &mapMenuPageContainer{
+		mapMenu:   m,
+		widget:    c,
+		titleText: titleText,
+		flipBook:  flipBook,
 	}
 }
 
-func (p *missionMenuPageContainer) setPage(page *missionMenuPage) {
-	m := p.missionMenu
+func (p *mapMenuPageContainer) setPage(page *mapMenuPage) {
+	m := p.mapMenu
 
-	// update page mission content to current mission
-	page.setMission(m)
+	// update page map content to current map
+	page.setMap(m)
 
-	// show mission title
-	p.titleText.Label = page.mission.Title
+	// show map title
+	p.titleText.Label = page.modelMap.Name
 
 	p.flipBook.SetPage(page.content)
 	p.flipBook.RequestRelayout()
 }
 
-func missionSelectionPage(_ *MissionMenu, missionFile string) *missionMenuPage {
-	// create page stub container, not loading mission data until it is selected
-	titleStr := strings.ToTitle(strings.ReplaceAll(strings.TrimSuffix(missionFile, ".yaml"), "_", " "))
-	page := &missionMenuPage{
-		title:       titleStr,
-		missionFile: missionFile,
-		content:     newPageContentContainer(),
+func mapSelectionPage(_ *MapMenu, mapFile string) *mapMenuPage {
+	// create page stub container, not loading map data until it is selected
+	titleStr := strings.ToTitle(strings.ReplaceAll(strings.TrimSuffix(mapFile, ".yaml"), "_", " "))
+	page := &mapMenuPage{
+		title:   titleStr,
+		mapFile: mapFile,
+		content: newPageContentContainer(),
 	}
 	return page
 }
 
-func (p *missionMenuPage) setMission(m *MissionMenu) {
+func (p *mapMenuPage) setMap(m *MapMenu) {
 	p.content.RemoveChildren()
-	if p.mission == nil {
-		// load mission data
+	if p.modelMap == nil {
+		// load map data
 		var err error
-		p.mission, err = model.LoadMission(p.missionFile)
+		p.modelMap, err = model.LoadMap(p.mapFile)
 		if err != nil {
-			log.Error("Error loading mission: ", p.missionFile)
+			log.Error("Error loading map: ", p.mapFile)
 			log.Error(err)
 			exit(1)
 		}
 	}
 
-	missionCard := createMissionCard(m.game, m.Resources(), p.mission, MissionCardSelect)
-	p.content.AddChild(missionCard)
+	mapCard := createMapCard(m.game, m.Resources(), p.modelMap, MapCardSelect)
+	p.content.AddChild(mapCard)
 }
 
-func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style MissionCardStyle) *MissionCard {
+func createMapCard(g *Game, res *uiResources, modelMap *model.Map, style MapCardStyle) *MapCard {
 	cardContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -329,95 +325,79 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		),
 	)
 
-	switch style {
-	case MissionCardLaunch, MissionCardGame, MissionCardDebrief:
-		missionText := widget.NewText(widget.TextOpts.Text(mission.Title, res.text.titleFace, res.text.idleColor),
-			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-				Stretch: true,
-			})),
-			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
-		)
-		cardContainer.AddChild(missionText)
-	}
+	// switch style {
+	// case MapCardLaunch, MapCardGame, MapCardDebrief:
+	// 	mapText := widget.NewText(widget.TextOpts.Text(modelMap.Name, res.text.titleFace, res.text.idleColor),
+	// 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+	// 			Stretch: true,
+	// 		})),
+	// 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	// 	)
+	// 	cardContainer.AddChild(mapText)
+	// }
 
 	var objectivesText *widget.TextArea
 
 	switch style {
-	case MissionCardSelect, MissionCardLaunch:
-		// mission map area text
-		worldMap := mission.Map().Level(0)
+	case MapCardSelect: //, MapCardLaunch:
+		// map map area text
+		worldMap := modelMap.Level(0)
 		mapWidthKm := float64(len(worldMap)) * model.METERS_PER_UNIT / 1000
 		mapHeightKm := float64(len(worldMap[0])) * model.METERS_PER_UNIT / 1000
 		mapString := fmt.Sprintf("Area: %0.0fkm x %0.0fkm", mapWidthKm, mapHeightKm)
 		mapText := widget.NewText(widget.TextOpts.Text(mapString, res.text.face, res.text.idleColor))
 		cardContainer.AddChild(mapText)
 
-		// mission map thumbnail
-		missionThumb := createMissionThumbnail(g, res, mission)
-		cardContainer.AddChild(missionThumb)
+		// map map thumbnail
+		mapThumb := createMapThumbnail(g, res, modelMap)
+		cardContainer.AddChild(mapThumb)
 
-		// mission briefing text
-		briefingLabel := widget.NewText(widget.TextOpts.Text("Mission Briefing", res.text.face, res.text.idleColor))
-		cardContainer.AddChild(briefingLabel)
-		briefingText := newTextArea(mission.Briefing, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-			MaxHeight: g.uiRect().Dy() / 5,
-		}))
-		cardContainer.AddChild(briefingText)
+		// case MapCardGame:
+		// 	// map map thumbnail
+		// 	mapThumb := createMapThumbnail(g, res, modelMap)
+		// 	cardContainer.AddChild(mapThumb)
 
-		// mission objectives text
-		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
-		cardContainer.AddChild(objectivesLabel)
+		// 	// in-game map objectives text
+		// 	objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
+		// 	cardContainer.AddChild(objectivesLabel)
 
-		objectivesText = newTextArea(mission.Objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-			MaxHeight: g.uiRect().Dy() / 5,
-		}))
-		cardContainer.AddChild(objectivesText)
+		// 	objectivesText = newTextArea(g.objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+		// 		MaxHeight: g.uiRect().Dy() / 5,
+		// 	}))
+		// 	cardContainer.AddChild(objectivesText)
 
-	case MissionCardGame:
-		// mission map thumbnail
-		missionThumb := createMissionThumbnail(g, res, mission)
-		cardContainer.AddChild(missionThumb)
+		// case MapCardDebrief:
+		// 	// post-map objectives text
+		// 	objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
+		// 	cardContainer.AddChild(objectivesLabel)
 
-		// in-game mission objectives text
-		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
-		cardContainer.AddChild(objectivesLabel)
-
-		objectivesText = newTextArea(g.objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-			MaxHeight: g.uiRect().Dy() / 5,
-		}))
-		cardContainer.AddChild(objectivesText)
-	case MissionCardDebrief:
-		// post-mission objectives text
-		objectivesLabel := widget.NewText(widget.TextOpts.Text("Objectives", res.text.face, res.text.idleColor))
-		cardContainer.AddChild(objectivesLabel)
-
-		objectivesText = newTextArea(g.objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-			MaxHeight: g.uiRect().Dy() / 5,
-		}))
-		cardContainer.AddChild(objectivesText)
+		// 	objectivesText = newTextArea(g.objectives.Text(), res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+		// 		MaxHeight: g.uiRect().Dy() / 5,
+		// 	}))
+		// 	cardContainer.AddChild(objectivesText)
 	}
 
-	missionCard := &MissionCard{
+	mapCard := &MapCard{
 		Container:      cardContainer,
 		style:          style,
 		objectivesText: objectivesText,
 	}
 
-	return missionCard
+	return mapCard
 }
 
-func (c *MissionCard) update(g *Game) {
-	switch c.style {
-	case MissionCardGame:
-		c.objectivesText.SetText(g.objectives.Text())
-	}
+func (c *MapCard) update(g *Game) {
+	// switch c.style {
+	// case MapCardGame:
+	// 	c.objectivesText.SetText(g.objectives.Text())
+	// }
 }
 
-func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *widget.Container {
+func createMapThumbnail(g *Game, res *uiResources, modelMap *model.Map) *widget.Container {
 	mapOpts := mapimage.MapImageOptions{PxPerCell: 2, RenderDefaultFloorTexture: false}
-	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
+	//mapOpts := mapimage.MapImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
-	// container for mission map image and button to show map larger in window
+	// container for map map image and button to show map larger in window
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Spacing(g.menu.Spacing()),
@@ -425,30 +405,31 @@ func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *
 		)),
 	)
 
-	var mapTex *texture.TextureHandler
-	if g.tex != nil && g.tex.IsHandlerForMap(mission.Map()) {
-		mapTex = g.tex
-	} else {
-		mapTex = texture.NewTextureHandler(mission.Map())
-	}
-	missionImage, err := missionimage.NewMissionImage(mission, g.resources, mapTex, mapOpts, missionOpts)
+	// var mapTex *texture.TextureHandler
+	// if g.modelMap == modelMap {
+	// 	mapTex = g.tex
+	// } else {
+	mapTex := texture.NewTextureHandler(modelMap)
+	// }
+
+	mapImage, err := mapimage.NewMapImage(modelMap, mapTex, mapOpts)
 	if err != nil {
-		log.Error("Error loading mission image: ", err)
-	} else if missionImage != nil {
+		log.Error("Error loading map image: ", err)
+	} else if mapImage != nil {
 		// scale image down to fit thumbnail space
-		missionImage = common.ScaleImageToHeight(missionImage, g.uiRect().Dy()/5, ebiten.FilterNearest)
+		mapImage = common.ScaleImageToHeight(mapImage, g.uiRect().Dy()/5, ebiten.FilterNearest)
 		imageButton := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
 			})),
 			widget.ButtonOpts.Image(res.button.image),
 			widget.ButtonOpts.Graphic(&widget.GraphicImage{
-				Idle: missionImage,
+				Idle: mapImage,
 			}),
 			widget.ButtonOpts.GraphicPadding(widget.Insets{Top: 4, Bottom: 4, Left: 25, Right: 25}),
 			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 				// show pop-up with large map
-				openMissionMapWindow(g, res, mission)
+				openMapWindow(g, res, modelMap)
 			}),
 		)
 		c.AddChild(imageButton)
@@ -457,12 +438,11 @@ func createMissionThumbnail(g *Game, res *uiResources, mission *model.Mission) *
 	return c
 }
 
-func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
-
-	// TODO: render current player position and position of enemies that are in range
+func openMapWindow(g *Game, res *uiResources, modelMap *model.Map) {
+	// TODO: refactor shared functionality with menumission.openMissionMapWindow
 
 	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true, FilterDefaultFloorTexture: true}
-	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
+	//mapOpts := mapimage.MapImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
 	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
@@ -508,26 +488,26 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 		),
 	)
 
-	if missionImage == nil || missionImage.mission != mission || missionImage.image == nil {
+	if mapImage == nil || mapImage.modelMap != modelMap || mapImage.image == nil {
 		var mapTex *texture.TextureHandler
-		if g.tex != nil && g.tex.IsHandlerForMap(mission.Map()) {
+		if g.tex != nil && g.tex.IsHandlerForMap(modelMap) {
 			mapTex = g.tex
 		} else {
-			mapTex = texture.NewTextureHandler(mission.Map())
+			mapTex = texture.NewTextureHandler(modelMap)
 		}
-		img, err := missionimage.NewMissionImage(mission, g.resources, mapTex, mapOpts, missionOpts)
+		img, err := mapimage.NewMapImage(modelMap, mapTex, mapOpts)
 		if err != nil {
-			log.Error("Error loading mission image: ", err)
+			log.Error("Error loading map image: ", err)
 		}
-		missionImage = &missionMapImage{
-			mission: mission,
-			image:   img,
+		mapImage = &mapMapImage{
+			modelMap: modelMap,
+			image:    img,
 		}
 	}
 
-	if missionImage != nil && missionImage.image != nil {
+	if mapImage != nil && mapImage.image != nil {
 		// resize map image to fit window
-		iWidth, iHeight := missionImage.image.Bounds().Dx(), missionImage.image.Bounds().Dy()
+		iWidth, iHeight := mapImage.image.Bounds().Dx(), mapImage.image.Bounds().Dy()
 
 		iScale := (float64(uiRect.Dy()) / 2) / float64(iHeight)
 		if int(float64(iWidth)*iScale) > uiRect.Dx()/2 {
@@ -538,7 +518,7 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 		scaledImage := ebiten.NewImage(int(float64(iWidth)*iScale), int(float64(iHeight)*iScale))
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Scale(iScale, iScale)
-		scaledImage.DrawImage(missionImage.image, op)
+		scaledImage.DrawImage(mapImage.image, op)
 
 		imageLabel := widget.NewGraphic(
 			widget.GraphicOpts.Image(scaledImage),

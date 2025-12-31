@@ -16,12 +16,11 @@ import (
 
 type Mission struct {
 	missionMap   *Map
-	Pathing      *Pathing            `yaml:"-"`
 	Title        string              `yaml:"title" validate:"required"`
 	Briefing     string              `yaml:"briefing" validate:"required"`
 	MapPath      string              `yaml:"map" validate:"required"`
 	MusicPath    string              `yaml:"music"`
-	DropZone     *MissionDropZone    `yaml:"dropZone" validate:"required"`
+	DropZone     *DropZone           `yaml:"dropZone"`
 	Lighting     *MapLighting        `yaml:"lighting,omitempty"`
 	FloorBox     *MapTexture         `yaml:"floorBox,omitempty"`
 	SkyBox       *MapTexture         `yaml:"skyBox,omitempty"`
@@ -32,15 +31,43 @@ type Mission struct {
 	Infantry     []MissionUnit       `yaml:"infantry"`
 	VTOLs        []MissionFlyingUnit `yaml:"vtols"`
 	Emplacements []MissionStaticUnit `yaml:"emplacements"`
+
+	// AI Pathing is initialized after map is loaded
+	Pathing *Pathing `yaml:"-"`
+
+	// spawnPoints used only in Instant Action for now
+	SpawnPoints []*SpawnPoint `yaml:"-"`
+}
+
+func NewMissionFromMapPath(mapPath string) (*Mission, error) {
+	m := &Mission{MapPath: mapPath}
+	err := m.loadMissionMap()
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func NewMissionFromMap(missionMap *Map) (*Mission, error) {
+	m := &Mission{missionMap: missionMap}
+	err := m.loadMissionMap()
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (m *Mission) Map() *Map {
 	return m.missionMap
 }
 
-type MissionDropZone struct {
-	Position [2]float64 `yaml:"position" validate:"required"`
+type DropZone struct {
+	Position [2]float64 `yaml:"position"`
 	Heading  float64    `yaml:"heading"`
+}
+
+type SpawnPoint struct {
+	Position [2]float64 `yaml:"position"`
 }
 
 type MissionObjectives struct {
@@ -52,6 +79,13 @@ type MissionObjectives struct {
 type MissionDestroyObjectives struct {
 	All  bool   `yaml:"all,omitempty"`
 	Unit string `yaml:"unit,omitempty"`
+
+	// Enemy waves objective used only in Instant Action for now
+	Waves *UnitWaves `yaml:"-"`
+}
+
+type UnitWaves struct {
+	Units []Unit `yaml:"-"`
 }
 
 type MissionProtectObjectives struct {
@@ -79,10 +113,6 @@ type MissionGuardArea struct {
 type MissionUnitInterface interface {
 	GetUnit() string
 	GetPosition() geom.Vector2
-}
-
-type AllMissionUnitModels interface {
-	Mech | Vehicle | Infantry | VTOL | Emplacement
 }
 
 type MissionUnitModels interface {
@@ -161,8 +191,9 @@ const (
 )
 
 type NavPoint struct {
-	Name      string     `yaml:"name" validate:"required"`
-	Position  [2]float64 `yaml:"position" validate:"required"`
+	Name     string     `yaml:"name" validate:"required"`
+	Position [2]float64 `yaml:"position" validate:"required"`
+
 	image     *ebiten.Image
 	visited   bool
 	objective NavObjective
@@ -217,14 +248,34 @@ func LoadMission(missionFile string) (*Mission, error) {
 	}
 
 	// load mission map
-	m.missionMap, err = LoadMap(m.MapPath)
+	err = m.loadMissionMap()
 	if err != nil {
-		log.Error("Error loading map: ", m.MapPath)
 		return nil, err
+	}
+
+	return m, nil
+}
+
+func (m *Mission) loadMissionMap() error {
+	if m.missionMap == nil {
+		var err error
+		m.missionMap, err = LoadMap(m.MapPath)
+		if err != nil {
+			log.Error("Error loading map: ", m.MapPath)
+			return err
+		}
 	}
 
 	// initialize map pathing
 	m.Pathing = initPathing(m)
+
+	// apply any defaults from map
+	if m.DropZone == nil {
+		m.DropZone = &m.missionMap.DropZone
+	}
+	if m.MusicPath == "" && m.missionMap.MusicPath != "" {
+		m.MusicPath = m.missionMap.MusicPath
+	}
 
 	// apply optional overrides to map
 	if m.Lighting != nil {
@@ -236,8 +287,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 	if m.SkyBox != nil {
 		m.missionMap.SkyBox = *m.SkyBox
 	}
-
-	return m, nil
+	return nil
 }
 
 func ListMissionFilenames() ([]string, error) {

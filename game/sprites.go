@@ -95,7 +95,7 @@ func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
 		return unitSprite.Clone(u)
 
 	default:
-		panic(fmt.Errorf("unable to handle model.Unit from type %v", interfaceType))
+		panic(fmt.Errorf("create unit sprite from type not implemented: %v", interfaceType))
 	}
 }
 
@@ -263,7 +263,7 @@ func getSpriteFromInterface(sInterface raycaster.Sprite) *sprites.Sprite {
 	case sprites.EffectSpriteType:
 		return sInterface.(*sprites.EffectSprite).Sprite
 	default:
-		panic(fmt.Errorf("unable to get model.Sprite from type %v", sType))
+		panic(fmt.Errorf("get sprite from type not implemented: %v", sType))
 	}
 }
 
@@ -287,7 +287,7 @@ func getEntityFromInterface(sInterface raycaster.Sprite) model.Entity {
 	case sprites.EffectSpriteType:
 		return sInterface.(*sprites.EffectSprite).Entity
 	default:
-		panic(fmt.Errorf("unable to get model.Entity from type %v", sType))
+		panic(fmt.Errorf("get entity from type not implemented: %v", sType))
 	}
 }
 

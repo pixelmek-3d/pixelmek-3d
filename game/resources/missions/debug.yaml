@@ -6,8 +6,8 @@ briefing: |
 map: "debug_land"
 music: "icy_wastes.mp3"
 dropZone:
-  position: [50, 50]
-  heading: 15
+  position: [40, 60]
+  heading: 90
 objectives:
   destroy:
     - unit: "destroy_me"

@@ -75,20 +75,25 @@ func (cd CardinalDirection) String() string {
 }
 
 type Map struct {
+	Name             string             `yaml:"name" validate:"required"`
+	DropZone         DropZone           `yaml:"dropZone" validate:"required"`
+	SpawnPoints      [][2]float64       `yaml:"spawnPoints"`
 	NumRaycastLevels int                `yaml:"numRaycastLevels"`
 	Levels           [][][]int          `yaml:"levels"`
 	GenerateLevels   MapGenerateLevels  `yaml:"generateLevels"`
-	Lighting         MapLighting        `yaml:"lighting"`
-	Textures         map[int]MapTexture `yaml:"textures"`
-	FloorBox         MapTexture         `yaml:"floorBox"`
-	SkyBox           MapTexture         `yaml:"skyBox"`
-	Flooring         MapFlooring        `yaml:"flooring"`
+	Lighting         MapLighting        `yaml:"lighting" validate:"required"`
+	Textures         map[int]MapTexture `yaml:"textures" validate:"gt=0"`
+	FloorBox         MapTexture         `yaml:"floorBox" validate:"required"`
+	SkyBox           MapTexture         `yaml:"skyBox" validate:"required"`
+	Flooring         MapFlooring        `yaml:"flooring" validate:"required"`
 	Clutter          []MapClutter       `yaml:"clutter"`
 	Sprites          []MapSprite        `yaml:"sprites"`
 	SpriteFill       []MapSpriteFill    `yaml:"spriteFill"`
 	SpriteStamps     []MapSpriteStamp   `yaml:"spriteStamps"`
 	Seed             int64              `yaml:"seed"`
+	MusicPath        string             `yaml:"music"`
 
+	// Sprite ID mapping is initialized when map data is being loaded
 	spritesByID map[string]MapSprite `yaml:"-"`
 }
 
@@ -371,12 +376,12 @@ func (m *Map) generateFillerSprites() error {
 		x1, y1 := float64(fill.Rect[1][0]), float64(fill.Rect[1][1])
 
 		for i := 0; i < fill.Quantity; i++ {
-			fX, fY := RandFloat64In(x0, x1, rng), RandFloat64In(y0, y1, rng)
+			fX, fY := rng.RandFloat64In(x0, x1), rng.RandFloat64In(y0, y1)
 
 			var height float64
 			if len(fill.HeightRange) == 2 {
 				// generate random height value within height range
-				height = RandFloat64In(fill.HeightRange[0], fill.HeightRange[1], rng)
+				height = rng.RandFloat64In(fill.HeightRange[0], fill.HeightRange[1])
 			}
 
 			mapSprite, ok := m.spritesByID[fill.SpriteID]

@@ -10,6 +10,7 @@ import (
 )
 
 type EnergyWeapon struct {
+	Equipment
 	Resource        *ModelEnergyWeaponResource
 	name            string
 	short           string

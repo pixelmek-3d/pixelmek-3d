@@ -11,6 +11,7 @@ import (
 )
 
 type MissileWeapon struct {
+	Equipment
 	Resource        *ModelMissileWeaponResource
 	name            string
 	short           string

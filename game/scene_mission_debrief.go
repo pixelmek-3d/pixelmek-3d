@@ -48,5 +48,5 @@ func (s *MissionDebriefScene) back() {
 	g := s.Game
 
 	// back to main menu
-	g.scene = NewMenuScene(g)
+	g.scene = NewMainMenuScene(g)
 }

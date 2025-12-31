@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"math/rand"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -38,7 +37,7 @@ type AIBehavior struct {
 	u             model.Unit
 	gunnery       *AIGunnery
 	piloting      *AIPiloting
-	rng           *rand.Rand
+	rng           *model.Rand
 	newInitiative bool
 }
 
@@ -200,32 +199,41 @@ func NewAIHandler(g *Game) *AIHandler {
 		ai:        make([]*AIBehavior, 0, len(units)),
 		resources: aiRes,
 	}
+	aiHandler.initiative = NewAIInitiative(aiHandler)
 
 	for _, u := range units {
-		aiHandler.ai = append(aiHandler.ai, aiHandler.NewAI(u, "unit", aiRes))
+		aiHandler.NewUnitAI(u)
 	}
-
-	aiHandler.LoadFormations()
-	aiHandler.initiative = NewAIInitiative(aiHandler.ai)
+	if len(units) > 0 {
+		aiHandler.LoadFormations()
+		aiHandler.initiative.roll()
+	}
 
 	return aiHandler
 }
 
-func (h *AIHandler) NewAI(u model.Unit, ai string, aiRes AIResources) *AIBehavior {
+func (h *AIHandler) NewUnitAI(u model.Unit) *AIBehavior {
 	a := &AIBehavior{
 		g:        h.g,
 		u:        u,
 		gunnery:  NewAIGunnery(u),
 		piloting: NewAIPiloting(u),
-		rng:      rand.New(rand.NewSource(rand.Int63())),
+		rng:      model.NewRNG(),
 	}
 	a.gunnery.Reset()
 	a.piloting.Reset()
-	a.Node = a.LoadBehaviorTree(ai, aiRes)
+	a.Node = a.LoadBehaviorTree("unit", h.resources)
+
+	h.Add(a)
 	if h.g.debug {
 		fmt.Printf("--- %s\n%s\n", u.ID(), a.Node)
 	}
 	return a
+}
+
+func (h *AIHandler) Add(a *AIBehavior) {
+	h.ai = append(h.ai, a)
+	h.initiative.add(a)
 }
 
 func (h *AIHandler) UnitAI(u model.Unit) *AIBehavior {

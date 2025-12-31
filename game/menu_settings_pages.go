@@ -223,7 +223,7 @@ func displayPage(m Menu) *settingsPage {
 					gameMenu.initResources()
 					gameMenu.initMenu()
 				case settingsMenu != nil:
-					menuScene, ok := game.scene.(*MenuScene)
+					menuScene, ok := game.scene.(*MainMenuScene)
 					if ok {
 						menuScene.settings.preSelectedPage = 0
 						menuScene.settings.initResources()

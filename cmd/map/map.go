@@ -11,6 +11,7 @@ import (
 )
 
 func init() {
+	MapCmd.AddCommand(launchCmd)
 	MapCmd.AddCommand(imageCmd)
 
 	MapCmd.Flags().BoolVar(&listMaps, "list", false, "lists all map files")
@@ -18,7 +19,7 @@ func init() {
 
 var (
 	listMaps bool
-	mapFile  string
+	mapPath  string
 	MapCmd   = &cobra.Command{
 		Use:   "map",
 		Short: "Commands related to Maps",

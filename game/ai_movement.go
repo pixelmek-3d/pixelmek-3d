@@ -137,7 +137,7 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		// chance to reevaluate this tick gradually increases as number of ticks without goes up
 		chanceToEval := float64(a.piloting.ticksSinceEval) / (100 * model.TICKS_PER_SECOND / AI_INITIATIVE_SLOTS)
 		if chanceToEval < 1 {
-			r := model.RandFloat64In(0, 1.0, a.rng)
+			r := a.rng.RandFloat64In(0, 1.0)
 			if r > chanceToEval {
 				nextPos, _ := a.updateCurrentPathing()
 				if nextPos != nil {
@@ -160,8 +160,8 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		// determine keepaway distance and angle relative from target with a bit of randomness
 		min, max := a.gunnery.IdealWeaponsRange()
 
-		tAngle += model.RandFloat64In(-geom.Pi/2, geom.Pi/2, a.rng)
-		keepDist := model.RandFloat64In(min, max, a.rng)
+		tAngle += a.rng.RandFloat64In(-geom.Pi/2, geom.Pi/2)
+		keepDist := a.rng.RandFloat64In(min, max)
 		if tDist < keepDist && min <= 150/model.METERS_PER_UNIT && keepDist <= min+(max-min)/2 {
 			// for close range builds (within 150m min ideal range), occasionally flip tDist negative
 			// to move towards target instead of away
@@ -213,9 +213,9 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 		cR, cH := target.CollisionRadius(), target.CollisionHeight()
 		xyExtent, xyClamp := (tDist/5*cR)+cR, 0.75
 		zExtent, zClamp := (tDist/10*cH)+cH/2, 0.35
-		offX := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, a.rng), -xyClamp, xyClamp)
-		offY := geom.Clamp(model.RandFloat64In(-xyExtent, xyExtent, a.rng), -xyClamp, xyClamp)
-		offZ := geom.Clamp(model.RandFloat64In(-zExtent, zExtent, a.rng), -zClamp, zClamp)
+		offX := geom.Clamp(a.rng.RandFloat64In(-xyExtent, xyExtent), -xyClamp, xyClamp)
+		offY := geom.Clamp(a.rng.RandFloat64In(-xyExtent, xyExtent), -xyClamp, xyClamp)
+		offZ := geom.Clamp(a.rng.RandFloat64In(-zExtent, zExtent), -zClamp, zClamp)
 		// if iWeapon != nil {
 		// 	log.Debugf("[%s] dist %0.2f turretToTarget|offset (%0.2f, %0.2f, %0.2f)", a.u.ID(), tDist, offX, offY, offZ)
 		// }
@@ -372,7 +372,7 @@ func (a *AIBehavior) GuardArea() func([]bt.Node) (bt.Status, error) {
 			// select a random position within the guard area
 			// TODO: verify random position isn't inside walls that would block reaching the position
 
-			rngAngle := model.RandFloat64In(0, 2*geom.Pi, a.rng)
+			rngAngle := a.rng.RandFloat64In(0, 2*geom.Pi)
 			rngLine := geom.LineFromAngle(guardArea.X, guardArea.Y, rngAngle, guardArea.Radius)
 
 			rngX := geom.Clamp(rngLine.X2, 0, float64(a.g.mapWidth))
@@ -483,8 +483,8 @@ func (a *AIBehavior) Wander() func([]bt.Node) (bt.Status, error) {
 			// select a random position within the map area
 			// TODO: verify random position isn't inside walls that would block reaching the position
 
-			rngX := model.RandFloat64In(0, float64(a.g.mapWidth), a.rng)
-			rngY := model.RandFloat64In(0, float64(a.g.mapHeight), a.rng)
+			rngX := a.rng.RandFloat64In(0, float64(a.g.mapWidth))
+			rngY := a.rng.RandFloat64In(0, float64(a.g.mapHeight))
 			nextPos = &geom.Vector2{X: rngX, Y: rngY}
 			wanderPath.Push(*nextPos)
 		}

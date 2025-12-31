@@ -520,22 +520,40 @@ func (g *Game) handleInput() {
 				g.player.selectedWeapon = 0
 			} else {
 				var nextWeapon model.Weapon
-				nextIndex := 0
+				currIndex, nextIndex := 0, 0
 				for i, w := range groupWeapons {
 					if w == prevWeapon {
+						currIndex = i
 						nextIndex = i + 1
+						if nextIndex >= len(groupWeapons) {
+							nextIndex = 0
+						}
 						break
 					}
 				}
-				if nextIndex >= len(groupWeapons) {
-					nextIndex = 0
-				}
-				nextWeapon = groupWeapons[nextIndex]
 
-				for i, w := range g.player.Armament() {
-					if w == nextWeapon {
-						g.player.selectedWeapon = uint(i)
-						break
+				// perform weapon check to make sure
+				for nextIndex != currIndex {
+					nextWeapon = groupWeapons[nextIndex]
+
+					// skip weapon if destroyed, or ammo dependent and has no ammo
+					if nextWeapon.Destroyed() || model.WeaponAmmoCount(nextWeapon) == 0 {
+						nextIndex += 1
+						if nextIndex >= len(groupWeapons) {
+							nextIndex = 0
+						}
+						continue
+					}
+					// next weapon is ready to cycle
+					break
+				}
+
+				if nextIndex != currIndex {
+					for i, w := range g.player.Armament() {
+						if w == nextWeapon {
+							g.player.selectedWeapon = uint(i)
+							break
+						}
 					}
 				}
 			}

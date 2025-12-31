@@ -92,6 +92,7 @@ func doMissionExport() {
 	mapOpts := mapimage.MapImageOptions{
 		PxPerCell:                 mapImageFlags.PxPerCell,
 		RenderDefaultFloorTexture: mapImageFlags.RenderFloorTexture,
+		FilterDefaultFloorTexture: mapImageFlags.FilterFloorTexture,
 		RenderWallLines:           mapImageFlags.RenderWallLines,
 		RenderGridLines:           mapImageFlags.RenderGridLines,
 		GridCellDistance:          mapImageFlags.GridCellDistance,

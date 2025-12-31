@@ -47,18 +47,6 @@ type ModelTech struct {
 	TechBase
 }
 
-type HeatSinkType int
-
-const (
-	NONE   HeatSinkType = iota // 0
-	SINGLE                     // 1
-	DOUBLE                     // 2
-)
-
-type ModelHeatSinkType struct {
-	HeatSinkType
-}
-
 type Location int
 
 const (
@@ -78,6 +66,30 @@ const (
 
 type ModelLocation struct {
 	Location
+}
+
+type Equipment struct {
+	destroyed bool
+}
+
+func (e *Equipment) Destroyed() bool {
+	return e.destroyed
+}
+
+func (e *Equipment) SetDestroyed(isDestroyed bool) {
+	e.destroyed = isDestroyed
+}
+
+type HeatSinkType int
+
+const (
+	NONE   HeatSinkType = iota // 0
+	SINGLE                     // 1
+	DOUBLE                     // 2
+)
+
+type ModelHeatSinkType struct {
+	HeatSinkType
 }
 
 type AmmoType int

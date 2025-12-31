@@ -3,50 +3,56 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+
+	log "github.com/sirupsen/logrus"
 )
 
-type MissionScene struct {
+type InstantActionScene struct {
 	Game             *Game
-	missionSelect    *MissionMenu
+	mapSelect        *MapMenu
 	playerUnitSelect *UnitMenu
+	enemyUnitSelect  *UnitMenu
 	launchBriefing   *LaunchMenu
 
 	menuOrder []Menu
 	menuIndex int
 }
 
-func NewMissionScene(g *Game) Scene {
-	missionSelect := createMissionMenu(g)
+func NewInstantActionScene(g *Game) Scene {
+	mapSelect := createMapMenu(g)
 	unitSelect := createUnitMenu(g, PlayerUnitMenu)
+	enemySelect := createUnitMenu(g, EnemyUnitMenu)
 	launchBriefing := createLaunchMenu(g)
 
-	scene := &MissionScene{
+	scene := &InstantActionScene{
 		Game:             g,
-		missionSelect:    missionSelect,
+		mapSelect:        mapSelect,
 		playerUnitSelect: unitSelect,
+		enemyUnitSelect:  enemySelect,
 		launchBriefing:   launchBriefing,
 		menuOrder: []Menu{
-			missionSelect,
+			mapSelect,
 			unitSelect,
+			enemySelect,
 			launchBriefing,
 		},
 	}
-	scene.SetMenu(missionSelect)
+	scene.SetMenu(mapSelect)
 	return scene
 }
 
-func (s *MissionScene) SetMenu(m Menu) {
+func (s *InstantActionScene) SetMenu(m Menu) {
 	s.Game.menu = m
 }
 
-func (s *MissionScene) getMenu() Menu {
+func (s *InstantActionScene) getMenu() Menu {
 	if s.menuIndex >= 0 && s.menuIndex < len(s.menuOrder) {
 		return s.menuOrder[s.menuIndex]
 	}
 	return nil
 }
 
-func (s *MissionScene) Update() error {
+func (s *InstantActionScene) Update() error {
 	g := s.Game
 
 	if g.input.ActionIsJustPressed(ActionBack) {
@@ -59,14 +65,14 @@ func (s *MissionScene) Update() error {
 	return nil
 }
 
-func (s *MissionScene) Draw(screen *ebiten.Image) {
+func (s *InstantActionScene) Draw(screen *ebiten.Image) {
 	g := s.Game
 
 	// draw menu
 	g.menu.Draw(screen)
 }
 
-func (s *MissionScene) back() {
+func (s *InstantActionScene) back() {
 	g := s.Game
 
 	s.menuIndex -= 1
@@ -81,19 +87,17 @@ func (s *MissionScene) back() {
 	}
 }
 
-func (s *MissionScene) next() {
+func (s *InstantActionScene) next() {
 	g := s.Game
 
 	// check actions for current menu
 	currentMenu := s.getMenu()
 	if currentMenu == s.launchBriefing {
-		// launch game scene into mission
+		// launch game scene into map mission
 		if g.player == nil {
 			// pick player unit at random
 			g.SetPlayerUnit(g.RandomUnit(model.MechResourceType))
 		}
-
-		g.mission = s.missionSelect.selectedMission
 		g.scene = NewGameScene(g)
 	}
 
@@ -110,8 +114,19 @@ func (s *MissionScene) next() {
 			g.SetPlayerUnit(s.playerUnitSelect.selectedUnit)
 		}
 
-		s.launchBriefing.loadBriefing(s.missionSelect.selectedMission)
-		s.SetMenu(s.launchBriefing)
+		opts := &InstantActionMissionOpts{enemies: make([]model.Unit, 0, 1)}
+		if s.enemyUnitSelect.selectedUnit != nil {
+			// set enemy unit for mission spawning
+			opts.enemies = append(opts.enemies, s.enemyUnitSelect.selectedUnit)
+		}
+
+		mission, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, opts)
+		if err != nil {
+			log.Error("Error loading mission from map: ", s.mapSelect.selectedMap.Name)
+			log.Error(err)
+			exit(1)
+		}
+		s.launchBriefing.loadBriefing(mission)
 	}
 
 	if s.menuIndex < 0 {

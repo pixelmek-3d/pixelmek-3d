@@ -14,8 +14,17 @@ import (
 
 type UnitMenu struct {
 	*MenuModel
+	purpose      UnitMenuPurpose
 	selectedUnit model.Unit
 }
+
+type UnitMenuPurpose int
+
+const (
+	PlayerUnitMenu UnitMenuPurpose = iota
+	FriendlyUnitMenu
+	EnemyUnitMenu
+)
 
 type unitPageContainer struct {
 	unitMenu         *UnitMenu
@@ -54,7 +63,19 @@ type unitCardWeapon struct {
 	quantity int
 }
 
-func createUnitMenu(g *Game) *UnitMenu {
+func UnitMenuPurposeString(p UnitMenuPurpose) string {
+	switch p {
+	case PlayerUnitMenu:
+		return "Player"
+	case FriendlyUnitMenu:
+		return "Ally"
+	case EnemyUnitMenu:
+		return "Enemy"
+	}
+	return ""
+}
+
+func createUnitMenu(g *Game, purpose UnitMenuPurpose) *UnitMenu {
 	var ui *ebitenui.UI = &ebitenui.UI{}
 
 	menu := &UnitMenu{
@@ -63,6 +84,7 @@ func createUnitMenu(g *Game) *UnitMenu {
 			ui:     ui,
 			active: true,
 		},
+		purpose:      purpose,
 		selectedUnit: nil,
 	}
 
@@ -100,6 +122,8 @@ func (m *UnitMenu) Draw(screen *ebiten.Image) {
 func unitTitleContainer(m *UnitMenu) *widget.Container {
 	res := m.Resources()
 
+	title := "Unit Selection: " + UnitMenuPurposeString(m.purpose)
+
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
@@ -112,7 +136,7 @@ func unitTitleContainer(m *UnitMenu) *widget.Container {
 			}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Unit Selection", res.text.bigTitleFace, res.text.idleColor),
+		widget.TextOpts.Text(title, res.text.bigTitleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
@@ -142,7 +166,7 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ButtonOpts.Text("Back", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*MissionScene)
+			iScene, _ := game.scene.(MenuScene)
 			iScene.back()
 		}),
 	)
@@ -160,7 +184,7 @@ func unitMenuFooterContainer(m *UnitMenu) *widget.Container {
 		widget.ButtonOpts.Text("Next", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			iScene, _ := game.scene.(*MissionScene)
+			iScene, _ := game.scene.(MenuScene)
 			iScene.next()
 		}),
 	)
@@ -450,7 +474,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 		// nil represents random unit selection
 		sprite = nil
 	default: // TODO: handle any unit type
-		panic(fmt.Errorf("currently unable to handle selection of model.Unit for type %v", interfaceType))
+		panic(fmt.Errorf("create unit card for unit type not implemented: %v", interfaceType))
 	}
 
 	var imageLabel widget.PreferredSizeLocateableWidget

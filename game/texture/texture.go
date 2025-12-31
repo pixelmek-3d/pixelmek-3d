@@ -40,6 +40,13 @@ func NewTextureHandler(mapObj *model.Map) *TextureHandler {
 	return t
 }
 
+func (t *TextureHandler) IsHandlerForMap(mapObj *model.Map) bool {
+	if t.mapObj == nil {
+		return false
+	}
+	return t.mapObj == mapObj
+}
+
 func (t *TextureHandler) RenderFloorTex() bool {
 	return t.renderFloorTex
 }

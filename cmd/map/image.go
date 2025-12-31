@@ -19,6 +19,7 @@ import (
 type MapImageFlags struct {
 	PxPerCell          int
 	RenderFloorTexture bool
+	FilterFloorTexture bool
 	RenderWallLines    bool
 	RenderGridLines    bool
 	GridCellDistance   int
@@ -34,6 +35,7 @@ func init() {
 func BindMapImageFlags(cmd *cobra.Command, imageFlags *MapImageFlags) {
 	cmd.Flags().IntVar(&imageFlags.PxPerCell, "px-per-cell", 16, "number of pixels per map cell to render in each direction")
 	cmd.Flags().BoolVar(&imageFlags.RenderFloorTexture, "render-floor-texture", true, "render the default floor texture")
+	cmd.Flags().BoolVar(&imageFlags.FilterFloorTexture, "filter-floor-texture", false, "use scaling filter for the default floor texture to reduce hatch grid effect")
 	cmd.Flags().BoolVar(&imageFlags.RenderWallLines, "render-wall-lines", true, "render the visibility lines surrounding walls")
 	cmd.Flags().BoolVar(&imageFlags.RenderGridLines, "render-grid-lines", true, "render grid lines")
 	cmd.Flags().IntVar(&imageFlags.GridCellDistance, "grid-cell-distance", 0, "cells per grid line (default: 1km of cells)")
@@ -47,7 +49,7 @@ var (
 		Short: "Export map file as an image",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			mapFile = args[0]
+			mapPath = args[0]
 
 			// initialize game resources without running the actual game loop
 			g := game.NewGame()
@@ -64,7 +66,7 @@ var (
 			}
 
 			// mock game loop required for certain offscreen ebitengine render functions
-			ebiten.SetWindowTitle("Exporting map image " + mapFile + " ...")
+			ebiten.SetWindowTitle("Exporting map image " + mapPath + " ...")
 			mapExport := export.NewExportLoop(doMapExport)
 			if err := ebiten.RunGame(mapExport); err != nil {
 				log.Fatal(err)
@@ -74,10 +76,10 @@ var (
 )
 
 func doMapExport() {
-	log.Debug("loading map file ", mapFile, "...")
-	m, err := model.LoadMap(mapFile)
+	log.Debug("loading map file ", mapPath, "...")
+	m, err := model.LoadMap(mapPath)
 	if err != nil {
-		log.Error("error loading map file: ", mapFile)
+		log.Error("error loading map file: ", mapPath)
 		os.Exit(1)
 	}
 
@@ -88,6 +90,7 @@ func doMapExport() {
 	mapOpts := mapimage.MapImageOptions{
 		PxPerCell:                 mapImageFlags.PxPerCell,
 		RenderDefaultFloorTexture: mapImageFlags.RenderFloorTexture,
+		FilterDefaultFloorTexture: mapImageFlags.FilterFloorTexture,
 		RenderWallLines:           mapImageFlags.RenderWallLines,
 		RenderGridLines:           mapImageFlags.RenderGridLines,
 		GridCellDistance:          mapImageFlags.GridCellDistance,

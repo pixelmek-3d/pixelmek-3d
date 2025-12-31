@@ -17,10 +17,10 @@ const (
 )
 
 type ObjectivesHandler struct {
-	_objectives *model.MissionObjectives
-	current     map[Objective]time.Time
-	completed   map[Objective]time.Time
-	failed      map[Objective]time.Time
+	objectives *model.MissionObjectives
+	current    map[Objective]time.Time
+	completed  map[Objective]time.Time
+	failed     map[Objective]time.Time
 
 	objectivesText string
 }
@@ -44,27 +44,27 @@ type PlayerAliveObjective struct {
 
 type DestroyObjective struct {
 	*BasicObjective
-	_objective *model.MissionDestroyObjectives
-	_units     []model.Unit
+	objective *model.MissionDestroyObjectives
+	units     []model.Unit
 }
 
 type ProtectObjective struct {
 	*BasicObjective
-	_objective *model.MissionProtectObjectives
-	_units     []model.Unit
+	objective *model.MissionProtectObjectives
+	units     []model.Unit
 }
 
 type VisitObjective struct {
 	*BasicObjective
-	_objective *model.MissionNavVisit
-	_nav       *model.NavPoint
+	objective *model.MissionNavVisit
+	nav       *model.NavPoint
 }
 
 type DustoffObjective struct {
 	*BasicObjective
-	_objective     *model.MissionNavDustoff
-	_nav           *model.NavPoint
-	_verifyDustoff bool
+	objective     *model.MissionNavDustoff
+	nav           *model.NavPoint
+	verifyDustoff bool
 }
 
 func (o *BasicObjective) Current() bool {
@@ -92,10 +92,10 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 	}
 
 	o := &ObjectivesHandler{
-		_objectives: objectives,
-		current:     make(map[Objective]time.Time),
-		completed:   make(map[Objective]time.Time),
-		failed:      make(map[Objective]time.Time),
+		objectives: objectives,
+		current:    make(map[Objective]time.Time),
+		completed:  make(map[Objective]time.Time),
+		failed:     make(map[Objective]time.Time),
 	}
 
 	all_units := g.getSpriteUnits()
@@ -117,8 +117,8 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 
 			protectObjective := &ProtectObjective{
 				BasicObjective: &BasicObjective{},
-				_objective:     modelObjective,
-				_units:         protectUnits,
+				objective:      modelObjective,
+				units:          protectUnits,
 			}
 			o.current[protectObjective] = iTime
 		}
@@ -151,8 +151,8 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 
 			destroyObjective := &DestroyObjective{
 				BasicObjective: &BasicObjective{},
-				_objective:     modelObjective,
-				_units:         destroyUnits,
+				objective:      modelObjective,
+				units:          destroyUnits,
 			}
 			o.current[destroyObjective] = iTime
 		}
@@ -179,8 +179,8 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 			objectiveNav.SetObjective(model.NavVisitObjective)
 			visitObjective := &VisitObjective{
 				BasicObjective: &BasicObjective{},
-				_objective:     modelObjective,
-				_nav:           objectiveNav,
+				objective:      modelObjective,
+				nav:            objectiveNav,
 			}
 			o.current[visitObjective] = iTime
 		}
@@ -205,8 +205,8 @@ func NewObjectivesHandler(g *Game, objectives *model.MissionObjectives) *Objecti
 			objectiveNav.SetObjective(model.NavDustoffObjective)
 			visitObjective := &DustoffObjective{
 				BasicObjective: &BasicObjective{},
-				_objective:     modelObjective,
-				_nav:           objectiveNav,
+				objective:      modelObjective,
+				nav:            objectiveNav,
 			}
 			o.current[visitObjective] = iTime
 		}
@@ -261,15 +261,15 @@ func (o *ObjectivesHandler) Update(g *Game) {
 		dustoffReady := (len(objsDestroy) == 0 && len(objsVisit) == 0)
 		dustoffComplete := false
 		for _, objective := range objsDustoff {
-			if !dustoffReady && objective._verifyDustoff {
+			if !dustoffReady && objective.verifyDustoff {
 				// reset dustoff nav site visited flag until other objectives are complete
-				objective._nav.SetVisited(false)
-				objective._verifyDustoff = false
+				objective.nav.SetVisited(false)
+				objective.verifyDustoff = false
 				continue
 			}
 
-			if dustoffReady && objective._verifyDustoff {
-				log.Debugf("nav dustoff objective completed: %s", objective._nav.Name)
+			if dustoffReady && objective.verifyDustoff {
+				log.Debugf("nav dustoff objective completed: %s", objective.nav.Name)
 				dustoffComplete = true
 				break
 			}
@@ -288,7 +288,7 @@ func (o *ObjectivesHandler) Update(g *Game) {
 	if len(objsProtect) > 0 && len(objsDestroy) == 0 && len(objsVisit) == 0 && len(objsDustoff) == 0 {
 		update = true
 		for _, objective := range objsProtect {
-			log.Debugf("protect objective completed: %s", objective._objective.Unit)
+			log.Debugf("protect objective completed: %s", objective.objective.Unit)
 			objective.completed = true
 		}
 	}
@@ -355,32 +355,52 @@ func (o *PlayerAliveObjective) Text() string {
 
 func (o *DestroyObjective) Update(g *Game) {
 	allDestroyed := true
-	for _, unit := range o._units {
+	for _, unit := range o.units {
 		if !unit.IsDestroyed() {
 			allDestroyed = false
 			break
 		}
 	}
 
-	if allDestroyed {
-		destroyedStr := o._objective.Unit
-		if o._objective.All {
-			destroyedStr = "all"
-		}
-		log.Debugf("destroy objective completed: %s", destroyedStr)
-		o.completed = true
+	if !allDestroyed {
+		return
 	}
+
+	waves := o.objective.Waves
+	if waves != nil {
+		log.Debug("spawning next wave")
+
+		var unit model.Unit
+		if len(waves.Units) == 0 {
+			// TODO: support random unit in appropriate weight class
+			unit = spawnRandomUnit[model.Mech](g)
+		} else {
+			// TODO: support waves of more than one unit
+			unit = spawnUnit[model.Mech](g, waves.Units[0])
+		}
+		if unit != nil {
+			o.units = append(o.units, unit)
+			return
+		}
+	}
+
+	destroyedStr := o.objective.Unit
+	if o.objective.All {
+		destroyedStr = "all"
+	}
+	log.Debugf("destroy objective completed: %s", destroyedStr)
+	o.completed = true
 }
 func (o *DestroyObjective) Text() string {
-	if o._objective.All {
+	if o.objective.All {
 		return `Destroy All Enemies`
 	}
-	return `Destroy ` + o._objective.Unit
+	return `Destroy ` + o.objective.Unit
 }
 
 func (o *ProtectObjective) Update(g *Game) {
 	allAlive := true
-	for _, unit := range o._units {
+	for _, unit := range o.units {
 		if unit.IsDestroyed() {
 			allAlive = false
 			break
@@ -388,30 +408,30 @@ func (o *ProtectObjective) Update(g *Game) {
 	}
 
 	if !allAlive {
-		log.Debugf("protect objective failed: %s", o._objective.Unit)
+		log.Debugf("protect objective failed: %s", o.objective.Unit)
 		o.failed = true
 	}
 }
 func (o *ProtectObjective) Text() string {
-	return `Protect ` + o._objective.Unit
+	return `Protect ` + o.objective.Unit
 }
 
 func (o *VisitObjective) Update(g *Game) {
-	if o._nav.Visited() {
-		log.Debugf("nav visit objective completed: %s", o._nav.Name)
+	if o.nav.Visited() {
+		log.Debugf("nav visit objective completed: %s", o.nav.Name)
 		o.completed = true
 	}
 }
 func (o *VisitObjective) Text() string {
-	return `Visit Nav ` + o._objective.Name
+	return `Visit Nav ` + o.objective.Name
 }
 
 func (o *DustoffObjective) Update(g *Game) {
 	// special handling for Dustoff to verify all non-dustoff objectives must first be completed
-	if o._nav.Visited() {
-		o._verifyDustoff = true
+	if o.nav.Visited() {
+		o.verifyDustoff = true
 	}
 }
 func (o *DustoffObjective) Text() string {
-	return `Dustoff Nav ` + o._objective.Name
+	return `Dustoff Nav ` + o.objective.Name
 }

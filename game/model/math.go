@@ -2,8 +2,6 @@ package model
 
 import (
 	"math"
-	"math/rand"
-	"time"
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
@@ -41,20 +39,6 @@ func (r Rect) Dy() float64 {
 
 func LineOpposite(l geom.Line) geom.Line {
 	return geom.Line{X1: l.X2, Y1: l.Y2, X2: l.X1, Y2: l.Y1}
-}
-
-func NewRNG() *rand.Rand {
-	return rand.New(rand.NewSource(time.Now().UnixNano()))
-}
-
-func RandFloat64In(lo, hi float64, rng *rand.Rand) float64 {
-	var randFloat float64
-	if rng == nil {
-		randFloat = rand.Float64()
-	} else {
-		randFloat = rng.Float64()
-	}
-	return lo + (hi-lo)*randFloat
 }
 
 // PointInProximity is a fast but inaccurate distance check between two positions

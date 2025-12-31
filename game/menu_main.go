@@ -81,6 +81,19 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 
 	c := newPageContentContainer()
 
+	instant := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.button.text),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			game.scene = NewInstantActionScene(game)
+		}),
+	)
+	c.AddChild(instant)
+
 	missions := widget.NewButton(
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
@@ -102,7 +115,7 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.Text("Settings", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			mScene, ok := game.scene.(*MenuScene)
+			mScene, ok := game.scene.(*MainMenuScene)
 			if ok {
 				mScene.SetMenu(mScene.settings)
 			}

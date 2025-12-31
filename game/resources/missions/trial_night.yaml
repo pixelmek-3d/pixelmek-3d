@@ -3,7 +3,7 @@ briefing: |
   A call to trial during the night.
 
   Justice by combat.
-map: "testing_grounds"
+map: "proving_grounds"
 music: "gi_i_dark_ambient.mp3"
 lighting:
   falloff: -500
