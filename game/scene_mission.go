@@ -10,6 +10,9 @@ type MissionScene struct {
 	missionSelect    *MissionMenu
 	playerUnitSelect *UnitMenu
 	launchBriefing   *LaunchMenu
+
+	menuOrder []Menu
+	menuIndex int
 }
 
 func NewMissionScene(g *Game) Scene {
@@ -22,6 +25,11 @@ func NewMissionScene(g *Game) Scene {
 		missionSelect:    missionSelect,
 		playerUnitSelect: unitSelect,
 		launchBriefing:   launchBriefing,
+		menuOrder: []Menu{
+			missionSelect,
+			unitSelect,
+			launchBriefing,
+		},
 	}
 	scene.SetMenu(missionSelect)
 	return scene
@@ -29,6 +37,13 @@ func NewMissionScene(g *Game) Scene {
 
 func (s *MissionScene) SetMenu(m Menu) {
 	s.Game.menu = m
+}
+
+func (s *MissionScene) getMenu() Menu {
+	if s.menuIndex >= 0 && s.menuIndex < len(s.menuOrder) {
+		return s.menuOrder[s.menuIndex]
+	}
+	return nil
 }
 
 func (s *MissionScene) Update() error {
@@ -54,28 +69,24 @@ func (s *MissionScene) Draw(screen *ebiten.Image) {
 func (s *MissionScene) back() {
 	g := s.Game
 
-	switch g.menu {
-	case s.launchBriefing:
-		// back to unit select
-		s.SetMenu(s.playerUnitSelect)
+	s.menuIndex -= 1
 
-	case s.playerUnitSelect:
-		// back to mission select
-		s.SetMenu(s.missionSelect)
-
-	case s.missionSelect:
-		fallthrough
-	default:
+	prevMenu := s.getMenu()
+	if s.menuIndex < 0 {
 		// back to main menu
 		g.scene = NewMainMenuScene(g)
+	} else {
+		// back to previous menu
+		s.SetMenu(prevMenu)
 	}
 }
 
 func (s *MissionScene) next() {
 	g := s.Game
 
-	switch g.menu {
-	case s.launchBriefing:
+	// check actions for current menu
+	currentMenu := s.getMenu()
+	if currentMenu == s.launchBriefing {
 		// launch game scene into mission
 		if g.player == nil {
 			// pick player unit at random
@@ -84,9 +95,14 @@ func (s *MissionScene) next() {
 
 		g.mission = s.missionSelect.selectedMission
 		g.scene = NewGameScene(g)
+	}
 
-	case s.playerUnitSelect:
-		// to pre-launch briefing after setting player unit and mission
+	s.menuIndex += 1
+
+	// check actions for next menu
+	nextMenu := s.getMenu()
+	if nextMenu == s.launchBriefing {
+		// prepare briefing menu for display
 		if s.playerUnitSelect.selectedUnit == nil {
 			// set player unit nil to indicate randomized pick for launch briefing
 			g.player = nil
@@ -96,13 +112,13 @@ func (s *MissionScene) next() {
 
 		s.launchBriefing.loadBriefing(s.missionSelect.selectedMission)
 		s.SetMenu(s.launchBriefing)
+	}
 
-	case s.missionSelect:
-		// to unit select
-		s.SetMenu(s.playerUnitSelect)
-
-	default:
+	if s.menuIndex < 0 {
 		// back to main menu
 		g.scene = NewMainMenuScene(g)
+	} else if s.menuIndex < len(s.menuOrder) {
+		// proceed to next menu
+		s.SetMenu(nextMenu)
 	}
 }

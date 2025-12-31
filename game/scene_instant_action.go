@@ -13,6 +13,9 @@ type InstantActionScene struct {
 	playerUnitSelect *UnitMenu
 	enemyUnitSelect  *UnitMenu
 	launchBriefing   *LaunchMenu
+
+	menuOrder []Menu
+	menuIndex int
 }
 
 func NewInstantActionScene(g *Game) Scene {
@@ -27,6 +30,12 @@ func NewInstantActionScene(g *Game) Scene {
 		playerUnitSelect: unitSelect,
 		enemyUnitSelect:  enemySelect,
 		launchBriefing:   launchBriefing,
+		menuOrder: []Menu{
+			mapSelect,
+			unitSelect,
+			enemySelect,
+			launchBriefing,
+		},
 	}
 	scene.SetMenu(mapSelect)
 	return scene
@@ -34,6 +43,13 @@ func NewInstantActionScene(g *Game) Scene {
 
 func (s *InstantActionScene) SetMenu(m Menu) {
 	s.Game.menu = m
+}
+
+func (s *InstantActionScene) getMenu() Menu {
+	if s.menuIndex >= 0 && s.menuIndex < len(s.menuOrder) {
+		return s.menuOrder[s.menuIndex]
+	}
+	return nil
 }
 
 func (s *InstantActionScene) Update() error {
@@ -59,42 +75,45 @@ func (s *InstantActionScene) Draw(screen *ebiten.Image) {
 func (s *InstantActionScene) back() {
 	g := s.Game
 
-	switch g.menu {
-	case s.launchBriefing:
-		// back to enemy unit select
-		s.SetMenu(s.enemyUnitSelect)
+	s.menuIndex -= 1
 
-	case s.enemyUnitSelect:
-		// back to player unit select
-		s.SetMenu(s.playerUnitSelect)
-
-	case s.playerUnitSelect:
-		// back to map select
-		s.SetMenu(s.mapSelect)
-
-	case s.mapSelect:
-		fallthrough
-	default:
+	prevMenu := s.getMenu()
+	if s.menuIndex < 0 {
 		// back to main menu
 		g.scene = NewMainMenuScene(g)
+	} else {
+		// back to previous menu
+		s.SetMenu(prevMenu)
 	}
 }
 
 func (s *InstantActionScene) next() {
 	g := s.Game
 
-	switch g.menu {
-	case s.launchBriefing:
+	// check actions for current menu
+	currentMenu := s.getMenu()
+	if currentMenu == s.launchBriefing {
 		// launch game scene into map mission
 		if g.player == nil {
 			// pick player unit at random
 			g.SetPlayerUnit(g.RandomUnit(model.MechResourceType))
 		}
-
 		g.scene = NewGameScene(g)
+	}
 
-	case s.enemyUnitSelect:
-		// to pre-launch briefing after enemy player unit and map
+	s.menuIndex += 1
+
+	// check actions for next menu
+	nextMenu := s.getMenu()
+	if nextMenu == s.launchBriefing {
+		// prepare briefing menu for display
+		if s.playerUnitSelect.selectedUnit == nil {
+			// set player unit nil to indicate randomized pick for launch briefing
+			g.player = nil
+		} else {
+			g.SetPlayerUnit(s.playerUnitSelect.selectedUnit)
+		}
+
 		opts := &InstantActionMissionOpts{enemies: make([]model.Unit, 0, 1)}
 		if s.enemyUnitSelect.selectedUnit != nil {
 			// set enemy unit for mission spawning
@@ -108,25 +127,13 @@ func (s *InstantActionScene) next() {
 			exit(1)
 		}
 		s.launchBriefing.loadBriefing(mission)
-		s.SetMenu(s.launchBriefing)
+	}
 
-	case s.playerUnitSelect:
-		// to enemy unit select after setting player unit
-		if s.playerUnitSelect.selectedUnit == nil {
-			// set player unit nil to indicate randomized pick for launch briefing
-			g.player = nil
-		} else {
-			g.SetPlayerUnit(s.playerUnitSelect.selectedUnit)
-		}
-
-		s.SetMenu(s.enemyUnitSelect)
-
-	case s.mapSelect:
-		// to unit select
-		s.SetMenu(s.playerUnitSelect)
-
-	default:
+	if s.menuIndex < 0 {
 		// back to main menu
 		g.scene = NewMainMenuScene(g)
+	} else if s.menuIndex < len(s.menuOrder) {
+		// proceed to next menu
+		s.SetMenu(nextMenu)
 	}
 }
