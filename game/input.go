@@ -665,20 +665,19 @@ func (g *Game) handleInput() {
 		}
 
 		if selectGroupIndex >= 0 {
-			g.player.selectedGroup = uint(selectGroupIndex)
 			weapons := g.player.weaponGroups[selectGroupIndex]
 			if len(weapons) == 0 {
-				g.player.selectedWeapon = 0
+				go g.audio.PlayButtonAudio(AUDIO_BUTTON_NEG)
 			} else {
 				for i, w := range g.player.Armament() {
 					if w == weapons[0] {
+						g.player.selectedGroup = uint(selectGroupIndex)
 						g.player.selectedWeapon = uint(i)
+						go g.audio.PlayButtonAudio(AUDIO_BUTTON_AFF)
 						break
 					}
 				}
 			}
-
-			go g.audio.PlayButtonAudio(AUDIO_BUTTON_AFF)
 		}
 	}
 
