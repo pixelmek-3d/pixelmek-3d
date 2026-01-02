@@ -177,19 +177,26 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		a.drawWeapon(w, wBounds, hudOpts)
 
 		// render weapon select box
+		isWeaponInSameGroup := model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups)
 		isWeaponSelected := (a.fireMode == model.CHAIN_FIRE && i == int(a.selectedWeapon)) ||
-			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups))
+			(a.fireMode == model.GROUP_FIRE && isWeaponInSameGroup)
 
-		if isWeaponSelected {
+		if isWeaponSelected || isWeaponInSameGroup {
 			wColor := hudOpts.HudColor(w.weaponColor)
-
 			if w.weapon.Cooldown() > 0 {
 				wAlpha := uint8(2 * int(wColor.A) / 5)
 				wColor = color.NRGBA{wColor.R, wColor.G, wColor.B, wAlpha}
 			}
 
-			// TODO: move to Weapon update and add margins
-			var wT float32 = 2 // TODO: calculate line thickness based on image height
+			var wT float32 = 3 // TODO: calculate line thickness based on image height
+
+			if !isWeaponSelected {
+				// reduce selection box thickness and opacity if weapon not selected but in same group
+				wAlpha := uint8(2 * int(wColor.A) / 5)
+				wColor = color.NRGBA{wColor.R, wColor.G, wColor.B, wAlpha}
+				wT = float32(geom.Clamp(float64(wT)/3, 1, float64(wT)))
+			}
+
 			wW, wH := float32(wWidth), float32(wHeight)
 			vector.StrokeRect(screen, float32(wX), float32(wY), wW, wH, wT, wColor, false)
 		}
