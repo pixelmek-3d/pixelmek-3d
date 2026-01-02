@@ -591,7 +591,7 @@ func (g *Game) handleInput() {
 			groups := model.GetGroupsForWeapon(newSelectedWeapon, g.player.weaponGroups)
 			if len(groups) == 0 {
 				g.player.selectedGroup = 0
-			} else {
+			} else if !model.IsWeaponInGroup(newSelectedWeapon, g.player.selectedGroup, g.player.weaponGroups) {
 				g.player.selectedGroup = groups[0]
 			}
 		}

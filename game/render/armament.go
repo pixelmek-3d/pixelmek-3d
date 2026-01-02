@@ -15,11 +15,18 @@ import (
 
 var (
 	// define default colors
-	_colorWeaponGroup1 = _colorDefaultGreen
-	_colorWeaponGroup2 = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
-	_colorWeaponGroup3 = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
-	_colorWeaponGroup4 = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
-	_colorWeaponGroup5 = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
+	_colorWeaponGroup1   = _colorDefaultGreen
+	_colorWeaponGroup2   = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
+	_colorWeaponGroup3   = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
+	_colorWeaponGroup4   = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
+	_colorWeaponGroup5   = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
+	_colorWeaponGroupAll = []color.NRGBA{
+		_colorWeaponGroup1,
+		_colorWeaponGroup2,
+		_colorWeaponGroup3,
+		_colorWeaponGroup4,
+		_colorWeaponGroup5,
+	}
 )
 
 type Armament struct {
@@ -87,37 +94,42 @@ func (a *Armament) IsDebugWeapons() bool {
 
 func (a *Armament) SetWeaponGroups(weaponGroups [][]model.Weapon) {
 	a.weaponGroups = weaponGroups
+	a.updateWeaponGroupColors()
+}
 
-	// set default group colors on weapon displays
+func (a *Armament) SetWeaponFireMode(weaponFireMode model.WeaponFireMode) {
+	a.fireMode = weaponFireMode
+}
+
+func (a *Armament) SetSelectedWeapon(weaponIndex uint) {
+	a.selectedWeapon = weaponIndex
+}
+
+func (a *Armament) SetSelectedWeaponGroup(weaponGroup uint) {
+	a.selectedGroup = weaponGroup
+	a.updateWeaponGroupColors()
+}
+
+func (a *Armament) updateWeaponGroupColors() {
+	// set appropriate weapon group colors on weapon displays
 	for _, w := range a.weapons {
-		groups := model.GetGroupsForWeapon(w.weapon, weaponGroups)
-		if len(groups) == 0 {
-			w.weaponColor = _colorWeaponGroup1
-			continue
-		}
+		groups := model.GetGroupsForWeapon(w.weapon, a.weaponGroups)
 
-		switch groups[0] {
+		switch len(groups) {
 		case 0:
 			w.weaponColor = _colorWeaponGroup1
 		case 1:
-			w.weaponColor = _colorWeaponGroup2
-		case 2:
-			w.weaponColor = _colorWeaponGroup3
-		case 3:
-			w.weaponColor = _colorWeaponGroup4
-		case 4:
-			w.weaponColor = _colorWeaponGroup5
+			w.weaponColor = _colorWeaponGroupAll[groups[0]]
+		default:
+			// more than one group found on weapon, dynamically determine weapon color based on group
+			if model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups) {
+				// set color to the selected weapon group color
+				w.weaponColor = _colorWeaponGroupAll[a.selectedGroup]
+			} else {
+				// set color to first group the weapon is in
+				w.weaponColor = _colorWeaponGroupAll[groups[0]]
+			}
 		}
-	}
-}
-
-func (a *Armament) SetSelectedWeapon(weaponOrGroupIndex uint, weaponFireMode model.WeaponFireMode) {
-	a.fireMode = weaponFireMode
-	switch weaponFireMode {
-	case model.CHAIN_FIRE:
-		a.selectedWeapon = weaponOrGroupIndex
-	case model.GROUP_FIRE:
-		a.selectedGroup = weaponOrGroupIndex
 	}
 }
 
@@ -225,14 +237,18 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	if len(a.weaponGroups) > 0 {
 		a.fontRenderer.SetAlign(etxt.Top | etxt.Right)
 		a.fontRenderer.SetSize(a.fontSizeGroups)
+		fontSpacing := int(a.fontSizeGroups)
 
-		var groupsTxt string
-		for _, g := range model.GetGroupsForWeapon(w.weapon, a.weaponGroups) {
-			groupsTxt += fmt.Sprintf("%d ", g+1)
-		}
+		weaponGroups := model.GetGroupsForWeapon(w.weapon, a.weaponGroups)
+		numWeaponGroups := len(weaponGroups)
+		for i, g := range weaponGroups {
+			groupTxt := fmt.Sprintf("%d", g+1)
 
-		if len(groupsTxt) > 0 {
-			a.fontRenderer.Draw(screen, groupsTxt, bX+bW, bY+2) // TODO: calculate better margin spacing
+			// set each group number color corresponding to that weapon group color
+			gColor := hudOpts.HudColor(_colorWeaponGroupAll[g])
+			a.fontRenderer.SetColor(color.NRGBA(gColor))
+
+			a.fontRenderer.Draw(screen, groupTxt, bX+bW-((numWeaponGroups-i)*fontSpacing), bY+2) // TODO: calculate better margin spacing
 		}
 	}
 }
