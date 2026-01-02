@@ -64,7 +64,7 @@ func InitConfig() {
 	if userConfigPath == "" {
 		userConfigPath = "./"
 	}
-	userConfigPath += "/.pixelmek-3d"
+	userConfigPath += "/.config/pixelmek-3d"
 	UserConfigFile = userConfigPath + "/config.json"
 	UserKeymapFile = userConfigPath + "/keymap.json"
 
