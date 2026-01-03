@@ -82,7 +82,7 @@ func (g *Game) firePlayerWeapon(weaponGroupFire int) bool {
 		}
 
 		isWeaponSelected := (weaponGroupFire < 0 && g.player.fireMode == model.CHAIN_FIRE && i == int(g.player.selectedWeapon)) ||
-			(weaponGroupFire >= 0 && model.IsWeaponInGroup(weapon, uint(weaponGroupFire), g.player.weaponGroups))
+			(weaponGroupFire >= 0 && g.player.IsWeaponInGroup(weapon, uint(weaponGroupFire)))
 		if !isWeaponSelected {
 			continue
 		}

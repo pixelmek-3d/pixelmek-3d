@@ -156,6 +156,11 @@ func (g *Game) initConfig() {
 	sfxChannels = viper.GetInt(CONFIG_KEY_AUDIO_SFX_CHANNELS)
 
 	g.throttleDecay = viper.GetBool(CONFIG_KEY_CONTROL_DECAY)
+
+	// restore saved unit weapon groups
+	if err := restoreUserWeaponGroups(); err != nil {
+		log.Error("failed to restore user weapon groups: " + err.Error())
+	}
 }
 
 func (g *Game) saveConfig() error {

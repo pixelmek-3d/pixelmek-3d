@@ -340,7 +340,6 @@ func (g *Game) saveControls() error {
 	}
 	defer keymapFile.Close()
 
-	// first time intitialize defaults into file
 	keymapConfig := orderedmap.New[string, []string]()
 	for a := ActionUnknown + 1; a < actionCount; a++ {
 		actionKey := actionString(a)
@@ -588,10 +587,10 @@ func (g *Game) handleInput() {
 
 			// set selectedGroup if the newly selected weapon is in different group
 			newSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
-			groups := model.GetGroupsForWeapon(newSelectedWeapon, g.player.weaponGroups)
+			groups := g.player.GetGroupsForWeapon(newSelectedWeapon)
 			if len(groups) == 0 {
 				g.player.selectedGroup = 0
-			} else if !model.IsWeaponInGroup(newSelectedWeapon, g.player.selectedGroup, g.player.weaponGroups) {
+			} else if !g.player.IsWeaponInGroup(newSelectedWeapon, g.player.selectedGroup) {
 				g.player.selectedGroup = groups[0]
 			}
 		}
@@ -622,7 +621,7 @@ func (g *Game) handleInput() {
 			if setGroupIndex >= 0 {
 				addToGroup := true
 				weapon := g.player.Armament()[g.player.selectedWeapon]
-				groups := model.GetGroupsForWeapon(weapon, g.player.weaponGroups)
+				groups := g.player.GetGroupsForWeapon(weapon)
 				for _, gIndex := range groups {
 					if int(gIndex) == setGroupIndex {
 						// already in group, remove it
@@ -645,9 +644,16 @@ func (g *Game) handleInput() {
 				}
 				g.player.selectedGroup = uint(setGroupIndex)
 
+				// TODO: use background thread queue to avoid multiple writes at same time
+				setUnitWeaponGroups(g.player, g.player.weaponGroups)
+				if err := saveUserWeaponGroups(); err != nil {
+					log.Error("failed to save user weapon groups: " + err.Error())
+				}
+
 				go g.audio.PlayButtonAudio(AUDIO_BUTTON_OVER)
 			}
 		}
+
 	} else {
 		// set currently selected weapon/group if weapon group number key pressed
 		selectGroupIndex := -1
@@ -693,7 +699,7 @@ func (g *Game) handleInput() {
 		if g.player.fireMode == model.GROUP_FIRE {
 			// select the first appropriate group from selected weapon when switching to group mode
 			prevSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
-			groups := model.GetGroupsForWeapon(prevSelectedWeapon, g.player.weaponGroups)
+			groups := g.player.GetGroupsForWeapon(prevSelectedWeapon)
 			if len(groups) == 0 {
 				g.player.selectedGroup = 0
 			} else {

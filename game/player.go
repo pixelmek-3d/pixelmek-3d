@@ -315,12 +315,20 @@ func (p *Player) getSelectedWeapons() []model.Weapon {
 			}
 
 		case model.GROUP_FIRE:
-			if model.IsWeaponInGroup(w, p.selectedGroup, p.weaponGroups) {
+			if p.IsWeaponInGroup(w, p.selectedGroup) {
 				selected = append(selected, p.Armament()[i])
 			}
 		}
 	}
 	return selected
+}
+
+func (p *Player) GetGroupsForWeapon(w model.Weapon) []uint {
+	return model.GetGroupsForWeapon(w, p.weaponGroups)
+}
+
+func (p *Player) IsWeaponInGroup(w model.Weapon, g uint) bool {
+	return model.IsWeaponInGroup(w, g, p.weaponGroups)
 }
 
 func (p *Player) Eject(g *Game) bool {

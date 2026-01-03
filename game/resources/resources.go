@@ -34,9 +34,10 @@ var (
 	//--set constant, texture size to be the wall texture size--//
 	TexSize = 256
 
-	Viper          *v.Viper
-	UserConfigFile string
-	UserKeymapFile string
+	Viper                *v.Viper
+	UserConfigFile       string
+	UserKeymapFile       string
+	UserWeaponGroupsFile string
 
 	CrosshairsSheet *CrosshairsSheetConfig
 
@@ -67,6 +68,7 @@ func InitConfig() {
 	userConfigPath += "/.config/pixelmek-3d"
 	UserConfigFile = userConfigPath + "/config.json"
 	UserKeymapFile = userConfigPath + "/keymap.json"
+	UserWeaponGroupsFile = userConfigPath + "/weapon_groups.json"
 
 	Viper.AddConfigPath(userConfigPath)
 
