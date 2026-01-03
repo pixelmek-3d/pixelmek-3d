@@ -71,14 +71,8 @@ func NewPlayer(unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch fl
 	p.SetVelocity(0)
 
 	p.selectedWeapon = 0
-	p.weaponGroups = make([][]model.Weapon, 5)
-	for i := 0; i < cap(p.weaponGroups); i++ {
-		p.weaponGroups[i] = make([]model.Weapon, 0, len(unit.Armament()))
-	}
-	// initialize all weapons as only in first weapon group
-	p.weaponGroups[0] = append(p.weaponGroups[0], unit.Armament()...)
-
-	// TODO: save/restore weapon groups for weapons per unit
+	p.selectedGroup = 0
+	p.weaponGroups = getUnitWeaponGroups(unit)
 
 	return p
 }
