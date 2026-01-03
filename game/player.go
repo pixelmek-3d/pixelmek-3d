@@ -70,9 +70,16 @@ func NewPlayer(unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch fl
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
 
+	p.weaponGroups = getUnitWeaponGroups(unit)
 	p.selectedWeapon = 0
 	p.selectedGroup = 0
-	p.weaponGroups = getUnitWeaponGroups(unit)
+	if len(unit.Armament()) > 0 {
+		// initialize first selected weapon with the first group it is in
+		g := p.GetGroupsForWeapon(unit.Armament()[p.selectedWeapon])
+		if len(g) > 0 {
+			p.selectedGroup = g[0]
+		}
+	}
 
 	return p
 }
