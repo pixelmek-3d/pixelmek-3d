@@ -8,6 +8,19 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const displayMinHeight = 320
+
+var displayWidthList = []int{
+	640,
+	800,
+	960,
+	1024,
+	1280,
+	1440,
+	1600,
+	1920,
+}
+
 type SettingsMenu struct {
 	*MenuModel
 	preSelectedPage int
@@ -78,20 +91,12 @@ func generateMenuResolutions() []MenuResolution {
 		{21, 9, 100},
 	}
 
-	widths := []int{
-		640,
-		800,
-		960,
-		1024,
-		1280,
-		1440,
-		1600,
-		1920,
-	}
-
 	for _, r := range ratios {
-		for _, w := range widths {
+		for _, w := range displayWidthList {
 			h := (w / r.w) * r.h
+			if h < displayMinHeight {
+				continue
+			}
 			resolutions = append(
 				resolutions,
 				MenuResolution{width: w, height: h, aspectRatio: r},

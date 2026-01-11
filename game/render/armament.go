@@ -217,8 +217,6 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	weaponDisplayTxt := weapon.ShortName()
 	a.fontRenderer.Draw(screen, weaponDisplayTxt, wX, wY)
 
-	// TODO: RELOCATE AMMO INDICATOR TO SHOW WEAPON LOCATION IN ITS PLACE
-
 	// render ammo indicator
 	if wAmmoBin != nil {
 		a.fontRenderer.SetAlign(etxt.Bottom | etxt.Right)
