@@ -602,26 +602,28 @@ func (g *Game) handleInput() {
 	}
 
 	if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
-		if g.player.fireMode == model.CHAIN_FIRE {
-			// set group for selected weapon
-			setGroupIndex := -1
-			switch {
-			case g.input.ActionIsJustPressed(ActionWeaponGroup1):
-				setGroupIndex = 0
-			case g.input.ActionIsJustPressed(ActionWeaponGroup2):
-				setGroupIndex = 1
-			case g.input.ActionIsJustPressed(ActionWeaponGroup3):
-				setGroupIndex = 2
-			case g.input.ActionIsJustPressed(ActionWeaponGroup4):
-				setGroupIndex = 3
-			case g.input.ActionIsJustPressed(ActionWeaponGroup5):
-				setGroupIndex = 4
-			}
+		// set group for selected weapon
+		setGroupIndex := -1
+		switch {
+		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
+			setGroupIndex = 0
+		case g.input.ActionIsJustPressed(ActionWeaponGroup2):
+			setGroupIndex = 1
+		case g.input.ActionIsJustPressed(ActionWeaponGroup3):
+			setGroupIndex = 2
+		case g.input.ActionIsJustPressed(ActionWeaponGroup4):
+			setGroupIndex = 3
+		case g.input.ActionIsJustPressed(ActionWeaponGroup5):
+			setGroupIndex = 4
+		}
 
-			if setGroupIndex >= 0 {
-				addToGroup := true
-				weapon := g.player.Armament()[g.player.selectedWeapon]
-				groups := g.player.GetGroupsForWeapon(weapon)
+		if setGroupIndex >= 0 {
+			addToGroup := true
+
+			weapons := g.player.getSelectedWeapons()
+
+			for _, w := range weapons {
+				groups := g.player.GetGroupsForWeapon(w)
 				for _, gIndex := range groups {
 					if int(gIndex) == setGroupIndex {
 						// already in group, remove it
@@ -630,7 +632,7 @@ func (g *Game) handleInput() {
 						weaponsInGroup := g.player.weaponGroups[gIndex]
 						g.player.weaponGroups[gIndex] = make([]model.Weapon, 0, len(weaponsInGroup)-1)
 						for _, chkWeapon := range weaponsInGroup {
-							if chkWeapon != weapon {
+							if chkWeapon != w {
 								g.player.weaponGroups[gIndex] = append(g.player.weaponGroups[gIndex], chkWeapon)
 							}
 						}
@@ -640,20 +642,24 @@ func (g *Game) handleInput() {
 
 				if addToGroup {
 					// add to selected group
-					g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
+					g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], w)
+				} else {
+					// make sure the weapon is still in at least one group, if not make it go to group 1
+					if len(g.player.GetGroupsForWeapon(w)) == 0 {
+						g.player.weaponGroups[0] = append(g.player.weaponGroups[0], w)
+					}
 				}
-				g.player.selectedGroup = uint(setGroupIndex)
-
-				// TODO: use background thread queue to avoid multiple writes at same time
-				setUnitWeaponGroups(g.player, g.player.weaponGroups)
-				if err := saveUserWeaponGroups(); err != nil {
-					log.Error("failed to save user weapon groups: " + err.Error())
-				}
-
-				go g.audio.PlayButtonAudio(AUDIO_BUTTON_OVER)
 			}
-		}
+			g.player.selectedGroup = uint(setGroupIndex)
 
+			// TODO: use background thread queue to avoid multiple writes at same time
+			setUnitWeaponGroups(g.player, g.player.weaponGroups)
+			if err := saveUserWeaponGroups(); err != nil {
+				log.Error("failed to save user weapon groups: " + err.Error())
+			}
+
+			go g.audio.PlayButtonAudio(AUDIO_BUTTON_OVER)
+		}
 	} else {
 		// set currently selected weapon/group if weapon group number key pressed
 		selectGroupIndex := -1
