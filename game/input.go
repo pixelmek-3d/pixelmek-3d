@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/pprof"
+	"slices"
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -703,12 +704,12 @@ func (g *Game) handleInput() {
 		}
 
 		if g.player.fireMode == model.GROUP_FIRE {
-			// select the first appropriate group from selected weapon when switching to group mode
+			// select the appropriate group from selected weapon when switching to group mode
 			prevSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
 			groups := g.player.GetGroupsForWeapon(prevSelectedWeapon)
 			if len(groups) == 0 {
 				g.player.selectedGroup = 0
-			} else {
+			} else if !slices.Contains(groups, g.player.selectedGroup) {
 				g.player.selectedGroup = groups[0]
 			}
 		} else if g.player.fireMode == model.CHAIN_FIRE {
