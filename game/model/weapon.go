@@ -51,6 +51,7 @@ type Weapon interface {
 	Tech() TechBase
 	Type() WeaponType
 	Classification() WeaponClassification
+	Location() Location
 	Tonnage() float64
 	Damage() float64
 	Heat() float64

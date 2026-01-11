@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
@@ -230,6 +231,12 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 		aX, aY := bX+bW-3, wY
 		a.fontRenderer.Draw(screen, ammoDisplayTxt, aX, aY) // TODO: calculate better margin spacing
 	}
+
+	// render weapon location indicator
+	a.fontRenderer.SetAlign(etxt.Top | etxt.Left)
+	a.fontRenderer.SetSize(a.fontSizeGroups)
+	locationTxt := strings.ToUpper(w.weapon.Location().ShortName())
+	a.fontRenderer.Draw(screen, locationTxt, bX+2, bY+2) // TODO: calculate better margin spacing
 
 	// render weapon group indicator
 	if len(a.weaponGroups) > 0 {

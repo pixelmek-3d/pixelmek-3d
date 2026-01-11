@@ -312,38 +312,17 @@ func (t *ModelWeaponType) UnmarshalText(b []byte) error {
 func (t *ModelLocation) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
 
-	hd, ct, lt, rt, la, ra, ll, rl := "hd", "ct", "lt", "rt", "la", "ra", "ll", "rl"
-	front, left, right, turret := "front", "left", "right", "turret"
-
-	switch str {
-	case hd:
-		t.Location = HEAD
-	case ct:
-		t.Location = CENTER_TORSO
-	case lt:
-		t.Location = LEFT_TORSO
-	case rt:
-		t.Location = RIGHT_TORSO
-	case la:
-		t.Location = LEFT_ARM
-	case ra:
-		t.Location = RIGHT_ARM
-	case ll:
-		t.Location = LEFT_LEG
-	case rl:
-		t.Location = RIGHT_LEG
-	case front:
-		t.Location = FRONT
-	case left:
-		t.Location = LEFT
-	case right:
-		t.Location = RIGHT
-	case turret:
-		t.Location = TURRET
-	default:
+	locationFound := false
+	for l, name := range locationNames {
+		if str == name {
+			t.Location = l
+			locationFound = true
+			break
+		}
+	}
+	if !locationFound {
 		return fmt.Errorf("unknown location value '%s'", str)
 	}
-
 	return nil
 }
 

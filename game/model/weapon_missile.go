@@ -18,6 +18,7 @@ type MissileWeapon struct {
 	summary         string
 	tech            TechBase
 	classification  WeaponClassification
+	location        Location
 	tonnage         float64
 	damage          float64
 	heat            float64
@@ -38,12 +39,13 @@ type MissileWeapon struct {
 	lockOnGroupRadius  float64
 }
 
-func NewMissileWeapon(r *ModelMissileWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, onePxOffset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
+func NewMissileWeapon(r *ModelMissileWeaponResource, location Location, collisionRadius, collisionHeight float64, offset *geom.Vector2, onePxOffset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
 	w := &MissileWeapon{
 		Resource:          r,
 		name:              r.Name,
 		short:             r.ShortName,
 		tech:              r.Tech.TechBase,
+		location:          location,
 		tonnage:           r.Tonnage,
 		damage:            r.Damage,
 		heat:              r.Heat,
@@ -278,6 +280,10 @@ func (w *MissileWeapon) loadClassification() {
 
 func (w *MissileWeapon) Tech() TechBase {
 	return w.tech
+}
+
+func (w *MissileWeapon) Location() Location {
+	return w.location
 }
 
 func (w *MissileWeapon) Tonnage() float64 {

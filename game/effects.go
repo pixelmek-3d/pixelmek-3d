@@ -115,7 +115,7 @@ func _loadEjectionPodResource(g *Game) {
 	// create the pod as missile projectile model
 	var modelPod model.Projectile
 	ejectLauncher, modelPod = model.NewMissileWeapon(
-		weaponResource, pCollisionRadius, pCollisionHeight, &geom.Vector2{}, &geom.Vector2{}, nil,
+		weaponResource, model.HEAD, pCollisionRadius, pCollisionHeight, &geom.Vector2{}, &geom.Vector2{}, nil,
 	)
 
 	// create the projectile and effect sprite templates

@@ -318,7 +318,6 @@ func (g *Game) createModelEmplacementFromResource(emplacementResource *model.Mod
 }
 
 func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResourceArmament, unitWidthPx, unitHeightPx int, unitScale float64) {
-	// TODO: refactor to load weapons in model package
 	projectileSpriteTemplates := g.sprites.ProjectileSpriteTemplates
 
 	for _, armament := range armamentList {
@@ -356,8 +355,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			)
 
 			// create the weapon and projectile model
-			weapon, projectile = model.NewEnergyWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, unit)
-
+			weapon, projectile = model.NewEnergyWeapon(
+				weaponResource, armament.Location.Location, pCollisionRadius, pCollisionHeight, weaponOffset, unit,
+			)
 			pTemplateKey := model.EnergyResourceType + "_" + armament.Weapon
 			if _, ok := projectileSpriteTemplates[pTemplateKey]; !ok {
 				// create the projectile and effect sprite templates
@@ -419,7 +419,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 			// create the weapon and projectile model
 			weapon, projectile = model.NewMissileWeapon(
-				weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, onePxOffset, unit,
+				weaponResource, armament.Location.Location, pCollisionRadius, pCollisionHeight, weaponOffset, onePxOffset, unit,
 			)
 
 			pTemplateKey := model.MissileResourceType + "_" + armament.Weapon
@@ -476,7 +476,9 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			)
 
 			// create the weapon and projectile model
-			weapon, projectile = model.NewBallisticWeapon(weaponResource, pCollisionRadius, pCollisionHeight, weaponOffset, unit)
+			weapon, projectile = model.NewBallisticWeapon(
+				weaponResource, armament.Location.Location, pCollisionRadius, pCollisionHeight, weaponOffset, unit,
+			)
 
 			pTemplateKey := model.BallisticResourceType + "_" + armament.Weapon
 			if _, ok := projectileSpriteTemplates[pTemplateKey]; !ok {
@@ -510,7 +512,6 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 }
 
 func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo) {
-	// TODO: refactor to load ammo in model package
 	// load stock ammo
 	ammo := unit.Ammunition()
 	for _, ammoResource := range ammoList {
