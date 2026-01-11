@@ -33,7 +33,6 @@ type Armament struct {
 	HUDSprite
 	fontRenderer    *etxt.Renderer
 	fontSizeWeapons float64
-	fontSizeAmmo    float64
 	fontSizeGroups  float64
 	weapons         []*Weapon
 	weaponGroups    [][]model.Weapon
@@ -141,7 +140,6 @@ func (a *Armament) updateFontSize(_, height int) {
 	}
 
 	a.fontSizeWeapons = geom.Clamp(pxSize, 1, math.MaxInt)
-	a.fontSizeAmmo = geom.Clamp(3*pxSize/5, 1, math.MaxInt)
 	a.fontSizeGroups = geom.Clamp(pxSize/2, 1, math.MaxInt)
 }
 
@@ -181,7 +179,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		isWeaponSelected := (a.fireMode == model.CHAIN_FIRE && i == int(a.selectedWeapon)) ||
 			(a.fireMode == model.GROUP_FIRE && isWeaponInSameGroup)
 
-		if isWeaponSelected || isWeaponInSameGroup {
+		if isWeaponSelected {
 			wColor := hudOpts.HudColor(w.weaponColor)
 			if w.weapon.Cooldown() > 0 {
 				wAlpha := uint8(2 * int(wColor.A) / 5)
@@ -189,14 +187,6 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			}
 
 			var wT float32 = 3 // TODO: calculate line thickness based on image height
-
-			if !isWeaponSelected {
-				// reduce selection box thickness and opacity if weapon not selected but in same group
-				wAlpha := uint8(2 * int(wColor.A) / 5)
-				wColor = color.NRGBA{wColor.R, wColor.G, wColor.B, wAlpha}
-				wT = float32(geom.Clamp(float64(wT)/3, 1, float64(wT)))
-			}
-
 			wW, wH := float32(wWidth), float32(wHeight)
 			vector.StrokeRect(screen, float32(wX), float32(wY), wW, wH, wT, wColor, false)
 		}
@@ -205,7 +195,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	a.fontRenderer.SetAlign(etxt.VertCenter | etxt.Left)
+	a.fontRenderer.SetAlign(etxt.Bottom | etxt.Left)
 	a.fontRenderer.SetSize(a.fontSizeWeapons)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
@@ -222,22 +212,25 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	}
 	a.fontRenderer.SetColor(color.NRGBA(wColor))
 
-	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing
+	wX, wY := bX+3, bY+bH-3 // TODO: calculate better margin spacing
 
 	weaponDisplayTxt := weapon.ShortName()
 	a.fontRenderer.Draw(screen, weaponDisplayTxt, wX, wY)
 
+	// TODO: RELOCATE AMMO INDICATOR TO SHOW WEAPON LOCATION IN ITS PLACE
+
 	// render ammo indicator
 	if wAmmoBin != nil {
 		a.fontRenderer.SetAlign(etxt.Bottom | etxt.Right)
-		a.fontRenderer.SetSize(a.fontSizeAmmo)
+		a.fontRenderer.SetSize(a.fontSizeWeapons)
 
 		// just picked a character to indicate as empty
-		ammoDisplayTxt := "/ "
+		ammoDisplayTxt := "/"
 		if !isAmmoEmpty {
-			ammoDisplayTxt = fmt.Sprintf("_%d ", wAmmoBin.AmmoCount())
+			ammoDisplayTxt = fmt.Sprintf("%d", wAmmoBin.AmmoCount())
 		}
-		a.fontRenderer.Draw(screen, ammoDisplayTxt, bX+bW, bY+bH-2) // TODO: calculate better margin spacing
+		aX, aY := bX+bW-3, wY
+		a.fontRenderer.Draw(screen, ammoDisplayTxt, aX, aY) // TODO: calculate better margin spacing
 	}
 
 	// render weapon group indicator
@@ -253,9 +246,12 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 
 			// set each group number color corresponding to that weapon group color
 			gColor := hudOpts.HudColor(_colorWeaponGroupAll[g])
+			if a.selectedGroup != g {
+				gColor.A = uint8(2 * (int(gColor.A) / 5))
+			}
 			a.fontRenderer.SetColor(color.NRGBA(gColor))
 
-			a.fontRenderer.Draw(screen, groupTxt, bX+bW-((numWeaponGroups-i)*fontSpacing), bY+2) // TODO: calculate better margin spacing
+			a.fontRenderer.Draw(screen, groupTxt, bX+bW-((numWeaponGroups-i-1)*fontSpacing)-3, bY+2) // TODO: calculate better margin spacing
 		}
 	}
 }
