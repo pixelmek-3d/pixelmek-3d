@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"slices"
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
@@ -37,6 +38,17 @@ type WeaponFireMode int
 const (
 	CHAIN_FIRE WeaponFireMode = iota
 	GROUP_FIRE
+)
+
+type WeaponGroup int
+
+const (
+	WEAPON_GROUP_NONE WeaponGroup = iota
+	WEAPON_GROUP_1
+	WEAPON_GROUP_2
+	WEAPON_GROUP_3
+	WEAPON_GROUP_4
+	WEAPON_GROUP_5
 )
 
 const (
@@ -146,8 +158,23 @@ func HeadingPitchTowardPoint3D(source, target *geom3d.Vector3) (float64, float64
 	return heading, pitch
 }
 
-func GetGroupsForWeapon(w Weapon, weaponGroups [][]Weapon) []uint {
-	groupsForWeapon := make([]uint, 0, len(weaponGroups))
+func GetWeaponsForGroup(g WeaponGroup, weaponGroups [][]Weapon, armament []Weapon) []Weapon {
+	if g == WEAPON_GROUP_NONE {
+		// get all weapons not in any group
+		weapons := make([]Weapon, 0, len(armament))
+		for _, w := range armament {
+			groupsForWeapon := GetGroupsForWeapon(w, weaponGroups)
+			if len(groupsForWeapon) == 0 {
+				weapons = append(weapons, w)
+			}
+		}
+		return weapons
+	}
+	return weaponGroups[g]
+}
+
+func GetGroupsForWeapon(w Weapon, weaponGroups [][]Weapon) []WeaponGroup {
+	groupsForWeapon := make([]WeaponGroup, 0, len(weaponGroups))
 	if w == nil {
 		return groupsForWeapon
 	}
@@ -155,7 +182,7 @@ func GetGroupsForWeapon(w Weapon, weaponGroups [][]Weapon) []uint {
 	for g, weapons := range weaponGroups {
 		for _, gWeapon := range weapons {
 			if w == gWeapon {
-				groupsForWeapon = append(groupsForWeapon, uint(g))
+				groupsForWeapon = append(groupsForWeapon, WeaponGroup(g))
 			}
 		}
 	}
@@ -163,16 +190,14 @@ func GetGroupsForWeapon(w Weapon, weaponGroups [][]Weapon) []uint {
 	return groupsForWeapon
 }
 
-func IsWeaponInGroup(w Weapon, g uint, weaponGroups [][]Weapon) bool {
+func IsWeaponInGroup(w Weapon, g WeaponGroup, weaponGroups [][]Weapon) bool {
 	if w == nil || int(g) >= len(weaponGroups) {
 		return false
 	}
 
-	for _, gWeapon := range weaponGroups[g] {
-		if w == gWeapon {
-			return true
-		}
+	groupsForWeapon := GetGroupsForWeapon(w, weaponGroups)
+	if g == WEAPON_GROUP_NONE {
+		return len(groupsForWeapon) == 0
 	}
-
-	return false
+	return slices.Contains(groupsForWeapon, g)
 }

@@ -39,7 +39,7 @@ type Player struct {
 	convergenceSprite *sprites.Sprite
 	weaponGroups      [][]model.Weapon
 	selectedWeapon    uint
-	selectedGroup     uint
+	selectedGroup     model.WeaponGroup
 	fireMode          model.WeaponFireMode
 	reticleLead       *sprites.ReticleLead
 	currentNav        *sprites.NavSprite
@@ -72,7 +72,7 @@ func NewPlayer(unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch fl
 
 	p.weaponGroups = getUnitWeaponGroups(unit)
 	p.selectedWeapon = 0
-	p.selectedGroup = 0
+	p.selectedGroup = model.WEAPON_GROUP_NONE
 	if len(unit.Armament()) > 0 {
 		// initialize first selected weapon with the first group it is in
 		g := p.GetGroupsForWeapon(unit.Armament()[p.selectedWeapon])
@@ -324,11 +324,15 @@ func (p *Player) getSelectedWeapons() []model.Weapon {
 	return selected
 }
 
-func (p *Player) GetGroupsForWeapon(w model.Weapon) []uint {
+func (p *Player) GetWeaponsForGroup(g model.WeaponGroup) []model.Weapon {
+	return model.GetWeaponsForGroup(g, p.weaponGroups, p.Armament())
+}
+
+func (p *Player) GetGroupsForWeapon(w model.Weapon) []model.WeaponGroup {
 	return model.GetGroupsForWeapon(w, p.weaponGroups)
 }
 
-func (p *Player) IsWeaponInGroup(w model.Weapon, g uint) bool {
+func (p *Player) IsWeaponInGroup(w model.Weapon, g model.WeaponGroup) bool {
 	return model.IsWeaponInGroup(w, g, p.weaponGroups)
 }
 

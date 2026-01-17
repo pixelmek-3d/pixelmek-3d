@@ -14,13 +14,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const NumWeaponGroups = 5
+const NumWeaponGroups = 6
 
 var userWeaponGroups map[string]_unitWeaponGroups
 
 type _unitWeaponGroups struct {
 	// Groups stores weapon group index lists by weapon index
-	WeaponGroups [][]uint `json:"weapon_groups"`
+	WeaponGroups [][]model.WeaponGroup `json:"weapon_groups"`
 }
 
 func init() {
@@ -93,7 +93,7 @@ func saveUserWeaponGroups() error {
 func setUnitWeaponGroups(unit model.Unit, weaponGroups [][]model.Weapon) {
 	unitKey := _getUnitWeaponsKey(unit)
 
-	unitWeaponGroups := make([][]uint, len(unit.Armament()))
+	unitWeaponGroups := make([][]model.WeaponGroup, len(unit.Armament()))
 	for i, w := range unit.Armament() {
 		unitWeaponGroups[i] = model.GetGroupsForWeapon(w, weaponGroups)
 	}
@@ -118,9 +118,6 @@ func getUnitWeaponGroups(unit model.Unit) [][]model.Weapon {
 				weaponGroups[groupIndex] = append(weaponGroups[groupIndex], weapon)
 			}
 		}
-	} else {
-		// initialize all weapons as only in first weapon group
-		weaponGroups[0] = append(weaponGroups[0], unit.Armament()...)
 	}
 	return weaponGroups
 }

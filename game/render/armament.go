@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -16,12 +17,14 @@ import (
 
 var (
 	// define default colors
-	_colorWeaponGroup1   = _colorDefaultGreen
-	_colorWeaponGroup2   = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
-	_colorWeaponGroup3   = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
-	_colorWeaponGroup4   = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
-	_colorWeaponGroup5   = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
-	_colorWeaponGroupAll = []color.NRGBA{
+	_colorWeaponGroupNone = color.NRGBA{R: 0, G: 160, B: 0, A: 255}
+	_colorWeaponGroup1    = _colorDefaultGreen
+	_colorWeaponGroup2    = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
+	_colorWeaponGroup3    = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
+	_colorWeaponGroup4    = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
+	_colorWeaponGroup5    = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
+	_colorWeaponGroupAll  = []color.NRGBA{
+		_colorWeaponGroupNone,
 		_colorWeaponGroup1,
 		_colorWeaponGroup2,
 		_colorWeaponGroup3,
@@ -38,7 +41,7 @@ type Armament struct {
 	weapons         []*Weapon
 	weaponGroups    [][]model.Weapon
 	selectedWeapon  uint
-	selectedGroup   uint
+	selectedGroup   model.WeaponGroup
 	fireMode        model.WeaponFireMode
 	debug           bool
 }
@@ -105,7 +108,7 @@ func (a *Armament) SetSelectedWeapon(weaponIndex uint) {
 	a.selectedWeapon = weaponIndex
 }
 
-func (a *Armament) SetSelectedWeaponGroup(weaponGroup uint) {
+func (a *Armament) SetSelectedWeaponGroup(weaponGroup model.WeaponGroup) {
 	a.selectedGroup = weaponGroup
 	a.updateWeaponGroupColors()
 }
@@ -117,7 +120,7 @@ func (a *Armament) updateWeaponGroupColors() {
 
 		switch len(groups) {
 		case 0:
-			w.weaponColor = _colorWeaponGroup1
+			w.weaponColor = _colorWeaponGroupNone
 		case 1:
 			w.weaponColor = _colorWeaponGroupAll[groups[0]]
 		default:
@@ -247,7 +250,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 		weaponGroups := model.GetGroupsForWeapon(w.weapon, a.weaponGroups)
 		numWeaponGroups := len(weaponGroups)
 		for i, g := range weaponGroups {
-			groupTxt := fmt.Sprintf("%d", g+1)
+			groupTxt := strconv.Itoa(int(g))
 
 			// set each group number color corresponding to that weapon group color
 			gColor := hudOpts.HudColor(_colorWeaponGroupAll[g])
