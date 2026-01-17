@@ -462,6 +462,11 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 	}
 	armamentWidth, armamentHeight := int(armamentScale*float64(hudW)/3), int(armamentScale*float64(3*hudH)/8)
 	aX, aY := hudRect.Min.X+hudW-armamentWidth+marginX, hudRect.Min.Y
+	if aX+armamentWidth > g.screenWidth {
+		// reduce armament width to fit screen width
+		armamentWidth -= (aX + armamentWidth - g.screenWidth)
+	}
+
 	aBounds := image.Rect(
 		aX, aY, aX+armamentWidth, aY+armamentHeight,
 	)
