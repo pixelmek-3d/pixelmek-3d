@@ -23,7 +23,7 @@ var (
 	_colorWeaponGroup3    = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
 	_colorWeaponGroup4    = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
 	_colorWeaponGroup5    = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
-	_colorWeaponGroupAll  = []color.NRGBA{
+	ColorWeaponGroupAll   = []color.NRGBA{
 		_colorWeaponGroupNone,
 		_colorWeaponGroup1,
 		_colorWeaponGroup2,
@@ -122,15 +122,15 @@ func (a *Armament) updateWeaponGroupColors() {
 		case 0:
 			w.weaponColor = _colorWeaponGroupNone
 		case 1:
-			w.weaponColor = _colorWeaponGroupAll[groups[0]]
+			w.weaponColor = ColorWeaponGroupAll[groups[0]]
 		default:
 			// more than one group found on weapon, dynamically determine weapon color based on group
 			if model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups) {
 				// set color to the selected weapon group color
-				w.weaponColor = _colorWeaponGroupAll[a.selectedGroup]
+				w.weaponColor = ColorWeaponGroupAll[a.selectedGroup]
 			} else {
 				// set color to first group the weapon is in
-				w.weaponColor = _colorWeaponGroupAll[groups[0]]
+				w.weaponColor = ColorWeaponGroupAll[groups[0]]
 			}
 		}
 	}
@@ -253,7 +253,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 			groupTxt := strconv.Itoa(int(g))
 
 			// set each group number color corresponding to that weapon group color
-			gColor := hudOpts.HudColor(_colorWeaponGroupAll[g])
+			gColor := hudOpts.HudColor(ColorWeaponGroupAll[g])
 			if a.selectedGroup != g {
 				gColor.A = uint8(2 * (int(gColor.A) / 5))
 			}

@@ -2,15 +2,27 @@ package game
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	log "github.com/sirupsen/logrus"
 )
+
+var _weaponGroupsMenuConfig *weaponGroupsMenuConfig
+
+type weaponGroupsMenuConfig struct {
+	wg [][]model.Weapon
+}
 
 func openWeaponGroupsWindow(g *Game, res *uiResources) {
 	var window *widget.Window
 	var rmWindow widget.RemoveWindowFunc
+
+	_weaponGroupsMenuConfig = &weaponGroupsMenuConfig{wg: make([][]model.Weapon, len(g.player.weaponGroups))}
+	copy(_weaponGroupsMenuConfig.wg, g.player.weaponGroups)
 
 	m := g.menu
 	uiRect := g.uiRect()
@@ -44,13 +56,11 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 	)
 
 	groupsContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
 				widget.GridLayoutOpts.Columns(2),
 				widget.GridLayoutOpts.Stretch([]bool{true, true}, []bool{true}),
-				widget.GridLayoutOpts.Padding(res.panel.padding),
-				widget.GridLayoutOpts.Spacing(1, spacing),
+				widget.GridLayoutOpts.Spacing(4, 0),
 			),
 		),
 	)
@@ -104,6 +114,12 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Accept", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			// save weapon groups
+			g.player.weaponGroups = _weaponGroupsMenuConfig.wg
+			setUnitWeaponGroups(g.player, g.player.weaponGroups)
+			if err := saveUserWeaponGroups(); err != nil {
+				log.Error("failed to save user weapon groups: " + err.Error())
+			}
 			rmWindow()
 		}),
 	)
@@ -123,7 +139,10 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 }
 
 func createWeaponGroupsSelector(res *uiResources, w model.Weapon) *widget.Container {
+	border, _ := loadImageNineSlice("menu/titlebar-idle.png", 10, 10, 0.5)
+
 	c := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(border),
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -134,12 +153,18 @@ func createWeaponGroupsSelector(res *uiResources, w model.Weapon) *widget.Contai
 				widget.GridLayoutOpts.Columns(4),
 				widget.GridLayoutOpts.Stretch([]bool{false, false, true, false}, []bool{false}),
 				widget.GridLayoutOpts.Spacing(1, 1),
+				widget.GridLayoutOpts.Padding(&widget.Insets{
+					Top:    2,
+					Bottom: 2,
+					Left:   4,
+					Right:  4,
+				}),
 			),
 		),
 	)
 
 	wLocation := widget.NewText(
-		widget.TextOpts.Text(strings.ToUpper(w.Location().ShortName()), res.text.smallFace, res.text.disabledColor),
+		widget.TextOpts.Text(strings.ToUpper(w.Location().ShortName()+` `), res.text.smallFace, res.text.disabledColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	)
 	c.AddChild(wLocation)
@@ -158,10 +183,7 @@ func createWeaponGroupsSelector(res *uiResources, w model.Weapon) *widget.Contai
 		Stretch: true,
 	}))
 
-	groupsContainer := widget.NewText(
-		widget.TextOpts.Text(` 1 2 3 4 5 `, res.text.smallFace, res.text.idleColor),
-		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
-	)
+	groupsContainer := createWeaponGroupButtons(res, w)
 	c.AddChild(groupsContainer)
 
 	return c
@@ -184,4 +206,50 @@ func createWeaponToolTip(res *uiResources, w model.Weapon) *widget.Container {
 	)
 	toolTip.AddChild(toolTipText)
 	return toolTip
+}
+
+func createWeaponGroupButtons(res *uiResources, w model.Weapon) *widget.Container {
+	c := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
+		widget.ContainerOpts.Layout(
+			widget.NewGridLayout(
+				widget.GridLayoutOpts.Columns(5),
+				widget.GridLayoutOpts.Stretch([]bool{false, false, false, false, false}, []bool{false}),
+				widget.GridLayoutOpts.Spacing(4, 4),
+			),
+		),
+	)
+
+	for g := model.WEAPON_GROUP_1; g <= model.WEAPON_GROUP_5; g++ {
+		groupColor := render.ColorWeaponGroupAll[g]
+		textColor := &widget.ButtonTextColor{
+			Idle:     alphaColor(groupColor, 125),
+			Disabled: alphaColor(groupColor, 75),
+			Hover:    groupColor,
+			Pressed:  groupColor,
+		}
+		wgButton := widget.NewButton(
+			widget.ButtonOpts.Image(res.miniButton.image),
+			widget.ButtonOpts.TextPadding(res.miniButton.padding),
+			widget.ButtonOpts.Text(strconv.Itoa(int(g)), res.miniButton.face, textColor),
+			widget.ButtonOpts.ToggleMode(),
+			widget.ButtonOpts.KeepPressedOnExit(),
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				if args.Button.State() == widget.WidgetChecked {
+					_weaponGroupsMenuConfig.wg = model.AddWeaponToGroup(w, g, _weaponGroupsMenuConfig.wg)
+				} else {
+					_weaponGroupsMenuConfig.wg = model.RemoveWeaponFromGroup(w, g, _weaponGroupsMenuConfig.wg)
+				}
+			}),
+		)
+		if model.IsWeaponInGroup(w, g, _weaponGroupsMenuConfig.wg) {
+			wgButton.SetState(widget.WidgetChecked)
+		}
+		c.AddChild(wgButton)
+	}
+	return c
 }

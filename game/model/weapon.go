@@ -158,6 +158,26 @@ func HeadingPitchTowardPoint3D(source, target *geom3d.Vector3) (float64, float64
 	return heading, pitch
 }
 
+func AddWeaponToGroup(w Weapon, g WeaponGroup, weaponGroups [][]Weapon) [][]Weapon {
+	if !slices.Contains(weaponGroups[g], w) {
+		weaponGroups[g] = append(weaponGroups[g], w)
+	}
+	return weaponGroups
+}
+
+func RemoveWeaponFromGroup(w Weapon, g WeaponGroup, weaponGroups [][]Weapon) [][]Weapon {
+	if slices.Contains(weaponGroups[g], w) {
+		weaponsInGroup := weaponGroups[g]
+		weaponGroups[g] = make([]Weapon, 0, len(weaponGroups[g])-1)
+		for _, chkWeapon := range weaponsInGroup {
+			if chkWeapon != w {
+				weaponGroups[g] = append(weaponGroups[g], chkWeapon)
+			}
+		}
+	}
+	return weaponGroups
+}
+
 func GetWeaponsForGroup(g WeaponGroup, weaponGroups [][]Weapon, armament []Weapon) []Weapon {
 	if g == WEAPON_GROUP_NONE {
 		// get all weapons not in any group

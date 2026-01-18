@@ -630,21 +630,14 @@ func (g *Game) handleInput() {
 					if gIndex == setGroupIndex {
 						// already in group, remove it
 						addToGroup = false
-
-						weaponsInGroup := g.player.weaponGroups[gIndex]
-						g.player.weaponGroups[gIndex] = make([]model.Weapon, 0, len(weaponsInGroup)-1)
-						for _, chkWeapon := range weaponsInGroup {
-							if chkWeapon != w {
-								g.player.weaponGroups[gIndex] = append(g.player.weaponGroups[gIndex], chkWeapon)
-							}
-						}
+						g.player.weaponGroups = model.RemoveWeaponFromGroup(w, setGroupIndex, g.player.weaponGroups)
 						break
 					}
 				}
 
 				if addToGroup {
 					// add to selected group
-					g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], w)
+					g.player.weaponGroups = model.AddWeaponToGroup(w, setGroupIndex, g.player.weaponGroups)
 				}
 			}
 			g.player.selectedGroup = setGroupIndex
