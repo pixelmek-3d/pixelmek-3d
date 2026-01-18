@@ -529,10 +529,10 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 		// resize map image to fit window
 		iWidth, iHeight := missionImage.image.Bounds().Dx(), missionImage.image.Bounds().Dy()
 
-		iScale := (float64(uiRect.Dy()) / 2) / float64(iHeight)
-		if int(float64(iWidth)*iScale) > uiRect.Dx()/2 {
+		iScale := (4 * float64(uiRect.Dy()) / 5) / float64(iHeight)
+		if float64(iWidth)*iScale > 4*float64(uiRect.Dx())/5 {
 			// handle ultrawide maps
-			iScale = (float64(uiRect.Dx()) / 2) / float64(iWidth)
+			iScale = (4 * float64(uiRect.Dx()) / 5) / float64(iWidth)
 		}
 
 		scaledImage := ebiten.NewImage(int(float64(iWidth)*iScale), int(float64(iHeight)*iScale))
@@ -554,7 +554,7 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 		widget.WindowOpts.TitleBar(titleBar, uiRect.Dy()/12),
 	)
 
-	wRect := uiRect.Inset(uiRect.Dy() / 6)
+	wRect := uiRect.Inset(padding)
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
