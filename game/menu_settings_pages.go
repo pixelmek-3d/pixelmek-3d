@@ -152,6 +152,17 @@ func gameUnitPage(m Menu) *settingsPage {
 	unitCard := createUnitCard(g, res, playerUnit, UnitCardGame)
 	mContainer.AddChild(unitCard)
 
+	// show weapon groups modification option
+	weaponGroupsButton := widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Modify Weapon Groups", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			openWeaponGroupsWindow(g, res)
+		}),
+	)
+	c.AddChild(weaponGroupsButton)
+
 	return &settingsPage{
 		title:    "Unit",
 		content:  c,
