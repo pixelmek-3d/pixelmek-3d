@@ -104,7 +104,6 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Accept", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// FIXME: save weapon groups
 			rmWindow()
 		}),
 	)
@@ -125,6 +124,11 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 
 func createWeaponGroupsSelector(res *uiResources, w model.Weapon) *widget.Container {
 	c := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
 				widget.GridLayoutOpts.Columns(4),
@@ -150,12 +154,10 @@ func createWeaponGroupsSelector(res *uiResources, w model.Weapon) *widget.Contai
 	)
 	c.AddChild(wLabel)
 
-	// FIXME: separator is not stretching to place weapon groups at far right of each column?
 	c.AddChild(newBlankSeparator(res, 1, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
-	// FIXME: make this a container of toggle buttons for groups 1-5
 	groupsContainer := widget.NewText(
 		widget.TextOpts.Text(` 1 2 3 4 5 `, res.text.smallFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
