@@ -21,7 +21,7 @@ var (
 	_colorWeaponGroup1    = _colorDefaultGreen
 	_colorWeaponGroup2    = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
 	_colorWeaponGroup3    = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
-	_colorWeaponGroup4    = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
+	_colorWeaponGroup4    = color.NRGBA{R: 180, G: 75, B: 255, A: 255}
 	_colorWeaponGroup5    = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
 	ColorWeaponGroupAll   = []color.NRGBA{
 		_colorWeaponGroupNone,
