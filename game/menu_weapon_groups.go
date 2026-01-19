@@ -14,14 +14,17 @@ import (
 var _weaponGroupsMenuConfig *weaponGroupsMenuConfig
 
 type weaponGroupsMenuConfig struct {
-	wg [][]model.Weapon
+	wg    [][]model.Weapon
+	audio *AudioHandler
 }
 
 func openWeaponGroupsWindow(g *Game, res *uiResources) {
 	var window *widget.Window
 	var rmWindow widget.RemoveWindowFunc
-
-	_weaponGroupsMenuConfig = &weaponGroupsMenuConfig{wg: make([][]model.Weapon, len(g.player.weaponGroups))}
+	_weaponGroupsMenuConfig = &weaponGroupsMenuConfig{
+		wg:    make([][]model.Weapon, len(g.player.weaponGroups)),
+		audio: g.audio,
+	}
 	copy(_weaponGroupsMenuConfig.wg, g.player.weaponGroups)
 
 	m := g.menu
@@ -229,7 +232,7 @@ func createWeaponGroupButtons(res *uiResources, w model.Weapon) *widget.Containe
 		textColor := &widget.ButtonTextColor{
 			Idle:     alphaColor(groupColor, 125),
 			Disabled: alphaColor(groupColor, 75),
-			Hover:    groupColor,
+			Hover:    alphaColor(groupColor, 200),
 			Pressed:  groupColor,
 		}
 		wgButton := widget.NewButton(
@@ -243,6 +246,9 @@ func createWeaponGroupButtons(res *uiResources, w model.Weapon) *widget.Containe
 					_weaponGroupsMenuConfig.wg = model.AddWeaponToGroup(w, g, _weaponGroupsMenuConfig.wg)
 				} else {
 					_weaponGroupsMenuConfig.wg = model.RemoveWeaponFromGroup(w, g, _weaponGroupsMenuConfig.wg)
+				}
+				if _weaponGroupsMenuConfig.audio != nil {
+					go _weaponGroupsMenuConfig.audio.PlayButtonAudio(AUDIO_BUTTON_OVER)
 				}
 			}),
 		)
