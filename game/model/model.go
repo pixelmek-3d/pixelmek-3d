@@ -50,7 +50,8 @@ type ModelTech struct {
 type Location int
 
 const (
-	HEAD Location = iota
+	_ Location = iota
+	HEAD
 	CENTER_TORSO
 	LEFT_TORSO
 	RIGHT_TORSO
@@ -59,13 +60,35 @@ const (
 	LEFT_LEG
 	RIGHT_LEG
 	FRONT
-	RIGHT
 	LEFT
+	RIGHT
 	TURRET
 )
 
+var locationNames = map[Location]string{
+	HEAD:         "hd",
+	CENTER_TORSO: "ct",
+	LEFT_TORSO:   "lt",
+	RIGHT_TORSO:  "rt",
+	LEFT_ARM:     "la",
+	RIGHT_ARM:    "ra",
+	LEFT_LEG:     "ll",
+	RIGHT_LEG:    "rl",
+	FRONT:        "front",
+	LEFT:         "left",
+	RIGHT:        "right",
+	TURRET:       "turret",
+}
+
 type ModelLocation struct {
 	Location
+}
+
+func (l Location) ShortName() string {
+	if name, ok := locationNames[l]; ok {
+		return name
+	}
+	return "??"
 }
 
 type Equipment struct {

@@ -8,6 +8,19 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const displayMinHeight = 320
+
+var displayWidthList = []int{
+	640,
+	800,
+	960,
+	1024,
+	1280,
+	1440,
+	1600,
+	1920,
+}
+
 type SettingsMenu struct {
 	*MenuModel
 	preSelectedPage int
@@ -78,20 +91,12 @@ func generateMenuResolutions() []MenuResolution {
 		{21, 9, 100},
 	}
 
-	widths := []int{
-		640,
-		800,
-		960,
-		1024,
-		1280,
-		1440,
-		1600,
-		1920,
-	}
-
 	for _, r := range ratios {
-		for _, w := range widths {
+		for _, w := range displayWidthList {
 			h := (w / r.w) * r.h
+			if h < displayMinHeight {
+				continue
+			}
 			resolutions = append(
 				resolutions,
 				MenuResolution{width: w, height: h, aspectRatio: r},
@@ -153,12 +158,12 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 			widget.GridLayoutOpts.Spacing(m.Spacing(), 0),
 		)))
 
-	gameMenu, _ := m.(*GameMenu)
-	settingsMenu, _ := m.(*SettingsMenu)
+	gameMenu, isInGameMenu := m.(*GameMenu)
+	settingsMenu, isMainSettingsMenu := m.(*SettingsMenu)
 
 	var missionSettings *settingsPage
 	var unitSettings *settingsPage
-	if gameMenu != nil {
+	if isInGameMenu {
 		// only show the mission and unit card pages in-game
 		missionSettings = gameMissionPage(m)
 		unitSettings = gameUnitPage(m)
@@ -249,11 +254,11 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	pageList.SetSelectedEntry(pages[0])
 
 	switch {
-	case gameMenu != nil && gameMenu.preSelectedPage > 0:
+	case isInGameMenu && gameMenu.preSelectedPage > 0:
 		pageList.SetSelectedEntry(pages[gameMenu.preSelectedPage])
 		// reset pre-selected page selection
 		gameMenu.preSelectedPage = 0
-	case settingsMenu != nil && settingsMenu.preSelectedPage > 0:
+	case isMainSettingsMenu && settingsMenu.preSelectedPage > 0:
 		pageList.SetSelectedEntry(pages[settingsMenu.preSelectedPage])
 		// reset pre-selected page selection
 		settingsMenu.preSelectedPage = 0

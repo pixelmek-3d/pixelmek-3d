@@ -50,6 +50,7 @@ type uiResources struct {
 
 	text        *textResources
 	button      *buttonResources
+	miniButton  *buttonResources
 	label       *labelResources
 	checkbox    *checkboxResources
 	comboButton *comboButtonResources
@@ -168,6 +169,11 @@ func NewUIResources(fonts *menuFonts) (*uiResources, error) {
 		return nil, err
 	}
 
+	miniButton, err := newMiniButtonResources(fonts)
+	if err != nil {
+		return nil, err
+	}
+
 	checkbox, err := newCheckboxResources(fonts)
 	if err != nil {
 		return nil, err
@@ -229,6 +235,7 @@ func NewUIResources(fonts *menuFonts) (*uiResources, error) {
 		},
 
 		button:      button,
+		miniButton:  miniButton,
 		label:       newLabelResources(fonts),
 		checkbox:    checkbox,
 		comboButton: comboButton,
@@ -381,6 +388,57 @@ func newButtonResources(fonts *menuFonts) (*buttonResources, error) {
 		padding: &widget.Insets{
 			Left:  30,
 			Right: 30,
+		},
+	}, nil
+}
+
+func newMiniButtonResources(fonts *menuFonts) (*buttonResources, error) {
+	cH := centerHeightFromFontScale(fonts.scale * 0.6)
+	rS := resourceScaleFromFontScale(fonts.scale * 0.6)
+	idle, err := loadImageNineSlice("menu/hollow-button-idle.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+
+	hover, err := loadImageNineSlice("menu/hollow-button-hover.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	pressed_hover, err := loadImageNineSlice("menu/hollow-button-selected-hover.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	pressed, err := loadImageNineSlice("menu/hollow-button-pressed.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+
+	disabled, err := loadImageNineSlice("menu/hollow-button-disabled.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+
+	i := &widget.ButtonImage{
+		Idle:         idle,
+		Hover:        hover,
+		Pressed:      pressed,
+		PressedHover: pressed_hover,
+		Disabled:     disabled,
+	}
+
+	return &buttonResources{
+		image: i,
+
+		text: &widget.ButtonTextColor{
+			Idle:     hexToColor(buttonIdleColor),
+			Disabled: hexToColor(buttonDisabledColor),
+		},
+
+		face: fonts.toolTipFace,
+
+		padding: &widget.Insets{
+			Left:  8,
+			Right: 6,
 		},
 	}, nil
 }
@@ -802,6 +860,13 @@ func newToolTipResources(fonts *menuFonts) (*toolTipResources, error) {
 		monoFace: fonts.toolTipMono,
 		color:    hexToColor(toolTipColor),
 	}, nil
+}
+
+func alphaColor(clr color.NRGBA, alpha uint8) color.NRGBA {
+	// return given color with provided alpha value instead
+	ac := clr
+	ac.A = alpha
+	return ac
 }
 
 func hexToColor(h string) color.Color {

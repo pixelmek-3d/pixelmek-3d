@@ -462,16 +462,19 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 	}
 	armamentWidth, armamentHeight := int(armamentScale*float64(hudW)/3), int(armamentScale*float64(3*hudH)/8)
 	aX, aY := hudRect.Min.X+hudW-armamentWidth+marginX, hudRect.Min.Y
+	if aX+armamentWidth > g.screenWidth {
+		// reduce armament width to fit screen width
+		armamentWidth -= (aX + armamentWidth - g.screenWidth)
+	}
+
 	aBounds := image.Rect(
 		aX, aY, aX+armamentWidth, aY+armamentHeight,
 	)
 
 	weaponFireMode := g.player.fireMode
 	weaponGroups := g.player.weaponGroups
-	weaponOrGroupIndex := g.player.selectedWeapon
-	if g.player.fireMode == model.GROUP_FIRE {
-		weaponOrGroupIndex = g.player.selectedGroup
-	}
+	weaponIndex := g.player.selectedWeapon
+	weaponGroupIndex := g.player.selectedGroup
 
 	debugCamTgt := g.player.DebugCameraTarget()
 	if debugCamTgt != nil {
@@ -481,13 +484,16 @@ func (g *Game) drawArmament(hudOpts *render.DrawHudOptions) {
 		}
 		weaponFireMode = model.GROUP_FIRE
 		weaponGroups = make([][]model.Weapon, 0)
-		weaponOrGroupIndex = 0
+		weaponIndex = 0
+		weaponGroupIndex = 0
 	} else if armament.IsDebugWeapons() {
 		armament.SetWeapons(g.player.Armament())
 	}
 
 	armament.SetWeaponGroups(weaponGroups)
-	armament.SetSelectedWeapon(weaponOrGroupIndex, weaponFireMode)
+	armament.SetSelectedWeapon(weaponIndex)
+	armament.SetSelectedWeaponGroup(weaponGroupIndex)
+	armament.SetWeaponFireMode(weaponFireMode)
 	armament.Draw(aBounds, hudOpts)
 }
 

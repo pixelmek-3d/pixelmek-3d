@@ -17,6 +17,7 @@ type BallisticWeapon struct {
 	summary         string
 	tech            TechBase
 	classification  WeaponClassification
+	location        Location
 	tonnage         float64
 	damage          float64
 	heat            float64
@@ -31,12 +32,13 @@ type BallisticWeapon struct {
 	parent          Entity
 }
 
-func NewBallisticWeapon(r *ModelBallisticWeaponResource, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) (*BallisticWeapon, Projectile) {
+func NewBallisticWeapon(r *ModelBallisticWeaponResource, location Location, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) (*BallisticWeapon, Projectile) {
 	w := &BallisticWeapon{
 		Resource:        r,
 		name:            r.Name,
 		short:           r.ShortName,
 		tech:            r.Tech.TechBase,
+		location:        location,
 		tonnage:         r.Tonnage,
 		damage:          r.Damage,
 		heat:            r.Heat,
@@ -185,6 +187,10 @@ func (w *BallisticWeapon) loadClassification() {
 
 func (w *BallisticWeapon) Tech() TechBase {
 	return w.tech
+}
+
+func (w *BallisticWeapon) Location() Location {
+	return w.location
 }
 
 func (w *BallisticWeapon) Tonnage() float64 {

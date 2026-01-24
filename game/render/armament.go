@@ -5,6 +5,8 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"strconv"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
@@ -15,23 +17,31 @@ import (
 
 var (
 	// define default colors
-	_colorWeaponGroup1 = _colorDefaultGreen
-	_colorWeaponGroup2 = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
-	_colorWeaponGroup3 = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
-	_colorWeaponGroup4 = color.NRGBA{R: 145, G: 60, B: 200, A: 255}
-	_colorWeaponGroup5 = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
+	_colorWeaponGroupNone = color.NRGBA{R: 0, G: 160, B: 0, A: 255}
+	_colorWeaponGroup1    = _colorDefaultGreen
+	_colorWeaponGroup2    = color.NRGBA{R: 240, G: 240, B: 240, A: 255}
+	_colorWeaponGroup3    = color.NRGBA{R: 255, G: 206, B: 0, A: 255}
+	_colorWeaponGroup4    = color.NRGBA{R: 180, G: 75, B: 255, A: 255}
+	_colorWeaponGroup5    = color.NRGBA{R: 0, G: 200, B: 200, A: 255}
+	ColorWeaponGroupAll   = []color.NRGBA{
+		_colorWeaponGroupNone,
+		_colorWeaponGroup1,
+		_colorWeaponGroup2,
+		_colorWeaponGroup3,
+		_colorWeaponGroup4,
+		_colorWeaponGroup5,
+	}
 )
 
 type Armament struct {
 	HUDSprite
 	fontRenderer    *etxt.Renderer
 	fontSizeWeapons float64
-	fontSizeAmmo    float64
 	fontSizeGroups  float64
 	weapons         []*Weapon
 	weaponGroups    [][]model.Weapon
 	selectedWeapon  uint
-	selectedGroup   uint
+	selectedGroup   model.WeaponGroup
 	fireMode        model.WeaponFireMode
 	debug           bool
 }
@@ -87,37 +97,42 @@ func (a *Armament) IsDebugWeapons() bool {
 
 func (a *Armament) SetWeaponGroups(weaponGroups [][]model.Weapon) {
 	a.weaponGroups = weaponGroups
-
-	// set default group colors on weapon displays
-	for _, w := range a.weapons {
-		groups := model.GetGroupsForWeapon(w.weapon, weaponGroups)
-		if len(groups) == 0 {
-			w.weaponColor = _colorWeaponGroup1
-			continue
-		}
-
-		switch groups[0] {
-		case 0:
-			w.weaponColor = _colorWeaponGroup1
-		case 1:
-			w.weaponColor = _colorWeaponGroup2
-		case 2:
-			w.weaponColor = _colorWeaponGroup3
-		case 3:
-			w.weaponColor = _colorWeaponGroup4
-		case 4:
-			w.weaponColor = _colorWeaponGroup5
-		}
-	}
+	a.updateWeaponGroupColors()
 }
 
-func (a *Armament) SetSelectedWeapon(weaponOrGroupIndex uint, weaponFireMode model.WeaponFireMode) {
+func (a *Armament) SetWeaponFireMode(weaponFireMode model.WeaponFireMode) {
 	a.fireMode = weaponFireMode
-	switch weaponFireMode {
-	case model.CHAIN_FIRE:
-		a.selectedWeapon = weaponOrGroupIndex
-	case model.GROUP_FIRE:
-		a.selectedGroup = weaponOrGroupIndex
+}
+
+func (a *Armament) SetSelectedWeapon(weaponIndex uint) {
+	a.selectedWeapon = weaponIndex
+}
+
+func (a *Armament) SetSelectedWeaponGroup(weaponGroup model.WeaponGroup) {
+	a.selectedGroup = weaponGroup
+	a.updateWeaponGroupColors()
+}
+
+func (a *Armament) updateWeaponGroupColors() {
+	// set appropriate weapon group colors on weapon displays
+	for _, w := range a.weapons {
+		groups := model.GetGroupsForWeapon(w.weapon, a.weaponGroups)
+
+		switch len(groups) {
+		case 0:
+			w.weaponColor = _colorWeaponGroupNone
+		case 1:
+			w.weaponColor = ColorWeaponGroupAll[groups[0]]
+		default:
+			// more than one group found on weapon, dynamically determine weapon color based on group
+			if model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups) {
+				// set color to the selected weapon group color
+				w.weaponColor = ColorWeaponGroupAll[a.selectedGroup]
+			} else {
+				// set color to first group the weapon is in
+				w.weaponColor = ColorWeaponGroupAll[groups[0]]
+			}
+		}
 	}
 }
 
@@ -129,7 +144,6 @@ func (a *Armament) updateFontSize(_, height int) {
 	}
 
 	a.fontSizeWeapons = geom.Clamp(pxSize, 1, math.MaxInt)
-	a.fontSizeAmmo = geom.Clamp(3*pxSize/5, 1, math.MaxInt)
 	a.fontSizeGroups = geom.Clamp(pxSize/2, 1, math.MaxInt)
 }
 
@@ -165,19 +179,18 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		a.drawWeapon(w, wBounds, hudOpts)
 
 		// render weapon select box
+		isWeaponInSameGroup := model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups)
 		isWeaponSelected := (a.fireMode == model.CHAIN_FIRE && i == int(a.selectedWeapon)) ||
-			(a.fireMode == model.GROUP_FIRE && model.IsWeaponInGroup(w.weapon, a.selectedGroup, a.weaponGroups))
+			(a.fireMode == model.GROUP_FIRE && isWeaponInSameGroup)
 
 		if isWeaponSelected {
 			wColor := hudOpts.HudColor(w.weaponColor)
-
 			if w.weapon.Cooldown() > 0 {
 				wAlpha := uint8(2 * int(wColor.A) / 5)
 				wColor = color.NRGBA{wColor.R, wColor.G, wColor.B, wAlpha}
 			}
 
-			// TODO: move to Weapon update and add margins
-			var wT float32 = 2 // TODO: calculate line thickness based on image height
+			var wT float32 = 3 // TODO: calculate line thickness based on image height
 			wW, wH := float32(wWidth), float32(wHeight)
 			vector.StrokeRect(screen, float32(wX), float32(wY), wW, wH, wT, wColor, false)
 		}
@@ -186,7 +199,7 @@ func (a *Armament) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	screen := hudOpts.Screen
-	a.fontRenderer.SetAlign(etxt.VertCenter | etxt.Left)
+	a.fontRenderer.SetAlign(etxt.Bottom | etxt.Left)
 	a.fontRenderer.SetSize(a.fontSizeWeapons)
 
 	bX, bY, bW, bH := bounds.Min.X, bounds.Min.Y, bounds.Dx(), bounds.Dy()
@@ -203,7 +216,7 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	}
 	a.fontRenderer.SetColor(color.NRGBA(wColor))
 
-	wX, wY := bX+3, bY+bH/2 // TODO: calculate better margin spacing
+	wX, wY := bX+3, bY+bH-3 // TODO: calculate better margin spacing
 
 	weaponDisplayTxt := weapon.ShortName()
 	a.fontRenderer.Draw(screen, weaponDisplayTxt, wX, wY)
@@ -211,28 +224,42 @@ func (a *Armament) drawWeapon(w *Weapon, bounds image.Rectangle, hudOpts *DrawHu
 	// render ammo indicator
 	if wAmmoBin != nil {
 		a.fontRenderer.SetAlign(etxt.Bottom | etxt.Right)
-		a.fontRenderer.SetSize(a.fontSizeAmmo)
+		a.fontRenderer.SetSize(a.fontSizeWeapons)
 
 		// just picked a character to indicate as empty
-		ammoDisplayTxt := "/ "
+		ammoDisplayTxt := "/"
 		if !isAmmoEmpty {
-			ammoDisplayTxt = fmt.Sprintf("_%d ", wAmmoBin.AmmoCount())
+			ammoDisplayTxt = fmt.Sprintf("%d", wAmmoBin.AmmoCount())
 		}
-		a.fontRenderer.Draw(screen, ammoDisplayTxt, bX+bW, bY+bH-2) // TODO: calculate better margin spacing
+		aX, aY := bX+bW-3, wY
+		a.fontRenderer.Draw(screen, ammoDisplayTxt, aX, aY) // TODO: calculate better margin spacing
 	}
+
+	// render weapon location indicator
+	a.fontRenderer.SetAlign(etxt.Top | etxt.Left)
+	a.fontRenderer.SetSize(a.fontSizeGroups)
+	locationTxt := strings.ToUpper(w.weapon.Location().ShortName())
+	a.fontRenderer.Draw(screen, locationTxt, bX+2, bY+2) // TODO: calculate better margin spacing
 
 	// render weapon group indicator
 	if len(a.weaponGroups) > 0 {
 		a.fontRenderer.SetAlign(etxt.Top | etxt.Right)
 		a.fontRenderer.SetSize(a.fontSizeGroups)
+		fontSpacing := int(a.fontSizeGroups)
 
-		var groupsTxt string
-		for _, g := range model.GetGroupsForWeapon(w.weapon, a.weaponGroups) {
-			groupsTxt += fmt.Sprintf("%d ", g+1)
-		}
+		weaponGroups := model.GetGroupsForWeapon(w.weapon, a.weaponGroups)
+		numWeaponGroups := len(weaponGroups)
+		for i, g := range weaponGroups {
+			groupTxt := strconv.Itoa(int(g))
 
-		if len(groupsTxt) > 0 {
-			a.fontRenderer.Draw(screen, groupsTxt, bX+bW, bY+2) // TODO: calculate better margin spacing
+			// set each group number color corresponding to that weapon group color
+			gColor := hudOpts.HudColor(ColorWeaponGroupAll[g])
+			if a.selectedGroup != g {
+				gColor.A = uint8(2 * (int(gColor.A) / 5))
+			}
+			a.fontRenderer.SetColor(color.NRGBA(gColor))
+
+			a.fontRenderer.Draw(screen, groupTxt, bX+bW-((numWeaponGroups-i-1)*fontSpacing)-3, bY+2) // TODO: calculate better margin spacing
 		}
 	}
 }

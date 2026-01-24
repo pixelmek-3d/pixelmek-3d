@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/pprof"
+	"slices"
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -340,7 +341,6 @@ func (g *Game) saveControls() error {
 	}
 	defer keymapFile.Close()
 
-	// first time intitialize defaults into file
 	keymapConfig := orderedmap.New[string, []string]()
 	for a := ActionUnknown + 1; a < actionCount; a++ {
 		actionKey := actionString(a)
@@ -514,7 +514,7 @@ func (g *Game) handleInput() {
 		if g.player.fireMode == model.CHAIN_FIRE {
 			// cycle to next weapon only in same group (g.player.selectedGroup)
 			prevWeapon := g.player.Armament()[g.player.selectedWeapon]
-			groupWeapons := g.player.weaponGroups[g.player.selectedGroup]
+			groupWeapons := g.player.GetWeaponsForGroup(g.player.selectedGroup)
 
 			if len(groupWeapons) == 0 {
 				g.player.selectedWeapon = 0
@@ -564,23 +564,24 @@ func (g *Game) handleInput() {
 		playerPrevGroup := g.player.selectedGroup
 		playerPrevWeapon := g.player.selectedWeapon
 
-		if g.player.fireMode == model.GROUP_FIRE {
+		switch g.player.fireMode {
+		case model.GROUP_FIRE:
 			g.player.selectedGroup++
 			if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
-				g.player.selectedGroup = 0
+				g.player.selectedGroup = model.WEAPON_GROUP_NONE
 			}
 
 			// set next selectedGroup only if >0 weapons in it
-			weaponsInGroup := len(g.player.weaponGroups[g.player.selectedGroup])
+			weaponsInGroup := len(g.player.GetWeaponsForGroup(g.player.selectedGroup))
 			for weaponsInGroup == 0 {
 				g.player.selectedGroup++
 				if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
-					g.player.selectedGroup = 0
+					g.player.selectedGroup = model.WEAPON_GROUP_NONE
 				}
-				weaponsInGroup = len(g.player.weaponGroups[g.player.selectedGroup])
+				weaponsInGroup = len(g.player.GetWeaponsForGroup(g.player.selectedGroup))
 			}
 
-		} else if g.player.fireMode == model.CHAIN_FIRE {
+		case model.CHAIN_FIRE:
 			g.player.selectedWeapon++
 			if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
 				g.player.selectedWeapon = 0
@@ -588,10 +589,10 @@ func (g *Game) handleInput() {
 
 			// set selectedGroup if the newly selected weapon is in different group
 			newSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
-			groups := model.GetGroupsForWeapon(newSelectedWeapon, g.player.weaponGroups)
+			groups := g.player.GetGroupsForWeapon(newSelectedWeapon)
 			if len(groups) == 0 {
-				g.player.selectedGroup = 0
-			} else {
+				g.player.selectedGroup = model.WEAPON_GROUP_NONE
+			} else if !g.player.IsWeaponInGroup(newSelectedWeapon, g.player.selectedGroup) {
 				g.player.selectedGroup = groups[0]
 			}
 		}
@@ -603,104 +604,104 @@ func (g *Game) handleInput() {
 	}
 
 	if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
-		if g.player.fireMode == model.CHAIN_FIRE {
-			// set group for selected weapon
-			setGroupIndex := -1
-			switch {
-			case g.input.ActionIsJustPressed(ActionWeaponGroup1):
-				setGroupIndex = 0
-			case g.input.ActionIsJustPressed(ActionWeaponGroup2):
-				setGroupIndex = 1
-			case g.input.ActionIsJustPressed(ActionWeaponGroup3):
-				setGroupIndex = 2
-			case g.input.ActionIsJustPressed(ActionWeaponGroup4):
-				setGroupIndex = 3
-			case g.input.ActionIsJustPressed(ActionWeaponGroup5):
-				setGroupIndex = 4
-			}
+		// set group for selected weapon
+		setGroupIndex := model.WEAPON_GROUP_NONE
+		switch {
+		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
+			setGroupIndex = model.WEAPON_GROUP_1
+		case g.input.ActionIsJustPressed(ActionWeaponGroup2):
+			setGroupIndex = model.WEAPON_GROUP_2
+		case g.input.ActionIsJustPressed(ActionWeaponGroup3):
+			setGroupIndex = model.WEAPON_GROUP_3
+		case g.input.ActionIsJustPressed(ActionWeaponGroup4):
+			setGroupIndex = model.WEAPON_GROUP_4
+		case g.input.ActionIsJustPressed(ActionWeaponGroup5):
+			setGroupIndex = model.WEAPON_GROUP_5
+		}
 
-			if setGroupIndex >= 0 {
-				addToGroup := true
-				weapon := g.player.Armament()[g.player.selectedWeapon]
-				groups := model.GetGroupsForWeapon(weapon, g.player.weaponGroups)
+		if setGroupIndex > model.WEAPON_GROUP_NONE {
+			addToGroup := true
+
+			weapons := g.player.getSelectedWeapons()
+
+			for _, w := range weapons {
+				groups := g.player.GetGroupsForWeapon(w)
 				for _, gIndex := range groups {
-					if int(gIndex) == setGroupIndex {
-						// already in group
+					if gIndex == setGroupIndex {
+						// already in group, remove it
 						addToGroup = false
-					} else {
-						// remove from current group
-						weaponsInGroup := g.player.weaponGroups[gIndex]
-						g.player.weaponGroups[gIndex] = make([]model.Weapon, 0, len(weaponsInGroup)-1)
-						for _, chkWeapon := range weaponsInGroup {
-							if chkWeapon != weapon {
-								g.player.weaponGroups[gIndex] = append(g.player.weaponGroups[gIndex], chkWeapon)
-							}
-						}
+						g.player.weaponGroups = model.RemoveWeaponFromGroup(w, setGroupIndex, g.player.weaponGroups)
+						break
 					}
 				}
 
 				if addToGroup {
 					// add to selected group
-					g.player.weaponGroups[setGroupIndex] = append(g.player.weaponGroups[setGroupIndex], weapon)
+					g.player.weaponGroups = model.AddWeaponToGroup(w, setGroupIndex, g.player.weaponGroups)
 				}
-				g.player.selectedGroup = uint(setGroupIndex)
-
-				go g.audio.PlayButtonAudio(AUDIO_BUTTON_OVER)
 			}
+			g.player.selectedGroup = setGroupIndex
+
+			// TODO: use background thread queue to avoid multiple writes at same time
+			setUnitWeaponGroups(g.player, g.player.weaponGroups)
+			if err := saveUserWeaponGroups(); err != nil {
+				log.Error("failed to save user weapon groups: " + err.Error())
+			}
+
+			go g.audio.PlayButtonAudio(AUDIO_BUTTON_OVER)
 		}
 	} else {
 		// set currently selected weapon/group if weapon group number key pressed
-		selectGroupIndex := -1
+		selectGroupIndex := model.WEAPON_GROUP_NONE
 		switch {
 		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
-			selectGroupIndex = 0
+			selectGroupIndex = model.WEAPON_GROUP_1
 		case g.input.ActionIsJustPressed(ActionWeaponGroup2):
-			selectGroupIndex = 1
+			selectGroupIndex = model.WEAPON_GROUP_2
 		case g.input.ActionIsJustPressed(ActionWeaponGroup3):
-			selectGroupIndex = 2
+			selectGroupIndex = model.WEAPON_GROUP_3
 		case g.input.ActionIsJustPressed(ActionWeaponGroup4):
-			selectGroupIndex = 3
+			selectGroupIndex = model.WEAPON_GROUP_4
 		case g.input.ActionIsJustPressed(ActionWeaponGroup5):
-			selectGroupIndex = 4
+			selectGroupIndex = model.WEAPON_GROUP_5
 		}
 
-		if selectGroupIndex >= 0 {
-			g.player.selectedGroup = uint(selectGroupIndex)
+		if selectGroupIndex > model.WEAPON_GROUP_NONE {
 			weapons := g.player.weaponGroups[selectGroupIndex]
 			if len(weapons) == 0 {
-				g.player.selectedWeapon = 0
+				go g.audio.PlayButtonAudio(AUDIO_BUTTON_NEG)
 			} else {
 				for i, w := range g.player.Armament() {
 					if w == weapons[0] {
+						g.player.selectedGroup = selectGroupIndex
 						g.player.selectedWeapon = uint(i)
+						go g.audio.PlayButtonAudio(AUDIO_BUTTON_AFF)
 						break
 					}
 				}
 			}
-
-			go g.audio.PlayButtonAudio(AUDIO_BUTTON_AFF)
 		}
 	}
 
 	if g.input.ActionIsJustPressed(ActionWeaponGroupFireToggle) {
 		// toggle group fire mode
-		switch g.player.fireMode {
-		case model.CHAIN_FIRE:
+		if g.player.fireMode == model.CHAIN_FIRE {
 			g.player.fireMode = model.GROUP_FIRE
-		case model.GROUP_FIRE:
+		} else {
 			g.player.fireMode = model.CHAIN_FIRE
 		}
 
-		if g.player.fireMode == model.GROUP_FIRE {
-			// select the first appropriate group from selected weapon when switching to group mode
+		switch g.player.fireMode {
+		case model.GROUP_FIRE:
+			// select the appropriate group from selected weapon when switching to group mode
 			prevSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
-			groups := model.GetGroupsForWeapon(prevSelectedWeapon, g.player.weaponGroups)
+			groups := g.player.GetGroupsForWeapon(prevSelectedWeapon)
 			if len(groups) == 0 {
-				g.player.selectedGroup = 0
-			} else {
+				g.player.selectedGroup = model.WEAPON_GROUP_NONE
+			} else if !slices.Contains(groups, g.player.selectedGroup) {
 				g.player.selectedGroup = groups[0]
 			}
-		} else if g.player.fireMode == model.CHAIN_FIRE {
+		case model.CHAIN_FIRE:
 			// select the first weapon of the group that was selected when switching to chain mode
 			prevSelectedGroup := g.player.selectedGroup
 			weapons := g.player.weaponGroups[prevSelectedGroup]

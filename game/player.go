@@ -39,7 +39,7 @@ type Player struct {
 	convergenceSprite *sprites.Sprite
 	weaponGroups      [][]model.Weapon
 	selectedWeapon    uint
-	selectedGroup     uint
+	selectedGroup     model.WeaponGroup
 	fireMode          model.WeaponFireMode
 	reticleLead       *sprites.ReticleLead
 	currentNav        *sprites.NavSprite
@@ -70,15 +70,16 @@ func NewPlayer(unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch fl
 	p.SetPitch(pitch)
 	p.SetVelocity(0)
 
+	p.weaponGroups = getUnitWeaponGroups(unit)
 	p.selectedWeapon = 0
-	p.weaponGroups = make([][]model.Weapon, 5)
-	for i := 0; i < cap(p.weaponGroups); i++ {
-		p.weaponGroups[i] = make([]model.Weapon, 0, len(unit.Armament()))
+	p.selectedGroup = model.WEAPON_GROUP_NONE
+	if len(unit.Armament()) > 0 {
+		// initialize first selected weapon with the first group it is in
+		g := p.GetGroupsForWeapon(unit.Armament()[p.selectedWeapon])
+		if len(g) > 0 {
+			p.selectedGroup = g[0]
+		}
 	}
-	// initialize all weapons as only in first weapon group
-	p.weaponGroups[0] = append(p.weaponGroups[0], unit.Armament()...)
-
-	// TODO: save/restore weapon groups for weapons per unit
 
 	return p
 }
@@ -315,12 +316,24 @@ func (p *Player) getSelectedWeapons() []model.Weapon {
 			}
 
 		case model.GROUP_FIRE:
-			if model.IsWeaponInGroup(w, p.selectedGroup, p.weaponGroups) {
+			if p.IsWeaponInGroup(w, p.selectedGroup) {
 				selected = append(selected, p.Armament()[i])
 			}
 		}
 	}
 	return selected
+}
+
+func (p *Player) GetWeaponsForGroup(g model.WeaponGroup) []model.Weapon {
+	return model.GetWeaponsForGroup(g, p.weaponGroups, p.Armament())
+}
+
+func (p *Player) GetGroupsForWeapon(w model.Weapon) []model.WeaponGroup {
+	return model.GetGroupsForWeapon(w, p.weaponGroups)
+}
+
+func (p *Player) IsWeaponInGroup(w model.Weapon, g model.WeaponGroup) bool {
+	return model.IsWeaponInGroup(w, g, p.weaponGroups)
 }
 
 func (p *Player) Eject(g *Game) bool {
