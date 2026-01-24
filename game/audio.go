@@ -102,7 +102,7 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx.mainSources = make([]*SFXSource, _AUDIO_MAIN_SOURCE_COUNT)
 	a.sfx.entitySources = &sync.Map{}
 
-	a.sfx.mainSources[AUDIO_INTERFACE] = NewSoundEffectSource(0.8)
+	a.sfx.mainSources[AUDIO_INTERFACE] = NewSoundEffectSource(0.5)
 	// engine audio source file setup later since it is a looping ambient source
 	// TODO: increase engine noise level a bit when running or at high heat levels
 	a.sfx.mainSources[AUDIO_ENGINE] = NewSoundEffectSource(0.3)
