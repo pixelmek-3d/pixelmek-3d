@@ -176,8 +176,8 @@ type MapSprite struct {
 	Image             string       `yaml:"image"`
 	Positions         [][2]float64 `yaml:"positions"`
 	ZPosition         float64      `yaml:"zPosition"`
-	CollisionPxRadius float64      `yaml:"collisionRadius"`
-	CollisionPxHeight float64      `yaml:"collisionHeight"`
+	CollisionPxRadius float64      `yaml:"collisionRadiusPx"`
+	CollisionPxHeight float64      `yaml:"collisionHeightPx"`
 	HitPoints         float64      `yaml:"hitPoints"`
 	Height            float64      `yaml:"height"`
 	Anchor            SpriteAnchor `yaml:"anchor"`

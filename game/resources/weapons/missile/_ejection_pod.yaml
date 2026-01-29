@@ -15,8 +15,8 @@ cooldown: 2
 ammoPerTon: 1
 projectileCount: 1
 projectile:
-  collisionRadius: 4
-  collisionHeight: 6
+  collisionRadiusPx: 4
+  collisionHeightPx: 6
   scale: 0.4
   image: ejection_pod.png
   imageSheet:

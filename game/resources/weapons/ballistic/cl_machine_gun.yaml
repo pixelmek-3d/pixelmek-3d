@@ -18,8 +18,8 @@ velocity: 250
 ammoPerTon: 2000
 projectileCount: 1
 projectile:
-  collisionRadius: 6
-  collisionHeight: 12
+  collisionRadiusPx: 6
+  collisionHeightPx: 12
   scale: 0.02
   image: bullet_tracer.png
   imageSheet:

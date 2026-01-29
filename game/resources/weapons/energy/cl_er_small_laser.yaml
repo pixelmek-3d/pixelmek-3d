@@ -15,8 +15,8 @@ cooldown: 1.5
 audio: laser.ogg
 projectileCount: 1
 projectile:
-  collisionRadius: 4
-  collisionHeight: 8
+  collisionRadiusPx: 4
+  collisionHeightPx: 8
   scale: 0.075
   image: laser_red.png
   imageSheet:

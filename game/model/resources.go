@@ -53,9 +53,9 @@ type ModelMechResource struct {
 	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	CollisionPxRadius float64                  `yaml:"collisionRadiusPx" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeightPx" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffsetPx" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
@@ -74,9 +74,9 @@ type ModelVehicleResource struct {
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	CollisionPxRadius float64                  `yaml:"collisionRadiusPx" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeightPx" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffsetPx" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
@@ -95,9 +95,9 @@ type ModelVTOLResource struct {
 	Speed             float64                  `yaml:"speed" validate:"gt=0,lte=250"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	CollisionPxRadius float64                  `yaml:"collisionRadiusPx" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeightPx" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffsetPx" validate:"required"`
 	HeatSinks         *ModelResourceHeatSinks  `yaml:"heatSinks"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
@@ -116,9 +116,9 @@ type ModelInfantryResource struct {
 	JumpJets          int                      `yaml:"jumpJets" validate:"gte=0,lte=20"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	CollisionPxRadius float64                  `yaml:"collisionRadiusPx" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeightPx" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffsetPx" validate:"required"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
 }
@@ -134,9 +134,9 @@ type ModelEmplacementResource struct {
 	HeightPxGap       int                      `yaml:"heightPixelGap" validate:"gte=0"`
 	Armor             float64                  `yaml:"armor" validate:"gte=0"`
 	Structure         float64                  `yaml:"structure" validate:"gt=0"`
-	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
-	CockpitPxOffset   [2]float64               `yaml:"cockpitOffset" validate:"required"`
+	CollisionPxRadius float64                  `yaml:"collisionRadiusPx" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeightPx" validate:"gt=0"`
+	CockpitPxOffset   [2]float64               `yaml:"cockpitOffsetPx" validate:"required"`
 	Armament          []*ModelResourceArmament `yaml:"armament"`
 	Ammo              []*ModelResourceAmmo     `yaml:"ammo"`
 }
@@ -202,8 +202,8 @@ type ModelBallisticWeaponResource struct {
 type ModelProjectileResource struct {
 	Image             string                   `yaml:"image" validate:"required"`
 	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
-	CollisionPxRadius float64                  `yaml:"collisionRadius" validate:"gt=0"`
-	CollisionPxHeight float64                  `yaml:"collisionHeight" validate:"gt=0"`
+	CollisionPxRadius float64                  `yaml:"collisionRadiusPx" validate:"gt=0"`
+	CollisionPxHeight float64                  `yaml:"collisionHeightPx" validate:"gt=0"`
 	Scale             float64                  `yaml:"scale" validate:"gt=0"`
 	ImpactEffect      *ModelEffectResource     `yaml:"impactEffect"`
 }
@@ -239,7 +239,7 @@ type ModelResourceArmament struct {
 	Weapon   string          `yaml:"weapon" validate:"required"`
 	Type     ModelWeaponType `yaml:"type" validate:"required"`
 	Location ModelLocation   `yaml:"location" validate:"required"`
-	Offset   [2]float64      `yaml:"offset" validate:"required"`
+	Offset   [2]float64      `yaml:"offsetPx" validate:"required"`
 }
 
 type ModelResourceAmmo struct {

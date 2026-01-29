@@ -20,8 +20,8 @@ lockOn:
 projectileCount: 20
 projectileDelay: 0.05
 projectile:
-  collisionRadius: 2
-  collisionHeight: 4
+  collisionRadiusPx: 2
+  collisionHeightPx: 4
   scale: 0.2
   image: missile.png
   imageSheet:

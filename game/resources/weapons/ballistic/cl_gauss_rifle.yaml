@@ -16,8 +16,8 @@ cooldown: 4
 ammoPerTon: 8
 projectileCount: 1
 projectile:
-  collisionRadius: 2
-  collisionHeight: 4
+  collisionRadiusPx: 2
+  collisionHeightPx: 4
   scale: 0.5
   image: gauss_slug.png
   imageSheet:

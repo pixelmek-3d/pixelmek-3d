@@ -17,8 +17,8 @@ ammoPerTon: 5
 projectileCount: 20
 projectileSpread: 0.025
 projectile:
-  collisionRadius: 6
-  collisionHeight: 12
+  collisionRadiusPx: 6
+  collisionHeightPx: 12
   scale: 0.075
   image: bullet_tracer.png
   imageSheet:

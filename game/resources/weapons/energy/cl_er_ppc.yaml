@@ -15,8 +15,8 @@ cooldown: 3.5
 audio: ppc.ogg
 projectileCount: 1
 projectile:
-  collisionRadius: 55
-  collisionHeight: 55
+  collisionRadiusPx: 55
+  collisionHeightPx: 55
   scale: 0.25
   image: ppc_bolt.png
   imageSheet:

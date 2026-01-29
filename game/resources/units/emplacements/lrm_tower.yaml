@@ -15,12 +15,12 @@ imageSheet:
 tech: clan
 tonnage: 40
 height: 15
-heightPixelGap: 1
+heightGapPx: 1
 armor: 40
 structure: 15
-collisionRadius: 17
-collisionHeight: 92
-cockpitOffset: [0, 80]
+collisionRadiusPx: 17
+collisionHeightPx: 92
+cockpitOffsetPx: [0, 80]
 heatSinks:
   quantity: 10
   type: single
@@ -28,11 +28,11 @@ armament:
 - weapon: cl_lrm_10
   type: missile
   location: turret
-  offset: [-6, 84]
+  offsetPx: [-6, 84]
 - weapon: cl_lrm_10
   type: missile
   location: turret
-  offset: [6, 84]
+  offsetPx: [6, 84]
 ammo:
 - type: lrm
   tons: 10

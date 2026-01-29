@@ -16,8 +16,8 @@ audio: laser.ogg
 projectileCount: 2
 projectileDelay: 0.2
 projectile:
-  collisionRadius: 4
-  collisionHeight: 8
+  collisionRadiusPx: 4
+  collisionHeightPx: 8
   scale: 0.35
   image: laser_blue.png
   imageSheet:
