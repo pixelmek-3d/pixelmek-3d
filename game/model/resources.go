@@ -204,8 +204,7 @@ type ModelProjectileResource struct {
 	ImageSheet        *ModelResourceImageSheet `yaml:"imageSheet"`
 	CollisionPxRadius int                      `yaml:"collisionRadiusPx" validate:"gt=0"`
 	CollisionPxHeight int                      `yaml:"collisionHeightPx" validate:"gt=0"`
-	Diameter          float64                  `yaml:"diameter"` // TODO: validate:"gt=0" when Scale is removed
-	Scale             float64                  `yaml:"scale"`
+	Diameter          float64                  `yaml:"diameter" validate:"gt=0"`
 	ImpactEffect      *ModelEffectResource     `yaml:"impactEffect"`
 }
 
@@ -218,8 +217,7 @@ type ModelMissileWeaponLockOn struct {
 type ModelEffectResource struct {
 	Image      string                   `yaml:"image" validate:"required"`
 	ImageSheet *ModelResourceImageSheet `yaml:"imageSheet"`
-	Diameter   float64                  `yaml:"diameter"` // TODO: validate:"gt=0" when Scale is removed
-	Scale      float64                  `yaml:"scale"`
+	Diameter   float64                  `yaml:"diameter" validate:"gt=0"`
 	Audio      string                   `yaml:"audio" validate:"required"`
 	RandAudio  []string                 `yaml:"randAudio"`
 }

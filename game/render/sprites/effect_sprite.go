@@ -24,13 +24,10 @@ type EffectSprite struct {
 func NewAnimatedEffect(
 	r *model.ModelEffectResource, img *ebiten.Image, loopCount int,
 ) *EffectSprite {
-	// TODO: remove r.Scale and only use r.Diameter
-	scale := r.Scale
-	if r.Diameter > 0 {
-		// calculate scale based on effect diameter using sprite size
-		spriteHeight := img.Bounds().Dy() / r.ImageSheet.Rows
-		scale = model.ConvertDiameterToScale(r.Diameter, spriteHeight, spriteHeight)
-	}
+	// calculate sprite scale based on effect diameter
+	spriteHeight := img.Bounds().Dy() / r.ImageSheet.Rows
+	scale := model.ConvertDiameterToScale(r.Diameter, spriteHeight, spriteHeight)
+
 	e := &EffectSprite{
 		Sprite: NewAnimatedSprite(
 			model.BasicVisualEntity(0, 0, 0, raycaster.AnchorCenter),

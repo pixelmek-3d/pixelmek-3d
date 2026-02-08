@@ -20,9 +20,9 @@ lockOn:
 projectileCount: 5
 projectileDelay: 0.05
 projectile:
-  collisionRadiusPx: 2
-  collisionHeightPx: 4
-  scale: 0.2
+  collisionRadiusPx: 3
+  collisionHeightPx: 5
+  diameter: 1.0
   image: missile.png
   imageSheet:
     columns: 1
@@ -35,7 +35,7 @@ projectile:
       270: 3
   impactEffect:
     audio: explode.ogg
-    scale: 0.1
+    diameter: 2.0
     image: missile_impact.png
     imageSheet:
       columns: 6

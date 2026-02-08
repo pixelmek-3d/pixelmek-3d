@@ -18,7 +18,7 @@ projectileDelay: 0.2
 projectile:
   collisionRadiusPx: 4
   collisionHeightPx: 8
-  scale: 0.35
+  diameter: 1.1
   image: laser_blue.png
   imageSheet:
     columns: 1
@@ -35,7 +35,7 @@ projectile:
       330: 1
   impactEffect:
     audio: sizzle.ogg
-    scale: 0.11
+    diameter: 2.2
     image: laser_blue_impact.png
     imageSheet:
       columns: 8

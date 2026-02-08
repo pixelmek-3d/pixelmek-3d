@@ -20,7 +20,7 @@ projectileCount: 1
 projectile:
   collisionRadiusPx: 6
   collisionHeightPx: 12
-  scale: 0.02
+  diameter: 0.2
   image: bullet_tracer.png
   imageSheet:
     columns: 1
@@ -41,7 +41,7 @@ projectile:
     - ricochet-1.ogg
     - ricochet-2.ogg
     - ricochet-3.ogg
-    scale: 0.08
+    diameter: 1.6
     image: bullet_impact.png
     imageSheet:
       columns: 4

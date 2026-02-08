@@ -108,8 +108,11 @@ func _loadEjectionPodResource(g *Game) {
 	pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
 	pWidth = pWidth / pColumns
 	pHeight = pHeight / pRows
+
+	// calculate sprite scale based on projectile diameter using collision height pixel size within sprite
+	scale := convertProjectileDiameterToScale(pResource.Diameter, pHeight, pResource.CollisionPxHeight)
 	pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
-		pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
+		pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, scale,
 	)
 
 	// create the pod as missile projectile model
@@ -129,7 +132,7 @@ func _loadEjectionPodResource(g *Game) {
 
 	eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
 	ejectPod = sprites.NewAnimatedProjectile(
-		&modelPod, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
+		&modelPod, scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 	)
 }
 
