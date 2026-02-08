@@ -350,8 +350,11 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
 			pWidth = pWidth / pColumns
 			pHeight = pHeight / pRows
+
+			// calculate sprite scale based on projectile diameter using collision height pixel size within sprite
+			scale := convertProjectileDiameterToScale(pResource.Diameter, pHeight, pResource.CollisionPxHeight)
 			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
-				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
+				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, scale,
 			)
 
 			// create the weapon and projectile model
@@ -371,7 +374,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
 				pSpriteTemplate := sprites.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
+					&projectile, scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -407,14 +410,15 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
 			pWidth = pWidth / pColumns
 			pHeight = pHeight / pRows
+
+			// calculate sprite scale based on projectile diameter using collision height pixel size within sprite
+			scale := convertProjectileDiameterToScale(pResource.Diameter, pHeight, pResource.CollisionPxHeight)
 			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
-				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
+				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, scale,
 			)
 
 			// missile tube generated visual needs single pixel offset
-			onePxX, onePxY := convertOffsetFromPx(
-				1, 1, pWidth, pHeight, pResource.Scale,
-			)
+			onePxX, onePxY := convertOffsetFromPx(1, 1, pWidth, pHeight, scale)
 			onePxOffset := &geom.Vector2{X: onePxX, Y: onePxY}
 
 			// create the weapon and projectile model
@@ -435,7 +439,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
 				pSpriteTemplate := sprites.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
+					&projectile, scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -471,8 +475,11 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 			pWidth, pHeight := projectileImg.Bounds().Dx(), projectileImg.Bounds().Dy()
 			pWidth = pWidth / pColumns
 			pHeight = pHeight / pRows
+
+			// calculate sprite scale based on projectile diameter using collision height pixel size within sprite
+			scale := convertProjectileDiameterToScale(pResource.Diameter, pHeight, pResource.CollisionPxHeight)
 			pCollisionRadius, pCollisionHeight := convertOffsetFromPx(
-				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, pResource.Scale,
+				pResource.CollisionPxRadius, pResource.CollisionPxHeight, pWidth, pHeight, scale,
 			)
 
 			// create the weapon and projectile model
@@ -493,7 +500,7 @@ func (g *Game) loadUnitWeapons(unit model.Unit, armamentList []*model.ModelResou
 
 				eSpriteTemplate := sprites.NewAnimatedEffect(eResource, effectImg, 1)
 				pSpriteTemplate := sprites.NewAnimatedProjectile(
-					&projectile, pResource.Scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
+					&projectile, scale, projectileImg, *eSpriteTemplate, projectileImpactAudioFiles,
 				)
 
 				projectileSpriteTemplates[pTemplateKey] = pSpriteTemplate
@@ -628,15 +635,14 @@ func setProjectileSpriteForWeapon(w model.Weapon, p *sprites.ProjectileSprite) {
 	projectileSpriteByWeapon[wKey] = p
 }
 
-func convertHeightToScale(unitHeight float64, imageHeight, heightPxGap int) float64 {
-	pxRatio := float64(imageHeight) / float64(imageHeight-heightPxGap)
-	return pxRatio * unitHeight / model.METERS_PER_UNIT
+func convertUnitHeightToScale(unitHeight float64, imageHeight, heightPxGap int) float64 {
+	return model.ConvertHeightToScale(unitHeight, imageHeight, heightPxGap)
 }
 
-func convertOffsetFromPx(xPx, yPx float64, width, height int, scaleY float64) (offX float64, offY float64) {
-	// scale given based on height, calculate scale for width for images that are not 1:1
-	scaleX := scaleY * float64(width) / float64(height)
-	offX = (scaleX * xPx) / float64(width)
-	offY = (scaleY * yPx) / float64(height)
-	return
+func convertProjectileDiameterToScale(projectileDiameter float64, imageHeight, heightPx int) float64 {
+	return model.ConvertDiameterToScale(projectileDiameter, imageHeight, heightPx)
+}
+
+func convertOffsetFromPx(xPx, yPx, width, height int, scaleY float64) (offX float64, offY float64) {
+	return model.ConvertOffsetFromPx(xPx, yPx, width, height, scaleY)
 }

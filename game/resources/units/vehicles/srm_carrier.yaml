@@ -17,13 +17,13 @@ imageSheet:
 tech: clan
 tonnage: 60
 height: 6
-heightPixelGap: 1
+heightGapPx: 1
 speed: 54
 armor: 53
 structure: 30 # 10% of weight (rounded up) as points per location (vehicles have 5 locations, with turret): 6 * 5 = 30
-collisionRadius: 26
-collisionHeight: 48
-cockpitOffset: [0, 17]
+collisionRadiusPx: 26
+collisionHeightPx: 48
+cockpitOffsetPx: [0, 17]
 heatSinks:
   quantity: 10
   type: double
@@ -31,27 +31,27 @@ armament:
 - weapon: cl_srm_6
   type: missile
   location: front
-  offset: [0, 46]
+  offsetPx: [0, 46]
 - weapon: cl_srm_6
   type: missile
   location: front
-  offset: [0, 40]
+  offsetPx: [0, 40]
 - weapon: cl_srm_6
   type: missile
   location: turret
-  offset: [-6, 43]
+  offsetPx: [-6, 43]
 - weapon: cl_srm_6
   type: missile
   location: turret
-  offset: [6, 43]
+  offsetPx: [6, 43]
 - weapon: cl_srm_6
   type: missile
   location: right
-  offset: [-9, 40]
+  offsetPx: [-9, 40]
 - weapon: cl_srm_6
   type: missile
   location: left
-  offset: [9, 40]
+  offsetPx: [9, 40]
 ammo:
 - type: srm
   tons: 4

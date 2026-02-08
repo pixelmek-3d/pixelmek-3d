@@ -6,14 +6,14 @@ image: timber_wolf.png
 tech: clan
 tonnage: 75
 height: 15
-heightPixelGap: 4
+heightGapPx: 4
 speed: 86
 jumpJets: 0
 armor: 230
 structure: 114
-collisionRadius: 21
-collisionHeight: 61
-cockpitOffset: [0, 44]
+collisionRadiusPx: 21
+collisionHeightPx: 61
+cockpitOffsetPx: [0, 44]
 heatSinks:
   quantity: 13
   type: double
@@ -21,31 +21,31 @@ armament:
 - weapon: cl_er_ppc
   type: energy
   location: la
-  offset: [18, 35]
+  offsetPx: [18, 35]
 - weapon: cl_er_ppc
   type: energy
   location: ra
-  offset: [-18, 35]
+  offsetPx: [-18, 35]
 - weapon: cl_streak_srm_6
   type: missile
   location: lt
-  offset: [13, 57]
+  offsetPx: [13, 57]
 - weapon: cl_streak_srm_6
   type: missile
   location: rt
-  offset: [-13, 57]
+  offsetPx: [-13, 57]
 - weapon: cl_streak_srm_6
   type: missile
   location: lt
-  offset: [11, 56]
+  offsetPx: [11, 56]
 - weapon: cl_streak_srm_6
   type: missile
   location: rt
-  offset: [-11, 56]
+  offsetPx: [-11, 56]
 - weapon: cl_er_small_laser
   type: energy
   location: ct
-  offset: [0, 39]
+  offsetPx: [0, 39]
 ammo:
 - type: streak_srm
   tons: 3

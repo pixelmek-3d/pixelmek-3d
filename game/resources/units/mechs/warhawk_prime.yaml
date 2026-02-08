@@ -6,14 +6,14 @@ image: warhawk.png
 tech: clan
 tonnage: 85
 height: 16
-heightPixelGap: 3
+heightGapPx: 3
 speed: 64
 jumpJets: 0
 armor: 259
 structure: 130
-collisionRadius: 23
-collisionHeight: 59
-cockpitOffset: [0, 48]
+collisionRadiusPx: 23
+collisionHeightPx: 59
+cockpitOffsetPx: [0, 48]
 heatSinks:
   quantity: 20
   type: double
@@ -21,23 +21,23 @@ armament:
 - weapon: cl_er_ppc
   type: energy
   location: la
-  offset: [17, 36]
+  offsetPx: [17, 36]
 - weapon: cl_er_ppc
   type: energy
   location: ra
-  offset: [-17, 36]
+  offsetPx: [-17, 36]
 - weapon: cl_er_ppc
   type: energy
   location: la
-  offset: [20, 39]
+  offsetPx: [20, 39]
 - weapon: cl_er_ppc
   type: energy
   location: ra
-  offset: [-20, 39]
+  offsetPx: [-20, 39]
 - weapon: cl_lrm_10
   type: missile
   location: la
-  offset: [18, 30]
+  offsetPx: [18, 30]
 ammo:
 - type: lrm
   tons: 1

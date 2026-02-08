@@ -6,14 +6,14 @@ image: jenner_iic.png
 tech: clan
 tonnage: 35
 height: 10.5
-heightPixelGap: 4
+heightGapPx: 4
 speed: 151
 jumpJets: 7
 armor: 134
 structure: 58
-collisionRadius: 14
-collisionHeight: 42
-cockpitOffset: [0, 29]
+collisionRadiusPx: 14
+collisionHeightPx: 42
+cockpitOffsetPx: [0, 29]
 heatSinks:
   quantity: 10
   type: double
@@ -21,15 +21,15 @@ armament:
 - weapon: cl_srm_6
   type: missile
   location: la
-  offset: [12, 35]
+  offsetPx: [12, 35]
 - weapon: cl_srm_6
   type: missile
   location: ra
-  offset: [-12, 35]
+  offsetPx: [-12, 35]
 - weapon: cl_streak_srm_4
   type: missile
   location: ct
-  offset: [0, 37]
+  offsetPx: [0, 37]
 ammo:
 - type: srm
   tons: 2

@@ -22,8 +22,8 @@ var (
 func init() {
 	// init jump jet animation
 	JumpJet = &model.ModelEffectResource{
-		Scale: 1.0,
-		Image: "jump_jet_flame.png",
+		Diameter: 20,
+		Image:    "jump_jet_flame.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          8,
@@ -35,8 +35,8 @@ func init() {
 	Blood = make(map[string]*model.ModelEffectResource)
 
 	Blood["00"] = &model.ModelEffectResource{
-		Scale: 0.1,
-		Image: "blood.png",
+		Diameter: 2,
+		Image:    "blood.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       3,
 			Rows:          2,
@@ -48,9 +48,9 @@ func init() {
 	Explosions = make(map[string]*model.ModelEffectResource)
 
 	Explosions["01"] = &model.ModelEffectResource{
-		Audio: "explosion-1.ogg",
-		Scale: 0.25,
-		Image: "explosion_01.png",
+		Audio:    "explosion-1.ogg",
+		Diameter: 5,
+		Image:    "explosion_01.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       6,
 			Rows:          4,
@@ -59,9 +59,9 @@ func init() {
 	}
 
 	Explosions["02"] = &model.ModelEffectResource{
-		Audio: "explosion-0.ogg",
-		Scale: 0.25,
-		Image: "explosion_02.png",
+		Audio:    "explosion-0.ogg",
+		Diameter: 5,
+		Image:    "explosion_02.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       6,
 			Rows:          4,
@@ -70,9 +70,9 @@ func init() {
 	}
 
 	Explosions["03"] = &model.ModelEffectResource{
-		Audio: "explosion-0.ogg",
-		Scale: 0.25,
-		Image: "explosion_03.png",
+		Audio:    "explosion-0.ogg",
+		Diameter: 5,
+		Image:    "explosion_03.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       6,
 			Rows:          4,
@@ -81,9 +81,9 @@ func init() {
 	}
 
 	Explosions["04"] = &model.ModelEffectResource{
-		Audio: "explosion-0.ogg",
-		Scale: 0.25,
-		Image: "explosion_04.png",
+		Audio:    "explosion-0.ogg",
+		Diameter: 5,
+		Image:    "explosion_04.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       6,
 			Rows:          4,
@@ -92,9 +92,9 @@ func init() {
 	}
 
 	Explosions["07"] = &model.ModelEffectResource{
-		Audio: "explosion-4.ogg",
-		Scale: 0.35,
-		Image: "explosion_07.png",
+		Audio:    "explosion-4.ogg",
+		Diameter: 7,
+		Image:    "explosion_07.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
@@ -103,9 +103,9 @@ func init() {
 	}
 
 	Explosions["09"] = &model.ModelEffectResource{
-		Audio: "explosion-3.ogg",
-		Scale: 0.35,
-		Image: "explosion_07.png",
+		Audio:    "explosion-3.ogg",
+		Diameter: 7,
+		Image:    "explosion_07.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
@@ -114,9 +114,9 @@ func init() {
 	}
 
 	Explosions["10"] = &model.ModelEffectResource{
-		Audio: "explosion-3.ogg",
-		Scale: 0.35,
-		Image: "explosion_10.png",
+		Audio:    "explosion-3.ogg",
+		Diameter: 7,
+		Image:    "explosion_10.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
@@ -125,9 +125,9 @@ func init() {
 	}
 
 	Explosions["11"] = &model.ModelEffectResource{
-		Audio: "explosion-2.ogg",
-		Scale: 0.25,
-		Image: "explosion_11.png",
+		Audio:    "explosion-2.ogg",
+		Diameter: 5,
+		Image:    "explosion_11.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       6,
 			Rows:          4,
@@ -139,8 +139,8 @@ func init() {
 	Fires = make(map[string]*model.ModelEffectResource)
 
 	Fires["01"] = &model.ModelEffectResource{
-		Scale: 0.3,
-		Image: "fire_01.png",
+		Diameter: 6,
+		Image:    "fire_01.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       5,
 			Rows:          5,
@@ -152,8 +152,8 @@ func init() {
 	Smokes = make(map[string]*model.ModelEffectResource)
 
 	Smokes["01"] = &model.ModelEffectResource{
-		Scale: 0.25,
-		Image: "smoke_01.png",
+		Diameter: 5,
+		Image:    "smoke_01.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
@@ -162,8 +162,8 @@ func init() {
 	}
 
 	Smokes["01.5"] = &model.ModelEffectResource{
-		Scale: 0.25,
-		Image: "smoke_01.5.png",
+		Diameter: 5,
+		Image:    "smoke_01.5.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,
@@ -172,8 +172,8 @@ func init() {
 	}
 
 	Smokes["01.75"] = &model.ModelEffectResource{
-		Scale: 0.5,
-		Image: "smoke_01.75.png",
+		Diameter: 10,
+		Image:    "smoke_01.75.png",
 		ImageSheet: &model.ModelResourceImageSheet{
 			Columns:       8,
 			Rows:          4,

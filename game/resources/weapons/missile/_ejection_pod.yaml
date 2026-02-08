@@ -15,9 +15,10 @@ cooldown: 2
 ammoPerTon: 1
 projectileCount: 1
 projectile:
-  collisionRadius: 4
-  collisionHeight: 6
-  scale: 0.4
+  collisionRadiusPx: 4
+  collisionHeightPx: 12
+  # projectile diameter in meters
+  diameter: 4.0
   image: ejection_pod.png
   imageSheet:
     columns: 1
@@ -25,7 +26,8 @@ projectile:
     animationRate: 0
   impactEffect:
     audio: explode.ogg
-    scale: 0.2
+    # impact effect diameter in meters
+    diameter: 4.0
     image: missile_impact.png
     imageSheet:
       columns: 6

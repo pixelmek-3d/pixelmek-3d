@@ -6,14 +6,14 @@ image: adder.png
 tech: clan
 tonnage: 35
 height: 10
-heightPixelGap: 3
+heightGapPx: 3
 speed: 97
 jumpJets: 0
 armor: 115
 structure: 58
-collisionRadius: 19
-collisionHeight: 39
-cockpitOffset: [0, 34]
+collisionRadiusPx: 19
+collisionHeightPx: 39
+cockpitOffsetPx: [0, 34]
 heatSinks:
   quantity: 10
   type: double
@@ -21,19 +21,19 @@ armament:
 - weapon: cl_lbx_ac_5
   type: ballistic
   location: la
-  offset: [17, 24]
+  offsetPx: [17, 24]
 - weapon: cl_large_pulse_laser
   type: energy
   location: ra
-  offset: [-17, 24]
+  offsetPx: [-17, 24]
 - weapon: cl_er_medium_laser
   type: energy
   location: lt
-  offset: [4, 30]
+  offsetPx: [4, 30]
 - weapon: cl_er_medium_laser
   type: energy
   location: rt
-  offset: [-4, 30]
+  offsetPx: [-4, 30]
 ammo:
 - type: ballistic
   forWeapon: cl_lbx_ac_5

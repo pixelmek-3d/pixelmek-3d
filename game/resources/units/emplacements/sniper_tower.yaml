@@ -15,12 +15,12 @@ imageSheet:
 tech: clan
 tonnage: 40
 height: 15
-heightPixelGap: 8
+heightGapPx: 8
 armor: 40
 structure: 15
-collisionRadius: 17
-collisionHeight: 86
-cockpitOffset: [0, 82]
+collisionRadiusPx: 17
+collisionHeightPx: 86
+cockpitOffsetPx: [0, 82]
 heatSinks:
   quantity: 10
   type: single
@@ -28,11 +28,11 @@ armament:
 - weapon: cl_ultra_ac_2
   type: ballistic
   location: turret
-  offset: [-6, 80]
+  offsetPx: [-6, 80]
 - weapon: cl_ultra_ac_2
   type: ballistic
   location: turret
-  offset: [6, 80]
+  offsetPx: [6, 80]
 ammo:
 - type: ballistic
   forWeapon: cl_ultra_ac_2

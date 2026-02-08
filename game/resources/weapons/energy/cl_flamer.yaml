@@ -16,9 +16,9 @@ cooldown: 1.5
 audio: flamer.ogg
 projectileCount: 1
 projectile:
-  collisionRadius: 6
-  collisionHeight: 12
-  scale: 0.35
+  collisionRadiusPx: 6
+  collisionHeightPx: 12
+  diameter: 2.6
   image: flamer.png
   imageSheet:
     columns: 4
@@ -31,7 +31,7 @@ projectile:
       270: 3
   impactEffect:
     audio: fire.ogg
-    scale: 0.2
+    diameter: 4.0
     image: missile_impact.png
     imageSheet:
       columns: 6

@@ -15,9 +15,9 @@ cooldown: 2
 audio: laser.ogg
 projectileCount: 1
 projectile:
-  collisionRadius: 4
-  collisionHeight: 8
-  scale: 0.2
+  collisionRadiusPx: 4
+  collisionHeightPx: 8
+  diameter: 0.9
   image: laser_green.png
   imageSheet:
     columns: 1
@@ -34,7 +34,7 @@ projectile:
       330: 1
   impactEffect:
     audio: sizzle.ogg
-    scale: 0.1
+    diameter: 2.0
     image: laser_green_impact.png
     imageSheet:
       columns: 8

@@ -14,19 +14,19 @@ imageSheet:
     270: 3
 tech: clan
 height: 2
-heightPixelGap: 1
+heightGapPx: 1
 speed: 7
 jumpJets: 0
 armor: 10
 structure: 1
-collisionRadius: 6
-collisionHeight: 24
-cockpitOffset: [0, 19]
+collisionRadiusPx: 6
+collisionHeightPx: 24
+cockpitOffsetPx: [0, 19]
 armament:
 - weapon: cl_machine_gun
   type: ballistic
   location: ra
-  offset: [-5, 12]
+  offsetPx: [-5, 12]
 ammo:
 - type: ballistic
   forWeapon: cl_machine_gun

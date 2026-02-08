@@ -6,14 +6,14 @@ image: summoner.png
 tech: clan
 tonnage: 70
 height: 15
-heightPixelGap: 3
+heightGapPx: 3
 speed: 86
 jumpJets: 5
 armor: 182
 structure: 107
-collisionRadius: 23
-collisionHeight: 61
-cockpitOffset: [-6, 55]
+collisionRadiusPx: 23
+collisionHeightPx: 61
+cockpitOffsetPx: [-6, 55]
 heatSinks:
   quantity: 14
   type: double
@@ -21,15 +21,15 @@ armament:
 - weapon: cl_lbx_ac_10
   type: ballistic
   location: la
-  offset: [23, 36]
+  offsetPx: [23, 36]
 - weapon: cl_er_ppc
   type: energy
   location: ra
-  offset: [-20, 34]
+  offsetPx: [-20, 34]
 - weapon: cl_lrm_15
   type: missile
   location: lt
-  offset: [6, 60]
+  offsetPx: [6, 60]
 ammo:
 - type: ballistic
   forWeapon: cl_lbx_ac_10

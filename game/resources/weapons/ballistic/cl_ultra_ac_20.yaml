@@ -17,9 +17,9 @@ ammoPerTon: 5
 projectileCount: 3
 projectileDelay: 0.2
 projectile:
-  collisionRadius: 6
-  collisionHeight: 12
-  scale: 0.15
+  collisionRadiusPx: 6
+  collisionHeightPx: 12
+  diameter: 1.15
   image: bullet_tracer.png
   imageSheet:
     columns: 1
@@ -36,7 +36,7 @@ projectile:
       330: 1
   impactEffect:
     audio: explode.ogg
-    scale: 0.4
+    diameter: 8.0
     image: autocannon_large_impact.png
     imageSheet:
       columns: 5
