@@ -113,7 +113,6 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].SetPan(0.5)
 
 	a.sfx.mainSources[AUDIO_JUMP_JET] = NewSoundEffectSource(0.7)
-	a.sfx.mainSources[AUDIO_JUMP_JET].LoadSFX(a, "audio/sfx/jet-thrust.ogg")
 
 	a.SetSFXChannels(sfxChannels)
 	a.SetSFXVolume(sfxVolume)
@@ -134,6 +133,9 @@ func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 	// make sure current source is closed before loading a new one
 	s.Close()
+	if sfxFile == `` {
+		return nil
+	}
 
 	// use cache of audio if possible
 	var audioBytes []byte
@@ -236,6 +238,15 @@ func (s *SFXSource) IsPlaying() bool {
 	return false
 }
 
+// Stop stops and rewinds the sound effect player
+func (s *SFXSource) Stop() {
+	s._pausedWhilePlaying = false
+	if s.player != nil {
+		s.player.Pause()
+		s.player.Rewind()
+	}
+}
+
 // Play starts playing the sound effect player from the beginning of the effect
 func (s *SFXSource) Play() {
 	s._pausedWhilePlaying = false
@@ -255,7 +266,7 @@ func (s *SFXSource) Pause() {
 	}
 }
 
-// Resume resumes the sound effect player without rewinding
+// Resume plays a paused sound effect player without rewinding
 func (s *SFXSource) Resume() {
 	if s.player != nil && s._pausedWhilePlaying {
 		s.player.Play()
@@ -284,7 +295,6 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	} else {
 		// decrement count of the previous sound effect
 		a.sfx._updateExtSFXCount(source._sfxFile, -1)
-		source.Close()
 	}
 
 	source.SetSourceVolume(sourceVolume)
@@ -314,13 +324,9 @@ func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, so
 		return true
 	})
 
-	// get and close the lowest priority source for reuse
-	// source, _ := a.sfx.extSources.Get()
-	if source == nil {
+	// get the lowest priority source for reuse
+	if source == nil || source._sfxFile != sfxFile {
 		source = NewSoundEffectSource(0.0)
-	} else if source._sfxFile != sfxFile {
-		// close out the source to play a new source
-		source.Close()
 	}
 
 	// update volume and panning, even if continuing to play current loop
@@ -464,11 +470,11 @@ func (a *AudioHandler) IsMusicPlaying() bool {
 	return a.bgm.player != nil && a.bgm.player.IsPlaying()
 }
 
-// StopMusic stops and closes the background music source
+// StopMusic stops and rewinds the background music source
 func (a *AudioHandler) StopMusic() {
 	if a.bgm.player != nil {
-		a.bgm.player.Close()
-		a.bgm.player = nil
+		a.bgm.player.Pause()
+		a.bgm.player.Rewind()
 	}
 }
 
@@ -486,20 +492,18 @@ func (a *AudioHandler) ResumeMusic() {
 	}
 }
 
-// StopSFX stops and closes all sound effect sources
+// StopSFX stops and rewinds all sound effect sources
 func (a *AudioHandler) StopSFX() {
 	for _, s := range a.sfx.mainSources {
-		if s.player != nil {
-			s.Close()
-		}
+		s.Stop()
 	}
 	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
-		s.Close()
+		s.Stop()
 		return true
 	})
 	for s := range a.sfx.extSources.Iterator() {
-		s.Close()
+		s.Stop()
 		a.sfx.extSources.Offer(s)
 	}
 }
@@ -598,13 +602,13 @@ func (a *AudioHandler) StartEngineAmbience() {
 // StopEngineAmbience stop the ambient engine audio loop
 func (a *AudioHandler) StopEngineAmbience() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
-	if engine._sfxType == _SFX_HINT_ENGINE && engine.IsPlaying() {
+	if engine._sfxType == _SFX_HINT_ENGINE {
 		engine._sfxType = _SFX_HINT_NONE
-		engine.Close()
+		engine.Stop()
 	}
 }
 
-// IsEngineAmbience indicates whether the current engine audio is the ambience loop
+// EngineAmbience indicates the current type of engine audio sfx
 func (a *AudioHandler) EngineAmbience() _sfxTypeHint {
 	return a.sfx.mainSources[AUDIO_ENGINE]._sfxType
 }
@@ -637,6 +641,10 @@ func (a *AudioHandler) PlayPowerOffSequence() {
 func (a *AudioHandler) SetStompSFX(sfxFile string) {
 	a.sfx.mainSources[AUDIO_STOMP_LEFT].LoadSFX(a, sfxFile)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].LoadSFX(a, sfxFile)
+}
+
+func (a *AudioHandler) SetJumpJetSFX(sfxFile string) {
+	a.sfx.mainSources[AUDIO_JUMP_JET].LoadSFX(a, sfxFile)
 }
 
 func StompSFXForMech(m *model.Mech) (string, error) {
