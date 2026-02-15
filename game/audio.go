@@ -248,7 +248,7 @@ func (s *SFXSource) Play() {
 // Pause pauses the sound effect player
 func (s *SFXSource) Pause() {
 	if s.player != nil {
-		s._pausedWhilePlaying = s.player.IsPlaying()
+		s._pausedWhilePlaying = s.IsPlaying()
 		if s._pausedWhilePlaying {
 			s.player.Pause()
 		}
@@ -431,10 +431,10 @@ func (a *AudioHandler) SetSFXChannels(numChannels int) {
 func (a *AudioHandler) sfxSourcePriorityCompare(elem, other *SFXSource) bool {
 	// give higher priority rating to sources that are still playing and with higher volume
 	var elemRating, otherRating float64
-	if elem.player != nil && elem.player.IsPlaying() {
+	if elem.IsPlaying() {
 		elemRating = elem.player.Volume()
 	}
-	if other.player != nil && other.player.IsPlaying() {
+	if other.IsPlaying() {
 		otherRating = other.player.Volume()
 	}
 
@@ -474,14 +474,14 @@ func (a *AudioHandler) StopMusic() {
 
 // PauseMusic pauses play of background music
 func (a *AudioHandler) PauseMusic() {
-	if a.bgm.player != nil && a.bgm.player.IsPlaying() {
+	if a.IsMusicPlaying() {
 		a.bgm.player.Pause()
 	}
 }
 
 // ResumeMusic resumes play of background music
 func (a *AudioHandler) ResumeMusic() {
-	if a.bgm.player != nil && !a.bgm.player.IsPlaying() {
+	if !a.IsMusicPlaying() {
 		a.bgm.player.Play()
 	}
 }
@@ -571,9 +571,7 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 func (a *AudioHandler) StartEngineAmbience() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	engine._sfxType = _SFX_HINT_ENGINE
-	if engine.player != nil {
-		engine.player.Close()
-	}
+	engine.Close()
 
 	// TODO: different ambient angine sound for different tonnages/unit types
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
@@ -594,15 +592,15 @@ func (a *AudioHandler) StartEngineAmbience() {
 	engine.player.SetDSPChannel(engine.channel)
 	engine.player.AddEffect("volume", vol)
 	engine.player.SetBufferSize(time.Millisecond * 50)
-	engine.player.Play()
+	engine.Play()
 }
 
 // StopEngineAmbience stop the ambient engine audio loop
 func (a *AudioHandler) StopEngineAmbience() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
-	if engine._sfxType == _SFX_HINT_ENGINE && engine.player != nil && engine.player.IsPlaying() {
+	if engine._sfxType == _SFX_HINT_ENGINE && engine.IsPlaying() {
 		engine._sfxType = _SFX_HINT_NONE
-		engine.player.Close()
+		engine.Close()
 	}
 }
 
@@ -616,12 +614,12 @@ func (a *AudioHandler) PlayPowerOnSequence() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	engine._sfxType = _SFX_HINT_POWER_ON
 	if engine.player != nil {
-		engine.player.Close()
+		engine.Close()
 	}
 
 	// TODO: different power on sounds for different tonnages/unit types
 	engine.LoadSFX(a, "audio/sfx/power-on.ogg")
-	engine.player.Play()
+	engine.Play()
 }
 
 // PlayPowerOffSequence plays the power down sound using the engine audio source
@@ -629,11 +627,11 @@ func (a *AudioHandler) PlayPowerOffSequence() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	engine._sfxType = _SFX_HINT_POWER_OFF
 	if engine.player != nil {
-		engine.player.Close()
+		engine.Close()
 	}
 
 	engine.LoadSFX(a, "audio/sfx/power-off.ogg")
-	engine.player.Play()
+	engine.Play()
 }
 
 func (a *AudioHandler) SetStompSFX(sfxFile string) {
@@ -667,7 +665,7 @@ func (a *AudioHandler) PlayButtonAudio(buttonResource AudioInterfaceResource) {
 // IsButtonAudioPlaying returns true if the button audio channel is still playing
 func (a *AudioHandler) IsButtonAudioPlaying() bool {
 	sfxSource := a.sfx.mainSources[AUDIO_INTERFACE]
-	return sfxSource.player != nil && sfxSource.player.IsPlaying()
+	return sfxSource.IsPlaying()
 }
 
 // PlayLocalWeaponFireAudio plays weapon fire audio intended only if fired by the player unit

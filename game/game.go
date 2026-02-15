@@ -356,7 +356,8 @@ func (g *Game) updatePlayer() {
 
 			// make ejection pod thrust sound
 			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
-			if jetThrust.player != nil && !jetThrust.player.IsPlaying() {
+			if !jetThrust.IsPlaying() {
+				// FIXME: jets are no longer playing?
 				jetThrust.Play()
 			}
 		}
@@ -418,18 +419,21 @@ func (g *Game) updatePlayer() {
 		if g.player.JumpJetsActive() {
 			// make jet thrust sound
 			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
-			if !jetThrust.player.IsPlaying() {
+			if !jetThrust.IsPlaying() {
+				// FIXME: jets are no longer playing?
 				jetThrust.Play()
 			}
 		} else {
 			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
-			if jetThrust.player.IsPlaying() {
+			if jetThrust.IsPlaying() {
 				jetThrust.Pause()
 			}
 		}
 	}
 
 	if g.player.strideStomp && !g.player.JumpJetsActive() {
+		// FIXME: stomp sounds are no longer playing?
+
 		// make stompy sound
 		switch g.player.strideStompDir {
 		case StrideStompLeft:
