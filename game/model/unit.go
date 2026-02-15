@@ -525,6 +525,9 @@ func (e *UnitModel) ApplyDamage(damage float64) {
 	} else {
 		e.structure -= damage
 	}
+	if e.structure < 0 {
+		e.structure = 0
+	}
 }
 
 func (e *UnitModel) ArmorPoints() float64 {
