@@ -356,7 +356,7 @@ func (g *Game) updatePlayer() {
 
 			// make ejection pod thrust sound
 			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
-			if !jetThrust.player.IsPlaying() {
+			if jetThrust.player != nil && !jetThrust.player.IsPlaying() {
 				jetThrust.Play()
 			}
 		}
