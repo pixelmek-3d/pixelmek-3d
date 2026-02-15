@@ -55,7 +55,7 @@ type AudioHandler struct {
 
 type BGMHandler struct {
 	channel *resound.DSPChannel
-	player  *resound.DSPPlayer
+	player  *resound.Player
 }
 
 type SFXHandler struct {
@@ -67,7 +67,7 @@ type SFXHandler struct {
 
 type SFXSource struct {
 	channel *resound.DSPChannel
-	player  *resound.DSPPlayer
+	player  *resound.Player
 	volume  float64
 
 	_sfxFile            string
@@ -94,7 +94,7 @@ func NewAudioHandler() *AudioHandler {
 
 	a.bgm = &BGMHandler{}
 	a.bgm.channel = resound.NewDSPChannel()
-	a.bgm.channel.Add("volume", effects.NewVolume(nil))
+	a.bgm.channel.AddEffect("volume", effects.NewVolume())
 	a.SetMusicVolume(bgmVolume)
 
 	a.sfxMap = &sync.Map{}
@@ -125,8 +125,8 @@ func NewAudioHandler() *AudioHandler {
 func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	s := &SFXSource{volume: sourceVolume}
 	s.channel = resound.NewDSPChannel()
-	s.channel.Add("volume", effects.NewVolume(nil).SetStrength(sourceVolume))
-	s.channel.Add("pan", effects.NewPan(nil))
+	s.channel.AddEffect("volume", effects.NewVolume().SetStrength(sourceVolume))
+	s.channel.AddEffect("pan", effects.NewPan())
 	return s
 }
 
@@ -152,11 +152,16 @@ func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 
 	stream, _, err := resources.NewAudioStream(audioBytes, sfxFile)
 	if err != nil {
-		log.Error("Error playing sound effect file: " + sfxFile)
+		log.Error("Error streaming sound effect file: " + sfxFile)
 		return err
 	}
 
-	s.player = s.channel.CreatePlayer(stream)
+	s.player, err = resound.NewPlayer("sfx", stream)
+	if err != nil {
+		log.Error("Error playing sound effect file: " + sfxFile)
+		return err
+	}
+	s.player.SetDSPChannel(s.channel)
 	s.player.SetBufferSize(time.Millisecond * 100)
 	s._sfxFile = sfxFile
 
@@ -185,12 +190,17 @@ func (s *SFXSource) LoadLoopSFX(a *AudioHandler, sfxFile string) error {
 
 	stream, length, err := resources.NewAudioStream(audioBytes, sfxFile)
 	if err != nil {
-		log.Error("Error playing looping sound effect file: " + sfxFile)
+		log.Error("Error streaming looping sound effect file: " + sfxFile)
 		return err
 	}
 
 	loop := audio.NewInfiniteLoop(stream, length)
-	s.player = s.channel.CreatePlayer(loop)
+	s.player, err = resound.NewPlayer("loop", loop)
+	if err != nil {
+		log.Error("Error playing looping sound effect file: " + sfxFile)
+		return err
+	}
+	s.player.SetDSPChannel(s.channel)
 	s.player.SetBufferSize(time.Millisecond * 100)
 	s._sfxFile = sfxFile
 
@@ -214,7 +224,7 @@ func (s *SFXSource) SetPan(panPercent float64) {
 	if pan, ok := s.channel.Effects["pan"].(*effects.Pan); ok {
 		pan.SetPan(panPercent)
 	} else {
-		s.channel.Add("pan", effects.NewPan(nil).SetPan(panPercent))
+		s.channel.AddEffect("pan", effects.NewPan().SetPan(panPercent))
 	}
 }
 
@@ -239,7 +249,9 @@ func (s *SFXSource) Play() {
 func (s *SFXSource) Pause() {
 	if s.player != nil {
 		s._pausedWhilePlaying = s.player.IsPlaying()
-		s.player.Pause()
+		if s._pausedWhilePlaying {
+			s.player.Pause()
+		}
 	}
 }
 
@@ -478,7 +490,7 @@ func (a *AudioHandler) ResumeMusic() {
 func (a *AudioHandler) StopSFX() {
 	for _, s := range a.sfx.mainSources {
 		if s.player != nil {
-			s.player.Close()
+			s.Close()
 		}
 	}
 	a.sfx.entitySources.Range(func(_, v any) bool {
@@ -543,8 +555,14 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 	}
 
 	bgm := audio.NewInfiniteLoop(stream, length)
-	vol := effects.NewVolume(bgm)
-	a.bgm.player = a.bgm.channel.CreatePlayer(vol)
+	vol := effects.NewVolume()
+	a.bgm.player, err = resound.NewPlayer("music", bgm)
+	if err != nil {
+		log.Error("Error playing music:", err)
+		return
+	}
+	a.bgm.player.SetDSPChannel(a.bgm.channel)
+	a.bgm.player.AddEffect("volume", vol)
 	a.bgm.player.SetBufferSize(time.Millisecond * 100)
 	a.bgm.player.Play()
 }
@@ -560,15 +578,21 @@ func (a *AudioHandler) StartEngineAmbience() {
 	// TODO: different ambient angine sound for different tonnages/unit types
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
 	if err != nil {
-		log.Error("Error loading engine ambience file:")
-		log.Error(err)
+		log.Error("Error loading engine ambience:", err)
 		engine.player = nil
 		return
 	}
 
 	engAmb := audio.NewInfiniteLoop(stream, length)
-	vol := effects.NewVolume(engAmb)
-	engine.player = engine.channel.CreatePlayer(vol)
+	vol := effects.NewVolume()
+	engine.player, err = resound.NewPlayer("engine", engAmb)
+	if err != nil {
+		log.Error("Error playing engine ambience:", err)
+		engine.player = nil
+		return
+	}
+	engine.player.SetDSPChannel(engine.channel)
+	engine.player.AddEffect("volume", vol)
 	engine.player.SetBufferSize(time.Millisecond * 50)
 	engine.player.Play()
 }
