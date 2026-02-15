@@ -273,9 +273,16 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		unitSprite = g.createUnitSprite(unit).(*sprites.MechSprite).Sprite
 
 		mechStompFile, err := StompSFXForMech(unit.(*model.Mech))
-		if err == nil {
-			g.audio.SetStompSFX(mechStompFile)
+		if err != nil {
+			log.Error("error loading mech stomp sfx:", err)
 		}
+		g.audio.SetStompSFX(mechStompFile)
+
+		jumpJetFile, err := JumpJetSFXForMech(unit.(*model.Mech))
+		if err != nil {
+			log.Error("error loading mech jump jet sfx:", err)
+		}
+		g.audio.SetJumpJetSFX(jumpJetFile)
 
 	case *model.Vehicle:
 		unitSprite = g.createUnitSprite(unit).(*sprites.VehicleSprite).Sprite
