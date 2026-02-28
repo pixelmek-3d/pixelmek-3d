@@ -55,7 +55,7 @@ type AudioHandler struct {
 
 type BGMHandler struct {
 	channel *resound.DSPChannel
-	player  *resound.DSPPlayer
+	player  *resound.Player
 }
 
 type SFXHandler struct {
@@ -67,7 +67,7 @@ type SFXHandler struct {
 
 type SFXSource struct {
 	channel *resound.DSPChannel
-	player  *resound.DSPPlayer
+	player  *resound.Player
 	volume  float64
 
 	_sfxFile            string
@@ -94,7 +94,7 @@ func NewAudioHandler() *AudioHandler {
 
 	a.bgm = &BGMHandler{}
 	a.bgm.channel = resound.NewDSPChannel()
-	a.bgm.channel.Add("volume", effects.NewVolume(nil))
+	a.bgm.channel.AddEffect("volume", effects.NewVolume())
 	a.SetMusicVolume(bgmVolume)
 
 	a.sfxMap = &sync.Map{}
@@ -113,7 +113,6 @@ func NewAudioHandler() *AudioHandler {
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].SetPan(0.5)
 
 	a.sfx.mainSources[AUDIO_JUMP_JET] = NewSoundEffectSource(0.7)
-	a.sfx.mainSources[AUDIO_JUMP_JET].LoadSFX(a, "audio/sfx/jet-thrust.ogg")
 
 	a.SetSFXChannels(sfxChannels)
 	a.SetSFXVolume(sfxVolume)
@@ -125,8 +124,8 @@ func NewAudioHandler() *AudioHandler {
 func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 	s := &SFXSource{volume: sourceVolume}
 	s.channel = resound.NewDSPChannel()
-	s.channel.Add("volume", effects.NewVolume(nil).SetStrength(sourceVolume))
-	s.channel.Add("pan", effects.NewPan(nil))
+	s.channel.AddEffect("volume", effects.NewVolume().SetStrength(sourceVolume))
+	s.channel.AddEffect("pan", effects.NewPan())
 	return s
 }
 
@@ -134,6 +133,9 @@ func NewSoundEffectSource(sourceVolume float64) *SFXSource {
 func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 	// make sure current source is closed before loading a new one
 	s.Close()
+	if sfxFile == `` {
+		return nil
+	}
 
 	// use cache of audio if possible
 	var audioBytes []byte
@@ -152,11 +154,16 @@ func (s *SFXSource) LoadSFX(a *AudioHandler, sfxFile string) error {
 
 	stream, _, err := resources.NewAudioStream(audioBytes, sfxFile)
 	if err != nil {
-		log.Error("Error playing sound effect file: " + sfxFile)
+		log.Error("Error streaming sound effect file: " + sfxFile)
 		return err
 	}
 
-	s.player = s.channel.CreatePlayer(stream)
+	s.player, err = resound.NewPlayer("sfx", stream)
+	if err != nil {
+		log.Error("Error playing sound effect file: " + sfxFile)
+		return err
+	}
+	s.player.SetDSPChannel(s.channel)
 	s.player.SetBufferSize(time.Millisecond * 100)
 	s._sfxFile = sfxFile
 
@@ -185,12 +192,17 @@ func (s *SFXSource) LoadLoopSFX(a *AudioHandler, sfxFile string) error {
 
 	stream, length, err := resources.NewAudioStream(audioBytes, sfxFile)
 	if err != nil {
-		log.Error("Error playing looping sound effect file: " + sfxFile)
+		log.Error("Error streaming looping sound effect file: " + sfxFile)
 		return err
 	}
 
 	loop := audio.NewInfiniteLoop(stream, length)
-	s.player = s.channel.CreatePlayer(loop)
+	s.player, err = resound.NewPlayer("loop", loop)
+	if err != nil {
+		log.Error("Error playing looping sound effect file: " + sfxFile)
+		return err
+	}
+	s.player.SetDSPChannel(s.channel)
 	s.player.SetBufferSize(time.Millisecond * 100)
 	s._sfxFile = sfxFile
 
@@ -214,7 +226,7 @@ func (s *SFXSource) SetPan(panPercent float64) {
 	if pan, ok := s.channel.Effects["pan"].(*effects.Pan); ok {
 		pan.SetPan(panPercent)
 	} else {
-		s.channel.Add("pan", effects.NewPan(nil).SetPan(panPercent))
+		s.channel.AddEffect("pan", effects.NewPan().SetPan(panPercent))
 	}
 }
 
@@ -224,6 +236,15 @@ func (s *SFXSource) IsPlaying() bool {
 		return s.player.IsPlaying()
 	}
 	return false
+}
+
+// Stop stops and rewinds the sound effect player
+func (s *SFXSource) Stop() {
+	s._pausedWhilePlaying = false
+	if s.player != nil {
+		s.player.Pause()
+		s.player.Rewind()
+	}
 }
 
 // Play starts playing the sound effect player from the beginning of the effect
@@ -238,12 +259,14 @@ func (s *SFXSource) Play() {
 // Pause pauses the sound effect player
 func (s *SFXSource) Pause() {
 	if s.player != nil {
-		s._pausedWhilePlaying = s.player.IsPlaying()
-		s.player.Pause()
+		s._pausedWhilePlaying = s.IsPlaying()
+		if s._pausedWhilePlaying {
+			s.player.Pause()
+		}
 	}
 }
 
-// Resume resumes the sound effect player without rewinding
+// Resume plays a paused sound effect player without rewinding
 func (s *SFXSource) Resume() {
 	if s.player != nil && s._pausedWhilePlaying {
 		s.player.Play()
@@ -272,7 +295,6 @@ func (a *AudioHandler) PlaySFX(sfxFile string, sourceVolume, panPercent float64)
 	} else {
 		// decrement count of the previous sound effect
 		a.sfx._updateExtSFXCount(source._sfxFile, -1)
-		source.Close()
 	}
 
 	source.SetSourceVolume(sourceVolume)
@@ -302,13 +324,9 @@ func (a *AudioHandler) PlayLoopEntitySFX(sfxFile string, entity model.Entity, so
 		return true
 	})
 
-	// get and close the lowest priority source for reuse
-	// source, _ := a.sfx.extSources.Get()
-	if source == nil {
+	// get the lowest priority source for reuse
+	if source == nil || source._sfxFile != sfxFile {
 		source = NewSoundEffectSource(0.0)
-	} else if source._sfxFile != sfxFile {
-		// close out the source to play a new source
-		source.Close()
 	}
 
 	// update volume and panning, even if continuing to play current loop
@@ -419,10 +437,10 @@ func (a *AudioHandler) SetSFXChannels(numChannels int) {
 func (a *AudioHandler) sfxSourcePriorityCompare(elem, other *SFXSource) bool {
 	// give higher priority rating to sources that are still playing and with higher volume
 	var elemRating, otherRating float64
-	if elem.player != nil && elem.player.IsPlaying() {
+	if elem.IsPlaying() {
 		elemRating = elem.player.Volume()
 	}
-	if other.player != nil && other.player.IsPlaying() {
+	if other.IsPlaying() {
 		otherRating = other.player.Volume()
 	}
 
@@ -452,42 +470,40 @@ func (a *AudioHandler) IsMusicPlaying() bool {
 	return a.bgm.player != nil && a.bgm.player.IsPlaying()
 }
 
-// StopMusic stops and closes the background music source
+// StopMusic stops and rewinds the background music source
 func (a *AudioHandler) StopMusic() {
 	if a.bgm.player != nil {
-		a.bgm.player.Close()
-		a.bgm.player = nil
+		a.bgm.player.Pause()
+		a.bgm.player.Rewind()
 	}
 }
 
 // PauseMusic pauses play of background music
 func (a *AudioHandler) PauseMusic() {
-	if a.bgm.player != nil && a.bgm.player.IsPlaying() {
+	if a.bgm.player != nil && a.IsMusicPlaying() {
 		a.bgm.player.Pause()
 	}
 }
 
 // ResumeMusic resumes play of background music
 func (a *AudioHandler) ResumeMusic() {
-	if a.bgm.player != nil && !a.bgm.player.IsPlaying() {
+	if a.bgm.player != nil && !a.IsMusicPlaying() {
 		a.bgm.player.Play()
 	}
 }
 
-// StopSFX stops and closes all sound effect sources
+// StopSFX stops and rewinds all sound effect sources
 func (a *AudioHandler) StopSFX() {
 	for _, s := range a.sfx.mainSources {
-		if s.player != nil {
-			s.player.Close()
-		}
+		s.Stop()
 	}
 	a.sfx.entitySources.Range(func(_, v any) bool {
 		s := v.(*SFXSource)
-		s.Close()
+		s.Stop()
 		return true
 	})
 	for s := range a.sfx.extSources.Iterator() {
-		s.Close()
+		s.Stop()
 		a.sfx.extSources.Offer(s)
 	}
 }
@@ -543,8 +559,14 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 	}
 
 	bgm := audio.NewInfiniteLoop(stream, length)
-	vol := effects.NewVolume(bgm)
-	a.bgm.player = a.bgm.channel.CreatePlayer(vol)
+	vol := effects.NewVolume()
+	a.bgm.player, err = resound.NewPlayer("music", bgm)
+	if err != nil {
+		log.Error("Error playing music:", err)
+		return
+	}
+	a.bgm.player.SetDSPChannel(a.bgm.channel)
+	a.bgm.player.AddEffect("volume", vol)
 	a.bgm.player.SetBufferSize(time.Millisecond * 100)
 	a.bgm.player.Play()
 }
@@ -553,36 +575,40 @@ func (a *AudioHandler) StartMusicFromFile(path string) {
 func (a *AudioHandler) StartEngineAmbience() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	engine._sfxType = _SFX_HINT_ENGINE
-	if engine.player != nil {
-		engine.player.Close()
-	}
+	engine.Close()
 
 	// TODO: different ambient angine sound for different tonnages/unit types
 	stream, length, err := resources.NewAudioStreamFromFile("audio/sfx/ambience-engine.ogg")
 	if err != nil {
-		log.Error("Error loading engine ambience file:")
-		log.Error(err)
+		log.Error("Error loading engine ambience:", err)
 		engine.player = nil
 		return
 	}
 
 	engAmb := audio.NewInfiniteLoop(stream, length)
-	vol := effects.NewVolume(engAmb)
-	engine.player = engine.channel.CreatePlayer(vol)
+	vol := effects.NewVolume()
+	engine.player, err = resound.NewPlayer("engine", engAmb)
+	if err != nil {
+		log.Error("Error playing engine ambience:", err)
+		engine.player = nil
+		return
+	}
+	engine.player.SetDSPChannel(engine.channel)
+	engine.player.AddEffect("volume", vol)
 	engine.player.SetBufferSize(time.Millisecond * 50)
-	engine.player.Play()
+	engine.Play()
 }
 
 // StopEngineAmbience stop the ambient engine audio loop
 func (a *AudioHandler) StopEngineAmbience() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
-	if engine._sfxType == _SFX_HINT_ENGINE && engine.player != nil && engine.player.IsPlaying() {
+	if engine._sfxType == _SFX_HINT_ENGINE {
 		engine._sfxType = _SFX_HINT_NONE
-		engine.player.Close()
+		engine.Stop()
 	}
 }
 
-// IsEngineAmbience indicates whether the current engine audio is the ambience loop
+// EngineAmbience indicates the current type of engine audio sfx
 func (a *AudioHandler) EngineAmbience() _sfxTypeHint {
 	return a.sfx.mainSources[AUDIO_ENGINE]._sfxType
 }
@@ -592,12 +618,12 @@ func (a *AudioHandler) PlayPowerOnSequence() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	engine._sfxType = _SFX_HINT_POWER_ON
 	if engine.player != nil {
-		engine.player.Close()
+		engine.Close()
 	}
 
 	// TODO: different power on sounds for different tonnages/unit types
 	engine.LoadSFX(a, "audio/sfx/power-on.ogg")
-	engine.player.Play()
+	engine.Play()
 }
 
 // PlayPowerOffSequence plays the power down sound using the engine audio source
@@ -605,16 +631,20 @@ func (a *AudioHandler) PlayPowerOffSequence() {
 	engine := a.sfx.mainSources[AUDIO_ENGINE]
 	engine._sfxType = _SFX_HINT_POWER_OFF
 	if engine.player != nil {
-		engine.player.Close()
+		engine.Close()
 	}
 
 	engine.LoadSFX(a, "audio/sfx/power-off.ogg")
-	engine.player.Play()
+	engine.Play()
 }
 
 func (a *AudioHandler) SetStompSFX(sfxFile string) {
 	a.sfx.mainSources[AUDIO_STOMP_LEFT].LoadSFX(a, sfxFile)
 	a.sfx.mainSources[AUDIO_STOMP_RIGHT].LoadSFX(a, sfxFile)
+}
+
+func (a *AudioHandler) SetJumpJetSFX(sfxFile string) {
+	a.sfx.mainSources[AUDIO_JUMP_JET].LoadSFX(a, sfxFile)
 }
 
 func StompSFXForMech(m *model.Mech) (string, error) {
@@ -643,7 +673,7 @@ func (a *AudioHandler) PlayButtonAudio(buttonResource AudioInterfaceResource) {
 // IsButtonAudioPlaying returns true if the button audio channel is still playing
 func (a *AudioHandler) IsButtonAudioPlaying() bool {
 	sfxSource := a.sfx.mainSources[AUDIO_INTERFACE]
-	return sfxSource.player != nil && sfxSource.player.IsPlaying()
+	return sfxSource.IsPlaying()
 }
 
 // PlayLocalWeaponFireAudio plays weapon fire audio intended only if fired by the player unit
