@@ -480,14 +480,14 @@ func (a *AudioHandler) StopMusic() {
 
 // PauseMusic pauses play of background music
 func (a *AudioHandler) PauseMusic() {
-	if a.IsMusicPlaying() {
+	if a.bgm.player != nil && a.IsMusicPlaying() {
 		a.bgm.player.Pause()
 	}
 }
 
 // ResumeMusic resumes play of background music
 func (a *AudioHandler) ResumeMusic() {
-	if !a.IsMusicPlaying() {
+	if a.bgm.player != nil && !a.IsMusicPlaying() {
 		a.bgm.player.Play()
 	}
 }
