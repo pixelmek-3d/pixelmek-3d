@@ -34,10 +34,59 @@ func (s *settingsPage) update(g *Game) {
 	}
 }
 
+func gameOptionsPage(m Menu) *settingsPage {
+	c := newPageContentContainer()
+	res := m.Resources()
+	game := m.Game()
+
+	// game difficulty combo box and label
+	difficultyRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+	c.AddChild(difficultyRow)
+
+	difficultyLabel := widget.NewLabel(widget.LabelOpts.Text("Difficulty", res.label.face, res.label.text))
+	difficultyRow.AddChild(difficultyLabel)
+
+	difficulties := []any{}
+	var selectedDifficulty any
+	for _, d := range DifficultyLevels {
+		difficulties = append(difficulties, d)
+		if d == game.difficulty {
+			selectedDifficulty = d
+		}
+	}
+
+	difficultyCombo := newListComboButton(
+		difficulties,
+		selectedDifficulty,
+		func(e any) string {
+			return fmt.Sprintf("%s", e)
+		},
+		func(e any) string {
+			return fmt.Sprintf("%s", e)
+		},
+		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+			r := args.Entry.(*DifficultyLevel)
+			game.difficulty = r
+		},
+		res)
+	difficultyRow.AddChild(difficultyCombo)
+
+	return &settingsPage{
+		title:   "Game",
+		content: c,
+	}
+}
+
 func gameMissionPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	g := m.Game()
+
+	// TODO: show current difficulty level in the in-mission page?
 
 	mContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(
@@ -204,7 +253,6 @@ func displayPage(m Menu) *settingsPage {
 		resolutions = append([]any{r}, resolutions...)
 	}
 
-	var fovSlider *widget.Slider
 	resolutionCombo := newListComboButton(
 		resolutions,
 		selectedResolution,
@@ -260,6 +308,7 @@ func displayPage(m Menu) *settingsPage {
 	fovRow.AddChild(fovLabel)
 
 	var fovValueText *widget.Label
+	var fovSlider *widget.Slider
 
 	fovSlider = widget.NewSlider(
 		widget.SliderOpts.WidgetOpts(

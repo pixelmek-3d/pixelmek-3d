@@ -12,36 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type DifficultyModifiers struct {
-	EnemyDamageTakenModifier  float64
-	PlayerDamageTakenModifier float64
-	FriendlyFireEnabled       bool
-}
-
-func NewEasyDifficulty() *DifficultyModifiers {
-	return &DifficultyModifiers{
-		EnemyDamageTakenModifier:  5.0,
-		PlayerDamageTakenModifier: 0.5,
-		FriendlyFireEnabled:       false,
-	}
-}
-
-func NewNormalDifficulty() *DifficultyModifiers {
-	return &DifficultyModifiers{
-		EnemyDamageTakenModifier:  3.0,
-		PlayerDamageTakenModifier: 1.0,
-		FriendlyFireEnabled:       false,
-	}
-}
-
-func NewHardDifficulty() *DifficultyModifiers {
-	return &DifficultyModifiers{
-		EnemyDamageTakenModifier:  2.0,
-		PlayerDamageTakenModifier: 1.5,
-		FriendlyFireEnabled:       true,
-	}
-}
-
 type ProjectileSpawn struct {
 	delay      float64
 	spread     float64
@@ -51,9 +21,6 @@ type ProjectileSpawn struct {
 }
 
 func (g *Game) initCombatVariables() {
-	// TODO: add options menu to choose difficulty level and save/restore from configuration file
-	g.difficulty = NewNormalDifficulty()
-
 	g.delayedProjectiles = make(map[*ProjectileSpawn]struct{}, 256)
 }
 

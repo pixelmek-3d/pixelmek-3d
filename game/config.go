@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
@@ -20,6 +21,8 @@ const (
 	PARAM_KEY_DEBUG         = "debug"
 	PARAM_KEY_BENCHMARK     = "benchmark"
 	PARAM_KEY_IGNORE_PLAYER = "ignore-player"
+
+	CONFIG_KEY_GAME_DIFFICULTY = "game.difficulty"
 
 	CONFIG_KEY_SHOW_FPS         = "show_fps"
 	CONFIG_KEY_SCREEN_WIDTH     = "screen.width"
@@ -119,6 +122,9 @@ func (g *Game) initConfig() {
 	// control defaults
 	viper.SetDefault(CONFIG_KEY_CONTROL_DECAY, false)
 
+	// game default
+	viper.SetDefault(CONFIG_KEY_GAME_DIFFICULTY, 1)
+
 	// get config values
 	g.fpsEnabled = viper.GetBool(CONFIG_KEY_SHOW_FPS)
 
@@ -156,6 +162,8 @@ func (g *Game) initConfig() {
 	sfxChannels = viper.GetInt(CONFIG_KEY_AUDIO_SFX_CHANNELS)
 
 	g.throttleDecay = viper.GetBool(CONFIG_KEY_CONTROL_DECAY)
+
+	g.difficulty = DifficultyLevels[viper.GetUint(CONFIG_KEY_GAME_DIFFICULTY)]
 
 	// restore saved unit weapon groups
 	if err := restoreUserWeaponGroups(); err != nil {
@@ -205,6 +213,9 @@ func (g *Game) saveConfig() error {
 	viper.Set(CONFIG_KEY_AUDIO_BGM_VOL, bgmVolume)
 	viper.Set(CONFIG_KEY_AUDIO_SFX_VOL, sfxVolume)
 	viper.Set(CONFIG_KEY_AUDIO_SFX_CHANNELS, sfxChannels)
+
+	var difficultyIndex uint = uint(slices.Index(DifficultyLevels, g.difficulty))
+	viper.Set(CONFIG_KEY_GAME_DIFFICULTY, difficultyIndex)
 
 	err := viper.WriteConfigAs(resources.UserConfigFile)
 	if err != nil {

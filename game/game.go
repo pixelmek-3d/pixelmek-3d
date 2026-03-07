@@ -120,7 +120,7 @@ type Game struct {
 
 	// Gameplay
 	objectives *ObjectivesHandler
-	difficulty *DifficultyModifiers
+	difficulty *DifficultyLevel
 
 	// control options
 	throttleDecay bool
