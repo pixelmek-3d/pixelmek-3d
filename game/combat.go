@@ -9,7 +9,38 @@ import (
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
+	log "github.com/sirupsen/logrus"
 )
+
+type DifficultyModifiers struct {
+	EnemyDamageTakenModifier  float64
+	PlayerDamageTakenModifier float64
+	FriendlyFireEnabled       bool
+}
+
+func NewEasyDifficulty() *DifficultyModifiers {
+	return &DifficultyModifiers{
+		EnemyDamageTakenModifier:  5.0,
+		PlayerDamageTakenModifier: 0.5,
+		FriendlyFireEnabled:       false,
+	}
+}
+
+func NewNormalDifficulty() *DifficultyModifiers {
+	return &DifficultyModifiers{
+		EnemyDamageTakenModifier:  3.0,
+		PlayerDamageTakenModifier: 1.0,
+		FriendlyFireEnabled:       false,
+	}
+}
+
+func NewHardDifficulty() *DifficultyModifiers {
+	return &DifficultyModifiers{
+		EnemyDamageTakenModifier:  2.0,
+		PlayerDamageTakenModifier: 1.5,
+		FriendlyFireEnabled:       true,
+	}
+}
 
 type ProjectileSpawn struct {
 	delay      float64
@@ -20,6 +51,9 @@ type ProjectileSpawn struct {
 }
 
 func (g *Game) initCombatVariables() {
+	// TODO: add options menu to choose difficulty level and save/restore from configuration file
+	g.difficulty = NewNormalDifficulty()
+
 	g.delayedProjectiles = make(map[*ProjectileSpawn]struct{}, 256)
 }
 
@@ -46,6 +80,40 @@ func NewDelayedProjectileSpawn(delay, spread float64, weapon model.Weapon, paren
 func destroyEntity(e model.Entity) {
 	if e != nil {
 		e.SetStructurePoints(0)
+	}
+}
+
+// applyDamage applies the base damage amount to a target entity, taking into account any game modifiers/multipliers
+func (g *Game) applyDamage(source, target model.Entity, damage float64) {
+	isSourcePlayer, isTargetPlayer := source == g.player.Unit, target == g.player.Unit
+	isFriendly := (isSourcePlayer || isTargetPlayer) && g.IsFriendly(source, target)
+	if !g.difficulty.FriendlyFireEnabled && isFriendly {
+		// friendly fire disabled, no damage to apply
+		return
+	}
+
+	// determine actual damage with difficulty multiplier
+	var multiplier float64
+	if isTargetPlayer {
+		multiplier = g.difficulty.PlayerDamageTakenModifier
+	} else {
+		multiplier = g.difficulty.EnemyDamageTakenModifier
+	}
+
+	target.ApplyDamage(damage * multiplier)
+
+	if g.debug {
+		unit := model.EntityUnit(target)
+		hp, maxHP := target.ArmorPoints()+target.StructurePoints(), target.MaxArmorPoints()+target.MaxStructurePoints()
+		percentHP := 100 * (hp / maxHP)
+
+		if unit == g.player.Unit {
+			// TODO: visual response to player being hit
+			log.Debugf("[player] hit for %0.1f | multiplier: %0.1fx | HP: %0.1f/%0.0f (%0.2f%%)", damage, multiplier, hp, maxHP, percentHP)
+		} else if unit != nil {
+			// TODO: ui indicator for showing damage was done
+			log.Debugf("[%s] hit for %0.1f | multiplier: %0.1fx | HP: %0.1f/%0.0f (%0.2f%%)", unit.ID(), damage, multiplier, hp, maxHP, percentHP)
+		}
 	}
 }
 
@@ -298,21 +366,7 @@ func (g *Game) asyncProjectileUpdate(p *sprites.ProjectileSprite, wg *sync.WaitG
 				entity := collisionEntity.entity
 
 				damage := p.Damage()
-				entity.ApplyDamage(damage)
-
-				// if g.debug {
-				// 	unit := model.EntityUnit(entity)
-				// 	hp, maxHP := entity.ArmorPoints()+entity.StructurePoints(), entity.MaxArmorPoints()+entity.MaxStructurePoints()
-				// 	percentHP := 100 * (hp / maxHP)
-
-				// 	if unit == g.player.Unit {
-				// 		// TODO: visual response to player being hit
-				// 		log.Debugf("[player] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", damage, hp, maxHP, percentHP)
-				// 	} else if unit != nil {
-				// 		// TODO: ui indicator for showing damage was done
-				// 		log.Debugf("[%s] hit for %0.1f | HP: %0.1f/%0.0f (%0.2f%%)", unit.ID(), damage, hp, maxHP, percentHP)
-				// 	}
-				// }
+				g.applyDamage(p.Parent(), entity, damage)
 			}
 
 			// destroy projectile after applying damage so it can calculate dropoff if needed
