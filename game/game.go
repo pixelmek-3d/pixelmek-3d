@@ -120,6 +120,7 @@ type Game struct {
 
 	// Gameplay
 	objectives *ObjectivesHandler
+	difficulty *DifficultyLevel
 
 	// control options
 	throttleDecay bool
@@ -688,7 +689,10 @@ func (g *Game) IsFriendly(e1, e2 model.Entity) bool {
 	if e1 == nil || e2 == nil {
 		return false
 	}
-	if e1 == g.player || e2 == g.player {
+	if e1 == e2 {
+		return true
+	}
+	if e1 == g.player.Unit || e2 == g.player.Unit {
 		return e1.Team() < 0 && e2.Team() < 0
 	}
 	return e1.Team() == e2.Team()

@@ -33,7 +33,7 @@ func debugOptionsPage(m Menu) *settingsPage {
 	c.AddChild(ignorePlayerCheckbox)
 
 	return &settingsPage{
-		title:   "~Options",
+		title:   "~Debug",
 		content: c,
 	}
 }
