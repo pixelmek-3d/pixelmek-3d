@@ -15,14 +15,14 @@ func (d *DifficultyLevel) String() string {
 
 func init() {
 	DifficultyLevels = []*DifficultyLevel{
-		DifficultyRecruit(),
-		DifficultyRegular(),
-		DifficultyVeteran(),
-		DifficultyAce(),
+		difficultyRecruit(),
+		difficultyRegular(),
+		difficultyVeteran(),
+		difficultyAce(),
 	}
 }
 
-func DifficultyRecruit() *DifficultyLevel {
+func difficultyRecruit() *DifficultyLevel {
 	return &DifficultyLevel{
 		Name:                      `Recruit`,
 		EnemyDamageTakenModifier:  4.0,
@@ -31,7 +31,7 @@ func DifficultyRecruit() *DifficultyLevel {
 	}
 }
 
-func DifficultyRegular() *DifficultyLevel {
+func difficultyRegular() *DifficultyLevel {
 	return &DifficultyLevel{
 		Name:                      `Regular`,
 		EnemyDamageTakenModifier:  2.5,
@@ -40,7 +40,7 @@ func DifficultyRegular() *DifficultyLevel {
 	}
 }
 
-func DifficultyVeteran() *DifficultyLevel {
+func difficultyVeteran() *DifficultyLevel {
 	return &DifficultyLevel{
 		Name:                      `Veteran`,
 		EnemyDamageTakenModifier:  2.0,
@@ -49,7 +49,7 @@ func DifficultyVeteran() *DifficultyLevel {
 	}
 }
 
-func DifficultyAce() *DifficultyLevel {
+func difficultyAce() *DifficultyLevel {
 	return &DifficultyLevel{
 		Name:                      `Ace`,
 		EnemyDamageTakenModifier:  1.5,

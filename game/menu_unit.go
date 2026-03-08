@@ -565,7 +565,7 @@ func (c *UnitCard) updateUnitContent() {
 
 	massString := fmt.Sprintf("%0.0f Tons", unit.Tonnage())
 	massText := newUnitContentText(res, massString)
-	massPipsImg := unitPipsRatingImage(uint(unit.Tonnage()), 10, color.NRGBA{R: 255, G: 255, B: 255, A: 255})
+	massPipsImg := unitPipsRatingImage(res, uint(unit.Tonnage()), 10, color.NRGBA{R: 255, G: 255, B: 255, A: 255})
 	massPips := widget.NewGraphic(
 		widget.GraphicOpts.Image(massPipsImg),
 	)
@@ -576,7 +576,7 @@ func (c *UnitCard) updateUnitContent() {
 	topSpeedKph := unit.MaxVelocity() * model.VELOCITY_TO_KPH
 	speedString := fmt.Sprintf("%0.1f kph", topSpeedKph)
 	speedText := newUnitContentText(res, speedString)
-	speedPipsImg := unitPipsRatingImage(uint(topSpeedKph), 20, color.NRGBA{R: 18, G: 255, B: 0, A: 255})
+	speedPipsImg := unitPipsRatingImage(res, uint(topSpeedKph), 20, color.NRGBA{R: 18, G: 255, B: 0, A: 255})
 	speedPips := widget.NewGraphic(
 		widget.GraphicOpts.Image(speedPipsImg),
 	)
@@ -585,7 +585,7 @@ func (c *UnitCard) updateUnitContent() {
 	unitContent.AddChild(speedText)
 
 	armorText := newUnitContentText(res, armorString)
-	armorPipsImg := unitPipsRatingImage(uint(armor), 30, color.NRGBA{R: 231, G: 195, B: 75, A: 255})
+	armorPipsImg := unitPipsRatingImage(res, uint(armor), 30, color.NRGBA{R: 231, G: 195, B: 75, A: 255})
 	armorPips := widget.NewGraphic(
 		widget.GraphicOpts.Image(armorPipsImg),
 	)
@@ -594,7 +594,7 @@ func (c *UnitCard) updateUnitContent() {
 	unitContent.AddChild(armorText)
 
 	structureText := newUnitContentText(res, structureString)
-	structurePipsImg := unitPipsRatingImage(uint(structure), 30, color.NRGBA{R: 0, G: 205, B: 255, A: 255})
+	structurePipsImg := unitPipsRatingImage(res, uint(structure), 30, color.NRGBA{R: 0, G: 205, B: 255, A: 255})
 	structurePips := widget.NewGraphic(
 		widget.GraphicOpts.Image(structurePipsImg),
 	)
@@ -606,7 +606,7 @@ func (c *UnitCard) updateUnitContent() {
 		// TODO: jump jet distance instead of quantity
 		jjString := fmt.Sprintf("%d", unit.JumpJets())
 		jjText := newUnitContentText(res, jjString)
-		jjPipsImg := unitPipsRatingImage(uint(unit.JumpJets()), 1, color.NRGBA{R: 255, G: 108, B: 0, A: 255})
+		jjPipsImg := unitPipsRatingImage(res, uint(unit.JumpJets()), 1, color.NRGBA{R: 255, G: 108, B: 0, A: 255})
 		jjPips := widget.NewGraphic(
 			widget.GraphicOpts.Image(jjPipsImg),
 		)
@@ -766,10 +766,13 @@ func armamentSummary(unit model.Unit) []*unitCardWeapon {
 }
 
 // unitPipsRatingImage creates a simple series of rectangular pips of a normalized size (`n / nStep` out of 10 pips)
-func unitPipsRatingImage(n, nStep uint, clr color.Color) *ebiten.Image {
+func unitPipsRatingImage(res *uiResources, n, nStep uint, clr color.Color) *ebiten.Image {
 	nPips := uint(math.Round(float64(n) / float64(nStep)))
 
-	w, h := 100, 20
+	// dynamic image size from menu size
+	size := float64(res.menuSize) * (float64(1) / float64(30))
+	w, h := int(size)*5, int(size)
+
 	pipSpacing := float32(w) / 10
 	if nPips > 10 {
 		// increase width if `nPips` needs it, though it should not be used in such a way it gets too much bigger
