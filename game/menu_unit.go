@@ -2,12 +2,15 @@ package game
 
 import (
 	"fmt"
+	"image/color"
+	"math"
 	"sort"
 	"strings"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 )
@@ -509,8 +512,8 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 				Left:  g.menu.Spacing(),
 				Right: g.menu.Spacing(),
 			}),
-			widget.GridLayoutOpts.Columns(2),
-			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false, false, false, false, false}),
+			widget.GridLayoutOpts.Columns(3),
+			widget.GridLayoutOpts.Stretch([]bool{false, false, true}, []bool{false, false, false, false, false}),
 			widget.GridLayoutOpts.Spacing(g.menu.Spacing(), g.menu.Spacing()/4),
 		)))
 	unitTable.AddChild(unitCard.unitContent)
@@ -562,28 +565,53 @@ func (c *UnitCard) updateUnitContent() {
 
 	massString := fmt.Sprintf("%0.0f Tons", unit.Tonnage())
 	massText := newUnitContentText(res, massString)
+	massPipsImg := unitPipsRatingImage(res, uint(unit.Tonnage()), 10, color.NRGBA{R: 255, G: 255, B: 255, A: 255})
+	massPips := widget.NewGraphic(
+		widget.GraphicOpts.Image(massPipsImg),
+	)
 	unitContent.AddChild(newUnitContentText(res, "Mass:"))
+	unitContent.AddChild(massPips)
 	unitContent.AddChild(massText)
 
 	topSpeedKph := unit.MaxVelocity() * model.VELOCITY_TO_KPH
 	speedString := fmt.Sprintf("%0.1f kph", topSpeedKph)
 	speedText := newUnitContentText(res, speedString)
+	speedPipsImg := unitPipsRatingImage(res, uint(topSpeedKph), 20, color.NRGBA{R: 18, G: 255, B: 0, A: 255})
+	speedPips := widget.NewGraphic(
+		widget.GraphicOpts.Image(speedPipsImg),
+	)
 	unitContent.AddChild(newUnitContentText(res, "Top Speed:"))
+	unitContent.AddChild(speedPips)
 	unitContent.AddChild(speedText)
 
 	armorText := newUnitContentText(res, armorString)
+	armorPipsImg := unitPipsRatingImage(res, uint(armor), 30, color.NRGBA{R: 231, G: 195, B: 75, A: 255})
+	armorPips := widget.NewGraphic(
+		widget.GraphicOpts.Image(armorPipsImg),
+	)
 	unitContent.AddChild(newUnitContentText(res, "Armor:"))
+	unitContent.AddChild(armorPips)
 	unitContent.AddChild(armorText)
 
 	structureText := newUnitContentText(res, structureString)
+	structurePipsImg := unitPipsRatingImage(res, uint(structure), 30, color.NRGBA{R: 0, G: 205, B: 255, A: 255})
+	structurePips := widget.NewGraphic(
+		widget.GraphicOpts.Image(structurePipsImg),
+	)
 	unitContent.AddChild(newUnitContentText(res, "Structure:"))
+	unitContent.AddChild(structurePips)
 	unitContent.AddChild(structureText)
 
 	if unit.JumpJets() > 0 {
 		// TODO: jump jet distance instead of quantity
 		jjString := fmt.Sprintf("%d", unit.JumpJets())
 		jjText := newUnitContentText(res, jjString)
+		jjPipsImg := unitPipsRatingImage(res, uint(unit.JumpJets()), 1, color.NRGBA{R: 255, G: 108, B: 0, A: 255})
+		jjPips := widget.NewGraphic(
+			widget.GraphicOpts.Image(jjPipsImg),
+		)
 		unitContent.AddChild(newUnitContentText(res, "Jump Jets:"))
+		unitContent.AddChild(jjPips)
 		unitContent.AddChild(jjText)
 	}
 }
@@ -735,4 +763,27 @@ func armamentSummary(unit model.Unit) []*unitCardWeapon {
 	}
 
 	return weaponSummaryList
+}
+
+// unitPipsRatingImage creates a simple series of rectangular pips of a normalized size (`n / nStep` out of 10 pips)
+func unitPipsRatingImage(res *uiResources, n, nStep uint, clr color.Color) *ebiten.Image {
+	nPips := uint(math.Round(float64(n) / float64(nStep)))
+
+	// dynamic image size from menu size
+	size := float64(res.menuSize) * (float64(1) / float64(30))
+	w, h := int(size)*5, int(size)
+
+	pipSpacing := float32(w) / 10
+	if nPips > 10 {
+		// increase width if `nPips` needs it, though it should not be used in such a way it gets too much bigger
+		ratio := float64(nPips) / 10
+		w = int(float64(w) * ratio)
+	}
+
+	img := ebiten.NewImage(w, h) // TODO: use the UI size to determine width/height
+
+	for i := range nPips {
+		vector.FillRect(img, float32(i)*pipSpacing+1, 1, pipSpacing-2, float32(h)-2, clr, false)
+	}
+	return img
 }

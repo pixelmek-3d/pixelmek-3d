@@ -331,13 +331,14 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 
 	switch style {
 	case MissionCardLaunch, MissionCardGame, MissionCardDebrief:
-		missionText := widget.NewText(widget.TextOpts.Text(mission.Title, res.text.titleFace, res.text.idleColor),
+		missionTitleStr := fmt.Sprintf("%s (%s)", mission.Title, g.difficulty.Name)
+		missionTitle := widget.NewText(widget.TextOpts.Text(missionTitleStr, res.text.titleFace, res.text.idleColor),
 			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
 			})),
 			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 		)
-		cardContainer.AddChild(missionText)
+		cardContainer.AddChild(missionTitle)
 	}
 
 	var objectivesText *widget.TextArea

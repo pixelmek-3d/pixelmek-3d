@@ -143,7 +143,7 @@ func (m *MenuModel) initResources() {
 	m.spacing = int(float64(menuSize) * 0.02)
 	m.padding = 4
 
-	res, err := NewUIResources(fonts)
+	res, err := NewUIResources(menuSize, fonts)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)

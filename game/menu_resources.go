@@ -43,6 +43,8 @@ const (
 )
 
 type uiResources struct {
+	menuSize int
+
 	fonts           *menuFonts
 	background      *image.NineSlice
 	backgroundColor color.Color
@@ -161,7 +163,7 @@ type menuFonts struct {
 	toolTipMono  *text.Face
 }
 
-func NewUIResources(fonts *menuFonts) (*uiResources, error) {
+func NewUIResources(menuSize int, fonts *menuFonts) (*uiResources, error) {
 	background := image.NewNineSliceColor(hexToColorAlpha(backgroundColor, 96))
 
 	button, err := newButtonResources(fonts)
@@ -220,6 +222,8 @@ func NewUIResources(fonts *menuFonts) (*uiResources, error) {
 	}
 
 	return &uiResources{
+		menuSize: menuSize,
+
 		fonts:           fonts,
 		background:      background,
 		backgroundColor: hexToColor(backgroundColor),

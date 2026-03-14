@@ -161,14 +161,18 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	gameMenu, isInGameMenu := m.(*GameMenu)
 	settingsMenu, isMainSettingsMenu := m.(*SettingsMenu)
 
+	var gameOptions *settingsPage
 	var missionSettings *settingsPage
 	var unitSettings *settingsPage
 	if isInGameMenu {
-		// only show the mission and unit card pages in-game
+		// only show the mission and unit card pages when in-mission
 		missionSettings = gameMissionPage(m)
 		unitSettings = gameUnitPage(m)
 
 		gameMenu.updaters = []settingsUpdater{missionSettings, unitSettings}
+	} else {
+		// only show the game options page when not in-mission
+		gameOptions = gameOptionsPage(m)
 	}
 
 	displaySettings := displayPage(m)
@@ -182,6 +186,9 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	}
 	if unitSettings != nil {
 		pages = append(pages, unitSettings)
+	}
+	if gameOptions != nil {
+		pages = append(pages, gameOptions)
 	}
 	pages = append(pages, displaySettings)
 	pages = append(pages, renderSettings)

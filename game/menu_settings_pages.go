@@ -34,6 +34,86 @@ func (s *settingsPage) update(g *Game) {
 	}
 }
 
+func gameOptionsPage(m Menu) *settingsPage {
+	c := newPageContentContainer()
+	res := m.Resources()
+	game := m.Game()
+
+	// game difficulty combo box and label
+	difficultyRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+	c.AddChild(difficultyRow)
+
+	difficultyLabel := widget.NewLabel(widget.LabelOpts.Text("Difficulty", res.label.face, res.label.text))
+	difficultyRow.AddChild(difficultyLabel)
+
+	difficulties := []any{}
+	var selectedDifficulty any
+	for _, d := range DifficultyLevels {
+		difficulties = append(difficulties, d)
+		if d == game.difficulty {
+			selectedDifficulty = d
+		}
+	}
+
+	difficultyColumn := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(10),
+		)))
+	difficultyRow.AddChild(difficultyColumn)
+
+	var enemyDamageModifierLabel *widget.Label
+	var playerDamageModifierLabel *widget.Label
+	var friendlyFireLabel *widget.Label
+
+	_updateDifficulty := func(difficulty *DifficultyLevel) {
+		game.difficulty = difficulty
+		enemyDamageModifierLabel.Label = fmt.Sprintf("Enemy Damage Taken: %0.1fx", game.difficulty.EnemyDamageTakenModifier)
+		playerDamageModifierLabel.Label = fmt.Sprintf("Player Damage Taken: %0.1fx", game.difficulty.PlayerDamageTakenModifier)
+
+		ffStr := "OFF"
+		if difficulty.FriendlyFireEnabled {
+			ffStr = "ON"
+		}
+		friendlyFireLabel.Label = fmt.Sprintf("Friendly Fire: %s", ffStr)
+	}
+
+	difficultyCombo := newListComboButton(
+		difficulties,
+		selectedDifficulty,
+		func(e any) string {
+			return fmt.Sprintf("%s", e)
+		},
+		func(e any) string {
+			return fmt.Sprintf("%s", e)
+		},
+		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+			r := args.Entry.(*DifficultyLevel)
+			_updateDifficulty(r)
+		},
+		res)
+	difficultyColumn.AddChild(difficultyCombo)
+
+	// show selected difficulty multipliers and other stats
+	enemyDamageModifierLabel = widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
+	difficultyColumn.AddChild(enemyDamageModifierLabel)
+
+	playerDamageModifierLabel = widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
+	difficultyColumn.AddChild(playerDamageModifierLabel)
+
+	friendlyFireLabel = widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
+	difficultyColumn.AddChild(friendlyFireLabel)
+
+	return &settingsPage{
+		title:   "Game",
+		content: c,
+	}
+}
+
 func gameMissionPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
@@ -204,7 +284,6 @@ func displayPage(m Menu) *settingsPage {
 		resolutions = append([]any{r}, resolutions...)
 	}
 
-	var fovSlider *widget.Slider
 	resolutionCombo := newListComboButton(
 		resolutions,
 		selectedResolution,
@@ -236,7 +315,8 @@ func displayPage(m Menu) *settingsPage {
 				case settingsMenu != nil:
 					menuScene, ok := game.scene.(*MainMenuScene)
 					if ok {
-						menuScene.settings.preSelectedPage = 0
+						// re-initialize the in-game menu with the Display settings pre-selected
+						menuScene.settings.preSelectedPage = 1
 						menuScene.settings.initResources()
 						menuScene.settings.initMenu()
 						menuScene.main.initResources()
@@ -260,6 +340,7 @@ func displayPage(m Menu) *settingsPage {
 	fovRow.AddChild(fovLabel)
 
 	var fovValueText *widget.Label
+	var fovSlider *widget.Slider
 
 	fovSlider = widget.NewSlider(
 		widget.SliderOpts.WidgetOpts(

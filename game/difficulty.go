@@ -1,0 +1,59 @@
+package game
+
+var DifficultyLevels []*DifficultyLevel
+
+type DifficultyLevel struct {
+	Name                      string
+	EnemyDamageTakenModifier  float64
+	PlayerDamageTakenModifier float64
+	FriendlyFireEnabled       bool
+}
+
+func (d *DifficultyLevel) String() string {
+	return d.Name
+}
+
+func init() {
+	DifficultyLevels = []*DifficultyLevel{
+		difficultyRecruit(),
+		difficultyRegular(),
+		difficultyVeteran(),
+		difficultyAce(),
+	}
+}
+
+func difficultyRecruit() *DifficultyLevel {
+	return &DifficultyLevel{
+		Name:                      `Recruit`,
+		EnemyDamageTakenModifier:  4.0,
+		PlayerDamageTakenModifier: 0.5,
+		FriendlyFireEnabled:       false,
+	}
+}
+
+func difficultyRegular() *DifficultyLevel {
+	return &DifficultyLevel{
+		Name:                      `Regular`,
+		EnemyDamageTakenModifier:  2.5,
+		PlayerDamageTakenModifier: 1.0,
+		FriendlyFireEnabled:       false,
+	}
+}
+
+func difficultyVeteran() *DifficultyLevel {
+	return &DifficultyLevel{
+		Name:                      `Veteran`,
+		EnemyDamageTakenModifier:  1.5,
+		PlayerDamageTakenModifier: 1.0,
+		FriendlyFireEnabled:       true,
+	}
+}
+
+func difficultyAce() *DifficultyLevel {
+	return &DifficultyLevel{
+		Name:                      `Ace`,
+		EnemyDamageTakenModifier:  1.0,
+		PlayerDamageTakenModifier: 1.5,
+		FriendlyFireEnabled:       true,
+	}
+}
