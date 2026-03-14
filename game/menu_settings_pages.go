@@ -7,6 +7,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -72,8 +73,8 @@ func gameOptionsPage(m Menu) *settingsPage {
 
 	_updateDifficulty := func(difficulty *DifficultyLevel) {
 		game.difficulty = difficulty
-		enemyDamageModifierLabel.Label = fmt.Sprintf("Enemy Damage Taken: %0.1fx", game.difficulty.EnemyDamageTakenModifier)
-		playerDamageModifierLabel.Label = fmt.Sprintf("Player Damage Taken: %0.1fx", game.difficulty.PlayerDamageTakenModifier)
+		enemyDamageModifierLabel.Label = fmt.Sprintf("Enemy Damage Taken: %sx", common.FloatDisplayString(game.difficulty.EnemyDamageTakenModifier))
+		playerDamageModifierLabel.Label = fmt.Sprintf("Player Damage Taken: %sx", common.FloatDisplayString(game.difficulty.PlayerDamageTakenModifier))
 
 		ffStr := "OFF"
 		if difficulty.FriendlyFireEnabled {
@@ -92,8 +93,8 @@ func gameOptionsPage(m Menu) *settingsPage {
 			return fmt.Sprintf("%s", e)
 		},
 		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
-			r := args.Entry.(*DifficultyLevel)
-			_updateDifficulty(r)
+			d := args.Entry.(*DifficultyLevel)
+			_updateDifficulty(d)
 		},
 		res)
 	difficultyColumn.AddChild(difficultyCombo)
