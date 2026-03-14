@@ -35,7 +35,7 @@ func difficultyRegular() *DifficultyLevel {
 	return &DifficultyLevel{
 		Name:                      `Regular`,
 		EnemyDamageTakenModifier:  2.5,
-		PlayerDamageTakenModifier: 0.75,
+		PlayerDamageTakenModifier: 1.0,
 		FriendlyFireEnabled:       false,
 	}
 }
@@ -43,7 +43,7 @@ func difficultyRegular() *DifficultyLevel {
 func difficultyVeteran() *DifficultyLevel {
 	return &DifficultyLevel{
 		Name:                      `Veteran`,
-		EnemyDamageTakenModifier:  2.0,
+		EnemyDamageTakenModifier:  1.5,
 		PlayerDamageTakenModifier: 1.0,
 		FriendlyFireEnabled:       true,
 	}
@@ -52,7 +52,7 @@ func difficultyVeteran() *DifficultyLevel {
 func difficultyAce() *DifficultyLevel {
 	return &DifficultyLevel{
 		Name:                      `Ace`,
-		EnemyDamageTakenModifier:  1.5,
+		EnemyDamageTakenModifier:  1.0,
 		PlayerDamageTakenModifier: 1.5,
 		FriendlyFireEnabled:       true,
 	}

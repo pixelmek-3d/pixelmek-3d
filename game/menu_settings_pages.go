@@ -59,6 +59,29 @@ func gameOptionsPage(m Menu) *settingsPage {
 		}
 	}
 
+	difficultyColumn := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(10),
+		)))
+	difficultyRow.AddChild(difficultyColumn)
+
+	var enemyDamageModifierLabel *widget.Label
+	var playerDamageModifierLabel *widget.Label
+	var friendlyFireLabel *widget.Label
+
+	_updateDifficulty := func(difficulty *DifficultyLevel) {
+		game.difficulty = difficulty
+		enemyDamageModifierLabel.Label = fmt.Sprintf("Enemy Damage Taken: %0.1fx", game.difficulty.EnemyDamageTakenModifier)
+		playerDamageModifierLabel.Label = fmt.Sprintf("Player Damage Taken: %0.1fx", game.difficulty.PlayerDamageTakenModifier)
+
+		ffStr := "OFF"
+		if difficulty.FriendlyFireEnabled {
+			ffStr = "ON"
+		}
+		friendlyFireLabel.Label = fmt.Sprintf("Friendly Fire: %s", ffStr)
+	}
+
 	difficultyCombo := newListComboButton(
 		difficulties,
 		selectedDifficulty,
@@ -70,10 +93,20 @@ func gameOptionsPage(m Menu) *settingsPage {
 		},
 		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
 			r := args.Entry.(*DifficultyLevel)
-			game.difficulty = r
+			_updateDifficulty(r)
 		},
 		res)
-	difficultyRow.AddChild(difficultyCombo)
+	difficultyColumn.AddChild(difficultyCombo)
+
+	// show selected difficulty multipliers and other stats
+	enemyDamageModifierLabel = widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
+	difficultyColumn.AddChild(enemyDamageModifierLabel)
+
+	playerDamageModifierLabel = widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
+	difficultyColumn.AddChild(playerDamageModifierLabel)
+
+	friendlyFireLabel = widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
+	difficultyColumn.AddChild(friendlyFireLabel)
 
 	return &settingsPage{
 		title:   "Game",
@@ -85,8 +118,6 @@ func gameMissionPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 	g := m.Game()
-
-	// TODO: show current difficulty level in the in-mission page?
 
 	mContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(
