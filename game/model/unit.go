@@ -187,8 +187,7 @@ type UnitModel struct {
 
 func ListUnitFilenames() ([]string, error) {
 	unitFilenames := make([]string, 0, 64)
-	unitsPath := "units"
-	unitFiles, err := resources.ReadDir(unitsPath, true)
+	unitFiles, err := resources.ReadDir(UnitsResourceType, true)
 	if err != nil {
 		return unitFilenames, err
 	}

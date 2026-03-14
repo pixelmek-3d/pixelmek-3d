@@ -65,7 +65,7 @@ var (
 				log.Fatal(err)
 			}
 
-			// mock game loop required for certain offscreen ebitengine render functions
+			// mock game loop required for offscreen ebitengine render functions
 			ebiten.SetWindowTitle("Exporting map image " + mapPath + " ...")
 			mapExport := export.NewExportLoop(doMapExport)
 			if err := ebiten.RunGame(mapExport); err != nil {

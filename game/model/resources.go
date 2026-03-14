@@ -17,6 +17,7 @@ import (
 const YAMLExtension string = ".yaml"
 
 const (
+	UnitsResourceType       string = "units"
 	MechResourceType        string = "mechs"
 	VehicleResourceType     string = "vehicles"
 	VTOLResourceType        string = "vtols"
@@ -376,8 +377,7 @@ func (r *ModelResources) loadUnitResources() error {
 	// load and validate all units
 	v := validator.New()
 
-	unitsPath := "units"
-	unitsTypes, err := resources.ReadDir(unitsPath, false)
+	unitsTypes, err := resources.ReadDir(UnitsResourceType, false)
 	if err != nil {
 		return err
 	}
@@ -389,7 +389,7 @@ func (r *ModelResources) loadUnitResources() error {
 		}
 
 		unitType := t.Name()
-		unitTypePath := path.Join(unitsPath, unitType)
+		unitTypePath := path.Join(UnitsResourceType, unitType)
 		unitFiles, err := resources.ReadDir(unitTypePath, true)
 		if err != nil {
 			return err

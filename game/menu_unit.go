@@ -472,7 +472,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	var sprite *sprites.Sprite
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
-		sprite = g.createUnitSprite(unit).(*sprites.MechSprite).Sprite
+		sprite = g.CreateUnitSprite(unit).(*sprites.MechSprite).Sprite
 	case nil:
 		// nil represents random unit selection
 		sprite = nil

@@ -270,7 +270,7 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 
 	switch unitType := unit.(type) {
 	case *model.Mech:
-		unitSprite = g.createUnitSprite(unit).(*sprites.MechSprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit).(*sprites.MechSprite).Sprite
 
 		mechStompFile, err := StompSFXForMech(unit.(*model.Mech))
 		if err != nil {
@@ -285,17 +285,17 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		g.audio.SetJumpJetSFX(jumpJetFile)
 
 	case *model.Vehicle:
-		unitSprite = g.createUnitSprite(unit).(*sprites.VehicleSprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit).(*sprites.VehicleSprite).Sprite
 
 	case *model.VTOL:
-		unitSprite = g.createUnitSprite(unit).(*sprites.VTOLSprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit).(*sprites.VTOLSprite).Sprite
 		if pZ < unit.CollisionHeight() {
 			// for VTOL, adjust Z position to not be stuck in the ground
 			pZ = unit.CollisionHeight()
 		}
 
 	case *model.Infantry:
-		unitSprite = g.createUnitSprite(unit).(*sprites.InfantrySprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit).(*sprites.InfantrySprite).Sprite
 
 	default:
 		log.Fatalf("unable to set player unit, resource type %s not handled", unitType)

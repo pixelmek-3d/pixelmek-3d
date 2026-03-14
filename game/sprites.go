@@ -22,7 +22,7 @@ type proximityUnit struct {
 	distance float64
 }
 
-func (g *Game) createUnitSprite(unit model.Unit) raycaster.Sprite {
+func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
 		u := unit.(*model.Mech)
