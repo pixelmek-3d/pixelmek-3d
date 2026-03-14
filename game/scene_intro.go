@@ -34,7 +34,7 @@ func NewIntroScene(g *Game) Scene {
 
 	// load all intro image frames
 	introPath := "textures/intro"
-	introFiles, err := resources.ReadDir(introPath)
+	introFiles, err := resources.ReadDir(introPath, false)
 	if err != nil {
 		panic(err)
 	}

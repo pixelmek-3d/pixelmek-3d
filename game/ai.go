@@ -150,7 +150,7 @@ func (t *AINodeType) UnmarshalText(b []byte) error {
 func NewAIHandler(g *Game) *AIHandler {
 	units := g.getSpriteUnits()
 
-	aiFiles, err := resources.ReadDir(aiResourcesDir)
+	aiFiles, err := resources.ReadDir(aiResourcesDir, true)
 	if err != nil {
 		log.Fatal(aiResourcesDir, err)
 	}
@@ -163,7 +163,6 @@ func NewAIHandler(g *Game) *AIHandler {
 
 	for _, a := range aiFiles {
 		if a.IsDir() {
-			// TODO: support recursive directory structure?
 			continue
 		}
 

@@ -347,14 +347,13 @@ func LoadMap(mapFile string) (*Map, error) {
 func ListMapFilenames() ([]string, error) {
 	mapFilenames := make([]string, 0, 64)
 	mapsPath := "maps"
-	mapsFiles, err := resources.ReadDir(mapsPath)
+	mapsFiles, err := resources.ReadDir(mapsPath, true)
 	if err != nil {
 		return mapFilenames, err
 	}
 
 	for _, f := range mapsFiles {
 		if f.IsDir() {
-			// only folder with maps files expected
 			continue
 		}
 		mapFilenames = append(mapFilenames, f.Name())

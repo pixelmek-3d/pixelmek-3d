@@ -163,10 +163,38 @@ func ReadFile(path string) ([]byte, error) {
 	return io.ReadAll(f)
 }
 
-func ReadDir(path string) ([]fs.DirEntry, error) {
-	fsPathSub, ok := fsPathMap[path]
+func ReadDir(dir string, recurseDirs bool) ([]DirEntryWithParent, error) {
+	return readDir(dir, recurseDirs, "")
+}
+
+// DirEntryWithParent is an fs.DirEntry with relative parent path prefixed
+type DirEntryWithParent struct {
+	fs.DirEntry
+	parent string
+}
+
+func newDirEntryWithParent(f fs.DirEntry, parent string) DirEntryWithParent {
+	return DirEntryWithParent{
+		DirEntry: f,
+		parent:   parent,
+	}
+}
+
+// Name returns the name of the file entry (or subdirectory).
+// This name contains a relative parent path prefixed starting from the point where ReadDir was called.
+func (f DirEntryWithParent) Name() string {
+	return path.Join(f.parent, f.DirEntry.Name())
+}
+
+// Parent returns the relative parent path prefix
+func (f DirEntryWithParent) Parent() string {
+	return f.parent
+}
+
+func readDir(dir string, recurseDirs bool, recurseParent string) ([]DirEntryWithParent, error) {
+	fsPathSub, ok := fsPathMap[dir]
 	if !ok {
-		return nil, fmt.Errorf("directory not found for %s", path)
+		return nil, fmt.Errorf("directory not found for %s", dir)
 	}
 
 	// sort filename keys
@@ -176,10 +204,18 @@ func ReadDir(path string) ([]fs.DirEntry, error) {
 	}
 	sort.Strings(keys)
 
-	var entries []fs.DirEntry = make([]fs.DirEntry, 0, len(fsPathSub))
+	var entries []DirEntryWithParent = make([]DirEntryWithParent, 0, len(fsPathSub))
 	for _, k := range keys {
 		fsr := fsPathSub[k]
-		entries = append(entries, fsr.entry)
+		entries = append(entries, newDirEntryWithParent(fsr.entry, recurseParent))
+
+		if fsr.entry.IsDir() && recurseDirs {
+			subEntries, err := readDir(path.Join(dir, fsr.entry.Name()), true, path.Join(recurseParent, fsr.entry.Name()))
+			if err != nil {
+				return nil, err
+			}
+			entries = append(entries, subEntries...)
+		}
 	}
 	return entries, nil
 }

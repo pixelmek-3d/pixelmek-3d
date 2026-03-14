@@ -9,6 +9,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/pixelmek-3d/pixelmek-3d/game/common"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 const (
@@ -182,6 +183,24 @@ type UnitModel struct {
 	withdrawArea        *Rect
 	parent              Entity
 	isPlayer            bool
+}
+
+func ListUnitFilenames() ([]string, error) {
+	unitFilenames := make([]string, 0, 64)
+	unitsPath := "units"
+	unitFiles, err := resources.ReadDir(unitsPath, true)
+	if err != nil {
+		return unitFilenames, err
+	}
+
+	for _, f := range unitFiles {
+		if f.IsDir() {
+			continue
+		}
+		unitFilenames = append(unitFilenames, f.Name())
+	}
+
+	return unitFilenames, nil
 }
 
 func EntityUnit(entity Entity) Unit {

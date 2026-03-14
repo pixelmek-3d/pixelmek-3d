@@ -293,14 +293,13 @@ func (m *Mission) loadMissionMap() error {
 func ListMissionFilenames() ([]string, error) {
 	missionFilenames := make([]string, 0, 64)
 	missionsPath := "missions"
-	missionFiles, err := resources.ReadDir(missionsPath)
+	missionFiles, err := resources.ReadDir(missionsPath, true)
 	if err != nil {
 		return missionFilenames, err
 	}
 
 	for _, f := range missionFiles {
 		if f.IsDir() {
-			// only folder with mission files expected
 			continue
 		}
 		missionFilenames = append(missionFilenames, f.Name())
