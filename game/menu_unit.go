@@ -19,6 +19,7 @@ type UnitMenu struct {
 	*MenuModel
 	purpose      UnitMenuPurpose
 	selectedUnit model.Unit
+	selectedPage *unitPage
 }
 
 type UnitMenuPurpose int
@@ -40,6 +41,7 @@ type unitPage struct {
 	title    string
 	content  *widget.Container
 	unit     model.Unit
+	unitCard *UnitCard
 	variants []model.Unit
 }
 
@@ -59,6 +61,9 @@ type UnitCard struct {
 	unitContent *widget.Container
 	armsContent *widget.Container
 	res         *uiResources
+	sprite      any
+	img         *ebiten.Image
+	imgScale    float64
 }
 
 type unitCardWeapon struct {
@@ -89,6 +94,7 @@ func createUnitMenu(g *Game, purpose UnitMenuPurpose) *UnitMenu {
 		},
 		purpose:      purpose,
 		selectedUnit: nil,
+		selectedPage: nil,
 	}
 
 	menu.initResources()
@@ -115,6 +121,10 @@ func (m *UnitMenu) initMenu() {
 }
 
 func (m *UnitMenu) Update() {
+	if m.selectedPage != nil && m.selectedPage.unitCard != nil {
+		// update unit card animated image
+		m.selectedPage.unitCard.updateSprite()
+	}
 	m.ui.Update()
 }
 
@@ -284,6 +294,7 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 			m.Root().RequestRelayout()
 
 			m.selectedUnit = nextPage.unit
+			m.selectedPage = nextPage
 		}))
 
 	c.AddChild(pageList)
@@ -420,8 +431,8 @@ func (p *unitPage) setUnit(m *UnitMenu, unit model.Unit) {
 	p.content.RemoveChildren()
 	p.unit = unit
 
-	unitCard := createUnitCard(m.game, m.Resources(), unit, UnitCardSelect)
-	p.content.AddChild(unitCard)
+	p.unitCard = createUnitCard(m.game, m.Resources(), unit, UnitCardSelect)
+	p.content.AddChild(p.unitCard)
 }
 
 func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardStyle) *UnitCard {
@@ -472,7 +483,12 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	var sprite *sprites.Sprite
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
-		sprite = g.CreateUnitSprite(unit).(*sprites.MechSprite).Sprite
+		mSprite := g.CreateUnitSprite(unit).(*sprites.MechSprite)
+		sprite = mSprite.Sprite
+
+		// TODO: create interface for Sprite like was done for Unit to make things better
+		unitCard.sprite = mSprite
+		mSprite.SetMechAnimation(sprites.MECH_ANIMATE_IDLE, false)
 	case nil:
 		// nil represents random unit selection
 		sprite = nil
@@ -484,6 +500,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	if sprite == nil {
 		imageLabel = widget.NewLabel(widget.LabelOpts.Text("?", res.fonts.bigTitleFace, res.label.text))
 	} else {
+		// TODO: scale sprite image size based on unit height
 		imageH := float64(g.screenHeight) / 5
 		spriteW, spriteH := float64(sprite.Texture().Bounds().Dx()), float64(sprite.Texture().Bounds().Dy())
 		imageScale := imageH / spriteH
@@ -497,6 +514,9 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 		imageLabel = widget.NewGraphic(
 			widget.GraphicOpts.Image(unitImage),
 		)
+
+		unitCard.img = unitImage
+		unitCard.imgScale = imageScale
 	}
 	unitTable.AddChild(imageLabel)
 
@@ -536,6 +556,29 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 	// TODO: add more content
 
 	return unitCard
+}
+
+func (c *UnitCard) updateSprite() {
+	if c.sprite == nil || c.img == nil {
+		return
+	}
+
+	var spriteImg *ebiten.Image
+
+	switch c.sprite.(type) {
+	case *sprites.MechSprite:
+		c.sprite.(*sprites.MechSprite).Update(nil)
+		spriteImg = c.sprite.(*sprites.MechSprite).Texture()
+	}
+	if spriteImg == nil {
+		return
+	}
+
+	op := &ebiten.DrawImageOptions{}
+	op.Filter = ebiten.FilterNearest
+	op.GeoM.Scale(c.imgScale, c.imgScale)
+	c.img.Clear()
+	c.img.DrawImage(spriteImg, op)
 }
 
 func (c *UnitCard) updateUnitContent() {
