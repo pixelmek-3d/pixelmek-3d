@@ -21,12 +21,14 @@ import (
 
 func init() {
 	animationCmd.Flags().StringVarP(&outImagePath, "output", "o", "", "[required] output animated gif image path")
+	animationCmd.Flags().IntVarP(&animationIndex, "index", "i", 0, "unit animation index")
 }
 
 var (
-	g            *game.Game
-	outImagePath string
-	animationCmd = &cobra.Command{
+	g              *game.Game
+	animationIndex int
+	outImagePath   string
+	animationCmd   = &cobra.Command{
 		Use:   "animation [UNIT_FILE]",
 		Short: "Export unit animation image",
 		Args:  cobra.ExactArgs(1),
@@ -81,7 +83,12 @@ func doUnitExport() {
 		unit := model.NewMech(r)
 		sprite := g.CreateUnitSprite(unit).(*sprites.MechSprite)
 		bounds = sprite.Texture().Bounds()
-		sprite.SetMechAnimation(sprites.MECH_ANIMATE_IDLE, false)
+
+		if animationIndex >= int(sprites.NUM_MECH_ANIMATIONS) {
+			log.Errorf("input animation index (%d) is higher than the number of animations present (%d)", animationIndex, sprites.NUM_MECH_ANIMATIONS)
+			os.Exit(1)
+		}
+		sprite.SetMechAnimation(sprites.MechAnimationIndex(animationIndex), false)
 
 		// collect sprite animation frames
 		for sprite.LoopCounter() < 1 {
