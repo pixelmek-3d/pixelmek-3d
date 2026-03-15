@@ -2,8 +2,6 @@ package unit
 
 import (
 	"image"
-	"image/color/palette"
-	"image/draw"
 	"os"
 	"path"
 	"path/filepath"
@@ -69,7 +67,8 @@ func doUnitExport() {
 		os.Exit(1)
 	}
 
-	var frames []*image.Paletted
+	var frames []*ebiten.Image
+	var bounds image.Rectangle
 
 	switch unitTypePrefix {
 	case model.MechResourceType:
@@ -81,25 +80,12 @@ func doUnitExport() {
 
 		unit := model.NewMech(r)
 		sprite := g.CreateUnitSprite(unit).(*sprites.MechSprite)
+		bounds = sprite.Texture().Bounds()
 		sprite.SetMechAnimation(sprites.MECH_ANIMATE_IDLE, false)
-		sprite.ResetAnimation()
-		bounds := sprite.Texture().Bounds()
 
 		// collect sprite animation frames
 		for sprite.LoopCounter() < 1 {
-			currFrame := sprite.Texture()
-
-			// Read pixels from ebiten.Image into a RGBA image
-			rgbaImg := image.NewRGBA(bounds)
-			currFrame.ReadPixels(rgbaImg.Pix)
-
-			// Create the target paletted image
-			pImg := image.NewPaletted(bounds, palette.Plan9)
-
-			// Draw with quantization to map colors
-			draw.FloydSteinberg.Draw(pImg, bounds, rgbaImg, image.Point{})
-
-			frames = append(frames, pImg)
+			frames = append(frames, sprite.Texture())
 			sprite.Update(nil)
 		}
 	default:
@@ -113,7 +99,7 @@ func doUnitExport() {
 	}
 
 	log.Debug("export animation to file...")
-	err = render.SaveAnimatedGIF(frames, outImagePath)
+	err = render.SaveAnimatedGIF(frames, bounds, outImagePath)
 	if err != nil {
 		log.Error("error exporting unit animation: ", err)
 		os.Exit(1)
