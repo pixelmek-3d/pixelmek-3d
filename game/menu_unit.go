@@ -485,7 +485,7 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 
 		// TODO: create interface for Sprite like was done for Unit to make things better
 		unitCard.sprite = mSprite
-		mSprite.SetMechAnimation(sprites.MECH_ANIMATE_IDLE, false)
+		mSprite.SetMechAnimation(sprites.MECH_ANIMATE_STRUT, false)
 	case nil:
 		// nil represents random unit selection
 		sprite = nil
