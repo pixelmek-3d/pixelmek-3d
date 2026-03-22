@@ -23,15 +23,16 @@ func (g *Game) updateSprite(spriteType sprites.SpriteType, sInterface raycaster.
 		s := sInterface.(*sprites.Sprite)
 		if s.IsDestroyed() {
 			destroyCounter := s.DestroyCounter()
-			if destroyCounter == 0 {
+			switch destroyCounter {
+			case 0:
 				// start the destruction process but do not remove yet
 				// TODO: when tree is destroyed by projectile, add fire effect (energy and missile only)
 				fxDuration := g.spawnGenericDestroyEffects(s, false)
 				s.SetDestroyCounter(geom.ClampInt(fxDuration, 1, fxDuration))
-			} else if destroyCounter == 1 {
+			case 1:
 				// delete when the counter is basically done (to differentiate with default int value 0)
 				g.sprites.DeleteMapSprite(s)
-			} else {
+			default:
 				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
 			}
@@ -146,14 +147,15 @@ func (g *Game) updateSprite(spriteType sprites.SpriteType, sInterface raycaster.
 		s := sInterface.(*sprites.VehicleSprite)
 		if s.IsDestroyed() {
 			destroyCounter := s.DestroyCounter()
-			if destroyCounter == 0 {
+			switch destroyCounter {
+			case 0:
 				// start the destruction process but do not remove yet
 				fxDuration := g.spawnVehicleDestroyEffects(s)
 				s.SetDestroyCounter(fxDuration)
-			} else if destroyCounter == 1 {
+			case 1:
 				// delete when the counter is basically done (to differentiate with default int value 0)
 				g.sprites.DeleteVehicleSprite(s)
-			} else {
+			default:
 				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
 			}
@@ -228,14 +230,15 @@ func (g *Game) updateSprite(spriteType sprites.SpriteType, sInterface raycaster.
 		s := sInterface.(*sprites.EmplacementSprite)
 		if s.IsDestroyed() {
 			destroyCounter := s.DestroyCounter()
-			if destroyCounter == 0 {
+			switch destroyCounter {
+			case 0:
 				// start the destruction process but do not remove yet
 				fxDuration := g.spawnEmplacementDestroyEffects(s)
 				s.SetDestroyCounter(fxDuration)
-			} else if destroyCounter == 1 {
+			case 1:
 				// delete when the counter is basically done (to differentiate with default int value 0)
 				g.sprites.DeleteEmplacementSprite(s)
-			} else {
+			default:
 				s.Update(g.player.CameraPosXY())
 				s.SetDestroyCounter(destroyCounter - 1)
 			}
