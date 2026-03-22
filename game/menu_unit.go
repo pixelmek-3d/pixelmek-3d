@@ -55,14 +55,14 @@ const (
 
 type UnitCard struct {
 	*widget.Container
-	style       UnitCardStyle
-	unit        model.Unit
-	unitContent *widget.Container
-	armsContent *widget.Container
-	res         *uiResources
-	sprite      any
-	img         *ebiten.Image
-	imgScale    float64
+	style          UnitCardStyle
+	unit           model.Unit
+	unitContent    *widget.Container
+	armsContent    *widget.Container
+	res            *uiResources
+	sprite         any
+	spriteImg      *ebiten.Image
+	spriteImgScale float64
 }
 
 type unitCardWeapon struct {
@@ -507,8 +507,8 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 			widget.GraphicOpts.Image(unitImage),
 		)
 
-		unitCard.img = unitImage
-		unitCard.imgScale = imageScale
+		unitCard.spriteImg = unitImage
+		unitCard.spriteImgScale = sprite.Scale() * imageScale
 	}
 	unitTable.AddChild(imageLabel)
 
@@ -562,27 +562,33 @@ func (m *UnitMenu) setUnitCardUpdater(c *UnitCard) {
 }
 
 func (c *UnitCard) update() {
-	if c.sprite == nil || c.img == nil {
+	if c.sprite == nil || c.spriteImg == nil {
 		return
 	}
 
-	var spriteImg *ebiten.Image
+	var img *ebiten.Image
 
 	switch c.sprite.(type) {
 	case *sprites.MechSprite:
 		mSprite := c.sprite.(*sprites.MechSprite)
 		mSprite.Update(nil)
-		spriteImg = mSprite.Texture()
+		img = mSprite.Texture()
 	}
-	if spriteImg == nil {
+	if img == nil {
 		return
 	}
 
+	// determine sprite translation so it renders at bottom center of sprite image space
+	destW, destH := float64(c.spriteImg.Bounds().Dx()), float64(c.spriteImg.Bounds().Dy())
+	w, h := float64(img.Bounds().Dx())*c.spriteImgScale, float64(img.Bounds().Dy())*c.spriteImgScale
+	tX, tY := (destW-w)/2, (destH - h)
+
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
-	op.GeoM.Scale(c.imgScale, c.imgScale)
-	c.img.Clear()
-	c.img.DrawImage(spriteImg, op)
+	op.GeoM.Scale(c.spriteImgScale, c.spriteImgScale)
+	op.GeoM.Translate(tX, tY)
+	c.spriteImg.Clear()
+	c.spriteImg.DrawImage(img, op)
 }
 
 func (c *UnitCard) updateUnitContent() {
