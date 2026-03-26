@@ -578,16 +578,26 @@ func (c *UnitCard) update() {
 		return
 	}
 
+	w, h := float64(c.spriteImg.Bounds().Dx()), float64(c.spriteImg.Bounds().Dy())
+	c.spriteImg.Clear()
+
+	// draw a unit meter height scale
+	sT := float32(2) // stroke thickness
+	// vertical scale line
+	vector.StrokeLine(c.spriteImg, float32(w)-sT/2, 0, float32(w)-sT/2, float32(h), sT, color.White, false)
+	// horizontal indicator pips
+	vector.StrokeLine(c.spriteImg, float32(w-8)-sT, sT/2, float32(w)-sT, sT/2, sT, color.White, false)
+	vector.StrokeLine(c.spriteImg, float32(w-8)-sT, float32(h/2)-sT/2, float32(w)-sT, float32(h/2)-sT/2, sT, color.White, false)
+	vector.StrokeLine(c.spriteImg, float32(w-8)-sT, float32(h)-sT/2, float32(w)-sT, float32(h)-sT/2, sT, color.White, false)
+
 	// determine sprite translation so it renders at bottom center of sprite image space
-	destW, destH := float64(c.spriteImg.Bounds().Dx()), float64(c.spriteImg.Bounds().Dy())
-	w, h := float64(img.Bounds().Dx())*c.spriteImgScale, float64(img.Bounds().Dy())*c.spriteImgScale
-	tX, tY := (destW-w)/2, (destH - h)
+	tW, tH := float64(img.Bounds().Dx())*c.spriteImgScale, float64(img.Bounds().Dy())*c.spriteImgScale
+	tX, tY := (w-tW)/2, (h - tH)
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
 	op.GeoM.Scale(c.spriteImgScale, c.spriteImgScale)
 	op.GeoM.Translate(tX, tY)
-	c.spriteImg.Clear()
 	c.spriteImg.DrawImage(img, op)
 }
 
