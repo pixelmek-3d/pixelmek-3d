@@ -13,6 +13,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
+	"github.com/tinne26/etxt"
 )
 
 type UnitMenu struct {
@@ -55,14 +57,17 @@ const (
 
 type UnitCard struct {
 	*widget.Container
-	style          UnitCardStyle
-	unit           model.Unit
-	unitContent    *widget.Container
-	armsContent    *widget.Container
-	res            *uiResources
+	style        UnitCardStyle
+	res          *uiResources
+	fontRenderer *etxt.Renderer
+	unit         model.Unit
+	unitContent  *widget.Container
+	armsContent  *widget.Container
+
 	sprite         any
 	spriteImg      *ebiten.Image
 	spriteImgScale float64
+	humanScaleImg  *ebiten.Image
 }
 
 type unitCardWeapon struct {
@@ -445,12 +450,22 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 			widget.GridLayoutOpts.Spacing(0, 0)),
 		),
 	)
+	// create and configure font renderer
+	fontRenderer := etxt.NewRenderer()
+	fontRenderer.SetCacheHandler(g.fonts.HUDFont.FontCache.NewHandler())
+	fontRenderer.SetFont(g.fonts.HUDFont.Font)
+	fontRenderer.SetColor(color.NRGBA{255, 255, 255, 255})
+
 	unitCard := &UnitCard{
-		Container: cardContainer,
-		style:     style,
-		unit:      unit,
-		res:       res,
+		Container:    cardContainer,
+		style:        style,
+		fontRenderer: fontRenderer,
+		res:          res,
+		unit:         unit,
 	}
+
+	// load human image to show next to unit for scale
+	unitCard.humanScaleImg, _, _ = resources.NewImageFromFile("menu/human-scale.png")
 
 	switch style {
 	case UnitCardLaunch:
@@ -582,17 +597,11 @@ func (c *UnitCard) update() {
 	c.spriteImg.Clear()
 
 	// draw a unit meter height scale
-	sT := float32(2) // stroke thickness
-	// vertical scale line
-	vector.StrokeLine(c.spriteImg, float32(w)-sT/2, 0, float32(w)-sT/2, float32(h), sT, color.White, false)
-	// horizontal indicator pips
-	vector.StrokeLine(c.spriteImg, float32(w-8)-sT, sT/2, float32(w)-sT, sT/2, sT, color.White, false)
-	vector.StrokeLine(c.spriteImg, float32(w-8)-sT, float32(h/2)-sT/2, float32(w)-sT, float32(h/2)-sT/2, sT, color.White, false)
-	vector.StrokeLine(c.spriteImg, float32(w-8)-sT, float32(h)-sT/2, float32(w)-sT, float32(h)-sT/2, sT, color.White, false)
+	offX := c.drawUnitHeightScale(c.spriteImg)
 
 	// determine sprite translation so it renders at bottom center of sprite image space
 	tW, tH := float64(img.Bounds().Dx())*c.spriteImgScale, float64(img.Bounds().Dy())*c.spriteImgScale
-	tX, tY := (w-tW)/2, (h - tH)
+	tX, tY := offX+(w-tW)/2, (h - tH)
 
 	op := &ebiten.DrawImageOptions{}
 	op.Filter = ebiten.FilterNearest
@@ -788,6 +797,52 @@ func (c *UnitCard) updateContent(g *Game) {
 		c.updateUnitContent()
 		c.updateArmamentContent()
 	}
+}
+
+func (c *UnitCard) drawUnitHeightScale(img *ebiten.Image) float64 {
+	h := float64(img.Bounds().Dy())
+
+	// draw scale number text
+	fontPxSize := h / 12
+	if fontPxSize < 1 {
+		fontPxSize = 1
+	}
+	c.fontRenderer.SetSize(fontPxSize)
+	c.fontRenderer.SetAlign(etxt.Top | etxt.Left)
+	c.fontRenderer.Draw(img, "20", 0, -1)
+	c.fontRenderer.SetAlign(etxt.VertCenter | etxt.Left)
+	c.fontRenderer.Draw(img, "10", 0, int(h/2))
+	c.fontRenderer.SetAlign(etxt.Bottom | etxt.Left)
+	c.fontRenderer.Draw(img, " m", 0, int(h+1))
+
+	// adjust offset of left side of scale to fit number text
+	offX := float32(math.Ceil(fontPxSize * 1.5))
+
+	if c.humanScaleImg != nil {
+		// draw human scale image
+		humanScaleImgHeight := float64(c.humanScaleImg.Bounds().Dy())
+		humanScale := (2.0 / model.METERS_PER_UNIT) * (h / humanScaleImgHeight)
+		humanScaleH := humanScaleImgHeight * humanScale
+		op := &ebiten.DrawImageOptions{}
+		op.Filter = ebiten.FilterPixelated
+		op.GeoM.Scale(humanScale, humanScale)
+		op.GeoM.Translate(float64(offX+10), h-humanScaleH)
+		img.DrawImage(c.humanScaleImg, op)
+	}
+
+	// TODO: stroke thickness based on image size
+	sT := float32(2)
+	// vertical scale lines
+	vector.StrokeLine(img, offX+sT/2, 0, offX+sT/2, float32(h), sT, color.White, false)
+
+	// left horizontal indicator pips
+	vector.StrokeLine(img, offX+sT, sT/2, offX+sT+6, sT/2, sT, color.White, false)
+	vector.StrokeLine(img, offX+sT, float32(h/4)-sT/2, offX+sT+4, float32(h/4)-sT/2, sT, color.White, false)
+	vector.StrokeLine(img, offX+sT, float32(h/2)-sT/2, offX+sT+6, float32(h/2)-sT/2, sT, color.White, false)
+	vector.StrokeLine(img, offX+sT, float32(3*h/4)-sT/2, offX+sT+4, float32(3*h/4)-sT/2, sT, color.White, false)
+	vector.StrokeLine(img, offX+sT, float32(h)-sT/2, offX+sT+6, float32(h)-sT/2, sT, color.White, false)
+
+	return float64(offX)
 }
 
 func newUnitContentText(res *uiResources, str string) *widget.Text {
