@@ -77,7 +77,7 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 	var velocityRatio float32 = float32(t.velocity / (t.maxVelocity + t.maxReverse))
 	vW, vH := float32(bW)/6, -velocityRatio*float32(bH)
-	vector.DrawFilledRect(screen, float32(bX)+maxX-vW, float32(bY)+zeroY, vW, vH, vColor, false)
+	vector.FillRect(screen, float32(bX)+maxX-vW, float32(bY)+zeroY, vW, vH, vColor, false)
 
 	// throttle indicator outline
 	oColor := hudOpts.HudColor(_colorThrottleOutline)
@@ -116,5 +116,5 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	} else if iY > float32(bH)-iH {
 		iY = float32(bH) - iH
 	}
-	vector.DrawFilledRect(screen, iX, float32(bY)+iY, iW, iH, vColor, false)
+	vector.FillRect(screen, iX, float32(bY)+iY, iW, iH, vColor, false)
 }

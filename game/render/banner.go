@@ -57,7 +57,7 @@ func (f *MissionBanner) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	f.updateFontSize(bW, bH)
 
 	// background box
-	vector.DrawFilledRect(screen, 0, float32(bY), float32(sW), float32(bH), _colorBannerBackground, false)
+	vector.FillRect(screen, 0, float32(bY), float32(sW), float32(bH), _colorBannerBackground, false)
 
 	// mission banner text
 	f.fontRenderer.SetColor(_colorBannerText)

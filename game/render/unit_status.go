@@ -116,7 +116,7 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		bColor := hudOpts.HudColor(_colorStatusBackground)
 
 		sAlpha := uint8(int(bColor.A) / 3)
-		vector.DrawFilledRect(screen, float32(sX), float32(sY), float32(sW), float32(sH), color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
+		vector.FillRect(screen, float32(sX), float32(sY), float32(sW), float32(sH), color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
 	}
 
 	op := &colorm.DrawImageOptions{}

@@ -71,7 +71,7 @@ func (n *NavStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	// background box
 	bColor := hudOpts.HudColor(_colorStatusBackground)
 	sAlpha := uint8(int(bColor.A) / 3)
-	vector.DrawFilledRect(screen, sX, sY, sW, sH, color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
+	vector.FillRect(screen, sX, sY, sW, sH, color.NRGBA{bColor.R, bColor.G, bColor.B, sAlpha}, false)
 
 	// draw nav image
 	nTexture := n.navPoint.Image()

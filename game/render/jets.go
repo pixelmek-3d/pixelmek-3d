@@ -69,7 +69,7 @@ func (j *JumpJetIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions)
 	rX, rY := midX-jW/2, float32(bY)+jH-rH
 
 	rColor := hudOpts.HudColor(_colorJetsLevel)
-	vector.DrawFilledRect(screen, rX, rY, rW, rH, rColor, false)
+	vector.FillRect(screen, rX, rY, rW, rH, rColor, false)
 
 	// jet indicator outline
 	oColor := hudOpts.HudColor(_colorJetsOutline)

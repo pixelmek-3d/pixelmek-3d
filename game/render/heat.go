@@ -81,7 +81,7 @@ func (h *HeatIndicator) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		hColor = hudOpts.HudColor(_colorHeatWarm)
 	}
 
-	vector.DrawFilledRect(screen, hX, hY, hW, hH, hColor, false)
+	vector.FillRect(screen, hX, hY, hW, hH, hColor, false)
 
 	// TODO: make current heat level box appear to flash when near/over maxHeat?
 

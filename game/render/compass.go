@@ -115,7 +115,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	relTurretRatio := relTurretDeg / maxTurretDeg
 	tW, tH := float32(relTurretRatio)*float32(bW)/2, float32(bH/4)
 	tAlpha := uint8(4 * int(turretColor.A) / 5)
-	vector.DrawFilledRect(screen, midX, topY, tW, tH, color.NRGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha}, false)
+	vector.FillRect(screen, midX, topY, tW, tH, color.NRGBA{turretColor.R, turretColor.G, turretColor.B, tAlpha}, false)
 
 	// compass pips
 	pipColor := hudOpts.HudColor(_colorCompassPips)
@@ -143,7 +143,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 			// clockwise pip shows relative based on index (i) where negative is left of center, positive is right
 			iRatio := float32(i) / float32(maxTurretDeg)
 			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
-			vector.DrawFilledRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, pipColor, false)
+			vector.FillRect(screen, iX-pipWidth/2, topY, pipWidth, pipHeight, pipColor, false)
 
 			var pipDegStr string
 			switch {
@@ -169,7 +169,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	headingColor := hudOpts.HudColor(_colorAltimeter)
 
 	hW, hH := float32(5.0), float32(bH)/2 // TODO: calculate line thickness based on image height
-	vector.DrawFilledRect(screen, midX-hW/2, topY, hW, hH, headingColor, false)
+	vector.FillRect(screen, midX-hW/2, topY, hW, hH, headingColor, false)
 
 	if c.navIndicator.enabled {
 		// TODO: draw nav indicator slightly better
@@ -245,7 +245,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 					// differentiate friendly by not filling in the radar blip box
 					vector.StrokeRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, 2, iColor, false)
 				} else {
-					vector.DrawFilledRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, iColor, false) // TODO: calculate thickness based on image size
+					vector.FillRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, iColor, false) // TODO: calculate thickness based on image size
 				}
 				iRendered = true
 				break
@@ -271,7 +271,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				// differentiate friendly by not filling in the radar blip box
 				vector.StrokeRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, 2, iColor, false)
 			} else {
-				vector.DrawFilledRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, iColor, false) // TODO: calculate thickness based on image size
+				vector.FillRect(screen, iX-iRadius, topY-iRadius-2, iRadius, iRadius, iColor, false) // TODO: calculate thickness based on image size
 			}
 		}
 	}
