@@ -59,6 +59,7 @@ type Unit interface {
 	Tonnage() float64
 	UnitType() UnitType
 
+	Firepower() float64
 	Heat() float64
 	MaxHeat() float64
 	HeatDissipation() float64
@@ -260,6 +261,15 @@ func (e *UnitModel) UnitType() UnitType {
 
 func (e *UnitModel) Pitch() float64 {
 	return e.pitch
+}
+
+func (e *UnitModel) Firepower() float64 {
+	// return max alpha strike damage
+	firepower := 0.0
+	for _, w := range e.armament {
+		firepower += w.Damage()
+	}
+	return firepower
 }
 
 func (e *UnitModel) Heat() float64 {

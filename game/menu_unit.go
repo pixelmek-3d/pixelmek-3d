@@ -11,6 +11,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/sprites"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -645,6 +646,17 @@ func (c *UnitCard) updateUnitContent() {
 	unitContent.AddChild(massPips)
 	unitContent.AddChild(massText)
 
+	firepower := unit.Firepower()
+	firepowerString := fmt.Sprintf("%0.1f", firepower)
+	firepowerText := newUnitContentText(res, firepowerString)
+	firepowerPipsImg := unitPipsRatingImage(res, uint(firepower), 10, color.NRGBA{R: 200, G: 0, B: 0, A: 255})
+	firepowerPips := widget.NewGraphic(
+		widget.GraphicOpts.Image(firepowerPipsImg),
+	)
+	unitContent.AddChild(newUnitContentText(res, "Firepower:"))
+	unitContent.AddChild(firepowerPips)
+	unitContent.AddChild(firepowerText)
+
 	topSpeedKph := unit.MaxVelocity() * model.VELOCITY_TO_KPH
 	speedString := fmt.Sprintf("%0.1f kph", topSpeedKph)
 	speedText := newUnitContentText(res, speedString)
@@ -885,18 +897,13 @@ func armamentSummary(unit model.Unit) []*unitCardWeapon {
 
 // unitPipsRatingImage creates a simple series of rectangular pips of a normalized size (`n / nStep` out of 10 pips)
 func unitPipsRatingImage(res *uiResources, n, nStep uint, clr color.Color) *ebiten.Image {
-	nPips := uint(math.Round(float64(n) / float64(nStep)))
+	// min 0, max 10 pips
+	nPips := geom.ClampInt(int(math.Round(float64(n)/float64(nStep))), 0, 10)
 
 	// dynamic image size from menu size
 	size := float64(res.menuSize) * (float64(1) / float64(30))
 	w, h := int(size)*5, int(size)
-
 	pipSpacing := float32(w) / 10
-	if nPips > 10 {
-		// increase width if `nPips` needs it, though it should not be used in such a way it gets too much bigger
-		ratio := float64(nPips) / 10
-		w = int(float64(w) * ratio)
-	}
 
 	img := ebiten.NewImage(w, h) // TODO: use the UI size to determine width/height
 
