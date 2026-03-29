@@ -15,9 +15,9 @@ jobs:
     name: Build Linux binary
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "${{ env.GO_VERSION }}"
       - name: Install dependencies
@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: tar -zcvf pixelmek-3d-lnx.tar.gz pixelmek-3d LICENSE
       - name: Upload Linux executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pixelmek-3d-lnx
           path: pixelmek-3d-lnx.tar.gz
@@ -39,9 +39,9 @@ jobs:
     name: Build MacOS binary
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "${{ env.GO_VERSION }}"
       - name: Build Mac executable
@@ -51,7 +51,7 @@ jobs:
         shell: bash
         run: tar -zcvf pixelmek-3d-mac.tar.gz pixelmek-3d LICENSE
       - name: Upload Mac executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pixelmek-3d-mac
           path: pixelmek-3d-mac.tar.gz
@@ -60,16 +60,16 @@ jobs:
     name: Build Windows binary
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "${{ env.GO_VERSION }}"
       - name: Build Windows executable
         shell: bash
         run: go build -o pixelmek-3d.exe
       - name: Upload Windows executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pixelmek-3d-win
           path: |
@@ -87,15 +87,15 @@ jobs:
     permissions: 
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           merge-multiple: true
       - name: Display downloaded artifacts
         run: ls -R
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: true
           generate_release_notes: true
