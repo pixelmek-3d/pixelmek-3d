@@ -62,8 +62,9 @@ func (m *Mission) Map() *Map {
 }
 
 type DropZone struct {
-	Position [2]float64 `yaml:"position"`
-	Heading  float64    `yaml:"heading"`
+	Position    [2]float64      `yaml:"position"`
+	Heading     float64         `yaml:"heading"`
+	PowerStatus UnitPowerStatus `yaml:"powerStatus"`
 }
 
 type SpawnPoint struct {

@@ -444,7 +444,15 @@ func (h *AIHandler) Update() {
 	// only update AI whose initiative slot is next
 	turnAI := h.initiative.Next()
 	for _, a := range turnAI {
-		if a.u.IsDestroyed() || a.u.Powered() != model.POWER_ON {
+		if a.u.IsDestroyed() {
+			continue
+		}
+
+		powerStatus := a.u.Powered()
+		if powerStatus == model.POWER_OFF_MANUAL {
+			a.u.SetPowered(model.POWER_ON)
+			continue
+		} else if powerStatus != model.POWER_ON {
 			continue
 		}
 

@@ -114,6 +114,10 @@ func (e *Infantry) TurnRate() float64 {
 	return e.maxTurnRate
 }
 
+func (e *Infantry) SetPowered(_ UnitPowerStatus) {
+	e.powered = POWER_ON
+}
+
 func (e *Infantry) Update() bool {
 	if e.needsUpdate() {
 		e.UnitModel.update()

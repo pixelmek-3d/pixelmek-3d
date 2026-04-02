@@ -59,7 +59,7 @@ func NewMech(r *ModelMechResource) *Mech {
 			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),
 			jumpJets:           r.JumpJets,
 			maxJumpJetDuration: 1.0,
-			powered:            POWER_ON, // TODO: define initial power status or power on event in mission resource
+			powered:            POWER_ON,
 		},
 	}
 

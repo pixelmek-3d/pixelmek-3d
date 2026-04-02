@@ -39,7 +39,7 @@ func NewVehicle(r *ModelVehicleResource) *Vehicle {
 			maxTurnRate:     VEHICLE_TURN_RATE_FACTOR + (100 / r.Tonnage * VEHICLE_TURN_RATE_FACTOR),
 			maxTurretRate:   VEHICLE_TURRET_RATE_FACTOR + (100 / r.Tonnage * VEHICLE_TURRET_RATE_FACTOR),
 			jumpJets:        0,
-			powered:         POWER_ON, // TODO: define initial power status or power on event in mission resource
+			powered:         POWER_ON,
 		},
 	}
 
@@ -98,6 +98,10 @@ func (e *Vehicle) MaxArmorPoints() float64 {
 
 func (e *Vehicle) MaxStructurePoints() float64 {
 	return e.Resource.Structure
+}
+
+func (e *Vehicle) SetPowered(powered UnitPowerStatus) {
+	e.powered = powered
 }
 
 func (e *Vehicle) Update() bool {

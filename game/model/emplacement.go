@@ -33,7 +33,7 @@ func NewEmplacement(r *ModelEmplacementResource) *Emplacement {
 			maxVelocity:   0,
 			maxTurnRate:   EMPLACEMENT_TURRET_RATE_FACTOR,
 			maxTurretRate: EMPLACEMENT_TURRET_RATE_FACTOR,
-			powered:       POWER_ON, // TODO: define initial power status or power on event in mission resource
+			powered:       POWER_ON,
 		},
 	}
 
@@ -109,6 +109,10 @@ func (e *Emplacement) TriggerWeapon(w Weapon) bool {
 
 func (e *Emplacement) TurnRate() float64 {
 	return e.maxTurnRate
+}
+
+func (e *Emplacement) SetPowered(powered UnitPowerStatus) {
+	e.powered = powered
 }
 
 func (e *Emplacement) Update() bool {

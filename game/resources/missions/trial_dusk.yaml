@@ -17,6 +17,7 @@ skyBox:
 dropZone:
   position: [50, 50]
   heading: 270
+  powerStatus: 1
 objectives:
   destroy:
     - all: true

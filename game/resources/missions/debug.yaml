@@ -8,6 +8,7 @@ music: "icy_wastes.mp3"
 dropZone:
   position: [40, 60]
   heading: 90
+  powerStatus: 0
 objectives:
   destroy:
     - unit: "destroy_me"

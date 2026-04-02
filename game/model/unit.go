@@ -66,6 +66,7 @@ type Unit interface {
 	OverHeated() bool
 	Powered() UnitPowerStatus
 	SetPowered(UnitPowerStatus)
+	SetInitialPoweredStatus(UnitPowerStatus)
 
 	TriggerWeapon(Weapon) bool
 	Target() Entity
@@ -309,7 +310,7 @@ func (e *UnitModel) Powered() UnitPowerStatus {
 	return e.powered
 }
 
-func (e *UnitModel) SetPowered(powered UnitPowerStatus) {
+func (e *UnitModel) SetInitialPoweredStatus(powered UnitPowerStatus) {
 	e.powered = powered
 }
 

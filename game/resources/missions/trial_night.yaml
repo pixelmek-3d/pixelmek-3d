@@ -17,6 +17,7 @@ skyBox:
 dropZone:
   position: [60, 60]
   heading: 270
+  powerStatus: 0
 objectives:
   nav:
     visit:

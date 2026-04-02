@@ -7,6 +7,7 @@ map: "proving_grounds"
 dropZone:
   position: [31.5, 3.5]
   heading: 45
+  powerStatus: 1
 objectives:
   destroy:
     - all: true

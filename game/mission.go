@@ -56,8 +56,11 @@ func (g *Game) initMission() {
 	g.player.cameraAngle = pHeading
 	g.player.cameraPitch = 0
 
-	// init player as powered off but booting up
-	g.player.SetPowered(model.POWER_ON)
+	// init player power status per mission configuration and then power on
+	g.player.SetInitialPoweredStatus(g.mission.DropZone.PowerStatus)
+	if g.player.Powered() != model.POWER_ON {
+		g.player.SetPowered(model.POWER_ON)
+	}
 
 	// init player armament for display
 	if armament := g.GetHUDElement(HUD_ARMAMENT); armament != nil {

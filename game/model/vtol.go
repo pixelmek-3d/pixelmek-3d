@@ -36,7 +36,7 @@ func NewVTOL(r *ModelVTOLResource) *VTOL {
 			maxTurnRate:   VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
 			maxTurretRate: VTOL_TURN_RATE_FACTOR + (100 / r.Tonnage * VTOL_TURN_RATE_FACTOR),
 			jumpJets:      0,
-			powered:       POWER_ON, // TODO: define initial power status or power on event in mission resource
+			powered:       POWER_ON,
 		},
 	}
 
@@ -106,6 +106,10 @@ func (e *VTOL) SetTargetVelocityZ(tVelocityZ float64) {
 		tVelocityZ = -maxV / 2
 	}
 	e.UnitModel.SetTargetVelocityZ(tVelocityZ)
+}
+
+func (e *VTOL) SetPowered(powered UnitPowerStatus) {
+	e.powered = powered
 }
 
 func (e *VTOL) Update() bool {

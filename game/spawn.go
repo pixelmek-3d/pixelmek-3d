@@ -12,6 +12,7 @@ import (
 
 func spawnUnit[T model.AnyUnitModel](g *Game, u model.Unit) *T {
 	unit := u.CloneUnit()
+	unit.SetInitialPoweredStatus(model.POWER_OFF_MANUAL)
 
 	missionMap := g.mission.Map()
 	rng := model.NewRNG()
