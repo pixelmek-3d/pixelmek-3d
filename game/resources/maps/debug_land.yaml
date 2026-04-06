@@ -4,13 +4,13 @@
 name: Debuglandia
 seed: 42
 music: "icy_wastes.mp3"
-dropZone:
-  position: [50, 50]
-  heading: 15
-spawnPoints:
-  - [57, 65]
-  - [25, 12]
-  - [12, 25]
+# dropZone:
+#   position: [50, 50]
+#   heading: 15
+# spawnPoints:
+#   - [57, 65]
+#   - [25, 12]
+#   - [12, 25]
 lighting:
   falloff: -100
   illumination: 500

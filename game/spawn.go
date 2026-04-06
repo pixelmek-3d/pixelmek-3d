@@ -10,6 +10,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func randEnemySpawnLocation(g *Game) geom.Vector2 {
+	// generate random spawn point within some min/max distance of player
+	rng := model.NewRNG()
+	missionMap := g.mission.Map()
+	w, h := missionMap.Size()
+
+	x, y := int(g.player.Pos().X), int(g.player.Pos().Y)
+	rX, rY := rng.RandRelativeLocation(x, y, 20, 40, w, h)
+	for missionMap.IsWallAt(0, rX, rY) {
+		// location is in a wall, re-roll
+		rX, rY = rng.RandRelativeLocation(x, y, 20, 40, w, h)
+	}
+	return geom.Vector2{X: float64(rX) + 0.5, Y: float64(rY) + 0.5}
+}
+
 func spawnUnit[T model.AnyUnitModel](g *Game, u model.Unit) *T {
 	unit := u.CloneUnit()
 	unit.SetInitialPoweredStatus(model.POWER_OFF_MANUAL)
@@ -17,26 +32,21 @@ func spawnUnit[T model.AnyUnitModel](g *Game, u model.Unit) *T {
 	missionMap := g.mission.Map()
 	rng := model.NewRNG()
 
-	var spawnPos [2]float64
+	var spawnPos geom.Vector2
 	switch len(missionMap.SpawnPoints) {
 	case 0:
-		// generate random spawn point within some min/max distance of player
-		w, h := missionMap.Size()
-		x, y := int(g.player.Pos().X), int(g.player.Pos().Y)
-		rX, rY := rng.RandRelativeLocation(x, y, 10, 20, w, h) // TODO: pick better min/max
-		for missionMap.IsWallAt(0, rX, rY) {
-			// location is in a wall, re-roll
-			rX, rY = rng.RandRelativeLocation(x, y, 10, 20, w, h) // TODO: pick better min/max
-		}
-		spawnPos = [2]float64{float64(rX) + 0.5, float64(rY) + 0.5}
+		// random spawn point within some distance of player
+		spawnPos = randEnemySpawnLocation(g)
 	case 1:
-		spawnPos = missionMap.SpawnPoints[0]
+		spawnPoint := missionMap.SpawnPoints[0]
+		spawnPos = geom.Vector2{X: spawnPoint[0], Y: spawnPoint[1]}
 	default:
 		// TODO: pick random spawn point that was not picked last time
-		spawnPos = missionMap.SpawnPoints[rng.Intn(len(missionMap.SpawnPoints))]
+		spawnPoint := missionMap.SpawnPoints[rng.Intn(len(missionMap.SpawnPoints))]
+		spawnPos = geom.Vector2{X: spawnPoint[0], Y: spawnPoint[1]}
 	}
 
-	unit.SetPos(&geom.Vector2{X: spawnPos[0], Y: spawnPos[1]})
+	unit.SetPos(&spawnPos)
 
 	// attach AI to unit
 	g.ai.NewUnitAI(unit)

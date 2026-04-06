@@ -271,11 +271,21 @@ func (m *Mission) loadMissionMap() error {
 	m.Pathing = initPathing(m)
 
 	// apply any defaults from map
-	if m.DropZone == nil {
-		m.DropZone = &m.missionMap.DropZone
-	}
 	if m.MusicPath == "" && m.missionMap.MusicPath != "" {
 		m.MusicPath = m.missionMap.MusicPath
+	}
+
+	if m.missionMap.DropZone.Position == [2]float64{0, 0} {
+		// generate random dropzone when not provided
+		rngPos, rngHeading := randPlayerSpawnLocation(m.missionMap)
+		log.Debugf("rngPos: %v\n", rngPos)
+		m.DropZone = &DropZone{
+			Position:    [2]float64{rngPos.X, rngPos.Y},
+			Heading:     rngHeading,
+			PowerStatus: POWER_OFF_MANUAL,
+		}
+	} else {
+		m.DropZone = &m.missionMap.DropZone
 	}
 
 	// apply optional overrides to map
@@ -289,6 +299,33 @@ func (m *Mission) loadMissionMap() error {
 		m.missionMap.SkyBox = *m.SkyBox
 	}
 	return nil
+}
+
+func randPlayerSpawnLocation(missionMap *Map) (geom.Vector2, float64) {
+	// generate random spawn point and heading outside some min distance from edge of map
+	rng := NewRNG()
+	rH := rng.RandFloat64In(0, geom.Pi2)
+
+	// set some minimium offset distance from edge of map, taking into account very small maps
+	w, h := missionMap.Size()
+	offX, offY := 25, 25
+	if offX > w/4 {
+		offX = w / 4
+	}
+	if offY > h/4 {
+		offY = h / 4
+	}
+	minX, maxX := offX, w-offX
+	minY, maxY := offY, h-offY
+
+	rX := rng.RandIntIn(minX, maxX)
+	rY := rng.RandIntIn(minY, maxY)
+	for missionMap.IsWallAt(0, rX, rY) {
+		// location is in a wall, re-roll
+		rX = rng.RandIntIn(minX, maxX)
+		rY = rng.RandIntIn(minY, maxY)
+	}
+	return geom.Vector2{X: float64(rX) + 0.5, Y: float64(rY) + 0.5}, rH
 }
 
 func ListMissionFilenames() ([]string, error) {

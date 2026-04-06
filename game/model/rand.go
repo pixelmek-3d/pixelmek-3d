@@ -25,6 +25,10 @@ func (rng *Rand) RandFloat64In(lo, hi float64) float64 {
 	return RandFloat64In(lo, hi, rng.Rand)
 }
 
+func (rng *Rand) RandIntIn(lo, hi int) int {
+	return RandIntIn(lo, hi, rng.Rand)
+}
+
 func RandFloat64In(lo, hi float64, rng *rand.Rand) float64 {
 	var randFloat float64
 	if rng == nil {
@@ -33,6 +37,16 @@ func RandFloat64In(lo, hi float64, rng *rand.Rand) float64 {
 		randFloat = rng.Float64()
 	}
 	return lo + (hi-lo)*randFloat
+}
+
+func RandIntIn(lo, hi int, rng *rand.Rand) int {
+	var randFloat float64
+	if rng == nil {
+		randFloat = rand.Float64()
+	} else {
+		randFloat = rng.Float64()
+	}
+	return int(float64(lo) + float64(hi-lo)*randFloat)
 }
 
 func RandomMapKey[K comparable, V any](m map[K]V) K {
