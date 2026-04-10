@@ -48,6 +48,18 @@ const (
 	POWER_OFF_HEAT   UnitPowerStatus = -1
 )
 
+// UnitPowerConditions defines optional conditions for when unit powers on instead of mission start
+type UnitPowerConditions struct {
+	// MissionTimeElapsed is the number of seconds since the mission started to trigger power on
+	MissionTimeElapsed int `yaml:"timeElapsed"`
+	// PlayerDistance is the distance from the player to trigger power on
+	PlayerDistance int `yaml:"playerDistance"`
+	// NavPointVisited is the name of the Nav Point the player just visited to trigger power on
+	NavPointVisited string `yaml:"navPointVisited"`
+	// MissionUnitDestroyed is the ID of the Unit whose destruction triggers power on
+	MissionUnitDestroyed string `yaml:"unitDestroyed"`
+}
+
 type Unit interface {
 	Entity
 	ID() string
@@ -67,6 +79,8 @@ type Unit interface {
 	Powered() UnitPowerStatus
 	SetPowered(UnitPowerStatus)
 	SetInitialPoweredStatus(UnitPowerStatus)
+	PowerConditions() *UnitPowerConditions
+	SetPowerConditions(UnitPowerConditions)
 
 	TriggerWeapon(Weapon) bool
 	Target() Entity
@@ -166,6 +180,7 @@ type UnitModel struct {
 	heatSinks           int
 	heatSinkType        HeatSinkType
 	powered             UnitPowerStatus
+	powerConditions     *UnitPowerConditions
 	armament            []Weapon
 	ammunition          *Ammo
 	jumpJets            int
@@ -312,6 +327,20 @@ func (e *UnitModel) Powered() UnitPowerStatus {
 
 func (e *UnitModel) SetInitialPoweredStatus(powered UnitPowerStatus) {
 	e.powered = powered
+}
+
+func (e *UnitModel) PowerConditions() *UnitPowerConditions {
+	return e.powerConditions
+}
+func (e *UnitModel) SetPowerConditions(powerConditions UnitPowerConditions) {
+	cpConditions := powerConditions
+	if cpConditions.MissionTimeElapsed == 0 && cpConditions.PlayerDistance == 0 &&
+		len(cpConditions.NavPointVisited) == 0 && len(cpConditions.MissionUnitDestroyed) == 0 {
+		// unset power conditions if there are none to set
+		e.powerConditions = nil
+		return
+	}
+	e.powerConditions = &cpConditions
 }
 
 func (e *UnitModel) TriggerWeapon(w Weapon) bool {

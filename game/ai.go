@@ -450,6 +450,7 @@ func (h *AIHandler) Update() {
 
 		powerStatus := a.u.Powered()
 		if powerStatus == model.POWER_OFF_MANUAL {
+			// use mission unit power conditions to define when to initiate power on
 			a.u.SetPowered(model.POWER_ON)
 			continue
 		} else if powerStatus != model.POWER_ON {
@@ -467,6 +468,27 @@ func (h *AIHandler) Update() {
 			log.Error(err)
 		}
 	}
+}
+
+func (h *AIHandler) isUnitPowerConditionMet(u model.Unit) bool {
+	// return true if any one of the set power conditions are met
+	pConditions := u.PowerConditions()
+	if pConditions == nil {
+		return true
+	}
+	if pConditions.MissionTimeElapsed > 0 {
+		// TODO: mission.elapsedTime
+	}
+	if pConditions.PlayerDistance > 0 {
+		// TODO: calculate distance from player, return true if <= distance
+	}
+	if len(pConditions.NavPointVisited) > 0 {
+		// TODO: check if the nav point is visited by player yet
+	}
+	if len(pConditions.MissionUnitDestroyed) > 0 {
+		// TODO: check if the referenced unit id is destroyed
+	}
+	return false
 }
 
 func NewAIGunnery(u model.Unit) *AIGunnery {

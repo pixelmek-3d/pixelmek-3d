@@ -194,6 +194,8 @@ func createMissionUnitModel[T model.MissionUnitModels](g *Game, unit model.Missi
 	u.SetTurretAngle(rHeading)
 	u.SetTargetTurretAngle(rHeading)
 
+	u.SetPowerConditions(unit.PowerConditions)
+
 	u.SetGuardUnit(unit.GuardUnit)
 	if len(unit.GuardArea.Position) == 2 && unit.GuardArea.Radius >= 0 &&
 		unit.GuardArea.Position[0] > 0 && unit.GuardArea.Position[1] > 0 {

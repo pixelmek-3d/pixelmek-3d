@@ -129,6 +129,8 @@ type MissionUnit struct {
 	PatrolPath [][2]float64     `yaml:"patrolPath"`
 	GuardArea  MissionGuardArea `yaml:"guardArea"`
 	GuardUnit  string           `yaml:"guardUnit"`
+
+	PowerConditions UnitPowerConditions `yaml:"powerConditions"`
 }
 
 func (m MissionUnit) GetUnit() string {
@@ -153,6 +155,8 @@ type MissionFlyingUnit struct {
 	PatrolPath [][2]float64     `yaml:"patrolPath"`
 	GuardArea  MissionGuardArea `yaml:"guardArea"`
 	GuardUnit  string           `yaml:"guardUnit"`
+
+	PowerConditions UnitPowerConditions `yaml:"powerConditions"`
 }
 
 func (m MissionFlyingUnit) GetUnit() string {
@@ -248,6 +252,9 @@ func LoadMission(missionFile string) (*Mission, error) {
 		return nil, fmt.Errorf("[%s] %s", missionPath, err.Error())
 	}
 
+	// TODO: verify things that reference id/names of other things in the mission yaml, such as:
+	//       navPointVisited is defined as a navPoint name, and unitDestroyed defined as a unit id
+
 	// load mission map
 	err = m.loadMissionMap()
 	if err != nil {
@@ -278,7 +285,6 @@ func (m *Mission) loadMissionMap() error {
 	if m.missionMap.DropZone.Position == [2]float64{0, 0} {
 		// generate random dropzone when not provided
 		rngPos, rngHeading := randPlayerSpawnLocation(m.missionMap)
-		log.Debugf("rngPos: %v\n", rngPos)
 		m.DropZone = &DropZone{
 			Position:    [2]float64{rngPos.X, rngPos.Y},
 			Heading:     rngHeading,
