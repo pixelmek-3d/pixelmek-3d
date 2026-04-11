@@ -232,6 +232,9 @@ func (g *Game) Run() {
 
 func (g *Game) Pause() {
 	g.paused = true
+	if g.mission != nil {
+		g.mission.TimerPause()
+	}
 	g.audio.PauseMusic()
 	g.audio.PauseSFX()
 }
@@ -239,6 +242,9 @@ func (g *Game) Pause() {
 func (g *Game) Resume() {
 	g.audio.ResumeMusic()
 	g.audio.ResumeSFX()
+	if g.mission != nil {
+		g.mission.TimerStart()
+	}
 	g.paused = false
 }
 

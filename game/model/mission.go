@@ -7,6 +7,7 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/go-youtils/stopwatch"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
 	"gopkg.in/yaml.v3"
@@ -16,6 +17,7 @@ import (
 
 type Mission struct {
 	missionMap   *Map
+	missionTimer *stopwatch.Stopwatch
 	Title        string              `yaml:"title" validate:"required"`
 	Briefing     string              `yaml:"briefing" validate:"required"`
 	MapPath      string              `yaml:"map" validate:"required"`
@@ -40,7 +42,8 @@ type Mission struct {
 }
 
 func NewMissionFromMapPath(mapPath string) (*Mission, error) {
-	m := &Mission{MapPath: mapPath}
+	m := newMission()
+	m.MapPath = mapPath
 	err := m.loadMissionMap()
 	if err != nil {
 		return nil, err
@@ -49,7 +52,8 @@ func NewMissionFromMapPath(mapPath string) (*Mission, error) {
 }
 
 func NewMissionFromMap(missionMap *Map) (*Mission, error) {
-	m := &Mission{missionMap: missionMap}
+	m := newMission()
+	m.missionMap = missionMap
 	err := m.loadMissionMap()
 	if err != nil {
 		return nil, err
@@ -57,8 +61,26 @@ func NewMissionFromMap(missionMap *Map) (*Mission, error) {
 	return m, nil
 }
 
+func newMission() *Mission {
+	m := &Mission{}
+	m.missionTimer = stopwatch.NewStopwatch()
+	return m
+}
+
 func (m *Mission) Map() *Map {
 	return m.missionMap
+}
+
+func (m *Mission) TimerPause() {
+	m.missionTimer.Stop()
+}
+
+func (m *Mission) TimerStart() {
+	m.missionTimer.Start()
+}
+
+func (m *Mission) TimerSeconds() float64 {
+	return m.missionTimer.Seconds()
 }
 
 type DropZone struct {
@@ -241,7 +263,7 @@ func LoadMission(missionFile string) (*Mission, error) {
 		return nil, err
 	}
 
-	m := &Mission{}
+	m := newMission()
 	err = yaml.Unmarshal(missionYaml, m)
 	if err != nil {
 		return nil, err

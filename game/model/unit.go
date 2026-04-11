@@ -338,9 +338,11 @@ func (e *UnitModel) SetPowerConditions(powerConditions UnitPowerConditions) {
 		len(cpConditions.NavPointVisited) == 0 && len(cpConditions.MissionUnitDestroyed) == 0 {
 		// unset power conditions if there are none to set
 		e.powerConditions = nil
+		e.SetInitialPoweredStatus(POWER_ON)
 		return
 	}
 	e.powerConditions = &cpConditions
+	e.SetInitialPoweredStatus(POWER_OFF_MANUAL)
 }
 
 func (e *UnitModel) TriggerWeapon(w Weapon) bool {

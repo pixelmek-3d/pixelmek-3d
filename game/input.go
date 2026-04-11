@@ -367,7 +367,6 @@ func (g *Game) handleInput() {
 			}
 		} else if !g.InProgress() {
 			// instantly leave game when it is over
-			g.paused = true
 			g.LeaveGame()
 		} else {
 			g.openMenu()

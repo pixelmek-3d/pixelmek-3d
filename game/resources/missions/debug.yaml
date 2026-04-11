@@ -31,11 +31,15 @@ mechs:
   - id: "destroy_me"
     unit: "fire_moth_prime"
     position: [57, 65]
+    powerConditions:
+      timeElapsed: 10
 vehicles:
   - id: "do_not_hurt_me"
     team: -1
     unit: "srm_carrier"
     position: [57, 55]
+    powerConditions:
+      timeElapsed: 15
 vtols: []
 infantry: []
 emplacements: []

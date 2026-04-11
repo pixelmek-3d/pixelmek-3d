@@ -450,8 +450,10 @@ func (h *AIHandler) Update() {
 
 		powerStatus := a.u.Powered()
 		if powerStatus == model.POWER_OFF_MANUAL {
-			// use mission unit power conditions to define when to initiate power on
-			a.u.SetPowered(model.POWER_ON)
+			// use mission unit power on conditions to decide when to initiate power on
+			if h.isUnitPowerConditionMet(a.u) {
+				a.u.SetPowered(model.POWER_ON)
+			}
 			continue
 		} else if powerStatus != model.POWER_ON {
 			continue
@@ -470,23 +472,29 @@ func (h *AIHandler) Update() {
 	}
 }
 
+// return true if any one of the set power conditions are met
 func (h *AIHandler) isUnitPowerConditionMet(u model.Unit) bool {
-	// return true if any one of the set power conditions are met
 	pConditions := u.PowerConditions()
 	if pConditions == nil {
 		return true
 	}
-	if pConditions.MissionTimeElapsed > 0 {
-		// TODO: mission.elapsedTime
+	if h.g.mission == nil {
+		return false
 	}
-	if pConditions.PlayerDistance > 0 {
-		// TODO: calculate distance from player, return true if <= distance
+	if pConditions.MissionTimeElapsed > 0 {
+		// check if the mission timer has met the elapsed time condition
+		if int(h.g.mission.TimerSeconds()) >= pConditions.MissionTimeElapsed {
+			return true
+		}
 	}
 	if len(pConditions.NavPointVisited) > 0 {
-		// TODO: check if the nav point is visited by player yet
+		// TODO: check if the mission nav point has been visited by player yet
 	}
 	if len(pConditions.MissionUnitDestroyed) > 0 {
 		// TODO: check if the referenced unit id is destroyed
+	}
+	if pConditions.PlayerDistance > 0 {
+		// TODO: calculate distance from player, return true if <= distance
 	}
 	return false
 }

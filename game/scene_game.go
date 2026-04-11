@@ -50,10 +50,12 @@ func NewGameScene(g *Game) Scene {
 		scene.benchmark = NewBenchmarkHandler()
 	}
 
+	g.mission.TimerStart()
 	return scene
 }
 
 func (g *Game) LeaveGame() {
+	g.paused = true
 	if gs, ok := g.scene.(*GameScene); ok && gs.benchmark != nil {
 		// close benchmark
 		gs.benchmark.Close()
