@@ -164,6 +164,36 @@ func (g *Game) getUnitSprites() []*sprites.Sprite {
 	return sprites
 }
 
+func (g *Game) getUnitSpriteByID(unitID string) *sprites.Sprite {
+	var sprite *sprites.Sprite
+	for _, spriteType := range g.sprites.SpriteTypes() {
+		g.sprites.RangeByType(spriteType, func(k, _ any) bool {
+			if !isInteractiveType(spriteType) {
+				// only include certain sprite types (skip projectiles, effects, etc.)
+				return true
+			}
+
+			s := getSpriteFromInterface(k.(raycaster.Sprite))
+			u := s.Unit()
+			if u != nil && u.ID() == unitID {
+				sprite = s
+				// break out of syncmap range loop
+				return false
+			}
+			return true
+		})
+	}
+	return sprite
+}
+
+func (g *Game) getSpriteUnitByID(unitID string) model.Unit {
+	uSprite := g.getUnitSpriteByID(unitID)
+	if uSprite != nil {
+		return uSprite.Unit()
+	}
+	return nil
+}
+
 func (g *Game) getSpriteUnits() []model.Unit {
 	uSprites := g.getUnitSprites()
 	units := make([]model.Unit, 0, len(uSprites))

@@ -33,13 +33,18 @@ mechs:
     position: [57, 65]
     powerConditions:
       timeElapsed: 10
+  - id: "destroy_me_2"
+    unit: "adder_b"
+    position: [80, 80]
+    powerConditions:
+      unitDestroyed: "destroy_me"
 vehicles:
   - id: "do_not_hurt_me"
     team: -1
     unit: "srm_carrier"
     position: [57, 55]
     powerConditions:
-      timeElapsed: 15
+      timeElapsed: 10
 vtols: []
 infantry: []
 emplacements: []

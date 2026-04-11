@@ -491,7 +491,11 @@ func (h *AIHandler) isUnitPowerConditionMet(u model.Unit) bool {
 		// TODO: check if the mission nav point has been visited by player yet
 	}
 	if len(pConditions.MissionUnitDestroyed) > 0 {
-		// TODO: check if the referenced unit id is destroyed
+		// check if the referenced unit id is destroyed
+		mUnit := h.g.getSpriteUnitByID(pConditions.MissionUnitDestroyed)
+		if mUnit == nil || mUnit.IsDestroyed() {
+			return true
+		}
 	}
 	if pConditions.PlayerDistance > 0 {
 		// TODO: calculate distance from player, return true if <= distance
