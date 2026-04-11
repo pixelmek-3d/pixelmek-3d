@@ -488,7 +488,15 @@ func (h *AIHandler) isUnitPowerConditionMet(u model.Unit) bool {
 		}
 	}
 	if len(pConditions.NavPointVisited) > 0 {
-		// TODO: check if the mission nav point has been visited by player yet
+		// check if the mission nav point has been visited by player yet
+		for _, nav := range h.g.mission.NavPoints {
+			if nav.Name == pConditions.NavPointVisited {
+				if nav.Visited() {
+					return true
+				}
+				break
+			}
+		}
 	}
 	if len(pConditions.MissionUnitDestroyed) > 0 {
 		// check if the referenced unit id is destroyed

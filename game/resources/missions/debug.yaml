@@ -38,6 +38,7 @@ mechs:
     position: [80, 80]
     powerConditions:
       unitDestroyed: "destroy_me"
+      navPointVisited: "Foo"
 vehicles:
   - id: "do_not_hurt_me"
     team: -1
