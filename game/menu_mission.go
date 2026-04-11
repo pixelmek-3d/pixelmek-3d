@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
@@ -46,8 +47,9 @@ const (
 
 type MissionCard struct {
 	*widget.Container
-	style          MissionCardStyle
-	objectivesText *widget.TextArea
+	style           MissionCardStyle
+	objectivesText  *widget.TextArea
+	elapsedTimeText *widget.Text
 }
 
 var missionImage *missionMapImage
@@ -341,8 +343,19 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 		cardContainer.AddChild(missionTitle)
 	}
 
-	var objectivesText *widget.TextArea
+	var elapsedTimeText *widget.Text
+	switch style {
+	case MissionCardGame, MissionCardDebrief:
+		elapsedTimeText = widget.NewText(widget.TextOpts.Text(missionElapsedTime(g), res.text.face, res.text.idleColor),
+			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+		)
+		cardContainer.AddChild(elapsedTimeText)
+	}
 
+	var objectivesText *widget.TextArea
 	switch style {
 	case MissionCardSelect, MissionCardLaunch:
 		// mission map area text
@@ -399,18 +412,30 @@ func createMissionCard(g *Game, res *uiResources, mission *model.Mission, style 
 	}
 
 	missionCard := &MissionCard{
-		Container:      cardContainer,
-		style:          style,
-		objectivesText: objectivesText,
+		Container:       cardContainer,
+		style:           style,
+		objectivesText:  objectivesText,
+		elapsedTimeText: elapsedTimeText,
 	}
 
 	return missionCard
 }
 
+func missionElapsedTime(g *Game) string {
+	if g.mission == nil {
+		return ""
+	}
+	elapsedTime := time.Duration(g.mission.TimerSeconds() * float64(time.Second))
+	return fmt.Sprintf("Elapsed Time: %s", common.DurationDisplayString(elapsedTime))
+}
+
 func (c *MissionCard) updateContent(g *Game) {
 	switch c.style {
 	case MissionCardGame:
+		c.elapsedTimeText.Label = missionElapsedTime(g)
 		c.objectivesText.SetText(g.objectives.Text())
+	case MissionCardDebrief:
+		c.elapsedTimeText.Label = missionElapsedTime(g)
 	}
 }
 
