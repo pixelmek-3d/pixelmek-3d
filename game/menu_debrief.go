@@ -9,7 +9,8 @@ import (
 
 type DebriefMenu struct {
 	*MenuModel
-	content *widget.Container
+	content      *widget.Container
+	tickUpdaters []tickUpdater
 }
 
 func createDebriefMenu(g *Game) *DebriefMenu {
@@ -48,6 +49,9 @@ func (m *DebriefMenu) initMenu() {
 }
 
 func (m *DebriefMenu) Update() {
+	for _, updater := range m.tickUpdaters {
+		updater.update()
+	}
 	m.ui.Update()
 }
 
@@ -151,5 +155,7 @@ func (m *DebriefMenu) loadDebriefing() {
 		playerUnit = g.player.Unit
 	}
 	unitCard := createUnitCard(g, res, playerUnit, UnitCardDebrief)
+	// TODO: if player unit is destroyed, do not use the "walking" animation
+	m.tickUpdaters = []tickUpdater{unitCard}
 	m.content.AddChild(unitCard)
 }

@@ -9,7 +9,8 @@ import (
 
 type LaunchMenu struct {
 	*MenuModel
-	content *widget.Container
+	content      *widget.Container
+	tickUpdaters []tickUpdater
 }
 
 func createLaunchMenu(g *Game) *LaunchMenu {
@@ -47,6 +48,9 @@ func (m *LaunchMenu) initMenu() {
 }
 
 func (m *LaunchMenu) Update() {
+	for _, updater := range m.tickUpdaters {
+		updater.update()
+	}
 	m.ui.Update()
 }
 
@@ -156,5 +160,6 @@ func (m *LaunchMenu) loadBriefing(mission *model.Mission) {
 		playerUnit = g.player.Unit
 	}
 	unitCard := createUnitCard(g, res, playerUnit, UnitCardLaunch)
+	m.tickUpdaters = []tickUpdater{unitCard}
 	m.content.AddChild(unitCard)
 }
