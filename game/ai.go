@@ -506,7 +506,13 @@ func (h *AIHandler) isUnitPowerConditionMet(u model.Unit) bool {
 		}
 	}
 	if pConditions.PlayerDistance > 0 {
-		// TODO: calculate distance from player, return true if <= distance
+		// calculate distance (in meters) from player, return true if <= distance
+		uPos := u.Pos()
+		pPos := h.g.player.Pos()
+		pDist := geom.Distance(uPos.X, uPos.Y, pPos.X, pPos.Y) * model.METERS_PER_UNIT
+		if pDist <= float64(pConditions.PlayerDistance) {
+			return true
+		}
 	}
 	return false
 }

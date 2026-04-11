@@ -39,6 +39,7 @@ mechs:
     powerConditions:
       unitDestroyed: "destroy_me"
       navPointVisited: "Foo"
+      playerDistance: 500
 vehicles:
   - id: "do_not_hurt_me"
     team: -1
