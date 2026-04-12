@@ -304,16 +304,18 @@ func (m *Mission) loadMissionMap() error {
 		m.MusicPath = m.missionMap.MusicPath
 	}
 
-	if m.missionMap.DropZone.Position == [2]float64{0, 0} {
-		// generate random dropzone when not provided
-		rngPos, rngHeading := randPlayerSpawnLocation(m.missionMap)
-		m.DropZone = &DropZone{
-			Position:    [2]float64{rngPos.X, rngPos.Y},
-			Heading:     rngHeading,
-			PowerStatus: POWER_OFF_MANUAL,
+	if m.DropZone == nil {
+		if m.missionMap.DropZone.Position == [2]float64{0, 0} {
+			// generate random dropzone when not provided
+			rngPos, rngHeading := randPlayerSpawnLocation(m.missionMap)
+			m.DropZone = &DropZone{
+				Position:    [2]float64{rngPos.X, rngPos.Y},
+				Heading:     rngHeading,
+				PowerStatus: POWER_OFF_MANUAL,
+			}
+		} else {
+			m.DropZone = &m.missionMap.DropZone
 		}
-	} else {
-		m.DropZone = &m.missionMap.DropZone
 	}
 
 	// apply optional overrides to map
