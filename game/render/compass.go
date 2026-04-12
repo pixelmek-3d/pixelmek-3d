@@ -191,7 +191,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 				iRatio := float32(i) / float32(maxTurretDeg)
 				iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
 
-				vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
+				vector.FillCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
 				iRendered = true
 				break
 			}
@@ -211,7 +211,7 @@ func (c *Compass) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 
 			iRadius := float32(bH) / 12
 			iX := float32(bX) + float32(bW)/2 + iRatio*float32(bW)/2
-			vector.DrawFilledCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
+			vector.FillCircle(screen, iX-iRadius, topY-iRadius, iRadius, iColor, false)
 		}
 	}
 

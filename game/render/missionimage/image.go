@@ -193,7 +193,7 @@ func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.
 	}
 
 	uX, uY := float32(u.Pos().X), float32(u.Pos().Y)
-	vector.DrawFilledCircle(m.image, uX*float32(pxPerCell), (float32(mapHeight)-uY)*float32(pxPerCell), float32(pxPerCell)/2, uColor, false)
+	vector.FillCircle(m.image, uX*float32(pxPerCell), (float32(mapHeight)-uY)*float32(pxPerCell), float32(pxPerCell)/2, uColor, false)
 
 	// render scaled unit image only if pxPerCell is high enough for detail
 	if pxPerCell >= 16 {
