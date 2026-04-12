@@ -758,7 +758,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 
 	for _, s := range sprites {
 		entity := s.Entity
-		unit := model.EntityUnit(entity)
+		unit := s.Unit()
 		if unit == nil {
 			continue
 		}
@@ -783,6 +783,10 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			} else {
 				continue
 			}
+		}
+
+		if !g.IsTargetableAtDistance(g.player, unit, unitDistance) {
+			continue
 		}
 
 		// determine angle of unit relative from player heading

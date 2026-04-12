@@ -29,9 +29,12 @@ func (a *AIBehavior) HasTarget() func([]bt.Node) (bt.Status, error) {
 
 			// log.Debugf("[%s] hasTarget == %s", a.u.ID(), t.ID())
 			if a.u.Target() != t {
+				if !a.g.IsTargetableAtDistance(a.u, t, p.distance) {
+					// make sure new target is targetable, while allowing for current target to remain even if it has shutdown
+					continue
+				}
 				// reset AI settings for previous targets
 				a.gunnery.Reset()
-
 				a.u.SetTarget(t)
 			}
 
