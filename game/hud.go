@@ -133,7 +133,15 @@ func (g *Game) resetHUDElementScale() {
 	}
 }
 
-// drawHUD draws HUD elements on the screen
+// updateHUD updates HUD elements on the screen that need animated (tick-based, not framerate)
+func (g *Game) updateHUD() {
+	radar := g.GetHUDElement(HUD_RADAR).(*render.Radar)
+	if radar != nil {
+		radar.Update()
+	}
+}
+
+// drawHUD draws HUD elements on the screen (framerate-based, not tick)
 func (g *Game) drawHUD(screen *ebiten.Image) {
 	hudRect := g.uiRect()
 	marginX, marginY := hudRect.Dx()/50, hudRect.Dy()/50
@@ -696,12 +704,9 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		rX, rY, rX+radarWidth, rY+radarHeight,
 	)
 
-	// find all units and nav points within range to draw as blips
+	// find all units and nav points within range to render on radar
 	maxDistanceMeters := radar.RadarRange()
 	maxDistanceUnits := maxDistanceMeters / model.METERS_PER_UNIT
-
-	radarBlips := make([]*render.RadarBlip, 0, 128)
-	rNavPoints := make([]*render.RadarNavPoint, 0, len(g.mission.NavPoints))
 
 	camPos := hudOpts.HudUnit.Pos()
 	camHeading := hudOpts.HudUnit.Heading()
@@ -711,7 +716,7 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 	camNav := g.player.NavPoint()
 
 	// discover nav points that are in range
-	navCount := 0
+	rNavPoints := make([]*render.RadarNavPoint, 0, len(g.mission.NavPoints))
 	for _, nav := range g.mission.NavPoints {
 		navPos := nav.Pos()
 		navLine := geom.Line{
@@ -737,11 +742,10 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		}
 
 		rNavPoints = append(rNavPoints, rNav)
-		navCount++
 	}
 
-	// discover blips that are in range
-	blipCount := 0
+	// discover blips and pings that are in range
+	radarBlips := make([]*render.RadarBlip, 0, 64)
 
 	// only get sprites in proximity of radar range
 	pSprites := g.getProximityUnitSprites(camPos, maxDistanceUnits)
@@ -785,12 +789,23 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 			}
 		}
 
+		// determine angle of unit relative from player heading
+		relAngle := camHeading - unitLine.Angle()
+
 		if !g.IsTargetableAtDistance(g.player, unit, unitDistance) {
+			// the unit is not targetable, do not show it as a blip
+			if unit.Powered() == model.POWER_ON_IN_PROGRESS {
+				// however the unit is powering on, show as a ping
+				ping := &render.RadarPing{
+					Entity:   entity,
+					Angle:    relAngle,
+					Distance: unitDistance,
+				}
+				radar.AddRadarPing(ping)
+			}
 			continue
 		}
 
-		// determine angle of unit relative from player heading
-		relAngle := camHeading - unitLine.Angle()
 		// determine heading of unit relative from player heading
 		relHeading := camHeading - unit.Heading()
 		relTurretHeading := camHeading - unit.TurretAngle()
@@ -806,7 +821,6 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		}
 
 		radarBlips = append(radarBlips, blip)
-		blipCount++
 	}
 
 	if g.debug && (camTarget != nil || debugCamTgt != nil) {
@@ -843,8 +857,8 @@ func (g *Game) drawRadar(hudOpts *render.DrawHudOptions) {
 		radar.ShowPosition(true)
 	}
 
-	radar.SetNavPoints(rNavPoints[:navCount])
-	radar.SetRadarBlips(radarBlips[:blipCount])
+	radar.SetNavPoints(rNavPoints)
+	radar.SetRadarBlips(radarBlips)
 
 	radar.Draw(radarBounds, hudOpts)
 }

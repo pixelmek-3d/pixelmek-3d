@@ -3,6 +3,8 @@ package colors
 import "image/color"
 
 var (
+	Black         = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+	White         = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 	DefaultRed    = color.NRGBA{R: 225, G: 0, B: 0, A: 255}
 	DefaultGreen  = color.NRGBA{R: 0, G: 214, B: 0, A: 255}
 	DefaultBlue   = color.NRGBA{R: 0, G: 0, B: 203, A: 255}

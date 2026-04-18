@@ -114,6 +114,9 @@ func (s *GameScene) Update() error {
 		// handle player camera movement
 		g.updatePlayerCamera(false)
 
+		// handle player HUD tick-based udpates
+		g.updateHUD()
+
 		if g.InProgress() {
 			if s.transition != nil {
 				// update transition at start of game

@@ -11,8 +11,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
+)
+
+const (
+	radarPingLifespan = int(1.0 * model.TICKS_PER_SECOND)
 )
 
 var (
@@ -27,6 +32,7 @@ type Radar struct {
 	fontRenderer *etxt.Renderer
 	mapLines     []*geom.Line
 	radarBlips   []*RadarBlip
+	radarPings   []*RadarPing
 	navPoints    []*RadarNavPoint
 	navLines     []*geom.Line
 	position     *geom.Vector2
@@ -37,6 +43,7 @@ type Radar struct {
 	showPosition bool
 }
 
+// RadarBlip represents persistent, targettable contacts on the radar
 type RadarBlip struct {
 	Unit          model.Unit
 	Angle         float64
@@ -45,6 +52,14 @@ type RadarBlip struct {
 	Distance      float64
 	IsTarget      bool
 	IsFriendly    bool
+}
+
+// RadarPing represents transient, unknown and untargettable contacts on the radar
+type RadarPing struct {
+	Entity   model.Entity
+	Angle    float64
+	Distance float64
+	ticks    int
 }
 
 type RadarNavPoint struct {
@@ -67,6 +82,7 @@ func NewRadar(font *fonts.Font) *Radar {
 		HUDSprite:    NewHUDSprite(nil, 1.0),
 		fontRenderer: renderer,
 		radarRange:   radarRanges[0] / model.METERS_PER_UNIT,
+		radarPings:   make([]*RadarPing, 0, 16),
 	}
 
 	return r
@@ -130,6 +146,16 @@ func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
 	r.radarBlips = blips
 }
 
+func (r *Radar) AddRadarPing(ping *RadarPing) {
+	// make sure the entity doesn't already have an active ping
+	for _, rPing := range r.radarPings {
+		if ping.Entity == rPing.Entity {
+			return
+		}
+	}
+	r.radarPings = append(r.radarPings, ping)
+}
+
 func (r *Radar) SetValues(position *geom.Vector2, heading, turretAngle, fovDegrees float64) {
 	r.position = position
 	r.heading = heading
@@ -139,6 +165,34 @@ func (r *Radar) SetValues(position *geom.Vector2, heading, turretAngle, fovDegre
 
 func (r *Radar) ShowPosition(show bool) {
 	r.showPosition = show
+}
+
+func (r *Radar) Update() {
+	// Manage animated radar pings
+	numPings := len(r.radarPings)
+	if numPings > 0 {
+		stalePings := make([]int, 0, numPings)
+		for i, ping := range r.radarPings {
+			if ping.ticks < radarPingLifespan {
+				ping.ticks += 1
+				continue
+			}
+			// remove stale pings beyond their lifespan
+			stalePings = append(stalePings, i)
+		}
+		if len(stalePings) > 0 {
+			if numPings == len(stalePings) {
+				r.radarPings = make([]*RadarPing, 0, cap(r.radarPings))
+			} else {
+				// remove the stale pings
+				keepPings := r.radarPings[:]
+				for _, index := range slices.Backward(stalePings) {
+					keepPings = append(keepPings[:index], keepPings[index+1:]...)
+				}
+				r.radarPings = keepPings
+			}
+		}
+	}
 }
 
 func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
@@ -211,10 +265,7 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	nColor := hudOpts.HudColor(_colorRadarOutline)
 
 	for _, nav := range r.navPoints {
-		// convert heading angle into relative radar angle where "up" is forward
-		radarAngle := nav.Angle - geom.HalfPi
-
-		radarDistancePx := nav.Distance * radarHudSizeFactor
+		radarAngle, radarDistancePx := radarRelativeLocation(nav.Angle, nav.Distance, radarHudSizeFactor)
 		nLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
 
 		if nav.IsTarget {
@@ -236,15 +287,24 @@ func (r *Radar) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 		vector.FillCircle(screen, float32(nLine.X2), float32(nLine.Y2), navRadius, nColor, false) // TODO: calculate thickness based on image size
 	}
 
+	// Draw animated radar pings
+	for _, ping := range r.radarPings {
+		radarAngle, radarDistancePx := radarRelativeLocation(ping.Angle, ping.Distance, radarHudSizeFactor)
+		pLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
+
+		pColor := hudOpts.HudColor(colors.White)
+
+		// animate by expanding radius over tick time the ping is active
+		var pRadius float32 = 1 + float32(ping.ticks)/10
+		vector.StrokeCircle(screen, float32(pLine.X2)-2, float32(pLine.Y2-2), pRadius, 1, pColor, false)
+	}
+
 	// Draw radar blips
 	eColor := hudOpts.HudColor(_colorEnemy)
 	fColor := hudOpts.HudColor(_colorFriendly)
 
 	for _, blip := range r.radarBlips {
-		// convert direction angle into relative radar angle where "up" is forward
-		radarAngle := blip.Angle - geom.HalfPi
-
-		radarDistancePx := blip.Distance * radarHudSizeFactor
+		radarAngle, radarDistancePx := radarRelativeLocation(blip.Angle, blip.Distance, radarHudSizeFactor)
 		bLine := geom.LineFromAngle(midX, midY, radarAngle, radarDistancePx)
 
 		var bColor color.NRGBA
@@ -369,4 +429,11 @@ func (r *Radar) drawRadarLine(dst *ebiten.Image, line *geom.Line, centerX, cente
 	rLine2 := geom.LineFromAngle(centerX, centerY, angle2, dist2*hudSizeFactor)
 
 	vector.StrokeLine(dst, float32(rLine1.X2), float32(rLine1.Y2), float32(rLine2.X2), float32(rLine2.Y2), lineWidth, clr, false)
+}
+
+// radarRelativeLocation converts actual direction angle into relative radar angle where "up" is forward
+func radarRelativeLocation(actualAngle, actualDistance, radarHudSizeFactor float64) (float64, float64) {
+	radarAngle := actualAngle - geom.HalfPi
+	radarDistancePx := actualDistance * radarHudSizeFactor
+	return radarAngle, radarDistancePx
 }
