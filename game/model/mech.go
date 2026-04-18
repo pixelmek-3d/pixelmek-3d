@@ -130,17 +130,19 @@ func (e *Mech) MaxStructurePoints() float64 {
 }
 
 func (e *Mech) SetPowered(powered UnitPowerStatus) {
-	if powered == POWER_ON {
-		if e.powered != POWER_ON && e.PowerOnTimer <= 0 {
+	switch powered {
+	case POWER_ON:
+		if e.powered != POWER_ON && e.powered != POWER_ON_IN_PROGRESS {
 			// initiate power up sequence
+			e.powered = POWER_ON_IN_PROGRESS
 			e.PowerOnTimer = int(MECH_POWER_ON_SECONDS * TICKS_PER_SECOND)
 		}
-	} else {
-		if e.powered == POWER_ON && e.PowerOffTimer <= 0 {
+	case POWER_OFF_MANUAL, POWER_OFF_HEAT:
+		if e.powered != POWER_OFF_MANUAL && e.powered != POWER_OFF_HEAT {
 			// initiate power down sequence
+			e.powered = powered
 			e.PowerOffTimer = int(UNIT_POWER_OFF_SECONDS * TICKS_PER_SECOND)
 		}
-		e.powered = powered
 	}
 }
 
@@ -162,7 +164,7 @@ func (e *Mech) Update() bool {
 			break
 
 		case e.powered == POWER_OFF_HEAT &&
-			!isOverHeated && e.PowerOnTimer == 0:
+			!isOverHeated && e.PowerOffTimer == 0:
 			// set power on sequence to begin automatically after overheat status is cleared
 			e.SetPowered(POWER_ON)
 

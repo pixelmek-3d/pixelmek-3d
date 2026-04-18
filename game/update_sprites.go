@@ -74,7 +74,7 @@ func (g *Game) updateSprite(spriteType sprites.SpriteType, sInterface raycaster.
 		g.updateWeaponCooldowns(sUnit)
 
 		if sUnit.Powered() != model.POWER_ON {
-			poweringOn := s.AnimationReversed()
+			poweringOn := sUnit.Powered() == model.POWER_ON_IN_PROGRESS
 			if mech.PowerOffTimer > 0 &&
 				(s.MechAnimation() != sprites.MECH_ANIMATE_SHUTDOWN || poweringOn) {
 

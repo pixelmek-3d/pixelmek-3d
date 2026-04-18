@@ -43,9 +43,10 @@ const (
 type UnitPowerStatus int
 
 const (
-	POWER_ON         UnitPowerStatus = 1
-	POWER_OFF_MANUAL UnitPowerStatus = 0
-	POWER_OFF_HEAT   UnitPowerStatus = -1
+	POWER_ON             UnitPowerStatus = 1
+	POWER_ON_IN_PROGRESS UnitPowerStatus = 2
+	POWER_OFF_MANUAL     UnitPowerStatus = 0
+	POWER_OFF_HEAT       UnitPowerStatus = -1
 )
 
 // UnitPowerConditions defines optional conditions for when unit powers on instead of mission start
