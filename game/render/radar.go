@@ -147,9 +147,11 @@ func (r *Radar) SetRadarBlips(blips []*RadarBlip) {
 }
 
 func (r *Radar) AddRadarPing(ping *RadarPing) {
-	// make sure the entity doesn't already have an active ping
-	for _, rPing := range r.radarPings {
-		if ping.Entity == rPing.Entity {
+	// if the entity already has an active ping, just update its location
+	for _, p := range r.radarPings {
+		if ping.Entity == p.Entity {
+			p.Angle = ping.Angle
+			p.Distance = ping.Distance
 			return
 		}
 	}
