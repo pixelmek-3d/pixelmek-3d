@@ -192,8 +192,6 @@ func (g *Game) openMenu() {
 	switch {
 	case gameMenu != nil:
 		g.Pause()
-		g.mouseMode = MouseModeCursor
-		ebiten.SetCursorMode(ebiten.CursorModeVisible)
 		if gameMenu.root == nil {
 			gameMenu.initMenu()
 		} else {
@@ -209,11 +207,9 @@ func (g *Game) closeMenu() {
 
 	switch {
 	case gameMenu != nil:
-		g.mouseMode = MouseModeTurret
 		g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 		gameMenu.active = false
 		gameMenu.closing = true
-		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
 		g.Resume()
 	case settingsMenu != nil:
 		menuScene, ok := g.scene.(*MainMenuScene)

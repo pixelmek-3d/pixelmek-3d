@@ -232,11 +232,15 @@ func (g *Game) Run() {
 
 func (g *Game) Pause() {
 	g.paused = true
+
 	if g.mission != nil {
 		g.mission.TimerPause()
 	}
 	g.audio.PauseMusic()
 	g.audio.PauseSFX()
+
+	g.mouseMode = MouseModeTurret
+	ebiten.SetCursorMode(ebiten.CursorModeVisible)
 }
 
 func (g *Game) Resume() {
@@ -245,6 +249,10 @@ func (g *Game) Resume() {
 	if g.mission != nil {
 		g.mission.TimerStart()
 	}
+
+	g.mouseMode = MouseModeCursor
+	ebiten.SetCursorMode(ebiten.CursorModeCaptured)
+
 	g.paused = false
 }
 

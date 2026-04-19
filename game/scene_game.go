@@ -55,16 +55,13 @@ func NewGameScene(g *Game) Scene {
 }
 
 func (g *Game) LeaveGame() {
-	g.paused = true
 	if gs, ok := g.scene.(*GameScene); ok && gs.benchmark != nil {
 		// close benchmark
 		gs.benchmark.Close()
 		gs.benchmark = nil
 	}
 
-	// stop mission music and sfx audio
-	g.audio.StopSFX()
-	g.audio.StopMusic()
+	g.Pause()
 
 	// go to mission debrief
 	g.scene = NewMissionDebriefScene(g)
