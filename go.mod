@@ -6,6 +6,7 @@ require (
 	github.com/adrianbrad/queue v1.3.0
 	github.com/ebitenui/ebitenui v0.7.2
 	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-youtils/stopwatch v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.9.8
 	github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482
@@ -21,7 +22,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/tinne26/etxt v0.0.9
 	github.com/wk8/go-ordered-map/v2 v2.1.8
-	golang.org/x/image v0.31.0
+	golang.org/x/image v0.38.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -39,7 +40,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-text/typesetting v0.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
-	github.com/go-youtils/stopwatch v1.0.0 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
