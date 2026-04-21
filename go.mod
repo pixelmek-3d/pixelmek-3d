@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/adrianbrad/queue v1.3.0
-	github.com/ebitenui/ebitenui v0.7.2
+	github.com/ebitenui/ebitenui v0.7.3
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/go-youtils/stopwatch v1.0.0
 	github.com/google/uuid v1.6.0
