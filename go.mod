@@ -26,6 +26,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
+replace github.com/ebitenui/ebitenui v0.7.3 => github.com/harbdog/ebitenui v0.0.0-20260421014439-dc13bafd1980
+
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.2 // indirect
