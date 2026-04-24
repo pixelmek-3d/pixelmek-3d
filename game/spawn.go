@@ -17,10 +17,10 @@ func randEnemySpawnLocation(g *Game) geom.Vector2 {
 	w, h := missionMap.Size()
 
 	x, y := int(g.player.Pos().X), int(g.player.Pos().Y)
-	rX, rY := rng.RandRelativeLocation(x, y, 20, 40, w, h)
+	rX, rY := rng.RandRelativeLocation(x, y, 20, 40, w-1, h-1)
 	for missionMap.IsWallAt(0, rX, rY) {
 		// location is in a wall, re-roll
-		rX, rY = rng.RandRelativeLocation(x, y, 20, 40, w, h)
+		rX, rY = rng.RandRelativeLocation(x, y, 20, 40, w-1, h-1)
 	}
 	return geom.Vector2{X: float64(rX) + 0.5, Y: float64(rY) + 0.5}
 }
