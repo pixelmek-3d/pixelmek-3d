@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/adrianbrad/queue v1.3.0
-	github.com/ebitenui/ebitenui v0.7.3
+	github.com/ebitenui/ebitenui v0.7.4-0.20260422022054-a4004b71b179
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/go-youtils/stopwatch v1.0.0
 	github.com/google/uuid v1.6.0
@@ -25,8 +25,6 @@ require (
 	golang.org/x/image v0.38.0
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-replace github.com/ebitenui/ebitenui v0.7.3 => github.com/harbdog/ebitenui v0.0.0-20260421014439-dc13bafd1980
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
