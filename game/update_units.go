@@ -8,13 +8,6 @@ import (
 )
 
 func (g *Game) updateUnitPosition(u model.Unit) {
-	if u.Powered() != model.POWER_ON {
-		u.SetVelocity(0)
-		u.SetVelocityZ(0)
-		u.Update()
-		return
-	}
-
 	if u.Update() {
 		position, posZ := u.Pos(), u.PosZ()
 		velocity, velocityZ := u.Velocity(), u.VelocityZ()
