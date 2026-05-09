@@ -825,7 +825,6 @@ func (g *Game) handleInput() {
 				}
 			}
 		}
-		// TODO: infantry jump (or jump jet infantry)
 
 	} else if g.player.JumpJetsActive() {
 		// reset jump jet active status
@@ -873,17 +872,35 @@ func (g *Game) handleInput() {
 	}
 
 	switch {
-	case g.player.JumpJetsActive() && (forward || backward):
-		if forward {
-			// set forward directional jump jet heading
+	case g.input.ActionIsPressed(ActionJumpJet) && (forward || backward || rotLeft || rotRight):
+		if g.player.JumpJetsActive() {
 			g.player.SetJumpJetsDirectional(true)
-			g.player.SetJumpJetHeading(g.player.cameraAngle)
-		} else if backward {
-			// set reverse directional jump jet heading
-			g.player.SetJumpJetsDirectional(true)
-			g.player.SetJumpJetHeading(model.ClampAngle2Pi(g.player.cameraAngle - geom.Pi))
-
+			jumpJetHeading := g.player.cameraAngle
+			if backward {
+				// set reverse directional jump jet heading
+				jumpJetHeading -= geom.Pi
+			}
+			switch {
+			case rotLeft:
+				// set left directional jump jet heading
+				leftHeading := geom.HalfPi
+				if backward {
+					leftHeading = -leftHeading
+				}
+				jumpJetHeading += leftHeading
+			case rotRight:
+				// set right directional jump jet heading
+				rightHeading := -geom.HalfPi
+				if backward {
+					rightHeading = -rightHeading
+				}
+				jumpJetHeading += rightHeading
+			}
+			g.player.SetJumpJetHeading(model.ClampAngle2Pi(jumpJetHeading))
 		}
+
+		// disable directional input from further processing outside directional jump jet handling
+		forward, backward, rotLeft, rotRight = false, false, false, false
 
 	case g.throttleDecay:
 		if forward {
