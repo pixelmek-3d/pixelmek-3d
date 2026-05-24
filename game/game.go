@@ -328,7 +328,7 @@ func (g *Game) uiRect() image.Rectangle {
 // }
 
 func (g *Game) InProgress() bool {
-	return g.objectives.Status() == OBJECTIVES_IN_PROGRESS
+	return g.objectives != nil && g.objectives.Status() == OBJECTIVES_IN_PROGRESS
 }
 
 func (g *Game) updateObjectives() {
@@ -447,8 +447,6 @@ func (g *Game) updatePlayer() {
 	}
 
 	if g.player.strideStomp && !g.player.JumpJetsActive() {
-		// FIXME: stomp sounds are no longer playing?
-
 		// make stompy sound
 		switch g.player.strideStompDir {
 		case StrideStompLeft:

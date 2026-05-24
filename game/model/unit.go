@@ -126,6 +126,7 @@ type Unit interface {
 	JumpJetVelocity() float64
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
+	SetMaxJumpJetDuration(float64)
 
 	GuardArea() *geom.Circle
 	SetGuardArea(x, y, radius float64)
@@ -653,6 +654,10 @@ func (e *UnitModel) JumpJetDuration() float64 {
 
 func (e *UnitModel) MaxJumpJetDuration() float64 {
 	return e.maxJumpJetDuration
+}
+
+func (e *UnitModel) SetMaxJumpJetDuration(duration float64) {
+	e.maxJumpJetDuration = duration
 }
 
 func (e *UnitModel) GuardArea() *geom.Circle {
