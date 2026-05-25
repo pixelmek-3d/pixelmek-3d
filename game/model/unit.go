@@ -189,7 +189,7 @@ type UnitModel struct {
 	jumpJetsActive      bool
 	jumpJetsDirectional bool
 	jumpJetHeading      float64
-	jumpJetVelocity     float64
+	jumpJetVector       *geom3d.Line3d
 	jumpJetDelay        float64
 	jumpJetDuration     float64
 	maxJumpJetDuration  float64
@@ -645,7 +645,10 @@ func (e *UnitModel) SetJumpJetHeading(heading float64) {
 }
 
 func (e *UnitModel) JumpJetVelocity() float64 {
-	return e.jumpJetVelocity
+	if e.jumpJetVector == nil {
+		return 0
+	}
+	return Line3dDistanceXY(e.jumpJetVector)
 }
 
 func (e *UnitModel) JumpJetDuration() float64 {

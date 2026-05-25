@@ -25,7 +25,7 @@ const (
 	MECH_TURN_RATE_FACTOR   float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
 	MECH_TURRET_RATE_FACTOR float64 = 1.5 * MECH_TURN_RATE_FACTOR
 
-	MECH_JUMP_JET_BOOST_PER_JET     float64 = 10.0 / METERS_PER_UNIT / TICKS_PER_SECOND
+	MECH_JUMP_JET_ACCEL_PER_JET     float64 = 4.0 / METERS_PER_UNIT / TICKS_PER_SECOND / TICKS_PER_SECOND
 	MECH_JUMP_JET_DELAY_SECONDS     float64 = 5.0
 	MECH_JUMP_JET_RECHARGE_SECONDS  float64 = 5.0
 	MECH_JUMP_JET_DIRECTIONAL_ANGLE float64 = geom.Pi / 8
@@ -58,7 +58,7 @@ func NewMech(r *ModelMechResource) *Mech {
 			maxTurnRate:        MECH_TURN_RATE_FACTOR + (100 / r.Tonnage * MECH_TURN_RATE_FACTOR),
 			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),
 			jumpJets:           r.JumpJets,
-			maxJumpJetDuration: 1.0,
+			maxJumpJetDuration: 2.5,
 			powered:            POWER_ON,
 		},
 	}
@@ -192,18 +192,24 @@ func (e *Mech) Update() bool {
 		// consume jump jet charge
 		e.jumpJetDuration += SECONDS_PER_TICK
 		if e.jumpJetDuration < e.maxJumpJetDuration {
+			jAcceleration := MECH_JUMP_JET_ACCEL_PER_JET * float64(e.jumpJets)
 			if e.jumpJetsDirectional {
-				// adjust jjVelocity/jjVelocityZ amount using directional jet angle
-				dVelocity := MECH_JUMP_JET_BOOST_PER_JET * float64(e.jumpJets)
-				dLine3d := geom3d.Line3dFromAngle(0, 0, 0, e.jumpJetHeading, MECH_JUMP_JET_DIRECTIONAL_ANGLE, dVelocity)
-				dLine2d := geom.Line{X1: dLine3d.X1, Y1: dLine3d.Y1, X2: dLine3d.X2, Y2: dLine3d.Y2}
-
-				e.jumpJetVelocity = e.velocity + dLine2d.Distance()
-				e.SetTargetVelocityZ(dLine3d.Z2)
+				// adjust jump jet vector amount using directional jet angle
+				jLine3d := geom3d.Line3dFromAngle(0, 0, 0, e.jumpJetHeading, MECH_JUMP_JET_DIRECTIONAL_ANGLE, jAcceleration)
+				if e.jumpJetVector == nil {
+					e.jumpJetVector = &jLine3d
+				} else {
+					e.jumpJetVector = Line3dAddVector3(e.jumpJetVector, &geom3d.Vector3{X: jLine3d.X2, Y: jLine3d.Y2, Z: jLine3d.Z2})
+				}
+				e.SetTargetVelocityZ(e.jumpJetVector.Z2)
 			} else {
-				// jump jets non-directional, jet straight up with current ground velocity
-				e.jumpJetVelocity = e.velocity
-				e.SetTargetVelocityZ(MECH_JUMP_JET_BOOST_PER_JET * float64(e.jumpJets))
+				// jump jets non-directional, jet straight up
+				if e.jumpJetVector == nil {
+					e.jumpJetVector = &geom3d.Line3d{X1: 0, Y1: 0, Z1: 0, X2: 0, Y2: 0, Z2: jAcceleration}
+				} else {
+					e.jumpJetVector = Line3dAddVector3(e.jumpJetVector, &geom3d.Vector3{X: 0, Y: 0, Z: jAcceleration})
+				}
+				e.SetTargetVelocityZ(e.jumpJetVector.Z2)
 			}
 		} else {
 			e.jumpJetDuration = e.maxJumpJetDuration
@@ -213,26 +219,27 @@ func (e *Mech) Update() bool {
 		// set jump jet recharge delay that will count down after back on solid ground
 		e.jumpJetDelay = MECH_JUMP_JET_DELAY_SECONDS
 	} else {
+		jVelocity := Line3dDistanceXY(e.jumpJetVector)
 		if e.positionZ > 0 {
-			if e.jumpJetVelocity != 0 {
+			if jVelocity != 0 {
 				// reduce jump jet velocity in air while jets inactive
 				// for simplicity, using gravity and unit tonnage as factor of resistance
 				deltaV := 0.5 * GRAVITY_UNITS_PTT * (e.Tonnage() / 100)
-				if e.jumpJetVelocity > 0 {
+				if jVelocity > 0 {
 					deltaV = -deltaV
 				}
 
-				zeroV := math.Abs(deltaV) > math.Abs(e.jumpJetVelocity)
+				zeroV := math.Abs(deltaV) > math.Abs(jVelocity)
 				if zeroV {
-					e.jumpJetVelocity = 0
+					jVelocity = 0
 				} else {
-					e.jumpJetVelocity += deltaV
+					jVelocity += deltaV
 				}
 			}
-		} else if e.jumpJetVelocity > 0 {
+		} else if jVelocity > 0 {
 			// reset velocity and jump jet velocity when back on solid ground
-			e.velocity = e.jumpJetVelocity
-			e.jumpJetVelocity = 0
+			e.velocity = jVelocity
+			jVelocity = 0
 		} else if e.jumpJetDuration > 0 {
 			// recharge jump jets when back on solid ground after some delay
 			if e.jumpJetDelay > 0 {
@@ -246,6 +253,16 @@ func (e *Mech) Update() bool {
 					e.jumpJetDuration = 0
 				}
 			}
+		}
+
+		if jVelocity == 0 {
+			// no longer jumping, reset jump jet vector
+			e.jumpJetVector = nil
+		} else {
+			// update jump jet vector for XY-only velocity change
+			jLine2d := geom.LineFromAngle(e.jumpJetVector.X1, e.jumpJetVector.Y1, e.jumpJetVector.Heading(), jVelocity)
+			e.jumpJetVector.X2 = jLine2d.X2
+			e.jumpJetVector.Y2 = jLine2d.Y2
 		}
 	}
 

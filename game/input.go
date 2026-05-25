@@ -873,8 +873,8 @@ func (g *Game) handleInput() {
 
 	switch {
 	case g.input.ActionIsPressed(ActionJumpJet) && (forward || backward || rotLeft || rotRight):
+		// set jump jets as directional with desired heading
 		if g.player.JumpJetsActive() {
-			g.player.SetJumpJetsDirectional(true)
 			jumpJetHeading := g.player.cameraAngle
 			if backward {
 				// set reverse directional jump jet heading
@@ -896,6 +896,7 @@ func (g *Game) handleInput() {
 				}
 				jumpJetHeading += rightHeading
 			}
+			g.player.SetJumpJetsDirectional(true)
 			g.player.SetJumpJetHeading(model.ClampAngle2Pi(jumpJetHeading))
 		}
 
