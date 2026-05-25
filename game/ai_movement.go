@@ -142,7 +142,11 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 				nextPos, _ := a.updateCurrentPathing()
 				if nextPos != nil {
 					targetHeading := a.pathingHeading(&geom.Vector2{X: nextPos.X, Y: nextPos.Y}, target.PosZ())
-					a.u.SetTargetHeading(targetHeading)
+					if a.u.JumpJets() > 0 && (a.u.JumpJetsActive() || a.u.PosZ() > 0) {
+						a.u.SetJumpJetHeading(targetHeading)
+					} else {
+						a.u.SetTargetHeading(targetHeading)
+					}
 					return bt.Success, nil
 				}
 			}
@@ -184,8 +188,15 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 		a.updatePathingToPosition(tPos, 10)
 		targetHeading := a.pathingHeading(tPos, target.PosZ())
 
-		// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
-		a.u.SetTargetHeading(targetHeading)
+		if a.u.JumpJets() > 0 && a.u.JumpJetDuration() == 0 {
+			// log.Debugf("[%s] %0.1f -> jumpToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
+			a.u.SetJumpJetsActive(true)
+			a.u.SetJumpJetsDirectional(true)
+			a.u.SetJumpJetHeading(targetHeading)
+		} else {
+			// log.Debugf("[%s] %0.1f -> turnToTarget @ %s", a.u.ID(), geom.Degrees(targetHeading), target.ID())
+			a.u.SetTargetHeading(targetHeading)
+		}
 		return bt.Success, nil
 	}
 }
