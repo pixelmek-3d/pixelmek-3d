@@ -239,7 +239,7 @@ func (e *Mech) Update() bool {
 					jVelocity += deltaV
 				}
 			}
-		} else if jVelocity > 0 {
+		} else if e.jumpJetVector != nil {
 			// back on solid ground, set land velocity based on jump jet directional force and clear jump jet vector
 			jHeading := e.jumpJetVector.Heading()
 			e.velocity = jVelocity * math.Cos(ClampAngle(jHeading-e.heading))

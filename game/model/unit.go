@@ -124,6 +124,7 @@ type Unit interface {
 	JumpJetHeading() float64
 	SetJumpJetHeading(float64)
 	JumpJetVelocity() float64
+	JumpJetVelocityZ() float64
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
 	SetMaxJumpJetDuration(float64)
@@ -649,6 +650,13 @@ func (e *UnitModel) JumpJetVelocity() float64 {
 		return 0
 	}
 	return Line3dDistanceXY(e.jumpJetVector)
+}
+
+func (e *UnitModel) JumpJetVelocityZ() float64 {
+	if e.jumpJetVector == nil {
+		return 0
+	}
+	return Line3dDistanceZ(e.jumpJetVector)
 }
 
 func (e *UnitModel) JumpJetDuration() float64 {
