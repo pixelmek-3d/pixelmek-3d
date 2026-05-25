@@ -25,7 +25,8 @@ const (
 	MECH_TURN_RATE_FACTOR   float64 = (0.25 * geom.Pi) / TICKS_PER_SECOND
 	MECH_TURRET_RATE_FACTOR float64 = 1.5 * MECH_TURN_RATE_FACTOR
 
-	MECH_JUMP_JET_ACCEL_PER_JET     float64 = 4.0 / METERS_PER_UNIT / TICKS_PER_SECOND / TICKS_PER_SECOND
+	MECH_JUMP_JET_DURATION_SECONDS  float64 = 2.0
+	MECH_JUMP_JET_ACCEL_PER_JET     float64 = 5.0 / METERS_PER_UNIT / TICKS_PER_SECOND / TICKS_PER_SECOND
 	MECH_JUMP_JET_DELAY_SECONDS     float64 = 5.0
 	MECH_JUMP_JET_RECHARGE_SECONDS  float64 = 5.0
 	MECH_JUMP_JET_DIRECTIONAL_ANGLE float64 = geom.Pi / 8
@@ -58,7 +59,7 @@ func NewMech(r *ModelMechResource) *Mech {
 			maxTurnRate:        MECH_TURN_RATE_FACTOR + (100 / r.Tonnage * MECH_TURN_RATE_FACTOR),
 			maxTurretRate:      MECH_TURRET_RATE_FACTOR + (100 / r.Tonnage * MECH_TURRET_RATE_FACTOR),
 			jumpJets:           r.JumpJets,
-			maxJumpJetDuration: 2.5,
+			maxJumpJetDuration: MECH_JUMP_JET_DURATION_SECONDS,
 			powered:            POWER_ON,
 		},
 	}
