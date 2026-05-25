@@ -240,9 +240,11 @@ func (e *Mech) Update() bool {
 				}
 			}
 		} else if jVelocity > 0 {
-			// reset velocity and jump jet velocity when back on solid ground
-			e.velocity = jVelocity
+			// back on solid ground, set land velocity based on jump jet directional force and clear jump jet vector
+			jHeading := e.jumpJetVector.Heading()
+			e.velocity = jVelocity * math.Cos(ClampAngle(jHeading-e.heading))
 			jVelocity = 0
+			e.jumpJetVector = nil
 		} else if e.jumpJetDuration > 0 {
 			// recharge jump jets when back on solid ground after some delay
 			if e.jumpJetDelay > 0 {
@@ -258,10 +260,7 @@ func (e *Mech) Update() bool {
 			}
 		}
 
-		if jVelocity == 0 {
-			// no longer jumping, reset jump jet vector
-			e.jumpJetVector = nil
-		} else {
+		if e.jumpJetVector != nil {
 			// update jump jet vector for XY-only velocity change
 			jLine2d := geom.LineFromAngle(e.jumpJetVector.X1, e.jumpJetVector.Y1, e.jumpJetVector.Heading(), jVelocity)
 			e.jumpJetVector.X2 = jLine2d.X2
