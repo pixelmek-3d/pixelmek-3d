@@ -5,6 +5,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/fonts"
 	"github.com/tinne26/etxt"
 )
@@ -75,7 +76,8 @@ func (t *Throttle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	}
 	vColor.A = hudOpts.Color.A
 
-	var velocityRatio float32 = float32(t.velocity / (t.maxVelocity + t.maxReverse))
+	totalVelocityArea := t.maxVelocity + t.maxReverse
+	var velocityRatio float32 = float32(geom.Clamp(t.velocity/totalVelocityArea, -t.maxReverse/totalVelocityArea, 1.5*t.maxVelocity/totalVelocityArea))
 	vW, vH := float32(bW)/6, -velocityRatio*float32(bH)
 	vector.FillRect(screen, float32(bX)+maxX-vW, float32(bY)+zeroY, vW, vH, vColor, false)
 
