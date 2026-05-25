@@ -198,18 +198,20 @@ func (e *Mech) Update() bool {
 				// adjust jump jet vector amount using directional jet angle
 				jLine3d := geom3d.Line3dFromAngle(0, 0, 0, e.jumpJetHeading, MECH_JUMP_JET_DIRECTIONAL_ANGLE, jAcceleration)
 				if e.jumpJetVector == nil {
-					e.jumpJetVector = &jLine3d
-				} else {
-					e.jumpJetVector = Line3dAddVector3(e.jumpJetVector, &geom3d.Vector3{X: jLine3d.X2, Y: jLine3d.Y2, Z: jLine3d.Z2})
+					// initialize jump vector based on current ground velocity and heading
+					vLine3d := geom3d.Line3dFromBaseAngle(0, 0, 0, e.heading, 0, e.velocity)
+					e.jumpJetVector = &vLine3d
 				}
+				e.jumpJetVector = Line3dAddVector3(e.jumpJetVector, &geom3d.Vector3{X: jLine3d.X2, Y: jLine3d.Y2, Z: jLine3d.Z2})
 				e.SetTargetVelocityZ(e.jumpJetVector.Z2)
 			} else {
 				// jump jets non-directional, jet straight up
 				if e.jumpJetVector == nil {
-					e.jumpJetVector = &geom3d.Line3d{X1: 0, Y1: 0, Z1: 0, X2: 0, Y2: 0, Z2: jAcceleration}
-				} else {
-					e.jumpJetVector = Line3dAddVector3(e.jumpJetVector, &geom3d.Vector3{X: 0, Y: 0, Z: jAcceleration})
+					// initialize jump vector based on current ground velocity and heading
+					vLine3d := geom3d.Line3dFromBaseAngle(0, 0, 0, e.heading, 0, e.velocity)
+					e.jumpJetVector = &vLine3d
 				}
+				e.jumpJetVector = Line3dAddVector3(e.jumpJetVector, &geom3d.Vector3{X: 0, Y: 0, Z: jAcceleration})
 				e.SetTargetVelocityZ(e.jumpJetVector.Z2)
 			}
 		} else {
