@@ -486,8 +486,10 @@ func (g *Game) updatePlayer() {
 				midW+crosshairLockSize/2, midH+crosshairLockSize/2,
 			)
 			targetBounds := s.ScreenRect(g.renderScale)
+			targetLeadBounds := g.player.reticleLead.Sprite.ScreenRect(g.renderScale)
 			if targetBounds != nil {
-				acquireLock = targetBounds.Overlaps(crosshairBounds)
+				acquireLock = targetBounds.Overlaps(crosshairBounds) ||
+					(targetLeadBounds != nil && targetLeadBounds.Overlaps(crosshairBounds))
 			}
 
 			targetDistance := model.EntityDistance(g.player, target) - g.player.CollisionRadius() - target.CollisionRadius()
@@ -578,12 +580,8 @@ func (g *Game) spriteInCrosshairs() *sprites.Sprite {
 		if g.player.reticleLead != nil {
 			s := g.player.reticleLead.Sprite
 			sBounds := s.ScreenRect(g.renderScale)
-			if sBounds != nil {
-				intersectRect := crosshairRect.Intersect(*sBounds)
-				intersectArea := intersectRect.Dx() * intersectRect.Dy()
-				if intersectArea > 0 {
-					return s
-				}
+			if sBounds != nil && sBounds.Overlaps(crosshairRect) {
+				return s
 			}
 		}
 
