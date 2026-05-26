@@ -574,6 +574,19 @@ func (g *Game) spriteInCrosshairs() *sprites.Sprite {
 		crosshairRect := crosshairs.Rect().Add(
 			image.Point{X: (g.screenWidth / 2) - (crosshairs.Width() / 2), Y: (g.screenHeight / 2) - (crosshairs.Height() / 2)})
 
+		// first, check player lead reticle sprite for crosshair intersection
+		if g.player.reticleLead != nil {
+			s := g.player.reticleLead.Sprite
+			sBounds := s.ScreenRect(g.renderScale)
+			if sBounds != nil {
+				intersectRect := crosshairRect.Intersect(*sBounds)
+				intersectArea := intersectRect.Dx() * intersectRect.Dy()
+				if intersectArea > 0 {
+					return s
+				}
+			}
+		}
+
 		var cSpriteArea int
 		for _, spriteType := range g.sprites.SpriteTypes() {
 			g.sprites.RangeByType(spriteType, func(k, _ any) bool {
