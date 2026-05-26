@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/ebitenui/ebitenui/widget"
 )
@@ -11,12 +12,27 @@ func debugOptionsPage(m Menu) *settingsPage {
 	res := m.Resources()
 	game := m.Game()
 
-	// raycaster lighting options for debug mode only
+	// options for debug mode only
 	debugLabel := widget.NewLabel(widget.LabelOpts.Text("~Debug Mode Only", res.label.face, res.label.text))
 	c.AddChild(debugLabel)
 	c.AddChild(newSeparator(m, widget.RowLayoutData{
 		Stretch: true,
 	}))
+
+	if game.InProgress() && game.player != nil && game.player.JumpJets() > 0 {
+		// Button to grant current player unit "unlimited" jump jet duration
+		var unlimitedJetsButton *widget.Button
+		unlimitedJetsButton = widget.NewButton(
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.Text("Unlimited Jump Jets", res.button.face, res.button.text),
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				game.player.SetMaxJumpJetDuration(math.MaxFloat64)
+				unlimitedJetsButton.GetWidget().Disabled = true
+			}),
+		)
+		c.AddChild(unlimitedJetsButton)
+	}
 
 	// AI ignore player checkbox
 	ignorePlayerCheckbox := newCheckbox(m, "AI Ignore Player", game.aiIgnorePlayer, func(args *widget.CheckboxChangedEventArgs) {

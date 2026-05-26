@@ -151,6 +151,36 @@ func IsBetweenRadians(start, end, mid float64) bool {
 	return mid < end
 }
 
+// Line3dAddVector3 adds the given 3-dimensional vector to the destination of the 3-dimensional line
+func Line3dAddVector3(line3d *geom3d.Line3d, v3 *geom3d.Vector3) *geom3d.Line3d {
+	if line3d == nil || v3 == nil {
+		return line3d
+	}
+	destVect := &geom3d.Vector3{X: line3d.X2, Y: line3d.Y2, Z: line3d.Z2}
+	destVect.Add(v3)
+
+	line3d.X2 = destVect.X
+	line3d.Y2 = destVect.Y
+	line3d.Z2 = destVect.Z
+	return line3d
+}
+
+// Line3dDistanceXY returns just the XY distance of a 3-dimensional line
+func Line3dDistanceXY(line3d *geom3d.Line3d) float64 {
+	if line3d == nil {
+		return 0
+	}
+	return (&geom.Line{X1: line3d.X1, Y1: line3d.Y1, X2: line3d.X2, Y2: line3d.Y2}).Distance()
+}
+
+// Line3dDistanceZ returns just the Z distance of a 3-dimensional line
+func Line3dDistanceZ(line3d *geom3d.Line3d) float64 {
+	if line3d == nil {
+		return 0
+	}
+	return line3d.Z2 - line3d.Z1
+}
+
 // ConvergencePoint returns the convergence point from current unit angle/pitch to unit target
 // Returns nil if unit does not have a target.
 func ConvergencePoint(u Unit, t Entity) *geom3d.Vector3 {

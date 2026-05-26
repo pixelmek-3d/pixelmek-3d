@@ -124,8 +124,10 @@ type Unit interface {
 	JumpJetHeading() float64
 	SetJumpJetHeading(float64)
 	JumpJetVelocity() float64
+	JumpJetVelocityZ() float64
 	JumpJetDuration() float64
 	MaxJumpJetDuration() float64
+	SetMaxJumpJetDuration(float64)
 
 	GuardArea() *geom.Circle
 	SetGuardArea(x, y, radius float64)
@@ -188,7 +190,7 @@ type UnitModel struct {
 	jumpJetsActive      bool
 	jumpJetsDirectional bool
 	jumpJetHeading      float64
-	jumpJetVelocity     float64
+	jumpJetVector       *geom3d.Line3d
 	jumpJetDelay        float64
 	jumpJetDuration     float64
 	maxJumpJetDuration  float64
@@ -644,7 +646,17 @@ func (e *UnitModel) SetJumpJetHeading(heading float64) {
 }
 
 func (e *UnitModel) JumpJetVelocity() float64 {
-	return e.jumpJetVelocity
+	if e.jumpJetVector == nil {
+		return 0
+	}
+	return Line3dDistanceXY(e.jumpJetVector)
+}
+
+func (e *UnitModel) JumpJetVelocityZ() float64 {
+	if e.jumpJetVector == nil {
+		return 0
+	}
+	return Line3dDistanceZ(e.jumpJetVector)
 }
 
 func (e *UnitModel) JumpJetDuration() float64 {
@@ -653,6 +665,10 @@ func (e *UnitModel) JumpJetDuration() float64 {
 
 func (e *UnitModel) MaxJumpJetDuration() float64 {
 	return e.maxJumpJetDuration
+}
+
+func (e *UnitModel) SetMaxJumpJetDuration(duration float64) {
+	e.maxJumpJetDuration = duration
 }
 
 func (e *UnitModel) GuardArea() *geom.Circle {

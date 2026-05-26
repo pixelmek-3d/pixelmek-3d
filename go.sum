@@ -16,6 +16,8 @@ github.com/ebitengine/oto/v3 v3.4.0 h1:br0PgASsEWaoWn38b2Goe7m1GKFYfNgnsjSd5Gg+/
 github.com/ebitengine/oto/v3 v3.4.0/go.mod h1:IOleLVD0m+CMak3mRVwsYY8vTctQgOM0iiL6S7Ar7eI=
 github.com/ebitengine/purego v0.9.0 h1:mh0zpKBIXDceC63hpvPuGLiJ8ZAa3DfrFTudmfi8A4k=
 github.com/ebitengine/purego v0.9.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
+github.com/ebitenui/ebitenui v0.7.4-0.20260422022054-a4004b71b179 h1:YiHtaIxTmOJqk02d5ncH+3NUCo3lM3poySYneULdZgI=
+github.com/ebitenui/ebitenui v0.7.4-0.20260422022054-a4004b71b179/go.mod h1:QiJoDflkWoBv4V/LKErS3cgzTZHrXDQyqajef7IA8vM=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
 github.com/frankban/quicktest v1.14.6/go.mod h1:4ptaffx2x8+WTWXmUCuVU6aPUX1/Mz7zb5vbUoiM6w0=
 github.com/frustra/bbcode v0.0.0-20201127003707-6ef347fbe1c8 h1:sdIsYe6Vv7KIWZWp8KqSeTl+XlF17d+wHCC4lbxFcYs=
@@ -53,8 +55,6 @@ github.com/hajimehoshi/ebiten/v2 v2.9.8/go.mod h1:DAt4tnkYYpCvu3x9i1X/nK/vOruNXI
 github.com/hajimehoshi/go-mp3 v0.3.4 h1:NUP7pBYH8OguP4diaTZ9wJbUbk3tC0KlfzsEpWmYj68=
 github.com/hajimehoshi/go-mp3 v0.3.4/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRSVop0eemFmo=
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
-github.com/harbdog/ebitenui v0.0.0-20260421014439-dc13bafd1980 h1:hEoInyUlqRPF6RXLudSfPFjuDCkJjWMsreyz/zo+9bE=
-github.com/harbdog/ebitenui v0.0.0-20260421014439-dc13bafd1980/go.mod h1:QiJoDflkWoBv4V/LKErS3cgzTZHrXDQyqajef7IA8vM=
 github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482 h1:lBhe6Ofq8B6sPx7R7XUKXNkHBZRWOBIaL5wWZ06++wk=
 github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482/go.mod h1:hc+X8igKbuo0/eTFMPLnU4HKkQBrkhjdY7NHyhwSeug=
 github.com/harbdog/raycaster-go v1.12.0 h1:Vb9wR2h6EmI4Qf+AwRwbGIGZukgSrYj/V6NEeI+hoco=

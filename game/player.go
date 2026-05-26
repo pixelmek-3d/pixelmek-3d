@@ -364,6 +364,8 @@ func (p *Player) Update() bool {
 		p.SetTargetPitch(p.cameraPitch)
 	}
 
+	posZ := p.PosZ()
+
 	// camera bobbing from mech movement
 	switch p.Unit.(type) {
 	case *model.Mech:
@@ -375,7 +377,7 @@ func (p *Player) Update() bool {
 
 		// TODO: handle stride effects from gravity != 1.0
 
-		if p.PosZ() > 0 {
+		if posZ > 0 {
 			if p.JumpJetsActive() {
 				// jump jets on, settle view down to 0
 				p.strideDir = StrideDown
@@ -408,13 +410,13 @@ func (p *Player) Update() bool {
 		// cap stride height effect on camera
 		if p.strideZ > maxStrideHeight {
 			p.strideZ = maxStrideHeight
-			if p.PosZ() == 0 {
+			if posZ == 0 {
 				p.strideDir = StrideDown
 			}
 		}
-		if p.strideZ < 0 {
+		if p.strideZ < 0 && posZ == 0 {
 			p.strideZ = 0
-			if p.PosZ() == 0 && velocity != 0 {
+			if velocity != 0 {
 				p.strideDir = StrideUp
 			}
 
@@ -422,15 +424,33 @@ func (p *Player) Update() bool {
 			p.strideStomp = true
 			if p.strideStompDir < 0 {
 				// stomp the right foot
-				p.strideStompDir = 1
+				p.strideStompDir = StrideStompRight
 			} else {
 				// stomp the left foot
-				p.strideStompDir = -1
+				p.strideStompDir = StrideStompLeft
 			}
-			// TODO: stomp both feet on jump jet landing
 		}
 
-		// TODO: stomp foot when coming to full stop
+		if posZ == 0 && velocity == 0 && p.strideZ != 0 {
+			// stomp foot when coming to full stop
+			p.strideZ = 0
+			p.strideDir = StrideDown
+			p.strideStomp = true
+			if p.strideStompDir < 0 {
+				// stomp the right foot
+				p.strideStompDir = StrideStompRight
+			} else {
+				// stomp the left foot
+				p.strideStompDir = StrideStompLeft
+			}
+		} else if posZ == 0 && p.JumpJetVelocityZ() > 0 {
+			// stomp both feet on jump jet landing
+			p.strideZ = 0
+			p.strideDir = StrideDown
+			p.strideStomp = true
+			p.strideStompDir = StrideStompBoth
+		}
+
 	}
 
 	// update reticle lead position to be raycasted for its projected screen location
