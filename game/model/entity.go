@@ -33,6 +33,7 @@ type Entity interface {
 	SetCollisionHeight(float64)
 
 	ApplyDamage(float64)
+	HasDamage() bool
 	ArmorPoints() float64
 	SetArmorPoints(float64)
 	MaxArmorPoints() float64
@@ -78,6 +79,7 @@ type BasicEntity struct {
 	collisionHeight         float64
 	armor, maxArmor         float64
 	structure, maxStructure float64
+	hasDamage               bool
 	team                    int
 	parent                  Entity
 }
@@ -195,6 +197,10 @@ func (e *BasicEntity) SetCollisionHeight(collisionHeight float64) {
 }
 
 func (e *BasicEntity) ApplyDamage(damage float64) {
+	if damage <= 0 {
+		return
+	}
+	e.hasDamage = true
 	if e.armor > 0 {
 		e.armor -= damage
 		if e.armor < 0 {
@@ -205,6 +211,13 @@ func (e *BasicEntity) ApplyDamage(damage float64) {
 	} else {
 		e.structure -= damage
 	}
+	if e.structure < 0 {
+		e.structure = 0
+	}
+}
+
+func (e *BasicEntity) HasDamage() bool {
+	return e.hasDamage
 }
 
 func (e *BasicEntity) ArmorPoints() float64 {

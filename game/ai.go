@@ -481,6 +481,10 @@ func (h *AIHandler) isUnitPowerConditionMet(u model.Unit) bool {
 	if h.g.mission == nil {
 		return false
 	}
+	// check if the unit has taken damage
+	if u.HasDamage() {
+		return true
+	}
 	if pConditions.MissionTimeElapsed > 0 {
 		// check if the mission timer has met the elapsed time condition
 		if int(h.g.mission.TimerSeconds()) >= pConditions.MissionTimeElapsed {

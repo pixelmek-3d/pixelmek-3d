@@ -142,7 +142,7 @@ func (a *AIBehavior) TurnToTarget() func([]bt.Node) (bt.Status, error) {
 				nextPos, _ := a.updateCurrentPathing()
 				if nextPos != nil {
 					targetHeading := a.pathingHeading(&geom.Vector2{X: nextPos.X, Y: nextPos.Y}, target.PosZ())
-					if a.u.JumpJets() > 0 && (a.u.JumpJetsActive() || a.u.PosZ() > 0) {
+					if a.u.JumpJets() > 0 && a.u.JumpJetsActive() {
 						a.u.SetJumpJetHeading(targetHeading)
 					} else {
 						a.u.SetTargetHeading(targetHeading)

@@ -229,6 +229,10 @@ func (e *Projectile) ApplyDamage(damage float64) {
 	// projectileHitPointsIgnored
 }
 
+func (e *Projectile) HasDamage() bool {
+	return false
+}
+
 func (e *Projectile) ArmorPoints() float64 {
 	return projectileHitPointsIgnored
 }

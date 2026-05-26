@@ -178,6 +178,7 @@ type UnitModel struct {
 	pxScale             float64
 	armor               float64
 	structure           float64
+	hasDamage           bool
 	heat                float64
 	heatDissipation     float64
 	heatSinks           int
@@ -578,6 +579,10 @@ func (e *UnitModel) PixelScale() float64 {
 }
 
 func (e *UnitModel) ApplyDamage(damage float64) {
+	if damage <= 0 {
+		return
+	}
+	e.hasDamage = true
 	if e.armor > 0 {
 		e.armor -= damage
 		if e.armor < 0 {
@@ -591,6 +596,10 @@ func (e *UnitModel) ApplyDamage(damage float64) {
 	if e.structure < 0 {
 		e.structure = 0
 	}
+}
+
+func (e *UnitModel) HasDamage() bool {
+	return e.hasDamage
 }
 
 func (e *UnitModel) ArmorPoints() float64 {
