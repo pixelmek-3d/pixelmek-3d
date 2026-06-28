@@ -490,6 +490,16 @@ func (g *Game) updatePlayer() {
 			if targetBounds != nil {
 				acquireLock = targetBounds.Overlaps(crosshairBounds) ||
 					(targetLeadBounds != nil && targetLeadBounds.Overlaps(crosshairBounds))
+
+				if !acquireLock && targetLeadBounds != nil {
+					// check if the crosshairs are on the line between the target and lead indicator
+					targetMidPoint := targetBounds.Min.Add(image.Point{X: targetBounds.Dx() / 2, Y: targetBounds.Dy() / 2})
+					targetLeadMidPoint := targetLeadBounds.Min.Add(image.Point{X: targetLeadBounds.Dx() / 2, Y: targetLeadBounds.Dy() / 2})
+					targetLeadLine := geom.Line{X1: float64(targetMidPoint.X), Y1: float64(targetMidPoint.Y), X2: float64(targetLeadMidPoint.X), Y2: float64(targetLeadMidPoint.Y)}
+
+					crossHairRect := model.NewRect(float64(crosshairBounds.Min.X), float64(crosshairBounds.Min.Y), float64(crosshairBounds.Max.X), float64(crosshairBounds.Max.Y))
+					acquireLock = crossHairRect.IntersectsLine(targetLeadLine)
+				}
 			}
 
 			targetDistance := model.EntityDistance(g.player, target) - g.player.CollisionRadius() - target.CollisionRadius()
