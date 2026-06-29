@@ -395,16 +395,9 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 		targetStatus.SetTargetLock(0)
 	} else {
 		// determine if lock percent should show
-		hasLockOns := false
-		for _, w := range hudOpts.HudUnit.Armament() {
-			missileWeapon, isMissile := w.(*model.MissileWeapon)
-			if isMissile && missileWeapon.IsLockOn() {
-				hasLockOns = true
-				break
-			}
-		}
+		hasLockOns := g.player.HasLockOnWeapon()
 		targetStatus.ShowTargetLock(hasLockOns)
-		targetStatus.SetTargetLock(hudOpts.HudUnit.TargetLock())
+		targetStatus.SetTargetLock(g.player.TargetLock())
 	}
 
 	// show different target reticle if target is friendly

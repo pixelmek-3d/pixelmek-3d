@@ -88,6 +88,7 @@ type Unit interface {
 	SetTarget(Entity)
 	TargetLock() float64
 	SetTargetLock(float64)
+	HasLockOnWeapon() bool
 
 	TurnRate() float64
 	TargetHeading() float64
@@ -197,6 +198,7 @@ type UnitModel struct {
 	maxJumpJetDuration  float64
 	target              Entity
 	targetLock          float64
+	hasLockOnWeapon     *bool
 	objective           UnitObjective
 	guardArea           *geom.Circle
 	guardUnit           string
@@ -391,6 +393,25 @@ func (e *UnitModel) TargetLock() float64 {
 
 func (e *UnitModel) SetTargetLock(lockPercent float64) {
 	e.targetLock = lockPercent
+}
+
+func (e *UnitModel) HasLockOnWeapon() bool {
+	if e.hasLockOnWeapon == nil {
+		if len(e.armament) == 0 {
+			return false
+		}
+		// initialize variable on first time called
+		var hasLockOns bool
+		for _, w := range e.armament {
+			missileWeapon, isMissile := w.(*MissileWeapon)
+			if isMissile && missileWeapon.IsLockOn() {
+				hasLockOns = true
+				break
+			}
+		}
+		e.hasLockOnWeapon = &hasLockOns
+	}
+	return *e.hasLockOnWeapon
 }
 
 func (e *UnitModel) HasTurret() bool {

@@ -242,22 +242,24 @@ func (a *AIBehavior) TurretToTarget() func([]bt.Node) (bt.Status, error) {
 		// set intended target lead position for weapons fire decision
 		a.gunnery.targetLeadPos = &geom.Vector2{X: pLine.X2, Y: pLine.Y2}
 
-		// TODO: if more distant, decrease angle/pitch check for target lock proximity
-		acquireLock := model.AngleDistance(currHeading, pHeading) <= 0.5 && model.AngleDistance(currPitch, pPitch) <= 0.5
+		if a.u.HasLockOnWeapon() {
+			// TODO: if more distant, decrease angle/pitch check for target lock proximity
+			acquireLock := model.AngleDistance(currHeading, pHeading) <= 0.5 && model.AngleDistance(currPitch, pPitch) <= 0.5
 
-		// TODO: decrease lock percent delta if further from target
-		lockDelta := 1.0 / model.TICKS_PER_SECOND
-		if !acquireLock {
-			lockDelta = -0.15 / model.TICKS_PER_SECOND
-		}
+			// TODO: decrease lock percent delta if further from target
+			lockDelta := 1.0 / model.TICKS_PER_SECOND
+			if !acquireLock {
+				lockDelta = -0.15 / model.TICKS_PER_SECOND
+			}
 
-		targetLock := a.u.TargetLock() + lockDelta
-		if targetLock > 1.0 {
-			targetLock = 1.0
-		} else if targetLock < 0 {
-			targetLock = 0
+			targetLock := a.u.TargetLock() + lockDelta
+			if targetLock > 1.0 {
+				targetLock = 1.0
+			} else if targetLock < 0 {
+				targetLock = 0
+			}
+			a.u.SetTargetLock(targetLock)
 		}
-		a.u.SetTargetLock(targetLock)
 
 		// TODO: need some temporary override of turning chassis to target when the turret
 		//       cannot reach it given current heading and turret angle restrictions
