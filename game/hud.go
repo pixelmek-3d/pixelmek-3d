@@ -401,15 +401,12 @@ func (g *Game) drawTargetStatus(hudOpts *render.DrawHudOptions) {
 	}
 
 	// show different target reticle if target is friendly
-	var targetReticle *render.TargetReticle
 	if targetUnit != nil && targetIsFriendly {
-		targetReticle = g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle)
+		targetStatus.SetTargetReticleSprite(g.GetHUDElement(HUD_FRIENDLY_RETICLE).(*render.TargetReticle).HUDSprite)
 	} else {
-		targetReticle = g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle)
+		targetStatus.SetTargetReticleSprite(g.GetHUDElement(HUD_TARGET_RETICLE).(*render.TargetReticle).HUDSprite)
 	}
-	targetReticle.ReticleLeadBounds = nil
 
-	targetStatus.SetTargetReticle(targetReticle)
 	targetStatus.SetUnit(targetUnit)
 	targetStatus.Draw(sBounds, hudOpts)
 }

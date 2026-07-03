@@ -48,6 +48,9 @@ func NewUnitStatus(isPlayer bool, font *fonts.Font) *UnitStatus {
 		unitDistance: -1,
 	}
 
+	u.targetReticle = NewTargetReticle(nil)
+	u.targetReticle.ShowLockOnIndicator = false
+
 	return u
 }
 
@@ -79,8 +82,8 @@ func (u *UnitStatus) SetTargetLock(lockPercent float64) {
 	u.targetLock = lockPercent
 }
 
-func (u *UnitStatus) SetTargetReticle(reticle *TargetReticle) {
-	u.targetReticle = reticle
+func (u *UnitStatus) SetTargetReticleSprite(s HUDSprite) {
+	u.targetReticle.HUDSprite = s
 }
 
 func (u *UnitStatus) updateFontSize(_, height int) {
@@ -230,10 +233,10 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 					lColor = hudOpts.HudColor(_colorStatusWarn)
 				}
 				u.fontRenderer.SetColor(lColor)
-				u.fontRenderer.SetAlign(etxt.Bottom | etxt.HorzCenter)
+				u.fontRenderer.SetAlign(etxt.Bottom | etxt.Left)
 
 				lockStr := fmt.Sprintf("LOCK: %0.0f%%", u.targetLock*100)
-				u.fontRenderer.Draw(screen, lockStr, bX+bW/2, bY-u.targetReticle.Height())
+				u.fontRenderer.Draw(screen, lockStr, bX, bY-u.targetReticle.Height())
 			}
 		}
 	}
