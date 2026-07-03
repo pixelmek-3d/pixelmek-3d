@@ -2,7 +2,6 @@ package render
 
 import (
 	"image"
-	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -81,19 +80,4 @@ func (c *Crosshairs) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op.GeoM.Scale(cScale, cScale)
 	op.GeoM.Translate(float64(bX)+offX, float64(bY)+offY)
 	screen.DrawImage(c.Texture(), op)
-
-	// render lock on weapon reticle progress
-	if hudOpts.HudUnit.HasLockOnWeapon() && hudOpts.HudUnit.TargetLock() > 0 {
-		// lock on circle starts big and gets smaller as it approaches 100% target lock
-		u := hudOpts.HudUnit
-		lColor := hudOpts.HudColor(_colorEnemy)
-		if u.TargetLock() < 1.0 {
-			lColor = hudOpts.HudColor(_colorStatusWarn)
-		}
-		lAlpha := uint8(3 * int(lColor.A) / 5)
-		lColor = color.NRGBA{lColor.R, lColor.G, lColor.B, lAlpha}
-
-		lRadius := (1 / float32(hudOpts.HudUnit.TargetLock())) * float32(bW) / 2
-		vector.StrokeCircle(screen, float32(bX+bW/2)+float32(offX), float32(bY+bH/2)+float32(offY), lRadius, 2.0, lColor, false)
-	}
 }

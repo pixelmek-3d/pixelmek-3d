@@ -230,10 +230,10 @@ func (u *UnitStatus) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 					lColor = hudOpts.HudColor(_colorStatusWarn)
 				}
 				u.fontRenderer.SetColor(lColor)
-				u.fontRenderer.SetAlign(etxt.Bottom | etxt.Left)
+				u.fontRenderer.SetAlign(etxt.Bottom | etxt.HorzCenter)
 
 				lockStr := fmt.Sprintf("LOCK: %0.0f%%", u.targetLock*100)
-				u.fontRenderer.Draw(screen, lockStr, bX, bY-u.targetReticle.Height())
+				u.fontRenderer.Draw(screen, lockStr, bX+bW/2, bY-u.targetReticle.Height())
 			}
 		}
 	}

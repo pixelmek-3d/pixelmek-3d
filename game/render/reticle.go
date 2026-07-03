@@ -104,6 +104,23 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op.GeoM.Translate(maxX-rOff, maxY-rOff)
 	screen.DrawImage(t.Texture(), op)
 
+	// target lock reticle with progress indicator
+	if hudOpts.HudUnit.HasLockOnWeapon() && hudOpts.HudUnit.TargetLock() > 0 {
+		// lock on reticle starts big and gets smaller as it approaches 100% target lock
+		iOff := int(rOff)
+		bX, bY, bW, bH := bounds.Min.X-iOff, bounds.Min.Y-iOff, bounds.Dx()+(iOff*2), bounds.Dy()+(iOff*2)
+		u := hudOpts.HudUnit
+		lColor := hudOpts.HudColor(_colorEnemy)
+		if u.TargetLock() < 1.0 {
+			lColor = hudOpts.HudColor(_colorStatusWarn)
+		}
+		lAlpha := uint8(1*int(lColor.A)/5) + uint8((float32(hudOpts.HudUnit.TargetLock()))*float32(3*int(lColor.A)/5))
+		lColor = color.NRGBA{lColor.R, lColor.G, lColor.B, lAlpha}
+
+		lRadius := (float32(bW) / 2) + (1-float32(hudOpts.HudUnit.TargetLock()))*float32(bW)/2
+		vector.StrokeCircle(screen, float32(bX+bW/2), float32(bY+bH/2), lRadius, 2.0, lColor, false)
+	}
+
 	// target lead reticle if outside target reticle bounds
 	if t.ReticleLeadBounds != nil && !t.ReticleLeadBounds.In(bounds) {
 		rlMidX := float32(t.ReticleLeadBounds.Min.X) + float32(t.ReticleLeadBounds.Dx())/2
