@@ -12,6 +12,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	baseLockOnDelta float64 = 0.5 / model.TICKS_PER_SECOND
+	baseLockOnRange float64 = 1000.0 / model.METERS_PER_UNIT
+)
+
 type ProjectileSpawn struct {
 	delay      float64
 	spread     float64

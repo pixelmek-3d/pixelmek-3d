@@ -471,8 +471,8 @@ func (g *Game) updatePlayer() {
 		g.player.SetTarget(nil)
 	}
 
-	if target == nil || g.IsFriendly(g.player, target) || g.player.Powered() != model.POWER_ON {
-		// clear target lock if no target, friendly target, or player is not fully powered on
+	if target == nil || !g.player.HasLockOnWeapon() || g.IsFriendly(g.player, target) || g.player.Powered() != model.POWER_ON {
+		// clear target lock if no target, no lock on weapons, is friendly target, or player is not fully powered on
 		g.player.SetTargetLock(0)
 	} else {
 		// only increment lock percent on target if reticle near target area and in weapon range
@@ -503,13 +503,11 @@ func (g *Game) updatePlayer() {
 			}
 
 			targetDistance := model.EntityDistance(g.player, target) - g.player.CollisionRadius() - target.CollisionRadius()
-			lockOnRange := 1000.0 / model.METERS_PER_UNIT
-
-			if int(targetDistance) <= int(lockOnRange) {
-				// TODO: decrease lock percent delta if further from target
-				lockDelta := 0.25 / model.TICKS_PER_SECOND
+			if int(targetDistance) <= int(baseLockOnRange) {
+				// decrease lock percent delta if further from target
+				lockDelta := baseLockOnDelta - (targetDistance/baseLockOnRange)*(baseLockOnDelta/2)
 				if !acquireLock {
-					lockDelta = -0.15 / model.TICKS_PER_SECOND
+					lockDelta = -baseLockOnDelta / 2
 				}
 
 				targetLock := g.player.TargetLock() + lockDelta

@@ -10,13 +10,13 @@ heat: 2
 # max distance in meters: 21 (hexes) * 30 (meters/hex) = 630 (meters)
 distance: 630
 # velocity in meters/second
-velocity: 150
+velocity: 200
 # cooldown in seconds
 cooldown: 3.5
 ammoPerTon: 120
 lockOn:
-  turnRate: 20
-  groupRadius: 0.1
+  turnRate: 60
+  groupRadius: 0.25
 projectileCount: 5
 projectileDelay: 0.05
 projectile:
