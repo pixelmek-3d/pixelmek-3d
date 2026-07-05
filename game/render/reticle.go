@@ -11,8 +11,9 @@ import (
 
 type TargetReticle struct {
 	HUDSprite
-	Friendly          bool
-	ReticleLeadBounds *image.Rectangle
+	Friendly            bool
+	ReticleLeadBounds   *image.Rectangle
+	ShowLockOnIndicator bool
 }
 
 type NavReticle struct {
@@ -22,7 +23,10 @@ type NavReticle struct {
 // NewTargetReticle creates a target reticle from an image with 2 rows and 2 columns, representing the four corners of it
 func NewTargetReticle(img *ebiten.Image) *TargetReticle {
 	r := &TargetReticle{
-		HUDSprite: NewHUDSpriteFromSheet(img, 1.0, 2, 2, 0),
+		ShowLockOnIndicator: true,
+	}
+	if img != nil {
+		r.HUDSprite = NewHUDSpriteFromSheet(img, 1.0, 2, 2, 0)
 	}
 
 	return r
@@ -38,6 +42,9 @@ func NewNavReticle(img *ebiten.Image) *NavReticle {
 }
 
 func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
+	if t.HUDSprite == nil {
+		return
+	}
 	screen := hudOpts.Screen
 
 	// set minimum scale size based on screen size
@@ -103,6 +110,27 @@ func (t *TargetReticle) Draw(bounds image.Rectangle, hudOpts *DrawHudOptions) {
 	op.Filter = ebiten.FilterNearest
 	op.GeoM.Translate(maxX-rOff, maxY-rOff)
 	screen.DrawImage(t.Texture(), op)
+
+	// target lock reticle with progress indicator
+	if t.ShowLockOnIndicator && hudOpts.HudUnit.HasLockOnWeapon() && hudOpts.HudUnit.TargetLock() > 0 {
+		// lock on reticle starts big and gets smaller as it approaches 100% target lock
+		iOff := int(rOff)
+		bX, bY, bW, bH := bounds.Min.X-iOff, bounds.Min.Y-iOff, bounds.Dx()+(iOff*2), bounds.Dy()+(iOff*2)
+		u := hudOpts.HudUnit
+		lColor := hudOpts.HudColor(_colorEnemy)
+		if u.TargetLock() < 1.0 {
+			lColor = hudOpts.HudColor(_colorStatusWarn)
+		}
+		lAlpha := uint8(1*int(lColor.A)/5) + uint8((float32(hudOpts.HudUnit.TargetLock()))*float32(3*int(lColor.A)/5))
+		lColor = color.NRGBA{lColor.R, lColor.G, lColor.B, lAlpha}
+
+		lRadius := (float32(bW) / 2) + (1-float32(hudOpts.HudUnit.TargetLock()))*float32(bW)
+		centerX, centerY := float32(bX+bW/2), float32(bY+bH/2)
+		vector.StrokeLine(screen, centerX, centerY-lRadius, centerX+lRadius, centerY, 2, lColor, false)
+		vector.StrokeLine(screen, centerX+lRadius, centerY, centerX, centerY+lRadius, 2, lColor, false)
+		vector.StrokeLine(screen, centerX, centerY+lRadius, centerX-lRadius, centerY, 2, lColor, false)
+		vector.StrokeLine(screen, centerX-lRadius, centerY, centerX, centerY-lRadius, 2, lColor, false)
+	}
 
 	// target lead reticle if outside target reticle bounds
 	if t.ReticleLeadBounds != nil && !t.ReticleLeadBounds.In(bounds) {

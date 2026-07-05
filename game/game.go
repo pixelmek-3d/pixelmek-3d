@@ -357,6 +357,8 @@ func (g *Game) updatePlayer() {
 	if g.player.IsDestroyed() {
 		justEjected := g.player.Eject(g)
 		if justEjected {
+			g.audio.StopPlayerAudioSources()
+
 			g.spawnPlayerDestroyEffects()
 			g.player.sprite.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
 		} else {
@@ -372,7 +374,6 @@ func (g *Game) updatePlayer() {
 			// make ejection pod thrust sound
 			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
 			if !jetThrust.IsPlaying() {
-				// FIXME: jets are no longer playing?
 				jetThrust.Play()
 			}
 		}
@@ -471,8 +472,8 @@ func (g *Game) updatePlayer() {
 		g.player.SetTarget(nil)
 	}
 
-	if target == nil || g.IsFriendly(g.player, target) || g.player.Powered() != model.POWER_ON {
-		// clear target lock if no target, friendly target, or player is not fully powered on
+	if target == nil || !g.player.HasLockOnWeapon() || g.IsFriendly(g.player, target) || g.player.Powered() != model.POWER_ON {
+		// clear target lock if no target, no lock on weapons, is friendly target, or player is not fully powered on
 		g.player.SetTargetLock(0)
 	} else {
 		// only increment lock percent on target if reticle near target area and in weapon range
@@ -486,18 +487,28 @@ func (g *Game) updatePlayer() {
 				midW+crosshairLockSize/2, midH+crosshairLockSize/2,
 			)
 			targetBounds := s.ScreenRect(g.renderScale)
+			targetLeadBounds := g.player.reticleLead.Sprite.ScreenRect(g.renderScale)
 			if targetBounds != nil {
-				acquireLock = targetBounds.Overlaps(crosshairBounds)
+				acquireLock = targetBounds.Overlaps(crosshairBounds) ||
+					(targetLeadBounds != nil && targetLeadBounds.Overlaps(crosshairBounds))
+
+				if !acquireLock && targetLeadBounds != nil {
+					// check if the crosshairs are on the line between the target and lead indicator
+					targetMidPoint := targetBounds.Min.Add(image.Point{X: targetBounds.Dx() / 2, Y: targetBounds.Dy() / 2})
+					targetLeadMidPoint := targetLeadBounds.Min.Add(image.Point{X: targetLeadBounds.Dx() / 2, Y: targetLeadBounds.Dy() / 2})
+					targetLeadLine := geom.Line{X1: float64(targetMidPoint.X), Y1: float64(targetMidPoint.Y), X2: float64(targetLeadMidPoint.X), Y2: float64(targetLeadMidPoint.Y)}
+
+					crossHairRect := model.NewRect(float64(crosshairBounds.Min.X), float64(crosshairBounds.Min.Y), float64(crosshairBounds.Max.X), float64(crosshairBounds.Max.Y))
+					acquireLock = crossHairRect.IntersectsLine(targetLeadLine)
+				}
 			}
 
 			targetDistance := model.EntityDistance(g.player, target) - g.player.CollisionRadius() - target.CollisionRadius()
-			lockOnRange := 1000.0 / model.METERS_PER_UNIT
-
-			if int(targetDistance) <= int(lockOnRange) {
-				// TODO: decrease lock percent delta if further from target
-				lockDelta := 0.25 / model.TICKS_PER_SECOND
+			if int(targetDistance) <= int(baseLockOnRange) {
+				// decrease lock percent delta if further from target
+				lockDelta := baseLockOnDelta - (targetDistance/baseLockOnRange)*(baseLockOnDelta/2)
 				if !acquireLock {
-					lockDelta = -0.15 / model.TICKS_PER_SECOND
+					lockDelta = -baseLockOnDelta / 2
 				}
 
 				targetLock := g.player.TargetLock() + lockDelta
@@ -573,6 +584,15 @@ func (g *Game) spriteInCrosshairs() *sprites.Sprite {
 
 		crosshairRect := crosshairs.Rect().Add(
 			image.Point{X: (g.screenWidth / 2) - (crosshairs.Width() / 2), Y: (g.screenHeight / 2) - (crosshairs.Height() / 2)})
+
+		// first, check player lead reticle sprite for crosshair intersection
+		if g.player.reticleLead != nil {
+			s := g.player.reticleLead.Sprite
+			sBounds := s.ScreenRect(g.renderScale)
+			if sBounds != nil && sBounds.Overlaps(crosshairRect) {
+				return s
+			}
+		}
 
 		var cSpriteArea int
 		for _, spriteType := range g.sprites.SpriteTypes() {

@@ -12,6 +12,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	baseLockOnDelta       float64 = 0.5 / model.TICKS_PER_SECOND
+	baseLockOnRange       float64 = 1000.0 / model.METERS_PER_UNIT
+	baseLockOnPitchOffset float64 = geom.Pi / 12
+)
+
 type ProjectileSpawn struct {
 	delay      float64
 	spread     float64
@@ -446,19 +452,29 @@ func (g *Game) spawnProjectile(p *ProjectileSpawn) *model.Projectile {
 		convergencePoint = model.ConvergencePoint(u, u.Target())
 	}
 
-	pHeading, pPitch := u.Heading(), u.Pitch()
-	if u.HasTurret() {
-		pHeading = u.TurretAngle()
+	useConvergencePoint := convergencePoint != nil
+
+	// if LRM and target is locked, set higher pitch and do not use convergence point
+	var pitchOffset float64
+	if w.Classification() == model.MISSILE_LRM && u.Target() != nil && u.TargetLock() > 0 {
+		useConvergencePoint = false
+		// set higher pitch offest the further away the target
+		targetDistance := model.EntityDistance(u, u.Target())
+		pitchOffset += baseLockOnPitchOffset + (targetDistance/baseLockOnRange)*baseLockOnPitchOffset
 	}
 
-	if convergencePoint == nil {
-		projectile = w.SpawnProjectile(pHeading+spreadAngle, pPitch+spreadPitch, u)
-	} else {
+	if useConvergencePoint {
 		projectile = w.SpawnProjectileToward(convergencePoint, u)
 		if p.spread > 0 {
 			projectile.SetHeading(projectile.Heading() + spreadAngle)
 			projectile.SetPitch(projectile.Pitch() + spreadPitch)
 		}
+	} else {
+		pHeading, pPitch := u.Heading(), u.Pitch()
+		if u.HasTurret() {
+			pHeading = u.TurretAngle()
+		}
+		projectile = w.SpawnProjectile(pHeading+spreadAngle, pPitch+spreadPitch+pitchOffset, u)
 	}
 
 	if projectile != nil {

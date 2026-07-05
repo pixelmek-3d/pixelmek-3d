@@ -16,7 +16,7 @@ cooldown: 4
 ammoPerTon: 100
 lockOn:
   lockRequired: true
-  turnRate: 120
+  turnRate: 160
   groupRadius: 0.15
 projectileCount: 4
 projectileDelay: 0.15

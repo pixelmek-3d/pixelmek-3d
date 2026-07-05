@@ -48,6 +48,9 @@ func NewUnitStatus(isPlayer bool, font *fonts.Font) *UnitStatus {
 		unitDistance: -1,
 	}
 
+	u.targetReticle = NewTargetReticle(nil)
+	u.targetReticle.ShowLockOnIndicator = false
+
 	return u
 }
 
@@ -79,8 +82,8 @@ func (u *UnitStatus) SetTargetLock(lockPercent float64) {
 	u.targetLock = lockPercent
 }
 
-func (u *UnitStatus) SetTargetReticle(reticle *TargetReticle) {
-	u.targetReticle = reticle
+func (u *UnitStatus) SetTargetReticleSprite(s HUDSprite) {
+	u.targetReticle.HUDSprite = s
 }
 
 func (u *UnitStatus) updateFontSize(_, height int) {

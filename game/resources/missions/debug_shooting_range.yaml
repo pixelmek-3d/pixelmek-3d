@@ -1,0 +1,43 @@
+title: "Debug"
+briefing: |
+  A mission to debug and shoot things.
+map: "debug_land"
+music: "icy_wastes.mp3"
+dropZone:
+  position: [40, 60]
+  heading: 90
+  powerStatus: 1
+objectives:
+  destroy:
+    - unit: "destroy_me"
+    - unit: "destroy_me_2"
+    - unit: "destroy_me_3"
+    - unit: "destroy_me_4"
+navPoints: []
+mechs:
+  - id: "destroy_me"
+    unit: "jenner_iic"
+    position: [60, 80]
+    patrolPath: [[60, 80], [40, 80]]
+  - id: "destroy_me_2"
+    unit: "nova_prime"
+    position: [80, 80]
+    patrolPath: [[80, 80], [80, 40]]
+    powerConditions:
+      unitDestroyed: "destroy_me"
+  - id: "destroy_me_3"
+    unit: "summoner_prime"
+    position: [80, 40]
+    patrolPath: [[80, 40], [80, 80]]
+    powerConditions:
+      unitDestroyed: "destroy_me_2"
+  - id: "destroy_me_4"
+    unit: "executioner_prime"
+    position: [40, 40]
+    patrolPath: [[60, 40], [40, 40]]
+    powerConditions:
+      unitDestroyed: "destroy_me_3"
+vehicles: []
+vtols: []
+infantry: []
+emplacements: []

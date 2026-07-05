@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/harbdog/raycaster-go"
@@ -25,6 +26,10 @@ func NewRect(x1, y1, x2, y2 float64) Rect {
 	return Rect{X1: x1, Y1: y1, X2: x2, Y2: y2}
 }
 
+func (r *Rect) String() string {
+	return fmt.Sprintf("{[%0.3f,%0.3f],[%0.3f,%0.3f]}", r.X1, r.Y1, r.X2, r.Y2)
+}
+
 func (r Rect) ContainsPoint(x, y float64) bool {
 	return r.X1 <= x && x <= r.X2 && r.Y1 <= y && y <= r.Y2
 }
@@ -35,6 +40,49 @@ func (r Rect) Dx() float64 {
 
 func (r Rect) Dy() float64 {
 	return r.Y2 - r.Y1
+}
+
+func (r Rect) Min() (float64, float64) {
+	return r.X1, r.Y1
+}
+
+func (r Rect) Max() (float64, float64) {
+	return r.X2, r.Y2
+}
+
+func (r Rect) Lines() [4]geom.Line {
+	return [4]geom.Line{
+		{X1: r.X1, Y1: r.Y1, X2: r.X1, Y2: r.Y2},
+		{X1: r.X1, Y1: r.Y1, X2: r.X2, Y2: r.Y1},
+		{X1: r.X2, Y1: r.Y2, X2: r.X1, Y2: r.Y2},
+		{X1: r.X2, Y1: r.Y2, X2: r.X2, Y2: r.Y1},
+	}
+}
+
+// IntersectsLine checks if a line segment intersects this rectangle
+// by checking against each line that makes up the rectangle
+func (r Rect) IntersectsLine(line geom.Line) bool {
+	minX, minY := r.Min()
+	maxX, maxY := r.Max()
+	x1, y1 := line.X1, line.Y1
+	x2, y2 := line.X2, line.Y2
+
+	// Completely outside
+	if (x1 < minX && x2 < minX) || (y1 < minY && y2 < minY) || (x1 > maxX && x2 > maxX) || (y1 > maxY && y2 > maxY) {
+		return false
+	}
+
+	// Completely inside
+	if (x1 > minX && x1 < maxX && y1 > minY && y1 < maxY) || (x2 > minX && x2 < maxX && y2 > minY && y2 < maxY) {
+		return true
+	}
+
+	for _, rl := range r.Lines() {
+		if _, _, intersects := geom.LineIntersection(line, rl); intersects {
+			return true
+		}
+	}
+	return false
 }
 
 func LineOpposite(l geom.Line) geom.Line {
@@ -225,10 +273,16 @@ func TargetLeadPosition(u, t Unit, w Weapon) *geom3d.Vector3 {
 	// determine approximate lead distance needed for weapon projectile
 	if w != nil {
 		// approximate position of target based on its current heading and speed for projectile flight time
+		tHeading := t.Heading()
+		tVelocity := t.Velocity()
+		if t.JumpJetsActive() {
+			tHeading = t.JumpJetHeading()
+			tVelocity = t.JumpJetVelocity()
+		}
 		tDist := tLine.Distance()
 		tProjectile := w.Projectile()
 		tDelta := tDist / tProjectile.MaxVelocity()
-		tLine = geom3d.Line3dFromAngle(t.Pos().X, t.Pos().Y, t.PosZ()+zTargetOffset, t.Heading(), 0, tDelta*t.Velocity())
+		tLine = geom3d.Line3dFromAngle(t.Pos().X, t.Pos().Y, t.PosZ()+zTargetOffset, tHeading, 0, tDelta*tVelocity)
 	}
 
 	return &geom3d.Vector3{X: tLine.X2, Y: tLine.Y2, Z: tLine.Z2}

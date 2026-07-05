@@ -88,6 +88,7 @@ type Unit interface {
 	SetTarget(Entity)
 	TargetLock() float64
 	SetTargetLock(float64)
+	HasLockOnWeapon() bool
 
 	TurnRate() float64
 	TargetHeading() float64
@@ -178,6 +179,7 @@ type UnitModel struct {
 	pxScale             float64
 	armor               float64
 	structure           float64
+	hasDamage           bool
 	heat                float64
 	heatDissipation     float64
 	heatSinks           int
@@ -196,6 +198,7 @@ type UnitModel struct {
 	maxJumpJetDuration  float64
 	target              Entity
 	targetLock          float64
+	hasLockOnWeapon     *bool
 	objective           UnitObjective
 	guardArea           *geom.Circle
 	guardUnit           string
@@ -392,6 +395,25 @@ func (e *UnitModel) SetTargetLock(lockPercent float64) {
 	e.targetLock = lockPercent
 }
 
+func (e *UnitModel) HasLockOnWeapon() bool {
+	if e.hasLockOnWeapon == nil {
+		if len(e.armament) == 0 {
+			return false
+		}
+		// initialize variable on first time called
+		var hasLockOns bool
+		for _, w := range e.armament {
+			missileWeapon, isMissile := w.(*MissileWeapon)
+			if isMissile && missileWeapon.IsLockOn() {
+				hasLockOns = true
+				break
+			}
+		}
+		e.hasLockOnWeapon = &hasLockOns
+	}
+	return *e.hasLockOnWeapon
+}
+
 func (e *UnitModel) HasTurret() bool {
 	return e.hasTurret
 }
@@ -578,6 +600,10 @@ func (e *UnitModel) PixelScale() float64 {
 }
 
 func (e *UnitModel) ApplyDamage(damage float64) {
+	if damage <= 0 {
+		return
+	}
+	e.hasDamage = true
 	if e.armor > 0 {
 		e.armor -= damage
 		if e.armor < 0 {
@@ -591,6 +617,10 @@ func (e *UnitModel) ApplyDamage(damage float64) {
 	if e.structure < 0 {
 		e.structure = 0
 	}
+}
+
+func (e *UnitModel) HasDamage() bool {
+	return e.hasDamage
 }
 
 func (e *UnitModel) ArmorPoints() float64 {
