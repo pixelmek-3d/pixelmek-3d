@@ -770,3 +770,12 @@ func (a *AudioHandler) PlayEntityAudioLoop(g *Game, sfxFile string, entity model
 func (a *AudioHandler) StopEntityAudioLoop(g *Game, sfxFile string, entity model.Entity) {
 	g.audio.StopLoopEntitySFX(sfxFile, entity)
 }
+
+// StopPlayerAudioSources stops audio sources used only for the player unit
+func (a *AudioHandler) StopPlayerAudioSources() {
+	if len(a.sfx.mainSources) > 0 {
+		a.sfx.mainSources[AUDIO_ENGINE].Stop()
+		a.sfx.mainSources[AUDIO_STOMP_LEFT].Stop()
+		a.sfx.mainSources[AUDIO_STOMP_RIGHT].Stop()
+	}
+}

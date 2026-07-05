@@ -357,6 +357,8 @@ func (g *Game) updatePlayer() {
 	if g.player.IsDestroyed() {
 		justEjected := g.player.Eject(g)
 		if justEjected {
+			g.audio.StopPlayerAudioSources()
+
 			g.spawnPlayerDestroyEffects()
 			g.player.sprite.SetDestroyCounter(int(model.TICKS_PER_SECOND / 3))
 		} else {
@@ -372,7 +374,6 @@ func (g *Game) updatePlayer() {
 			// make ejection pod thrust sound
 			jetThrust := g.audio.sfx.mainSources[AUDIO_JUMP_JET]
 			if !jetThrust.IsPlaying() {
-				// FIXME: jets are no longer playing?
 				jetThrust.Play()
 			}
 		}
