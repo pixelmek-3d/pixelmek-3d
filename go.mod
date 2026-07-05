@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/go-youtils/stopwatch v1.0.0
 	github.com/google/uuid v1.6.0
-	github.com/hajimehoshi/ebiten/v2 v2.9.8
+	github.com/hajimehoshi/ebiten/v2 v2.9.9
 	github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482
 	github.com/harbdog/raycaster-go v1.12.0
 	github.com/jinzhu/copier v0.4.0
@@ -22,7 +22,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/tinne26/etxt v0.0.9
 	github.com/wk8/go-ordered-map/v2 v2.1.8
-	golang.org/x/image v0.38.0
+	golang.org/x/image v0.43.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -60,10 +60,10 @@ require (
 	github.com/tanema/gween v0.0.0-20250522035225-e874ee3ae01a // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.49.0 // indirect
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/net v0.51.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 )
