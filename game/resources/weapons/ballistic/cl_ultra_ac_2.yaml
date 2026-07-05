@@ -10,7 +10,7 @@ heat: 1
 # max distance in meters: 27 (hexes) * 30 (meters/hex) = 810 (meters)
 distance: 810
 # velocity in meters/second
-velocity: 625
+velocity: 1300
 # cooldown in seconds
 cooldown: 1
 ammoPerTon: 45

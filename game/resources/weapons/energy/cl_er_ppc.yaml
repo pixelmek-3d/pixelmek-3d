@@ -9,7 +9,7 @@ heat: 15
 # max distance in meters: 23 (hexes) * 30 (meters/hex) = 690 (meters)
 distance: 690
 # velocity in meters/second
-velocity: 200
+velocity: 1000
 # cooldown in seconds
 cooldown: 3.5
 audio: ppc.ogg
