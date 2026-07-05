@@ -273,10 +273,16 @@ func TargetLeadPosition(u, t Unit, w Weapon) *geom3d.Vector3 {
 	// determine approximate lead distance needed for weapon projectile
 	if w != nil {
 		// approximate position of target based on its current heading and speed for projectile flight time
+		tHeading := t.Heading()
+		tVelocity := t.Velocity()
+		if t.JumpJetsActive() {
+			tHeading = t.JumpJetHeading()
+			tVelocity = t.JumpJetVelocity()
+		}
 		tDist := tLine.Distance()
 		tProjectile := w.Projectile()
 		tDelta := tDist / tProjectile.MaxVelocity()
-		tLine = geom3d.Line3dFromAngle(t.Pos().X, t.Pos().Y, t.PosZ()+zTargetOffset, t.Heading(), 0, tDelta*t.Velocity())
+		tLine = geom3d.Line3dFromAngle(t.Pos().X, t.Pos().Y, t.PosZ()+zTargetOffset, tHeading, 0, tDelta*tVelocity)
 	}
 
 	return &geom3d.Vector3{X: tLine.X2, Y: tLine.Y2, Z: tLine.Z2}
