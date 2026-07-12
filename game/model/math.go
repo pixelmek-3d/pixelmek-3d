@@ -249,40 +249,45 @@ func ConvergencePoint(u Unit, t Entity) *geom3d.Vector3 {
 	return convergencePoint
 }
 
-// TargetLeadPosition returns the approximate lead position from current unit to target with given weapon
-// Return nil if unit does not have a target
-func TargetLeadPosition(u, t Unit, w Weapon) *geom3d.Vector3 {
-	if u == nil || t == nil {
+// TargetLeadPosition returns the approximate lead position from source to target with given weapon
+// Return nil if source or target are nil
+func TargetLeadPosition(src, tgt Entity, w Weapon) *geom3d.Vector3 {
+	if src == nil || tgt == nil {
 		return nil
 	}
 
 	var zTargetOffset float64
-	switch t.Anchor() {
+	switch tgt.Anchor() {
 	case raycaster.AnchorBottom:
-		zTargetOffset = t.CollisionHeight() / 2
+		zTargetOffset = tgt.CollisionHeight() / 2
 	case raycaster.AnchorTop:
-		zTargetOffset = -t.CollisionHeight() / 2
+		zTargetOffset = -tgt.CollisionHeight() / 2
 	}
 
 	// calculate distance from unit to target
 	tLine := geom3d.Line3d{
-		X1: u.Pos().X, Y1: u.Pos().Y, Z1: u.PosZ() + u.CockpitOffset().Y,
-		X2: t.Pos().X, Y2: t.Pos().Y, Z2: t.PosZ() + zTargetOffset,
+		X1: src.Pos().X, Y1: src.Pos().Y, Z1: src.PosZ(),
+		X2: tgt.Pos().X, Y2: tgt.Pos().Y, Z2: tgt.PosZ() + zTargetOffset,
+	}
+
+	if srcUnit, ok := src.(Unit); ok {
+		// adjust source height offset for unit cockpit location
+		tLine.Z1 += srcUnit.CockpitOffset().Y
 	}
 
 	// determine approximate lead distance needed for weapon projectile
 	if w != nil {
 		// approximate position of target based on its current heading and speed for projectile flight time
-		tHeading := t.Heading()
-		tVelocity := t.Velocity()
-		if t.JumpJetsActive() {
-			tHeading = t.JumpJetHeading()
-			tVelocity = t.JumpJetVelocity()
+		tHeading := tgt.Heading()
+		tVelocity := tgt.Velocity()
+		if tgtUnit, ok := tgt.(Unit); ok && tgtUnit.JumpJetsActive() {
+			tHeading = tgtUnit.JumpJetHeading()
+			tVelocity = tgtUnit.JumpJetVelocity()
 		}
 		tDist := tLine.Distance()
 		tProjectile := w.Projectile()
 		tDelta := tDist / tProjectile.MaxVelocity()
-		tLine = geom3d.Line3dFromAngle(t.Pos().X, t.Pos().Y, t.PosZ()+zTargetOffset, tHeading, 0, tDelta*tVelocity)
+		tLine = geom3d.Line3dFromAngle(tgt.Pos().X, tgt.Pos().Y, tgt.PosZ()+zTargetOffset, tHeading, 0, tDelta*tVelocity)
 	}
 
 	return &geom3d.Vector3{X: tLine.X2, Y: tLine.Y2, Z: tLine.Z2}

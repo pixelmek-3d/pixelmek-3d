@@ -241,9 +241,9 @@ func (g *Game) updateProjectiles() {
 // asyncProjectileUpdate updates the positions of a projectile in a parallel fashion
 func (g *Game) asyncProjectileUpdate(p *sprites.ProjectileSprite, wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	_, isEnergy := p.Projectile.Weapon().(*model.EnergyWeapon)
-	missileWeapon, isMissile := p.Projectile.Weapon().(*model.MissileWeapon)
+	w := p.Projectile.Weapon()
+	_, isEnergy := w.(*model.EnergyWeapon)
+	missileWeapon, isMissile := w.(*model.MissileWeapon)
 
 	if isMissile && p.Velocity() < p.Projectile.MaxVelocity() {
 		newVelocity := geom.Clamp(p.Velocity()+p.Projectile.Acceleration(), 0, p.Projectile.MaxVelocity())
@@ -258,10 +258,10 @@ func (g *Game) asyncProjectileUpdate(p *sprites.ProjectileSprite, wg *sync.WaitG
 			pUnit := p.Projectile.Parent().(model.Unit)
 			target := pUnit.Target()
 			if target != nil {
-				tPos := target.Pos()
+				tPos := model.TargetLeadPosition(p.Projectile, target, w)
 
 				// add a small amount of random offset to X/Y/Z of target line
-				pOffset := p.Projectile.LockOnOffset()
+				pOffset := p.Projectile.LockOnOffset(target.CollisionRadius())
 
 				// use target collision box to determine center of target offset
 				collisionOffset := 0.0
@@ -366,7 +366,7 @@ func (g *Game) asyncProjectileUpdate(p *sprites.ProjectileSprite, wg *sync.WaitG
 			p.SetPosZ(newPosZ)
 
 			// smoke trail for non-player ejection pod
-			if p.Projectile.Weapon() != nil && p.Projectile.Weapon().ShortName() == ejectName && p.Parent() != g.player.Unit {
+			if w != nil && w.ShortName() == ejectName && p.Parent() != g.player.Unit {
 				g.spawnEjectionPodSmokeEffects(p)
 			}
 		}

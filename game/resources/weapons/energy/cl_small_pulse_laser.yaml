@@ -9,7 +9,7 @@ heat: 2
 # max distance in meters: 6 (hexes) * 30 (meters/hex) = 180 (meters)
 distance: 180
 # velocity in meters/second
-velocity: 1000
+velocity: 850
 # cooldown in seconds
 cooldown: 0.75
 audio: laser.ogg

@@ -13,7 +13,7 @@ heat: 0
 # max distance in meters: 3 (hexes) * 30 (meters/hex) = 90 (meters)
 distance: 90
 # velocity in meters/second
-velocity: 250
+velocity: 500
 # normalize MG ammo as DPS weapon using rounds/second (2000 = 200 ammo/ton * 10 rounds/s)
 ammoPerTon: 2000
 projectileCount: 1

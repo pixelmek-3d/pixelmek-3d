@@ -53,7 +53,7 @@ func NewProjectile(
 	return p
 }
 
-func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
+func (e *Projectile) LockOnOffset(targetRadius float64) *geom3d.Vector3 {
 	if e.rng == nil {
 		// using its own rand generator to avoid mutex lock in async updates
 		e.rng = NewRNG()
@@ -61,7 +61,7 @@ func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
 	if e.lockOnOffset == nil {
 		missileWeapon, isMissile := e.weapon.(*MissileWeapon)
 		if isMissile && missileWeapon.IsLockOn() {
-			groupRadius := missileWeapon.LockOnGroupRadius()
+			groupRadius := targetRadius + missileWeapon.LockOnGroupRadius()
 			randRadius := e.rng.RandFloat64In(-groupRadius, groupRadius)
 			randHeading := e.rng.RandFloat64In(-geom.Pi, geom.Pi)
 			randPitch := e.rng.RandFloat64In(-geom.Pi, geom.Pi)
