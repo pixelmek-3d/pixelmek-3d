@@ -261,7 +261,7 @@ func (g *Game) asyncProjectileUpdate(p *sprites.ProjectileSprite, wg *sync.WaitG
 				tPos := model.TargetLeadPosition(p.Projectile, target, w)
 
 				// add a small amount of random offset to X/Y/Z of target line
-				pOffset := p.Projectile.LockOnOffset()
+				pOffset := p.Projectile.LockOnOffset(target.CollisionRadius())
 
 				// use target collision box to determine center of target offset
 				collisionOffset := 0.0
