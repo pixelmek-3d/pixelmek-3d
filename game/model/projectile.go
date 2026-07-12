@@ -62,7 +62,7 @@ func (e *Projectile) LockOnOffset() *geom3d.Vector3 {
 		missileWeapon, isMissile := e.weapon.(*MissileWeapon)
 		if isMissile && missileWeapon.IsLockOn() {
 			groupRadius := missileWeapon.LockOnGroupRadius()
-			randRadius := e.rng.RandFloat64In(-groupRadius, groupRadius)
+			randRadius := e.rng.RandFloat64In(-2*groupRadius, 2*groupRadius)
 			randHeading := e.rng.RandFloat64In(-geom.Pi, geom.Pi)
 			randPitch := e.rng.RandFloat64In(-geom.Pi, geom.Pi)
 
