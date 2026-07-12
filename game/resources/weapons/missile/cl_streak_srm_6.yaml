@@ -17,7 +17,7 @@ ammoPerTon: 100
 lockOn:
   lockRequired: true
   turnRate: 160
-  groupRadius: 0.2
+  groupRadius: 0.01
 projectileCount: 6
 projectileDelay: 0.15
 projectile:
