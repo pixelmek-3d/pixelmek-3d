@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	//WeaponCmd.AddCommand(reportCmd)
+	WeaponCmd.AddCommand(reportCmd)
 
 	WeaponCmd.Flags().BoolVar(&listWeapons, "list", false, "lists all weapon files")
 }

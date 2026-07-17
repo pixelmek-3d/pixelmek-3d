@@ -45,7 +45,7 @@ var (
 				outImagePath = filepath.Join(dirname, outImagePath[2:])
 			}
 
-			if err := os.MkdirAll(filepath.Dir(outImagePath), 0755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(outImagePath), 0644); err != nil {
 				log.Fatal(err)
 			}
 
