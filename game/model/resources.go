@@ -23,8 +23,9 @@ const (
 	VTOLResourceType        string = "vtols"
 	InfantryResourceType    string = "infantry"
 	EmplacementResourceType string = "emplacements"
-	ProjectilesResourceType string = "projectiles"
+	ProjectileResourceType  string = "projectiles"
 	EffectsResourceType     string = "effects"
+	WeaponResourceType      string = "weapons"
 	EnergyResourceType      string = "energy"
 	MissileResourceType     string = "missile"
 	BallisticResourceType   string = "ballistic"
@@ -511,8 +512,7 @@ func (r *ModelResources) loadWeaponResources() error {
 	// load and validate all weapons, projectiles and impact efffects
 	v := validator.New()
 
-	weaponsPath := "weapons"
-	weaponsTypes, err := resources.ReadDir(weaponsPath, false)
+	weaponsTypes, err := resources.ReadDir(WeaponResourceType, false)
 	if err != nil {
 		return err
 	}
@@ -524,7 +524,7 @@ func (r *ModelResources) loadWeaponResources() error {
 		}
 
 		weaponType := t.Name()
-		weaponTypePath := path.Join(weaponsPath, weaponType)
+		weaponTypePath := path.Join(WeaponResourceType, weaponType)
 		weaponFiles, err := resources.ReadDir(weaponTypePath, true)
 		if err != nil {
 			return err

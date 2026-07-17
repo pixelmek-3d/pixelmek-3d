@@ -97,7 +97,7 @@ func _loadEjectionPodResource(g *Game) {
 
 	// need to use the projectile image size to find the unit collision conversion from pixels
 	pResource := weaponResource.Projectile
-	projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectilesResourceType, pResource.Image)
+	projectileRelPath := fmt.Sprintf("%s/%s", model.ProjectileResourceType, pResource.Image)
 	projectileImg := resources.GetSpriteFromFile(projectileRelPath)
 	pColumns, pRows := 1, 1
 	if pResource.ImageSheet != nil {

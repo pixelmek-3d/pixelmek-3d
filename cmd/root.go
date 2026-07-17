@@ -4,6 +4,7 @@ import (
 	mapcmd "github.com/pixelmek-3d/pixelmek-3d/cmd/map"
 	"github.com/pixelmek-3d/pixelmek-3d/cmd/mission"
 	"github.com/pixelmek-3d/pixelmek-3d/cmd/unit"
+	"github.com/pixelmek-3d/pixelmek-3d/cmd/weapon"
 	"github.com/pixelmek-3d/pixelmek-3d/game"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/spf13/cobra"
@@ -14,6 +15,7 @@ func init() {
 	rootCmd.AddCommand(mapcmd.MapCmd)
 	rootCmd.AddCommand(mission.MissionCmd)
 	rootCmd.AddCommand(unit.UnitCmd)
+	rootCmd.AddCommand(weapon.WeaponCmd)
 }
 
 var rootCmd = &cobra.Command{

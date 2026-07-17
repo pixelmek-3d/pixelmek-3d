@@ -8,6 +8,7 @@ import (
 
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 type WeaponType int
@@ -91,6 +92,23 @@ type Weapon interface {
 	Audio() string
 	Clone() Weapon
 	Parent() Entity
+}
+
+func ListWeaponFilenames() ([]string, error) {
+	weaponFilenames := make([]string, 0, 64)
+	weaponFiles, err := resources.ReadDir(WeaponResourceType, true)
+	if err != nil {
+		return weaponFilenames, err
+	}
+
+	for _, f := range weaponFiles {
+		if f.IsDir() {
+			continue
+		}
+		weaponFilenames = append(weaponFilenames, f.Name())
+	}
+
+	return weaponFilenames, nil
 }
 
 func WeaponEqualsWeapon(w1, w2 Weapon) bool {
