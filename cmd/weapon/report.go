@@ -1,6 +1,11 @@
 package weapon
 
 import (
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
 	"github.com/pixelmek-3d/pixelmek-3d/game"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -26,28 +31,44 @@ var (
 				log.Fatal(err)
 			}
 
-			log.Info("--- ENERGY ---")
-			for _, w := range r.EnergyWeapons {
-				log.Infof("[%s] %s - %s", w.File, w.ShortName, w.Name)
-			}
-			log.Info("--- BALLISTIC ---")
-			for _, w := range r.BallisticWeapons {
-				log.Infof("[%s] %s - %s", w.File, w.ShortName, w.Name)
-			}
-			log.Info("--- MISSILE ---")
-			for _, w := range r.MissileWeapons {
-				log.Infof("[%s] %s - %s", w.File, w.ShortName, w.Name)
-			}
-
 			// expand tilde as home directory
-			// if strings.HasPrefix(outPath, "~/") {
-			// 	dirname, _ := os.UserHomeDir()
-			// 	outPath = filepath.Join(dirname, outPath[2:])
-			// }
+			if strings.HasPrefix(outPath, "~/") {
+				dirname, _ := os.UserHomeDir()
+				outPath = filepath.Join(dirname, outPath[2:])
+			}
+			if err := os.MkdirAll(filepath.Dir(outPath), 0644); err != nil {
+				log.Fatal(err)
+			}
 
-			// if err := os.MkdirAll(filepath.Dir(outPath), 0644); err != nil {
-			// 	log.Fatal(err)
-			// }
+			// gather all weapons by type
+			weaponListByType := map[model.WeaponType][]model.Weapon{
+				model.ENERGY:    make([]model.Weapon, 0, len(r.EnergyWeapons)),
+				model.BALLISTIC: make([]model.Weapon, 0, len(r.BallisticWeapons)),
+				model.MISSILE:   make([]model.Weapon, 0, len(r.MissileWeapons)),
+			}
+			for _, r := range r.EnergyWeapons {
+				w := model.EnergyWeaponModel(r)
+				weaponListByType[w.Type()] = append(weaponListByType[w.Type()], &w)
+			}
+			for _, r := range r.BallisticWeapons {
+				w := model.BallisticWeaponModel(r)
+				weaponListByType[w.Type()] = append(weaponListByType[w.Type()], &w)
+			}
+			for _, r := range r.MissileWeapons {
+				w := model.MissileWeaponModel(r)
+				weaponListByType[w.Type()] = append(weaponListByType[w.Type()], &w)
+			}
+
+			for _, wType := range []model.WeaponType{model.ENERGY, model.BALLISTIC, model.MISSILE} {
+				wList := weaponListByType[wType]
+				slices.SortFunc(wList, func(a, b model.Weapon) int {
+					// TODO: sort within weapon sizes so AC5 comes before AC10 and AC20
+					return strings.Compare(a.Name(), b.Name())
+				})
+				for _, w := range wList {
+					log.Infof("[%v] %s", wType, w.Name())
+				}
+			}
 
 			// TODO: create CSV report with weapon stats
 		},

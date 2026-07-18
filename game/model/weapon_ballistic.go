@@ -7,6 +7,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/jinzhu/copier"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 )
 
 type BallisticWeapon struct {
@@ -32,27 +33,30 @@ type BallisticWeapon struct {
 	parent          Entity
 }
 
-func NewBallisticWeapon(r *ModelBallisticWeaponResource, location Location, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) (*BallisticWeapon, Projectile) {
-	w := &BallisticWeapon{
+func BallisticWeaponModel(r *ModelBallisticWeaponResource) BallisticWeapon {
+	w := BallisticWeapon{
 		Resource:        r,
 		name:            r.Name,
 		short:           r.ShortName,
 		tech:            r.Tech.TechBase,
-		location:        location,
 		tonnage:         r.Tonnage,
 		damage:          r.Damage,
 		heat:            r.Heat,
 		distance:        r.Distance,
 		extremeDistance: r.ExtremeDistance,
 		velocity:        r.Velocity,
-		cooldown:        0,
-		offset:          offset,
-		ammoBin:         &AmmoBin{},
-		parent:          parent,
 	}
-
 	// load general classification of weapon programmatically
 	w.loadClassification()
+	return w
+}
+
+func NewBallisticWeapon(r *ModelBallisticWeaponResource, location Location, collisionRadius, collisionHeight float64, offset *geom.Vector2, parent Entity) (*BallisticWeapon, Projectile) {
+	w := common.Ptr(BallisticWeaponModel(r))
+	w.parent = parent
+	w.location = location
+	w.offset = offset
+	w.ammoBin = &AmmoBin{}
 	w.summary = weaponSummary(w)
 
 	// convert velocity from meters/second to unit distance per tick

@@ -8,6 +8,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/harbdog/raycaster-go/geom3d"
 	"github.com/jinzhu/copier"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 )
 
 type MissileWeapon struct {
@@ -39,29 +40,31 @@ type MissileWeapon struct {
 	lockOnGroupRadius  float64
 }
 
-func NewMissileWeapon(r *ModelMissileWeaponResource, location Location, collisionRadius, collisionHeight float64, offset *geom.Vector2, onePxOffset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
-	w := &MissileWeapon{
-		Resource:          r,
-		name:              r.Name,
-		short:             r.ShortName,
-		tech:              r.Tech.TechBase,
-		location:          location,
-		tonnage:           r.Tonnage,
-		damage:            r.Damage,
-		heat:              r.Heat,
-		distance:          r.Distance,
-		extremeDistance:   r.ExtremeDistance,
-		velocity:          r.Velocity,
-		cooldown:          0,
-		offset:            offset,
-		missileTube:       0,
-		missileTubeOffset: make([]*geom.Vector2, r.ProjectileCount),
-		ammoBin:           &AmmoBin{},
-		parent:            parent,
+func MissileWeaponModel(r *ModelMissileWeaponResource) MissileWeapon {
+	w := MissileWeapon{
+		Resource:        r,
+		name:            r.Name,
+		short:           r.ShortName,
+		tech:            r.Tech.TechBase,
+		tonnage:         r.Tonnage,
+		damage:          r.Damage,
+		heat:            r.Heat,
+		distance:        r.Distance,
+		extremeDistance: r.ExtremeDistance,
+		velocity:        r.Velocity,
 	}
-
 	// load general classification of weapon programmatically
 	w.loadClassification()
+	return w
+}
+
+func NewMissileWeapon(r *ModelMissileWeaponResource, location Location, collisionRadius, collisionHeight float64, offset *geom.Vector2, onePxOffset *geom.Vector2, parent Entity) (*MissileWeapon, Projectile) {
+	w := common.Ptr(MissileWeaponModel(r))
+	w.parent = parent
+	w.location = location
+	w.offset = offset
+	w.ammoBin = &AmmoBin{}
+	w.missileTubeOffset = make([]*geom.Vector2, r.ProjectileCount)
 	w.summary = weaponSummary(w)
 
 	if r.LockOn != nil {
