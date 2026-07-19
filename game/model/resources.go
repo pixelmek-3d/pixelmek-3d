@@ -23,8 +23,9 @@ const (
 	VTOLResourceType        string = "vtols"
 	InfantryResourceType    string = "infantry"
 	EmplacementResourceType string = "emplacements"
-	ProjectilesResourceType string = "projectiles"
+	ProjectileResourceType  string = "projectiles"
 	EffectsResourceType     string = "effects"
+	WeaponResourceType      string = "weapons"
 	EnergyResourceType      string = "energy"
 	MissileResourceType     string = "missile"
 	BallisticResourceType   string = "ballistic"
@@ -253,17 +254,15 @@ type ModelResourceAmmo struct {
 func (t *ModelTech) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
 
-	common, clan, is := TechBaseString(COMMON), TechBaseString(CLAN), TechBaseString(IS)
-
 	switch str {
-	case common:
+	case COMMON.String():
 		t.TechBase = COMMON
-	case clan:
+	case CLAN.String():
 		t.TechBase = CLAN
-	case is:
+	case IS.String():
 		t.TechBase = IS
 	default:
-		return fmt.Errorf("unknown tech value '%s', must be one of: [%s, %s, %s]", str, clan, is, common)
+		return fmt.Errorf("unknown tech value '%s', must be one of: [%s, %s, %s]", str, CLAN.String(), IS.String(), COMMON.String())
 	}
 
 	return nil
@@ -291,18 +290,16 @@ func (t *ModelHeatSinkType) UnmarshalText(b []byte) error {
 func (t *ModelWeaponType) UnmarshalText(b []byte) error {
 	str := strings.Trim(string(b), `"`)
 
-	energy, ballistic, missile := "energy", "ballistic", "missile"
-
 	switch str {
-	case energy:
+	case ENERGY.String():
 		t.WeaponType = ENERGY
-	case ballistic:
+	case BALLISTIC.String():
 		t.WeaponType = BALLISTIC
-	case missile:
+	case MISSILE.String():
 		t.WeaponType = MISSILE
 	default:
 		return fmt.Errorf(
-			"unknown weapon type value '%s', must be one of: [%s, %s, %s]", str, energy, ballistic, missile,
+			"unknown weapon type value '%s', must be one of: [%s, %s, %s]", str, ENERGY.String(), BALLISTIC.String(), MISSILE.String(),
 		)
 	}
 
@@ -511,8 +508,7 @@ func (r *ModelResources) loadWeaponResources() error {
 	// load and validate all weapons, projectiles and impact efffects
 	v := validator.New()
 
-	weaponsPath := "weapons"
-	weaponsTypes, err := resources.ReadDir(weaponsPath, false)
+	weaponsTypes, err := resources.ReadDir(WeaponResourceType, false)
 	if err != nil {
 		return err
 	}
@@ -524,7 +520,7 @@ func (r *ModelResources) loadWeaponResources() error {
 		}
 
 		weaponType := t.Name()
-		weaponTypePath := path.Join(weaponsPath, weaponType)
+		weaponTypePath := path.Join(WeaponResourceType, weaponType)
 		weaponFiles, err := resources.ReadDir(weaponTypePath, true)
 		if err != nil {
 			return err
