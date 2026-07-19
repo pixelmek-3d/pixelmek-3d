@@ -3,11 +3,80 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"math"
 	"os"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 )
+
+func newScrollContainer(m Menu, content widget.PreferredSizeLocateableWidget) *widget.Container {
+	// construct a new container that serves as the root of the scrolling container
+	c := widget.NewContainer(
+		// the container will use a plain color as its background
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+
+		// the container will use an grid layout to layout its ScrollableContainer and Slider
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Spacing(2, 0),
+			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}),
+		)),
+	)
+
+	scrollContainer := widget.NewScrollContainer(
+		// Set the content that will be scrolled
+		widget.ScrollContainerOpts.Content(content),
+		// Tell the container to stretch the content width to match available space
+		widget.ScrollContainerOpts.StretchContentWidth(),
+		// Set the background images for the scrollable container
+		widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
+			Idle: image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+			Mask: image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+		}),
+	)
+	// Add the scrollable container to the left side of the window
+	c.AddChild(scrollContainer)
+
+	// Create a function to return the page size used by the slider
+	pageSizeFunc := func() int {
+		return int(math.Round(float64(scrollContainer.ViewRect().Dy())/float64(content.GetWidget().Rect.Dy())*1000) / 3)
+	}
+
+	// Create a vertical Slider bar to control the ScrollableContainer
+	vSlider := widget.NewSlider(
+		widget.SliderOpts.Orientation(widget.DirectionVertical),
+		widget.SliderOpts.MinMax(0, 1000),
+		widget.SliderOpts.PageSizeFunc(pageSizeFunc),
+		// On change update scroll location based on the Slider's value
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
+		}),
+		widget.SliderOpts.Images(
+			// Set the track images
+			&widget.SliderTrackImage{
+				Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			},
+			// Set the handle images
+			&widget.ButtonImage{
+				Idle:    image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Hover:   image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Pressed: image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+			},
+		),
+	)
+	// Set the slider's position if the scrollContainer is scrolled by other means than the slider
+	scrollContainer.GetWidget().ScrolledEvent.AddHandler(func(args any) {
+		if a, ok := args.(*widget.WidgetScrolledEventArgs); ok {
+			vSlider.Current -= int(math.Round(a.Y * float64(pageSizeFunc())))
+		}
+	})
+	// Add the slider to the second slot in the root container
+	c.AddChild(vSlider)
+
+	return c
+}
 
 func newCheckbox(m Menu, label string, checked bool, changedHandler widget.CheckboxChangedHandlerFunc) *widget.Checkbox {
 	res := m.Resources()
