@@ -628,12 +628,12 @@ func (g *Game) loadUnitAmmo(unit model.Unit, ammoList []*model.ModelResourceAmmo
 }
 
 func projectileSpriteForWeapon(w model.Weapon) *sprites.ProjectileSprite {
-	wKey := model.TechBaseString(w.Tech()) + "_" + w.Name()
+	wKey := w.Tech().String() + "_" + w.Name()
 	return projectileSpriteByWeapon[wKey]
 }
 
 func setProjectileSpriteForWeapon(w model.Weapon, p *sprites.ProjectileSprite) {
-	wKey := model.TechBaseString(w.Tech()) + "_" + w.Name()
+	wKey := w.Tech().String() + "_" + w.Name()
 	projectileSpriteByWeapon[wKey] = p
 }
 

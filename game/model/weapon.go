@@ -19,6 +19,12 @@ const (
 	MISSILE
 )
 
+var weaponTypeNames = []string{"energy", "ballistic", "missile"}
+
+func (t WeaponType) String() string {
+	return weaponTypeNames[int(t)]
+}
+
 type WeaponClassification int
 
 const (

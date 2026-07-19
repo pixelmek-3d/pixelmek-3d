@@ -31,7 +31,7 @@ const (
 	IS
 )
 
-func TechBaseString(t TechBase) string {
+func (t TechBase) String() string {
 	switch t {
 	case COMMON:
 		return "common"
