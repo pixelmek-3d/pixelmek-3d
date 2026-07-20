@@ -255,64 +255,6 @@ func gameUnitPage(m Menu) *settingsPage {
 	}
 }
 
-func controlsPage(m Menu) *settingsPage {
-	c := newPageContentContainer()
-	res := m.Resources()
-
-	// Create the container with the content that should be scrolled
-	content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
-		widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-		widget.RowLayoutOpts.Spacing(20),
-		widget.RowLayoutOpts.Padding(&widget.Insets{Top: 10, Bottom: 10}),
-	)))
-	// Add 20 buttons to the scrollable content container
-	for x := 0; x < 20; x++ {
-		// Capture x for use in callback
-		x := x
-		// construct a button
-		button := widget.NewButton(
-			// set general widget options
-			widget.ButtonOpts.WidgetOpts(
-				// instruct the container's anchor layout to center the button both horizontally and vertically
-				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-					Position: widget.RowLayoutPositionCenter,
-				}),
-			),
-
-			// specify the images to use
-			widget.ButtonOpts.Image(res.button.image),
-
-			// specify the button's text, the font face, and the color
-			widget.ButtonOpts.Text(fmt.Sprintf("Hello, World! - %d", x), res.button.face, &widget.ButtonTextColor{
-				Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
-			}),
-
-			// specify that the button's text needs some padding for correct display
-			widget.ButtonOpts.TextPadding(&widget.Insets{
-				Left:   30,
-				Right:  30,
-				Top:    5,
-				Bottom: 5,
-			}),
-
-			// add a handler that reacts to clicking the button
-			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-				println(fmt.Sprintf("Button %d Clicked!", x))
-			}),
-		)
-
-		// add the button as a child of the container
-		content.AddChild(button)
-	}
-
-	scrollContainer := newScrollContainer(m, content)
-	c.AddChild(scrollContainer)
-	return &settingsPage{
-		title:   "Controls",
-		content: c,
-	}
-}
-
 func displayPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
