@@ -17,7 +17,7 @@ func controlsPage(m Menu) *settingsPage {
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
 				widget.GridLayoutOpts.Columns(4),
-				widget.GridLayoutOpts.Stretch([]bool{true, false, false, false}, []bool{false}),
+				widget.GridLayoutOpts.Stretch([]bool{false, true, false, false}, []bool{false}),
 				widget.GridLayoutOpts.Spacing(4, 2),
 			),
 		),
@@ -42,32 +42,28 @@ func addControlBind(g *Game, res *uiResources, parent *widget.Container, action 
 	label := widget.NewLabel(widget.LabelOpts.Text(actionString(action), res.fonts.face, res.label.text))
 	parent.AddChild(label)
 
+	parent.AddChild(newBlankSeparator(res, 20, widget.RowLayoutData{
+		Stretch: true,
+	}))
+
 	bindButton := widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text(strings.Join(keyNames, ", "), res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// TODO: ...
+			// TODO: scan for key/button to remap to...
 		}),
 	)
 	parent.AddChild(bindButton)
-
-	resetButton := widget.NewButton(
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.TextPadding(res.button.padding),
-		widget.ButtonOpts.Text("reset", res.button.face, res.button.text),
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// TODO: ...
-		}),
-	)
-	parent.AddChild(resetButton)
 
 	clearButton := widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("clear", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// TODO: ...
+			g.input.ClearAction(action)
+			g.input.SetControls(g.input.keymap)
+			// TODO: save to file
 		}),
 	)
 	parent.AddChild(clearButton)

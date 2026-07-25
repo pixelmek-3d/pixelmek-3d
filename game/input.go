@@ -26,6 +26,31 @@ const (
 
 var debugProfFile *os.File
 
+type InputHandler struct {
+	*input.Handler
+	inputSystem input.System
+	keymap      input.Keymap
+}
+
+func NewInputHandler() *InputHandler {
+	var keymap input.Keymap
+	var inputSystem input.System
+	inputSystem.Init(input.SystemConfig{
+		DevicesEnabled: input.AnyDevice,
+	})
+	inputSystem.NewHandler(0, keymap)
+	h := &InputHandler{
+		Handler:     inputSystem.NewHandler(0, keymap),
+		inputSystem: inputSystem,
+		keymap:      keymap,
+	}
+	return h
+}
+
+func (h *InputHandler) Update() {
+	h.inputSystem.Update()
+}
+
 func (g *Game) handleInput() {
 	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenu)
 	if menuKeyPressed {

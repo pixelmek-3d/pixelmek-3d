@@ -115,42 +115,8 @@ func init() {
 	}
 }
 
-func stringAction(aName string) input.Action {
-	a, ok := stringToAction[aName]
-	if !ok {
-		return ActionUnknown
-	}
-	return a
-}
-
-func actionString(a input.Action) string {
-	if s, ok := actionToString[a]; ok {
-		return s
-	}
-	panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
-}
-
-func (g *Game) initControls() {
-	// import from keymap file if exists
-	var keymap input.Keymap
-	if _, err := os.Stat(resources.UserKeymapFile); err == nil {
-		keymap, err = g.restoreControls()
-		if err != nil {
-			panic(fmt.Errorf("error loading keymap file %s: %v", resources.UserKeymapFile, err))
-		}
-	}
-
-	// TODO: initialize default for new controls even if not first time?
-
-	if len(keymap) == 0 {
-		// first time intitialize defaults into file
-		g.setDefaultControls()
-		g.saveControls()
-	}
-}
-
-func (g *Game) setDefaultControls() {
-	keymap := input.Keymap{
+func defaultControls() input.Keymap {
+	return input.Keymap{
 		ActionUp:       {input.KeyW, input.KeyUp},
 		ActionDown:     {input.KeyS, input.KeyDown},
 		ActionLeft:     {input.KeyA, input.KeyLeft},
@@ -195,14 +161,58 @@ func (g *Game) setDefaultControls() {
 		ActionPowerToggle:    {input.KeyP},
 		ActionCameraCycle:    {input.KeyF3},
 	}
-
-	g.inputSystem.Init(input.SystemConfig{
-		DevicesEnabled: input.AnyDevice,
-	})
-	g.input = g.inputSystem.NewHandler(0, keymap)
 }
 
-func (g *Game) restoreControls() (input.Keymap, error) {
+func stringAction(aName string) input.Action {
+	a, ok := stringToAction[aName]
+	if !ok {
+		return ActionUnknown
+	}
+	return a
+}
+
+func actionString(a input.Action) string {
+	if s, ok := actionToString[a]; ok {
+		return s
+	}
+	panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
+}
+
+func (h *InputHandler) ClearAction(action input.Action) {
+	delete(h.keymap, action)
+}
+
+func (h *InputHandler) SetControls(keymap input.Keymap) {
+	h.keymap = keymap
+	h.Remap(h.keymap)
+}
+
+func (g *Game) initControls() {
+	g.input = NewInputHandler()
+
+	// import from keymap file if exists
+	var keymap input.Keymap
+	if _, err := os.Stat(resources.UserKeymapFile); err == nil {
+		keymap, err = restoreControls()
+		if err != nil {
+			panic(fmt.Errorf("error loading keymap file %s: %v", resources.UserKeymapFile, err))
+		}
+	}
+
+	// for first time, intitialize defaults and later save to file
+	initializeDefaults := len(keymap) == 0
+	if initializeDefaults {
+		log.Debug("initializing default keymaps")
+		keymap = defaultControls()
+		defer g.input.saveControls()
+	}
+
+	// TODO: initialize default for new actions even if not first time?
+
+	g.input.SetControls(keymap)
+}
+
+func restoreControls() (input.Keymap, error) {
 	log.Debug("restoring keymap file ", resources.UserKeymapFile)
 	keymap := input.Keymap{}
 
@@ -261,15 +271,10 @@ func (g *Game) restoreControls() (input.Keymap, error) {
 		return keymap, err
 	}
 
-	g.inputSystem.Init(input.SystemConfig{
-		DevicesEnabled: input.AnyDevice,
-	})
-	g.input = g.inputSystem.NewHandler(0, keymap)
-
 	return keymap, nil
 }
 
-func (g *Game) saveControls() error {
+func (h *InputHandler) saveControls() error {
 	log.Debug("saving keymap file ", resources.UserKeymapFile)
 
 	userConfigPath := filepath.Dir(resources.UserKeymapFile)
@@ -291,7 +296,7 @@ func (g *Game) saveControls() error {
 	keymapConfig := orderedmap.New[string, []string]()
 	for a := ActionUnknown + 1; a < actionCount; a++ {
 		actionKey := actionString(a)
-		keymapConfig.Set(actionKey, g.input.ActionKeyNames(a, input.AnyDevice))
+		keymapConfig.Set(actionKey, h.ActionKeyNames(a, input.AnyDevice))
 	}
 	keymapJson, _ := json.MarshalIndent(keymapConfig, "", "    ")
 	_, err = keymapFile.Write(keymapJson)
