@@ -538,5 +538,5 @@ func openMapWindow(g *Game, res *uiResources, modelMap *model.Map) {
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
-	m.SetWindow(window)
+	m.AddWindow(window)
 }

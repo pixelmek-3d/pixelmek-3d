@@ -138,7 +138,7 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
-	m.SetWindow(window)
+	m.AddWindow(window)
 }
 
 func createWeaponGroupsSelector(res *uiResources, w model.Weapon) *widget.Container {

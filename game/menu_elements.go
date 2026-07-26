@@ -444,5 +444,5 @@ func openExitWindow(m Menu) {
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
-	m.SetWindow(window)
+	m.AddWindow(window)
 }

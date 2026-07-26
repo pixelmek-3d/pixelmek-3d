@@ -187,5 +187,5 @@ func openRebindWindow(m Menu, action input.Action, rebindCompleteFunc func()) {
 		rebindCompleteFunc()
 		rmWindow()
 	})
-	m.SetWindow(window)
+	m.AddWindow(window)
 }
