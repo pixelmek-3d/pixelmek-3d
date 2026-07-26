@@ -326,12 +326,14 @@ func openExitWindow(m Menu) {
 
 	titleBar := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
-		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}), widget.GridLayoutOpts.Padding(&widget.Insets{
-			Left:   padding,
-			Right:  padding,
-			Top:    padding,
-			Bottom: padding,
-		}))))
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}),
+			widget.GridLayoutOpts.Padding(&widget.Insets{
+				Left:   padding,
+				Right:  padding,
+				Top:    padding,
+				Bottom: padding,
+			}))))
 
 	titleBar.AddChild(widget.NewText(
 		widget.TextOpts.Text("Embrace Cowardice?", res.text.titleFace, res.text.idleColor),

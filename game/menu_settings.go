@@ -21,6 +21,8 @@ var displayWidthList = []int{
 	1920,
 }
 
+var pageList *widget.List
+
 type SettingsMenu struct {
 	*MenuModel
 	preSelectedPage int
@@ -57,6 +59,11 @@ func (m *SettingsMenu) initMenu() {
 }
 
 func (m *SettingsMenu) Update() {
+	if pageList != nil {
+		if page, isSettingsPage := pageList.SelectedEntry().(*settingsPage); isSettingsPage {
+			page.update()
+		}
+	}
 	m.ui.Update()
 }
 
@@ -217,7 +224,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	// prevent infinite relayout issue caused by toggling background shown only in certain tabs
 	missionSettingsShowBackground := false
 
-	pageList := widget.NewList(
+	pageList = widget.NewList(
 		widget.ListOpts.Entries(pages),
 		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*settingsPage).title

@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	input "github.com/quasilyte/ebitengine-input"
@@ -176,6 +177,18 @@ func actionString(a input.Action) string {
 		return s
 	}
 	panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
+}
+
+func (h *InputHandler) AddKeyBind(action input.Action, key input.Key) {
+	keyList, exists := h.keymap[action]
+	if !exists {
+		keyList = make([]input.Key, 0, 1)
+	}
+	if slices.Contains(keyList, key) {
+		// the key is already bound to this action
+		return
+	}
+	h.keymap[action] = append(keyList, key)
 }
 
 func (h *InputHandler) ClearAction(action input.Action) {
