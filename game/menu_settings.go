@@ -249,15 +249,15 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 				if missionSettingsShowBackground {
 					// for in-game HUD and lighting setting, apply transparent background so we can see behind while adjusting
 					m.Root().SetBackgroundImage(nil)
-					pageContainer.widget.(*widget.Container).SetBackgroundImage(nil)
-					nextPage.content.(*widget.Container).SetBackgroundImage(res.panel.filled)
+					pageContainer.widget.SetBackgroundImage(nil)
+					nextPage.content.SetBackgroundImage(res.panel.filled)
 					missionSettingsShowBackground = false
 				}
 			} else {
 				if !missionSettingsShowBackground {
 					m.Root()
 					m.Root().SetBackgroundImage(res.background)
-					pageContainer.widget.(*widget.Container).SetBackgroundImage(res.panel.image)
+					pageContainer.widget.SetBackgroundImage(res.panel.image)
 					missionSettingsShowBackground = true
 				}
 			}

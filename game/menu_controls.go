@@ -14,32 +14,34 @@ func controlsPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	g := m.Game()
 
+	// add key scan handler
+	pressAnyKey = &keyScanHandler{}
+
+	page := &settingsPage{
+		title:        "Controls",
+		content:      c,
+		tickUpdaters: []tickUpdater{pressAnyKey},
+	}
+
 	// Create the container to layout the control rebind rows
 	rebinds := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
 				widget.GridLayoutOpts.Columns(4),
-				widget.GridLayoutOpts.Stretch([]bool{false, true, false, false}, []bool{false}),
+				widget.GridLayoutOpts.Stretch([]bool{true, false, false, false}, []bool{false}),
 				widget.GridLayoutOpts.Spacing(4, 2),
 			),
 		),
 	)
 
 	// TODO: add control binds for all actions
-	addControlBind(g, m, rebinds, ActionUp)
-	addControlBind(g, m, rebinds, ActionDown)
-	addControlBind(g, m, rebinds, ActionLeft)
-	addControlBind(g, m, rebinds, ActionRight)
-
-	// add key scan handler
-	pressAnyKey = &keyScanHandler{}
+	addControlBind(g, m, page, rebinds, ActionUp)
+	addControlBind(g, m, page, rebinds, ActionDown)
+	addControlBind(g, m, page, rebinds, ActionLeft)
+	addControlBind(g, m, page, rebinds, ActionRight)
 
 	c.AddChild(rebinds)
-	return &settingsPage{
-		title:        "Controls",
-		content:      c,
-		tickUpdaters: []tickUpdater{pressAnyKey},
-	}
+	return page
 }
 
 type keyScanHandler struct {
@@ -72,7 +74,7 @@ func (s *keyScanHandler) startScan(scanCompleteFunc func()) {
 	s.scanning = true
 }
 
-func addControlBind(g *Game, m Menu, parent *widget.Container, action input.Action) {
+func addControlBind(g *Game, m Menu, page *settingsPage, parent *widget.Container, action input.Action) {
 	keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
 
 	res := m.Resources()
@@ -98,6 +100,7 @@ func addControlBind(g *Game, m Menu, parent *widget.Container, action input.Acti
 
 				keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
 				bindButton.SetText(strings.Join(keyNames, ", "))
+				page.content.RequestRelayout()
 
 				// TODO: save to file
 			})
@@ -113,6 +116,7 @@ func addControlBind(g *Game, m Menu, parent *widget.Container, action input.Acti
 			g.input.ClearAction(action)
 			g.input.SetControls(g.input.keymap)
 			bindButton.SetText("")
+			page.content.RequestRelayout()
 
 			// TODO: save to file
 		}),
