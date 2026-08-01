@@ -27,7 +27,7 @@ func (s *MissionDebriefScene) SetMenu(m Menu) {
 func (s *MissionDebriefScene) Update() error {
 	g := s.Game
 
-	if g.input.ActionIsJustPressed(ActionBack) {
+	if g.input.ActionIsJustPressed(ActionMenuBack) {
 		s.back()
 	}
 

@@ -8,19 +8,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var pressAnyKey *keyScanHandler
+var pressAnyKeyScanner *keyScanHandler
 
 func controlsPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 
 	// add key scan handler
-	pressAnyKey = &keyScanHandler{}
+	pressAnyKeyScanner = &keyScanHandler{}
 
 	page := &settingsPage{
 		title:        "Controls",
 		content:      c,
-		tickUpdaters: []tickUpdater{pressAnyKey},
+		tickUpdaters: []tickUpdater{pressAnyKeyScanner},
 	}
 
 	modifyControlsButton := widget.NewButton(
@@ -53,9 +53,6 @@ func (s *keyScanHandler) update() {
 	}
 	if status == input.KeyScanCompleted {
 		s.scanning = false
-
-		// TODO: check for the new key to be available, resolve the conflicts here?
-
 		s.scanCompleteFunc()
 	}
 }
@@ -202,7 +199,22 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 	if action == ActionUnknown {
 		return nil
 	}
-	keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
+	var bindButton *widget.Button
+	keyScanCompleteFunc := func() {
+		log.Debugf("[%s] add keybind to '%s'", actionString(action), pressAnyKeyScanner.key.String())
+		g := m.Game()
+		err := g.input.AddKeyBind(action, pressAnyKeyScanner.key)
+		if err != nil {
+			log.Errorf("%v - TODO: display error on screen!", err)
+			return
+		}
+
+		g.input.SetControls(g.input.keymap)
+
+		keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
+		bindButton.SetText(strings.Join(keyNames, ", "))
+		page.content.RequestRelayout()
+	}
 
 	res := m.Resources()
 	c := widget.NewContainer(
@@ -222,25 +234,14 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 		Stretch: true,
 	}))
 
-	var bindButton *widget.Button
+	keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
 	bindButton = widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text(strings.Join(keyNames, ", "), res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// open a modal window to wait for key press update
-			openRebindWindow(m, action, func() {
-				log.Debugf("[%s] add keybind to '%s'", actionString(action), pressAnyKey.key.String())
-				g := m.Game()
-				g.input.AddKeyBind(action, pressAnyKey.key)
-				g.input.SetControls(g.input.keymap)
-
-				keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
-				bindButton.SetText(strings.Join(keyNames, ", "))
-				page.content.RequestRelayout()
-
-				// TODO: save to file
-			})
+			openRebindWindow(m, action, keyScanCompleteFunc)
 		}),
 	)
 	c.AddChild(bindButton)
@@ -254,8 +255,6 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 			g.input.SetControls(g.input.keymap)
 			bindButton.SetText("")
 			page.content.RequestRelayout()
-
-			// TODO: save to file
 		}),
 	)
 	c.AddChild(clearButton)
@@ -322,7 +321,7 @@ func openRebindWindow(m Menu, action input.Action, rebindCompleteFunc func()) {
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
-	pressAnyKey.startScan(func() {
+	pressAnyKeyScanner.startScan(func() {
 		rebindCompleteFunc()
 		rmWindow()
 	})

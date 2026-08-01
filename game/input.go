@@ -52,7 +52,7 @@ func (h *InputHandler) Update() {
 }
 
 func (g *Game) handleInput() {
-	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenu)
+	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenuBack)
 	if menuKeyPressed {
 		if g.menu.Active() {
 			if g.osType == osTypeBrowser && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {

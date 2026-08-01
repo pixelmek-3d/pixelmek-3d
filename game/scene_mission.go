@@ -49,7 +49,7 @@ func (s *MissionScene) getMenu() Menu {
 func (s *MissionScene) Update() error {
 	g := s.Game
 
-	if g.input.ActionIsJustPressed(ActionBack) {
+	if g.input.ActionIsJustPressed(ActionMenuBack) {
 		s.back()
 	}
 

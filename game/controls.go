@@ -27,8 +27,7 @@ const (
 	ActionTurretLeft
 	ActionTurretRight
 	ActionTurretAxes
-	ActionMenu
-	ActionBack
+	ActionMenuBack
 	ActionThrottleReverse
 	ActionThrottle0
 	ActionJumpJet
@@ -77,8 +76,7 @@ func init() {
 		ActionTurretLeft:             "turret_left",
 		ActionTurretRight:            "turret_right",
 		ActionTurretAxes:             "turret_axes",
-		ActionMenu:                   "menu",
-		ActionBack:                   "back",
+		ActionMenuBack:               "menu_back",
 		ActionThrottleReverse:        "throttle_reverse",
 		ActionThrottle0:              "throttle_0",
 		ActionJumpJet:                "jump_jet",
@@ -130,8 +128,7 @@ func defaultControls() input.Keymap {
 		ActionTurretRight: {},
 		ActionTurretAxes:  {input.KeyGamepadRStickMotion},
 
-		ActionMenu: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart},
-		ActionBack: {input.KeyEscape, input.KeyGamepadBack},
+		ActionMenuBack: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart, input.KeyGamepadBack},
 
 		ActionThrottleReverse: {input.KeyBackspace},
 		ActionThrottle0:       {input.KeyX},
@@ -179,16 +176,35 @@ func actionString(a input.Action) string {
 	panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
 }
 
-func (h *InputHandler) AddKeyBind(action input.Action, key input.Key) {
+func (h *InputHandler) AddKeyBind(action input.Action, key input.Key) error {
 	keyList, exists := h.keymap[action]
 	if !exists {
 		keyList = make([]input.Key, 0, 1)
 	}
 	if slices.Contains(keyList, key) {
 		// the key is already bound to this action
-		return
+		return nil
 	}
+
+	if action == ActionMenuBack {
+		// do not allow rebinding a key as the menu/back button that is already assigned to any other action
+		for a := ActionUnknown + 1; a < actionCount; a++ {
+			if a == action {
+				continue
+			}
+			if aKeyList, ok := h.keymap[a]; ok && slices.Contains(aKeyList, key) {
+				return fmt.Errorf("key '%s' already bound to '%s'", key.String(), actionString(a))
+			}
+		}
+	} else {
+		// do not allow rebinding anything else to a key already assigned to Menu/Back action
+		if menuBackKeyList, ok := h.keymap[ActionMenuBack]; ok && slices.Contains(menuBackKeyList, key) {
+			return fmt.Errorf("key '%s' restricted to '%s'", key.String(), actionString(ActionMenuBack))
+		}
+	}
+
 	h.keymap[action] = append(keyList, key)
+	return nil
 }
 
 func (h *InputHandler) ClearAction(action input.Action) {

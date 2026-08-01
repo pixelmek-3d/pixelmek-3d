@@ -55,7 +55,7 @@ func (s *InstantActionScene) getMenu() Menu {
 func (s *InstantActionScene) Update() error {
 	g := s.Game
 
-	if g.input.ActionIsJustPressed(ActionBack) {
+	if g.input.ActionIsJustPressed(ActionMenuBack) {
 		s.back()
 	}
 
