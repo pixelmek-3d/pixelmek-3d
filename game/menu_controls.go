@@ -15,7 +15,7 @@ func controlsPage(m Menu) *settingsPage {
 	res := m.Resources()
 
 	// add key scan handler
-	pressAnyKeyScanner = &keyScanHandler{}
+	pressAnyKeyScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(m.Game().input.Handler)}
 
 	page := &settingsPage{
 		title:        "Controls",
@@ -37,7 +37,7 @@ func controlsPage(m Menu) *settingsPage {
 
 type keyScanHandler struct {
 	key              input.Key
-	keyScanner       input.KeyScanner
+	keyScanner       *input.KeyScanner
 	scanning         bool
 	scanCompleteFunc func()
 }
@@ -48,10 +48,8 @@ func (s *keyScanHandler) update() {
 	}
 
 	key, status := s.keyScanner.Scan()
-	if status != input.KeyScanChanged {
-		s.key = key
-	}
 	if status == input.KeyScanCompleted {
+		s.key = key
 		s.scanning = false
 		s.scanCompleteFunc()
 	}
