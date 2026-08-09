@@ -55,6 +55,8 @@ github.com/hajimehoshi/ebiten/v2 v2.9.9/go.mod h1:DAt4tnkYYpCvu3x9i1X/nK/vOruNXI
 github.com/hajimehoshi/go-mp3 v0.3.4 h1:NUP7pBYH8OguP4diaTZ9wJbUbk3tC0KlfzsEpWmYj68=
 github.com/hajimehoshi/go-mp3 v0.3.4/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRSVop0eemFmo=
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
+github.com/harbdog/ebitengine-input v0.0.0-20260809040905-6d2e778bb29f h1:IorAFe3wydoaiB54ZljWbWMT7ZYyUJB8k+gM+0FPrJo=
+github.com/harbdog/ebitengine-input v0.0.0-20260809040905-6d2e778bb29f/go.mod h1:JBkPX8QoJYaqYIBwj11OkfRQY3O/yjyZHuP4jy2nIzw=
 github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482 h1:lBhe6Ofq8B6sPx7R7XUKXNkHBZRWOBIaL5wWZ06++wk=
 github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482/go.mod h1:hc+X8igKbuo0/eTFMPLnU4HKkQBrkhjdY7NHyhwSeug=
 github.com/harbdog/raycaster-go v1.12.0 h1:Vb9wR2h6EmI4Qf+AwRwbGIGZukgSrYj/V6NEeI+hoco=
@@ -93,8 +95,6 @@ github.com/pierrec/lz4/v4 v4.1.22 h1:cKFw6uJDK+/gfw5BcDL0JL5aBsAFdsIT18eRtLj7VIU
 github.com/pierrec/lz4/v4 v4.1.22/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/quasilyte/ebitengine-input v0.9.1 h1:sN7jNDLfGn9ZY1lurD4d3oXIOmQbZwYPVpuo4DlsiG0=
-github.com/quasilyte/ebitengine-input v0.9.1/go.mod h1:xYkU+JqzWzjnVMolCIar0VFRly1TtjmEHfQWAoIan+o=
 github.com/quasilyte/gmath v0.0.0-20250404132005-3ce5ca476755 h1:EStm6RvlzE7LB2IB4WC+7LNbdCJFr5EyBXJO3HnIVIs=
 github.com/quasilyte/gmath v0.0.0-20250404132005-3ce5ca476755/go.mod h1:EbI+KMbALSVE2s0YFOQpR4uj66zBh9ter5P4CBMSuvA=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=

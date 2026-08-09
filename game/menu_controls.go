@@ -8,19 +8,26 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var pressAnyKeyScanner *keyScanHandler
+type keyScanType uint8
+
+const (
+	keyScanAxes keyScanType = iota
+	keyScanKeys
+)
+
+var keyScanner *keyScanHandler
 
 func controlsPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
 	res := m.Resources()
 
 	// add key scan handler
-	pressAnyKeyScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(m.Game().input.Handler)}
+	keyScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(m.Game().input.Handler)}
 
 	page := &settingsPage{
 		title:        "Controls",
 		content:      c,
-		tickUpdaters: []tickUpdater{pressAnyKeyScanner},
+		tickUpdaters: []tickUpdater{keyScanner},
 	}
 
 	modifyControlsButton := widget.NewButton(
@@ -36,28 +43,53 @@ func controlsPage(m Menu) *settingsPage {
 }
 
 type keyScanHandler struct {
-	key              input.Key
 	keyScanner       *input.KeyScanner
-	scanning         bool
+	key              input.Key
+	axes             input.Key
+	scanningKey      bool
+	scanningAxes     bool
 	scanCompleteFunc func()
 }
 
 func (s *keyScanHandler) update() {
-	if !s.scanning {
+	if !s.scanningKey && !s.scanningAxes {
 		return
 	}
 
+	if s.scanningKey {
+		s.handleRemapKey()
+	} else if s.scanningAxes {
+		s.handleRemapAxes()
+	}
+
+}
+
+func (s *keyScanHandler) handleRemapKey() {
 	key, status := s.keyScanner.Scan()
 	if status == input.KeyScanCompleted {
 		s.key = key
-		s.scanning = false
+		s.scanningKey = false
 		s.scanCompleteFunc()
 	}
 }
 
-func (s *keyScanHandler) startScan(scanCompleteFunc func()) {
+func (s *keyScanHandler) handleRemapAxes() {
+	axes, status := s.keyScanner.ScanAxes()
+	if status == input.KeyScanCompleted {
+		s.axes = axes
+		s.scanningAxes = false
+		s.scanCompleteFunc()
+	}
+}
+
+func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc func()) {
 	s.scanCompleteFunc = scanCompleteFunc
-	s.scanning = true
+	switch scanType {
+	case keyScanKeys:
+		s.scanningKey = true
+	case keyScanAxes:
+		s.scanningAxes = true
+	}
 }
 
 func openEditKeysWindow(m Menu, page *settingsPage) {
@@ -197,11 +229,21 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 	if action == ActionUnknown {
 		return nil
 	}
+	actionStr := actionString(action)
+	scanType := keyScanKeys
+	if strings.Contains(actionStr, "_axes") {
+		scanType = keyScanAxes
+	}
+
 	var bindButton *widget.Button
 	keyScanCompleteFunc := func() {
-		log.Debugf("[%s] add keybind to '%s'", actionString(action), pressAnyKeyScanner.key.String())
+		keyBind := keyScanner.key
+		if scanType == keyScanAxes {
+			keyBind = keyScanner.axes
+		}
+		log.Debugf("[%s] add keybind to '%s'", actionStr, keyBind.String())
 		g := m.Game()
-		err := g.input.AddKeyBind(action, pressAnyKeyScanner.key)
+		err := g.input.AddKeyBind(action, keyBind)
 		if err != nil {
 			log.Errorf("%v - TODO: display error on screen!", err)
 			return
@@ -225,7 +267,7 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 		),
 	)
 
-	label := widget.NewLabel(widget.LabelOpts.Text(actionString(action), res.fonts.face, res.label.text))
+	label := widget.NewLabel(widget.LabelOpts.Text(actionStr, res.fonts.face, res.label.text))
 	c.AddChild(label)
 
 	c.AddChild(newBlankSeparator(res, m.Padding(), widget.RowLayoutData{
@@ -238,8 +280,8 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text(strings.Join(keyNames, ", "), res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// open a modal window to wait for key press update
-			openRebindWindow(m, action, keyScanCompleteFunc)
+			// open a modal window to wait for key/axes pressed update
+			openRebindWindow(m, action, scanType, keyScanCompleteFunc)
 		}),
 	)
 	c.AddChild(bindButton)
@@ -260,9 +302,19 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 	return c
 }
 
-func openRebindWindow(m Menu, action input.Action, rebindCompleteFunc func()) {
+func openRebindWindow(m Menu, action input.Action, scanType keyScanType, rebindCompleteFunc func()) {
 	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
+
+	var scanLabelStr string
+	switch scanType {
+	case keyScanKeys:
+		scanLabelStr = "Press a Key or Button..."
+	case keyScanAxes:
+		scanLabelStr = "Move an Axes..."
+	default:
+		panic("unknown keyScanType: " + string(scanType))
+	}
 
 	game := m.Game()
 	uiRect := game.uiRect()
@@ -302,7 +354,7 @@ func openRebindWindow(m Menu, action input.Action, rebindCompleteFunc func()) {
 		Stretch: true,
 	}))
 
-	label := widget.NewLabel(widget.LabelOpts.Text("Press a Key or Button...", res.fonts.face, res.label.text))
+	label := widget.NewLabel(widget.LabelOpts.Text(scanLabelStr, res.fonts.face, res.label.text))
 	c.AddChild(label)
 
 	c.AddChild(newBlankSeparator(res, 12, widget.RowLayoutData{
@@ -319,7 +371,7 @@ func openRebindWindow(m Menu, action input.Action, rebindCompleteFunc func()) {
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
-	pressAnyKeyScanner.startScan(func() {
+	keyScanner.startKeyScan(scanType, func() {
 		rebindCompleteFunc()
 		rmWindow()
 	})
