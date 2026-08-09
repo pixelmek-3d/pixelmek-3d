@@ -17,19 +17,31 @@ import (
 
 const (
 	ActionUnknown input.Action = iota
+	ActionMoveAxes
+	ActionTurnAxes
 	ActionUp
 	ActionDown
 	ActionLeft
 	ActionRight
-	ActionMoveAxes
+	ActionTurretAxes
 	ActionTurretUp
 	ActionTurretDown
 	ActionTurretLeft
 	ActionTurretRight
-	ActionTurretAxes
 	ActionMenuBack
+	ActionThrottleAxes
 	ActionThrottleReverse
 	ActionThrottle0
+	ActionThrottle10
+	ActionThrottle20
+	ActionThrottle30
+	ActionThrottle40
+	ActionThrottle50
+	ActionThrottle60
+	ActionThrottle70
+	ActionThrottle80
+	ActionThrottle90
+	ActionThrottle100
 	ActionJumpJet
 	ActionDescend
 	ActionWeaponFire
@@ -71,6 +83,8 @@ func init() {
 		ActionLeft:                   "left",
 		ActionRight:                  "right",
 		ActionMoveAxes:               "move_axes",
+		ActionTurnAxes:               "turn_axes",
+		ActionThrottleAxes:           "throttle_axes",
 		ActionTurretUp:               "turret_up",
 		ActionTurretDown:             "turret_down",
 		ActionTurretLeft:             "turret_left",
@@ -79,6 +93,16 @@ func init() {
 		ActionMenuBack:               "menu_back",
 		ActionThrottleReverse:        "throttle_reverse",
 		ActionThrottle0:              "throttle_0",
+		ActionThrottle10:             "throttle_10",
+		ActionThrottle20:             "throttle_20",
+		ActionThrottle30:             "throttle_30",
+		ActionThrottle40:             "throttle_40",
+		ActionThrottle50:             "throttle_50",
+		ActionThrottle60:             "throttle_60",
+		ActionThrottle70:             "throttle_70",
+		ActionThrottle80:             "throttle_80",
+		ActionThrottle90:             "throttle_90",
+		ActionThrottle100:            "throttle_100",
 		ActionJumpJet:                "jump_jet",
 		ActionDescend:                "descend",
 		ActionWeaponFire:             "weapon_fire",
@@ -116,22 +140,34 @@ func init() {
 
 func defaultControls() input.Keymap {
 	return input.Keymap{
-		ActionUp:       {input.KeyW, input.KeyUp},
-		ActionDown:     {input.KeyS, input.KeyDown},
-		ActionLeft:     {input.KeyA, input.KeyLeft},
-		ActionRight:    {input.KeyD, input.KeyRight},
-		ActionMoveAxes: {input.KeyGamepadLStickMotion},
+		ActionUp:           {input.KeyW, input.KeyUp},
+		ActionDown:         {input.KeyS, input.KeyDown},
+		ActionLeft:         {input.KeyA, input.KeyLeft},
+		ActionRight:        {input.KeyD, input.KeyRight},
+		ActionMoveAxes:     {input.KeyGamepadLStickMotion},
+		ActionTurnAxes:     {},
+		ActionThrottleAxes: {},
 
 		ActionTurretUp:    {},
 		ActionTurretDown:  {},
 		ActionTurretLeft:  {},
 		ActionTurretRight: {},
-		ActionTurretAxes:  {input.KeyGamepadRStickMotion},
+		ActionTurretAxes:  {input.KeyMouseMotion, input.KeyGamepadRStickMotion},
 
 		ActionMenuBack: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart, input.KeyGamepadBack},
 
 		ActionThrottleReverse: {input.KeyBackspace},
 		ActionThrottle0:       {input.KeyX},
+		ActionThrottle10:      {},
+		ActionThrottle20:      {},
+		ActionThrottle30:      {},
+		ActionThrottle40:      {},
+		ActionThrottle50:      {},
+		ActionThrottle60:      {},
+		ActionThrottle70:      {},
+		ActionThrottle80:      {},
+		ActionThrottle90:      {},
+		ActionThrottle100:     {},
 		ActionJumpJet:         {input.KeySpace, input.KeyGamepadLStick},
 		ActionDescend:         {input.KeyControl},
 
@@ -214,6 +250,10 @@ func (h *InputHandler) ClearAction(action input.Action) {
 func (h *InputHandler) SetControls(keymap input.Keymap) {
 	h.keymap = keymap
 	h.Remap(h.keymap)
+}
+
+func (h *InputHandler) Controls() input.Keymap {
+	return h.keymap.Clone()
 }
 
 func (g *Game) initControls() {

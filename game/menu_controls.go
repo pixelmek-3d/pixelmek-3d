@@ -15,7 +15,10 @@ const (
 	keyScanKeys
 )
 
-var keyScanner *keyScanHandler
+var (
+	keyScanner *keyScanHandler
+	prevKeymap input.Keymap
+)
 
 func controlsPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
@@ -102,6 +105,15 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 	padding := m.Padding()
 	spacing := m.Spacing()
 
+	// store previous controls in case they need to be reverted
+	prevKeymap = g.input.Controls()
+
+	// function to revert recent keybind changes before closing its window
+	revertFunc := func() {
+		g.input.SetControls(prevKeymap)
+		prevKeymap = nil
+	}
+
 	titleBar := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
@@ -168,9 +180,12 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 		widget.ButtonOpts.Text("Set Defaults", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-
-			// TODO: set all controls to their defaults and update the current view
-
+			// set all controls to their defaults and update the current view
+			storePrevKeymap := prevKeymap
+			g.input.SetControls(defaultControls())
+			rmWindow()
+			openEditKeysWindow(m, page)
+			prevKeymap = storePrevKeymap
 		}),
 	)
 	footer.AddChild(setDefaultsButton)
@@ -187,9 +202,8 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 		widget.ButtonOpts.Text("Cancel", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-
-			// TODO: revert any recent keybind changes
-
+			// revert any recent keybind changes
+			revertFunc()
 			rmWindow()
 		}),
 	)
@@ -203,9 +217,9 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 		widget.ButtonOpts.Text("Save", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-
-			// TODO: save current keybinds and apply to the runtime
-
+			// current keybinds already applied to the runtime, save to disk
+			g.input.saveControls()
+			prevKeymap = nil
 			rmWindow()
 		}),
 	)
@@ -222,6 +236,10 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
+	window.SetCloseFunction(func() {
+		revertFunc()
+		rmWindow()
+	})
 	m.AddWindow(window)
 }
 
