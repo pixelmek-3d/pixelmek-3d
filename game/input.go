@@ -90,10 +90,9 @@ func (g *Game) handleInput() {
 
 	var moveDx, moveDy float64
 	var turretDx, turretDy float64
-	cursorX, cursorY := ebiten.CursorPosition()
 
 	if moveAxes, ok := g.input.PressedActionInfo(ActionMoveAxes); ok {
-		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
+		// TODO: configurable deadzone and sensitivity
 		if math.Abs(moveAxes.Pos.X) >= 0.2 {
 			moveDx = 10 * -moveAxes.Pos.X
 		}
@@ -103,6 +102,19 @@ func (g *Game) handleInput() {
 	} // else {
 	// TODO: handle mouse mode body
 	//}
+
+	if turnAxes, ok := g.input.PressedActionInfo(ActionTurnAxes); ok {
+		// TODO: configurable deadzone and sensitivity
+		if math.Abs(turnAxes.Pos.X) >= 0.2 {
+			moveDx = 10 * -turnAxes.Pos.X
+		}
+	}
+	if throttleAxes, ok := g.input.PressedActionInfo(ActionThrottleAxes); ok {
+		// TODO: configurable deadzone and sensitivity
+		if math.Abs(throttleAxes.Pos.Y) >= 0.2 {
+			moveDy = 5 * -throttleAxes.Pos.Y
+		}
+	}
 
 	if moveDx != 0 {
 		turnAmount := 0.01 * float64(moveDx) / g.zoomFovDepth
@@ -119,24 +131,28 @@ func (g *Game) handleInput() {
 
 	if turretAxes, ok := g.input.PressedActionInfo(ActionTurretAxes); ok {
 		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
-		if math.Abs(turretAxes.Pos.X) >= 0.2 {
-			turretDx = 10 * -turretAxes.Pos.X
-		}
-		if math.Abs(turretAxes.Pos.Y) >= 0.2 {
-			turretDy = 5 * -turretAxes.Pos.Y
-		}
-	} else {
-		// handle mouse mode turret
-		switch {
-		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
-			// initialize first position to establish delta
-			if cursorX != 0 && cursorY != 0 {
+		if turretAxes.IsMouseMotionEvent() {
+			cursorX, cursorY := int(turretAxes.Pos.X), int(turretAxes.Pos.Y)
+			// handle mouse mode turret
+			switch {
+			case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
+				// initialize first position to establish delta
+				if cursorX != 0 && cursorY != 0 {
+					g.mouseX, g.mouseY = cursorX, cursorY
+				}
+
+			default:
+				turretDx, turretDy = float64(g.mouseX-cursorX), float64(g.mouseY-cursorY)
 				g.mouseX, g.mouseY = cursorX, cursorY
 			}
 
-		default:
-			turretDx, turretDy = float64(g.mouseX-cursorX), float64(g.mouseY-cursorY)
-			g.mouseX, g.mouseY = cursorX, cursorY
+		} else {
+			if math.Abs(turretAxes.Pos.X) >= 0.2 {
+				turretDx = 10 * -turretAxes.Pos.X
+			}
+			if math.Abs(turretAxes.Pos.Y) >= 0.2 {
+				turretDy = 5 * -turretAxes.Pos.Y
+			}
 		}
 	}
 
