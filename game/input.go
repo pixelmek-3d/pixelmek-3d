@@ -33,17 +33,11 @@ type InputHandler struct {
 }
 
 func NewInputHandler() *InputHandler {
-	var keymap input.Keymap
-	var inputSystem input.System
-	inputSystem.Init(input.SystemConfig{
+	h := &InputHandler{}
+	h.inputSystem.Init(input.SystemConfig{
 		DevicesEnabled: input.AnyDevice,
 	})
-	inputSystem.NewHandler(0, keymap)
-	h := &InputHandler{
-		Handler:     inputSystem.NewHandler(0, keymap),
-		inputSystem: inputSystem,
-		keymap:      keymap,
-	}
+	h.Handler = h.inputSystem.NewHandler(0, h.keymap)
 	return h
 }
 
