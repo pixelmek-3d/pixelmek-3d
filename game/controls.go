@@ -212,8 +212,8 @@ func actionString(a input.Action) string {
 	panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
 }
 
-func (h *InputHandler) AddKeyBind(action input.Action, key input.Key) error {
-	keyList, exists := h.keymap[action]
+func AddKeyBind(keymap input.Keymap, action input.Action, key input.Key) error {
+	keyList, exists := keymap[action]
 	if !exists {
 		keyList = make([]input.Key, 0, 1)
 	}
@@ -228,23 +228,23 @@ func (h *InputHandler) AddKeyBind(action input.Action, key input.Key) error {
 			if a == action {
 				continue
 			}
-			if aKeyList, ok := h.keymap[a]; ok && slices.Contains(aKeyList, key) {
+			if aKeyList, ok := keymap[a]; ok && slices.Contains(aKeyList, key) {
 				return fmt.Errorf("key '%s' already bound to '%s'", key.String(), actionString(a))
 			}
 		}
 	} else {
 		// do not allow rebinding anything else to a key already assigned to Menu/Back action
-		if menuBackKeyList, ok := h.keymap[ActionMenuBack]; ok && slices.Contains(menuBackKeyList, key) {
+		if menuBackKeyList, ok := keymap[ActionMenuBack]; ok && slices.Contains(menuBackKeyList, key) {
 			return fmt.Errorf("key '%s' restricted to '%s'", key.String(), actionString(ActionMenuBack))
 		}
 	}
 
-	h.keymap[action] = append(keyList, key)
+	keymap[action] = append(keyList, key)
 	return nil
 }
 
-func (h *InputHandler) ClearAction(action input.Action) {
-	delete(h.keymap, action)
+func ClearAction(keymap input.Keymap, action input.Action) {
+	delete(keymap, action)
 }
 
 func (h *InputHandler) SetControls(keymap input.Keymap) {
@@ -253,7 +253,7 @@ func (h *InputHandler) SetControls(keymap input.Keymap) {
 }
 
 func (h *InputHandler) Controls() input.Keymap {
-	return h.keymap.Clone()
+	return h.keymap
 }
 
 func (g *Game) initControls() {

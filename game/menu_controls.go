@@ -16,16 +16,19 @@ const (
 )
 
 var (
-	keyScanner *keyScanHandler
-	prevKeymap input.Keymap
+	modifiedHandler *input.Handler
+	modifiedKeymap  input.Keymap
+	keyScanner      *keyScanHandler
 )
 
 func controlsPage(m Menu) *settingsPage {
 	c := newPageContentContainer()
+	g := m.Game()
 	res := m.Resources()
 
-	// add key scan handler
-	keyScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(m.Game().input.Handler)}
+	// set modified handler and key scanner
+	modifiedHandler = g.input.inputSystem.NewHandler(0, input.Keymap{})
+	keyScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(modifiedHandler)}
 
 	page := &settingsPage{
 		title:        "Controls",
@@ -38,7 +41,7 @@ func controlsPage(m Menu) *settingsPage {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Modify Control Binds", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			openEditKeysWindow(m, page)
+			openEditKeysWindow(m, page, g.input.Controls())
 		}),
 	)
 	c.AddChild(modifyControlsButton)
@@ -95,7 +98,7 @@ func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc fun
 	}
 }
 
-func openEditKeysWindow(m Menu, page *settingsPage) {
+func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
 
@@ -105,14 +108,9 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 	padding := m.Padding()
 	spacing := m.Spacing()
 
-	// store previous controls in case they need to be reverted
-	prevKeymap = g.input.Controls()
-
-	// function to revert recent keybind changes before closing its window
-	revertFunc := func() {
-		g.input.SetControls(prevKeymap)
-		prevKeymap = nil
-	}
+	// copy existing key mapping prior to modification
+	modifiedKeymap = keymap.Clone()
+	modifiedHandler.Remap(modifiedKeymap)
 
 	titleBar := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
@@ -181,11 +179,9 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// set all controls to their defaults and update the current view
-			storePrevKeymap := prevKeymap
-			g.input.SetControls(defaultControls())
+			log.Debug("setting default key bindings")
 			rmWindow()
-			openEditKeysWindow(m, page)
-			prevKeymap = storePrevKeymap
+			openEditKeysWindow(m, page, defaultControls())
 		}),
 	)
 	footer.AddChild(setDefaultsButton)
@@ -202,8 +198,7 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 		widget.ButtonOpts.Text("Cancel", res.button.face, res.button.text),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// revert any recent keybind changes
-			revertFunc()
+			// cancel any modified keybind changes
 			rmWindow()
 		}),
 	)
@@ -218,8 +213,9 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// current keybinds already applied to the runtime, save to disk
+			log.Debugf("saving modified key bindings")
+			g.input.Remap(modifiedKeymap)
 			g.input.saveControls()
-			prevKeymap = nil
 			rmWindow()
 		}),
 	)
@@ -236,10 +232,6 @@ func openEditKeysWindow(m Menu, page *settingsPage) {
 	window.SetLocation(wRect)
 
 	rmWindow = m.UI().AddWindow(window)
-	window.SetCloseFunction(func() {
-		revertFunc()
-		rmWindow()
-	})
 	m.AddWindow(window)
 }
 
@@ -260,16 +252,13 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 			keyBind = keyScanner.axes
 		}
 		log.Debugf("[%s] add keybind to '%s'", actionStr, keyBind.String())
-		g := m.Game()
-		err := g.input.AddKeyBind(action, keyBind)
+		err := AddKeyBind(modifiedKeymap, action, keyBind)
 		if err != nil {
 			log.Errorf("%v - TODO: display error on screen!", err)
 			return
 		}
 
-		g.input.SetControls(g.input.keymap)
-
-		keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
+		keyNames := modifiedHandler.ActionKeyNames(action, input.AnyDevice)
 		bindButton.SetText(strings.Join(keyNames, ", "))
 		page.content.RequestRelayout()
 	}
@@ -292,13 +281,14 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 		Stretch: true,
 	}))
 
-	keyNames := g.input.ActionKeyNames(action, input.AnyDevice)
+	keyNames := modifiedHandler.ActionKeyNames(action, input.AnyDevice)
 	bindButton = widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text(strings.Join(keyNames, ", "), res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// open a modal window to wait for key/axes pressed update
+			log.Debugf("[%s] opening rebind window", actionStr)
 			openRebindWindow(m, action, scanType, keyScanCompleteFunc)
 		}),
 	)
@@ -309,8 +299,7 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("clear", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			g.input.ClearAction(action)
-			g.input.SetControls(g.input.keymap)
+			ClearAction(modifiedKeymap, action)
 			bindButton.SetText("")
 			page.content.RequestRelayout()
 		}),
