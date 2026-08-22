@@ -542,7 +542,8 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	var stop, forward, backward bool
+	var forward, backward bool
+	var throttlePercent float64 = -math.MaxFloat64
 	var rotLeft, rotRight bool
 	var lookUp, lookDown, lookLeft, lookRight bool
 
@@ -572,8 +573,29 @@ func (g *Game) handleInput() {
 		backward = true
 	}
 
-	if g.input.ActionIsPressed(ActionThrottle0) {
-		stop = true
+	switch {
+	case g.input.ActionIsPressed(ActionThrottle0):
+		throttlePercent = 0
+	case g.input.ActionIsPressed(ActionThrottle10):
+		throttlePercent = 0.1
+	case g.input.ActionIsPressed(ActionThrottle20):
+		throttlePercent = 0.2
+	case g.input.ActionIsPressed(ActionThrottle30):
+		throttlePercent = 0.3
+	case g.input.ActionIsPressed(ActionThrottle40):
+		throttlePercent = 0.4
+	case g.input.ActionIsPressed(ActionThrottle50):
+		throttlePercent = 0.5
+	case g.input.ActionIsPressed(ActionThrottle60):
+		throttlePercent = 0.6
+	case g.input.ActionIsPressed(ActionThrottle70):
+		throttlePercent = 0.7
+	case g.input.ActionIsPressed(ActionThrottle80):
+		throttlePercent = 0.8
+	case g.input.ActionIsPressed(ActionThrottle90):
+		throttlePercent = 0.9
+	case g.input.ActionIsPressed(ActionThrottle100):
+		throttlePercent = 1.0
 	}
 
 	switch {
@@ -622,8 +644,8 @@ func (g *Game) handleInput() {
 		if math.Abs(moveDy) >= 0.2 {
 			deltaV *= math.Abs(moveDy)
 		}
-		if stop {
-			g.player.SetTargetVelocity(0)
+		if throttlePercent >= 0 {
+			g.player.SetTargetVelocity(throttlePercent * g.player.MaxVelocity())
 		} else if forward {
 			g.player.SetTargetVelocity(g.player.TargetVelocity() + deltaV)
 		} else if backward {
