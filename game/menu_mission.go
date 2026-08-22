@@ -490,7 +490,6 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true, FilterDefaultFloorTexture: true}
 	missionOpts := missionimage.MissionImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
-	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
 
 	m := g.menu
@@ -517,7 +516,7 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			rmWindow()
+			window.Close()
 		}),
 		widget.ButtonOpts.TabOrder(99),
 	))
@@ -583,6 +582,5 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 	wRect := uiRect.Inset(padding)
 	window.SetLocation(wRect)
 
-	rmWindow = m.UI().AddWindow(window)
 	m.AddWindow(window)
 }

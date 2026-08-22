@@ -99,7 +99,6 @@ func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc fun
 }
 
 func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
-	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
 
 	g := m.Game()
@@ -180,7 +179,7 @@ func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// set all controls to their defaults and update the current view
 			log.Debug("setting default key bindings")
-			rmWindow()
+			window.Close()
 			openEditKeysWindow(m, page, defaultControls())
 		}),
 	)
@@ -199,7 +198,7 @@ func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// cancel any modified keybind changes
-			rmWindow()
+			window.Close()
 		}),
 	)
 	footer.AddChild(cancelButton)
@@ -216,7 +215,7 @@ func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 			log.Debugf("saving modified key bindings")
 			g.input.Remap(modifiedKeymap)
 			g.input.saveControls()
-			rmWindow()
+			window.Close()
 		}),
 	)
 	footer.AddChild(saveButton)
@@ -231,7 +230,6 @@ func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 	wRect := uiRect.Inset(padding)
 	window.SetLocation(wRect)
 
-	rmWindow = m.UI().AddWindow(window)
 	m.AddWindow(window)
 }
 
@@ -310,7 +308,6 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 }
 
 func openRebindWindow(m Menu, action input.Action, scanType keyScanType, rebindCompleteFunc func()) {
-	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
 
 	var scanLabelStr string
@@ -377,10 +374,9 @@ func openRebindWindow(m Menu, action input.Action, scanType keyScanType, rebindC
 	wRect := uiRect.Inset(uiRect.Dy() / 6)
 	window.SetLocation(wRect)
 
-	rmWindow = m.UI().AddWindow(window)
 	keyScanner.startKeyScan(scanType, func() {
 		rebindCompleteFunc()
-		rmWindow()
+		window.Close()
 	})
 	m.AddWindow(window)
 }

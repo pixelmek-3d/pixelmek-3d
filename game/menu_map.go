@@ -444,7 +444,6 @@ func openMapWindow(g *Game, res *uiResources, modelMap *model.Map) {
 	mapOpts := mapimage.MapImageOptions{PxPerCell: 8, RenderDefaultFloorTexture: true, FilterDefaultFloorTexture: true}
 	//mapOpts := mapimage.MapImageOptions{RenderDropZone: true, RenderNavPoints: true}
 
-	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
 
 	m := g.menu
@@ -471,7 +470,7 @@ func openMapWindow(g *Game, res *uiResources, modelMap *model.Map) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			rmWindow()
+			window.Close()
 		}),
 		widget.ButtonOpts.TabOrder(99),
 	))
@@ -537,6 +536,5 @@ func openMapWindow(g *Game, res *uiResources, modelMap *model.Map) {
 	wRect := uiRect.Inset(padding)
 	window.SetLocation(wRect)
 
-	rmWindow = m.UI().AddWindow(window)
 	m.AddWindow(window)
 }

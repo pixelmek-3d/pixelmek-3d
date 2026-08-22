@@ -78,17 +78,36 @@ func (m *MenuModel) Root() *widget.Container {
 }
 
 func (m *MenuModel) AddWindow(window *widget.Window) {
+	rmWindow := m.UI().AddWindow(window)
+	window.SetCloseFunction(func() {
+		m.popWindow()
+		rmWindow()
+	})
 	m.windows = append(m.windows, window)
 }
 
 func (m *MenuModel) CloseWindow() *widget.Window {
+	if window := m.peekWindow(); window != nil {
+		window.Close()
+		return window
+	}
+	return nil
+}
+
+func (m *MenuModel) peekWindow() *widget.Window {
 	numWindows := len(m.windows)
 	if numWindows == 0 {
 		return nil
 	}
-	window := m.windows[numWindows-1]
-	m.windows = m.windows[:numWindows-1]
-	window.Close()
+	return m.windows[numWindows-1]
+}
+
+func (m *MenuModel) popWindow() *widget.Window {
+	window := m.peekWindow()
+	if window == nil {
+		return nil
+	}
+	m.windows = m.windows[:len(m.windows)-1]
 	return window
 }
 

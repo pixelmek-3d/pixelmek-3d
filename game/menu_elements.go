@@ -299,7 +299,6 @@ func newBlankSeparator(res *uiResources, spacing int, ld any) widget.PreferredSi
 }
 
 func openExitWindow(m Menu) {
-	var rmWindow widget.RemoveWindowFunc
 	var window *widget.Window
 
 	game := m.Game()
@@ -345,7 +344,7 @@ func openExitWindow(m Menu) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			rmWindow()
+			window.Close()
 		}),
 		widget.ButtonOpts.TabOrder(99),
 	))
@@ -367,7 +366,7 @@ func openExitWindow(m Menu) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Cancel", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			rmWindow()
+			window.Close()
 		}),
 	)
 	c.AddChild(cancel)
@@ -443,6 +442,5 @@ func openExitWindow(m Menu) {
 	wRect := uiRect.Inset(uiRect.Dy() / 6)
 	window.SetLocation(wRect)
 
-	rmWindow = m.UI().AddWindow(window)
 	m.AddWindow(window)
 }
