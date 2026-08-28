@@ -28,8 +28,9 @@ var debugProfFile *os.File
 
 type InputHandler struct {
 	*input.Handler
-	inputSystem input.System
-	keymap      input.Keymap
+	inputSystem      input.System
+	keyboardMouseMap input.Keymap
+	gamepadMap       input.Keymap
 }
 
 func NewInputHandler() *InputHandler {
@@ -37,7 +38,7 @@ func NewInputHandler() *InputHandler {
 	h.inputSystem.Init(input.SystemConfig{
 		DevicesEnabled: input.AnyDevice,
 	})
-	h.Handler = h.inputSystem.NewHandler(0, h.keymap)
+	h.Handler = h.inputSystem.NewHandler(0, input.Keymap{})
 	return h
 }
 

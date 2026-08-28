@@ -41,7 +41,7 @@ func controlsPage(m Menu) *settingsPage {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Modify Control Binds", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			openEditKeysWindow(m, page, g.input.Controls())
+			// FIXME: openModifyControlsWindow(m, page, g.input.Controls())
 		}),
 	)
 	c.AddChild(modifyControlsButton)
@@ -98,7 +98,7 @@ func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc fun
 	}
 }
 
-func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
+func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 	var window *widget.Window
 
 	g := m.Game()
@@ -180,7 +180,7 @@ func openEditKeysWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 			// set all controls to their defaults and update the current view
 			log.Debug("setting default key bindings")
 			window.Close()
-			openEditKeysWindow(m, page, defaultControls())
+			openModifyControlsWindow(m, page, defaultKeyboardMouseControls())
 		}),
 	)
 	footer.AddChild(setDefaultsButton)

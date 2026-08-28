@@ -138,13 +138,13 @@ func init() {
 	}
 }
 
-func defaultControls() input.Keymap {
+func defaultKeyboardMouseControls() input.Keymap {
 	return input.Keymap{
 		ActionUp:           {input.KeyW, input.KeyUp},
 		ActionDown:         {input.KeyS, input.KeyDown},
 		ActionLeft:         {input.KeyA, input.KeyLeft},
 		ActionRight:        {input.KeyD, input.KeyRight},
-		ActionMoveAxes:     {input.KeyGamepadLStickMotion},
+		ActionMoveAxes:     {},
 		ActionTurnAxes:     {},
 		ActionThrottleAxes: {},
 
@@ -152,9 +152,9 @@ func defaultControls() input.Keymap {
 		ActionTurretDown:  {},
 		ActionTurretLeft:  {},
 		ActionTurretRight: {},
-		ActionTurretAxes:  {input.KeyMouseMotion, input.KeyGamepadRStickMotion},
+		ActionTurretAxes:  {input.KeyMouseMotion},
 
-		ActionMenuBack: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart, input.KeyGamepadBack},
+		ActionMenuBack: {input.KeyEscape, input.KeyF1},
 
 		ActionThrottleReverse: {input.KeyBackspace},
 		ActionThrottle0:       {input.KeyX},
@@ -168,12 +168,12 @@ func defaultControls() input.Keymap {
 		ActionThrottle80:      {},
 		ActionThrottle90:      {},
 		ActionThrottle100:     {},
-		ActionJumpJet:         {input.KeySpace, input.KeyGamepadLStick},
+		ActionJumpJet:         {input.KeySpace},
 		ActionDescend:         {input.KeyControl},
 
-		ActionWeaponFire:             {input.KeyMouseLeft, input.KeyGamepadR2},
-		ActionWeaponCycle:            {input.KeyMouseRight, input.KeyGamepadR1},
-		ActionWeaponGroupFireToggle:  {input.KeyBackslash, input.KeyGamepadY},
+		ActionWeaponFire:             {input.KeyMouseLeft},
+		ActionWeaponCycle:            {input.KeyMouseRight},
+		ActionWeaponGroupFireToggle:  {input.KeyBackslash},
 		ActionWeaponGroupSetModifier: {input.KeyShift},
 		ActionWeaponGroup1:           {input.Key1},
 		ActionWeaponGroup2:           {input.Key2},
@@ -183,17 +183,41 @@ func defaultControls() input.Keymap {
 		ActionWeaponFireGroup1:       {input.KeyMouseBack},
 		ActionWeaponFireGroup2:       {input.KeyMouseForward},
 
-		ActionNavCycle:         {input.KeyN, input.KeyGamepadDown},
+		ActionNavCycle:         {input.KeyN},
 		ActionRadarRangeCycle:  {input.KeySlash},
-		ActionTargetCrosshairs: {input.KeyQ, input.KeyGamepadL2},
-		ActionTargetNearest:    {input.KeyE, input.KeyGamepadUp},
-		ActionTargetNext:       {input.KeyT, input.KeyGamepadRight},
-		ActionTargetPrevious:   {input.KeyR, input.KeyGamepadLeft},
+		ActionTargetCrosshairs: {input.KeyQ},
+		ActionTargetNearest:    {input.KeyE},
+		ActionTargetNext:       {input.KeyT},
+		ActionTargetPrevious:   {input.KeyR},
 
-		ActionZoomToggle:     {input.KeyZ, input.KeyGamepadRStick},
-		ActionLightAmpToggle: {input.KeyL, input.KeyGamepadDown},
+		ActionZoomToggle:     {input.KeyZ},
+		ActionLightAmpToggle: {input.KeyL},
 		ActionPowerToggle:    {input.KeyP},
 		ActionCameraCycle:    {input.KeyF3},
+	}
+}
+
+func defaultGamepadControls() input.Keymap {
+	return input.Keymap{
+		ActionMoveAxes:   {input.KeyGamepadLStickMotion},
+		ActionTurretAxes: {input.KeyGamepadRStickMotion},
+
+		ActionMenuBack: {input.KeyGamepadStart, input.KeyGamepadBack},
+
+		ActionJumpJet: {input.KeyGamepadLStick},
+
+		ActionWeaponFire:            {input.KeyGamepadR2},
+		ActionWeaponCycle:           {input.KeyGamepadR1},
+		ActionWeaponGroupFireToggle: {input.KeyGamepadY},
+
+		ActionNavCycle:         {input.KeyGamepadDown},
+		ActionTargetCrosshairs: {input.KeyGamepadL2},
+		ActionTargetNearest:    {input.KeyGamepadUp},
+		ActionTargetNext:       {input.KeyGamepadRight},
+		ActionTargetPrevious:   {input.KeyGamepadLeft},
+
+		ActionZoomToggle:     {input.KeyGamepadRStick},
+		ActionLightAmpToggle: {input.KeyGamepadDown},
 	}
 }
 
@@ -247,54 +271,81 @@ func ClearAction(keymap input.Keymap, action input.Action) {
 	delete(keymap, action)
 }
 
-func (h *InputHandler) SetControls(keymap input.Keymap) {
-	h.keymap = keymap
-	h.Remap(h.keymap)
+func (h *InputHandler) SetControls(keyboardMouseMap input.Keymap, gamepadMap input.Keymap) {
+	h.keyboardMouseMap = keyboardMouseMap
+	h.gamepadMap = gamepadMap
+	mergedKeyMap := input.MergeKeymaps(keyboardMouseMap, gamepadMap)
+	h.Remap(mergedKeyMap)
 }
 
-func (h *InputHandler) Controls() input.Keymap {
-	return h.keymap
+func (h *InputHandler) KeyboardMouseControls() input.Keymap {
+	return h.keyboardMouseMap
+}
+
+func (h *InputHandler) GamepadControls() input.Keymap {
+	return h.gamepadMap
 }
 
 func (g *Game) initControls() {
 	g.input = NewInputHandler()
 
-	// import from keymap file if exists
-	var keymap input.Keymap
-	if _, err := os.Stat(resources.UserKeymapFile); err == nil {
-		keymap, err = restoreControls()
+	// import from keymap files if exists
+	var keyboardMouseMap input.Keymap
+	var gamepadMap input.Keymap
+
+	if _, err := os.Stat(resources.UserKeyboardMouseKeymapFile); err == nil {
+		keyboardMouseMap, gamepadMap, err = restoreControls()
 		if err != nil {
-			panic(fmt.Errorf("error loading keymap file %s: %v", resources.UserKeymapFile, err))
+			panic(fmt.Errorf("error loading keymaps: %v", err))
 		}
 	}
 
 	// for first time, intitialize defaults and later save to file
-	initializeDefaults := len(keymap) == 0
-	if initializeDefaults {
-		log.Debug("initializing default keymaps")
-		keymap = defaultControls()
+	var appliedDefaults bool
+	if len(keyboardMouseMap) == 0 {
+		log.Debug("initializing default keyboard/mouse keymaps")
+		appliedDefaults = true
+		keyboardMouseMap = defaultKeyboardMouseControls()
+	}
+	if len(gamepadMap) == 0 {
+		log.Debug("initializing default gamepad keymaps")
+		appliedDefaults = true
+		gamepadMap = defaultGamepadControls()
+	}
+	if appliedDefaults {
 		defer g.input.saveControls()
 	}
 
 	// TODO: initialize default for new actions even if not first time?
 
-	g.input.SetControls(keymap)
+	g.input.SetControls(keyboardMouseMap, gamepadMap)
 }
 
-func restoreControls() (input.Keymap, error) {
-	log.Debug("restoring keymap file ", resources.UserKeymapFile)
+func restoreControls() (input.Keymap, input.Keymap, error) {
+	log.Debug("restoring keymap file ", resources.UserKeyboardMouseKeymapFile)
+	var combinedErrs error
+	keyboardMouseMap, err := _loadKeymapFile(resources.UserKeyboardMouseKeymapFile)
+	if err != nil {
+		combinedErrs = errors.Join(combinedErrs, err)
+	}
+	gamepadMap, err := _loadKeymapFile(resources.UserGamepadKeymapFile)
+	if err != nil {
+		combinedErrs = errors.Join(combinedErrs, err)
+	}
+	return keyboardMouseMap, gamepadMap, combinedErrs
+}
+
+func _loadKeymapFile(keymapFilePath string) (input.Keymap, error) {
 	keymap := input.Keymap{}
 
-	keymapFile, err := os.Open(resources.UserKeymapFile)
+	keymapFile, err := os.Open(resources.UserKeyboardMouseKeymapFile)
 	if err != nil {
-		log.Error(err)
 		return keymap, err
 	}
 	defer keymapFile.Close()
 
 	fileBytes, err := io.ReadAll(keymapFile)
 	if err != nil {
-		log.Error(err)
 		return keymap, err
 	}
 
@@ -306,7 +357,6 @@ func restoreControls() (input.Keymap, error) {
 	var keymapConfig map[string][]string
 	err = json.Unmarshal(fileBytes, &keymapConfig)
 	if err != nil {
-		log.Error(err)
 		return keymap, err
 	}
 
@@ -336,17 +386,38 @@ func restoreControls() (input.Keymap, error) {
 
 	if len(actionErrorString) > 0 {
 		err = errors.New(actionErrorString)
-		log.Error(err)
 		return keymap, err
 	}
-
 	return keymap, nil
 }
 
 func (h *InputHandler) saveControls() error {
-	log.Debug("saving keymap file ", resources.UserKeymapFile)
+	log.Debug("saving keymap file ", resources.UserKeyboardMouseKeymapFile)
 
-	userConfigPath := filepath.Dir(resources.UserKeymapFile)
+	var combinedErrs error
+	err := _saveKeymapFile(h.inputSystem, h.keyboardMouseMap, resources.UserKeyboardMouseKeymapFile)
+	if err != nil {
+		combinedErrs = errors.Join(combinedErrs, err)
+	}
+	err = _saveKeymapFile(h.inputSystem, h.gamepadMap, resources.UserGamepadKeymapFile)
+	if err != nil {
+		combinedErrs = errors.Join(combinedErrs, err)
+	}
+
+	if combinedErrs != nil {
+		log.Error(combinedErrs)
+		return combinedErrs
+	}
+	return nil
+}
+
+func _saveKeymapFile(inputSystem input.System, keymap input.Keymap, keymapFilePath string) error {
+	log.Debug("saving keymap file ", keymapFilePath)
+
+	// create local handler to fetch action key names for the given keymap only
+	h := inputSystem.NewHandler(0, keymap)
+
+	userConfigPath := filepath.Dir(keymapFilePath)
 	if _, err := os.Stat(userConfigPath); os.IsNotExist(err) {
 		err = os.MkdirAll(userConfigPath, os.ModePerm)
 		if err != nil {
@@ -355,7 +426,7 @@ func (h *InputHandler) saveControls() error {
 		}
 	}
 
-	keymapFile, err := os.Create(resources.UserKeymapFile)
+	keymapFile, err := os.Create(keymapFilePath)
 	if err != nil {
 		log.Error(err)
 		return err
