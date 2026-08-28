@@ -264,11 +264,31 @@ func ClearAction(keymap input.Keymap, action input.Action) {
 	delete(keymap, action)
 }
 
+func (h *InputHandler) ActionIsPressed(action input.Action) bool {
+	return h.handler.ActionIsPressed(action)
+}
+
+func (h *InputHandler) ActionIsJustPressed(action input.Action) bool {
+	return h.handler.ActionIsJustPressed(action)
+}
+
+func (h *InputHandler) ActionIsJustReleased(action input.Action) bool {
+	return h.handler.ActionIsJustReleased(action)
+}
+
+func (h *InputHandler) PressedActionInfo(action input.Action) (input.EventInfo, bool) {
+	return h.handler.PressedActionInfo(action)
+}
+
+func (h *InputHandler) JustReleasedActionInfo(action input.Action) (input.EventInfo, bool) {
+	return h.handler.JustReleasedActionInfo(action)
+}
+
 func (h *InputHandler) SetControls(keyboardMouseMap input.Keymap, gamepadMap input.Keymap) {
 	h.keyboardMouseMap = keyboardMouseMap
 	h.gamepadMap = gamepadMap
 	mergedKeyMap := input.MergeKeymaps(keyboardMouseMap, gamepadMap)
-	h.Remap(mergedKeyMap)
+	h.handler.Remap(mergedKeyMap)
 }
 
 func (h *InputHandler) KeyboardMouseControls() input.Keymap {

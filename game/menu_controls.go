@@ -36,15 +36,24 @@ func controlsPage(m Menu) *settingsPage {
 		tickUpdaters: []tickUpdater{keyScanner},
 	}
 
-	modifyControlsButton := widget.NewButton(
+	keyboardMouseControls := widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
 		widget.ButtonOpts.TextPadding(res.button.padding),
-		widget.ButtonOpts.Text("Modify Control Binds", res.button.face, res.button.text),
+		widget.ButtonOpts.Text("Keyboard/Mouse Controls", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// FIXME: openModifyControlsWindow(m, page, g.input.Controls())
+			openModifyControlsWindow(m, page, g.input.KeyboardMouseControls(), KeymapTypeKeyboardMouse)
 		}),
 	)
-	c.AddChild(modifyControlsButton)
+	gamepadControls := widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Gamepad Controls", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			openModifyControlsWindow(m, page, g.input.GamepadControls(), KeymapTypeGamepad)
+		}),
+	)
+	c.AddChild(keyboardMouseControls)
+	c.AddChild(gamepadControls)
 	return page
 }
 
@@ -98,8 +107,18 @@ func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc fun
 	}
 }
 
-func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap) {
+func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, keymapType KeymapType) {
 	var window *widget.Window
+
+	var windowTitle string
+	switch keymapType {
+	case KeymapTypeKeyboardMouse:
+		windowTitle = "Keyboard/Mouse Controls"
+	case KeymapTypeGamepad:
+		windowTitle = "Gamepad Controls"
+	default:
+		log.Fatalf("unhandled KeymapType: %v", keymapType)
+	}
 
 	g := m.Game()
 	uiRect := g.uiRect()
@@ -123,7 +142,7 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 			}))))
 
 	titleBar.AddChild(widget.NewText(
-		widget.TextOpts.Text("Modify Control Binds", res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Text(windowTitle, res.text.titleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
@@ -180,7 +199,15 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 			// set all controls to their defaults and update the current view
 			log.Debug("setting default key bindings")
 			window.Close()
-			openModifyControlsWindow(m, page, defaultKeyboardMouseControls())
+
+			var defaultKeymap input.Keymap
+			switch keymapType {
+			case KeymapTypeKeyboardMouse:
+				defaultKeymap = defaultKeyboardMouseControls()
+			case KeymapTypeGamepad:
+				defaultKeymap = defaultGamepadControls()
+			}
+			openModifyControlsWindow(m, page, defaultKeymap, keymapType)
 		}),
 	)
 	footer.AddChild(setDefaultsButton)
@@ -213,7 +240,15 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap) {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// current keybinds already applied to the runtime, save to disk
 			log.Debugf("saving modified key bindings")
-			g.input.Remap(modifiedKeymap)
+			keyboardMouseMap := g.input.keyboardMouseMap
+			gamepadMap := g.input.gamepadMap
+			switch keymapType {
+			case KeymapTypeKeyboardMouse:
+				keyboardMouseMap = modifiedKeymap
+			case KeymapTypeGamepad:
+				gamepadMap = modifiedKeymap
+			}
+			g.input.SetControls(keyboardMouseMap, gamepadMap)
 			g.input.saveControls()
 			window.Close()
 		}),

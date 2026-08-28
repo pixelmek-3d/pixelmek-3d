@@ -24,10 +24,17 @@ const (
 	MouseModeCursor
 )
 
+type KeymapType int
+
+const (
+	KeymapTypeKeyboardMouse KeymapType = iota
+	KeymapTypeGamepad
+)
+
 var debugProfFile *os.File
 
 type InputHandler struct {
-	*input.Handler
+	handler          *input.Handler
 	inputSystem      input.System
 	keyboardMouseMap input.Keymap
 	gamepadMap       input.Keymap
@@ -38,7 +45,7 @@ func NewInputHandler() *InputHandler {
 	h.inputSystem.Init(input.SystemConfig{
 		DevicesEnabled: input.AnyDevice,
 	})
-	h.Handler = h.inputSystem.NewHandler(0, input.Keymap{})
+	h.handler = h.inputSystem.NewHandler(0, input.Keymap{})
 	return h
 }
 
