@@ -138,36 +138,27 @@ func init() {
 	}
 }
 
-func defaultKeyboardMouseControls() input.Keymap {
-	return input.Keymap{
-		ActionUp:           {input.KeyW, input.KeyUp},
-		ActionDown:         {input.KeyS, input.KeyDown},
-		ActionLeft:         {input.KeyA, input.KeyLeft},
-		ActionRight:        {input.KeyD, input.KeyRight},
-		ActionMoveAxes:     {},
-		ActionTurnAxes:     {},
-		ActionThrottleAxes: {},
+// allActionsKeymap returns a keymap initialilzed of all available actions with empty key lists
+func allActionsKeymap() input.Keymap {
+	keymap := input.Keymap{}
+	for a := ActionUnknown + 1; a < actionCount; a++ {
+		keymap[a] = []input.Key{}
+	}
+	return keymap
+}
 
-		ActionTurretUp:    {},
-		ActionTurretDown:  {},
-		ActionTurretLeft:  {},
-		ActionTurretRight: {},
-		ActionTurretAxes:  {input.KeyMouseMotion},
+func defaultKeyboardMouseControls() input.Keymap {
+	keymap := input.Keymap{
+		ActionUp:         {input.KeyW, input.KeyUp},
+		ActionDown:       {input.KeyS, input.KeyDown},
+		ActionLeft:       {input.KeyA, input.KeyLeft},
+		ActionRight:      {input.KeyD, input.KeyRight},
+		ActionTurretAxes: {input.KeyMouseMotion},
 
 		ActionMenuBack: {input.KeyEscape, input.KeyF1},
 
 		ActionThrottleReverse: {input.KeyBackspace},
 		ActionThrottle0:       {input.KeyX},
-		ActionThrottle10:      {},
-		ActionThrottle20:      {},
-		ActionThrottle30:      {},
-		ActionThrottle40:      {},
-		ActionThrottle50:      {},
-		ActionThrottle60:      {},
-		ActionThrottle70:      {},
-		ActionThrottle80:      {},
-		ActionThrottle90:      {},
-		ActionThrottle100:     {},
 		ActionJumpJet:         {input.KeySpace},
 		ActionDescend:         {input.KeyControl},
 
@@ -195,10 +186,11 @@ func defaultKeyboardMouseControls() input.Keymap {
 		ActionPowerToggle:    {input.KeyP},
 		ActionCameraCycle:    {input.KeyF3},
 	}
+	return input.MergeKeymaps(keymap, allActionsKeymap())
 }
 
 func defaultGamepadControls() input.Keymap {
-	return input.Keymap{
+	keymap := input.Keymap{
 		ActionMoveAxes:   {input.KeyGamepadLStickMotion},
 		ActionTurretAxes: {input.KeyGamepadRStickMotion},
 
@@ -219,6 +211,7 @@ func defaultGamepadControls() input.Keymap {
 		ActionZoomToggle:     {input.KeyGamepadRStick},
 		ActionLightAmpToggle: {input.KeyGamepadDown},
 	}
+	return input.MergeKeymaps(keymap, allActionsKeymap())
 }
 
 func stringAction(aName string) input.Action {
