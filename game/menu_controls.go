@@ -16,9 +16,12 @@ const (
 )
 
 var (
-	modifiedHandler *input.Handler
-	modifiedKeymap  input.Keymap
-	keyScanner      *keyScanHandler
+	modifiedKeymap input.Keymap
+
+	keyboardMouseHandler *input.Handler
+	keyboardMouseScanner *keyScanHandler
+	gamepadHandler       *input.Handler
+	gamepadScanner       *keyScanHandler
 )
 
 func controlsPage(m Menu) *settingsPage {
@@ -26,14 +29,21 @@ func controlsPage(m Menu) *settingsPage {
 	g := m.Game()
 	res := m.Resources()
 
-	// set modified handler and key scanner
-	modifiedHandler = g.input.inputSystem.NewHandler(0, input.Keymap{})
-	keyScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(modifiedHandler)}
+	// make separate handlers and scanners for only keyboard/mouse and only gamepad inputs
+	var keyboardMouseInputSys input.System
+	keyboardMouseInputSys.Init(input.SystemConfig{DevicesEnabled: input.KeyboardDevice | input.MouseDevice})
+	keyboardMouseHandler = g.input.inputSystem.NewHandler(0, input.Keymap{})
+	keyboardMouseScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(keyboardMouseHandler)}
+
+	var gamepadInputSys input.System
+	gamepadInputSys.Init(input.SystemConfig{DevicesEnabled: input.GamepadDevice})
+	gamepadHandler = g.input.inputSystem.NewHandler(0, input.Keymap{})
+	gamepadScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(gamepadHandler)}
 
 	page := &settingsPage{
 		title:        "Controls",
 		content:      c,
-		tickUpdaters: []tickUpdater{keyScanner},
+		tickUpdaters: []tickUpdater{keyboardMouseScanner},
 	}
 
 	keyboardMouseControls := widget.NewButton(
@@ -111,11 +121,14 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 	var window *widget.Window
 
 	var windowTitle string
+	var modifiedHandler *input.Handler
 	switch keymapType {
 	case KeymapTypeKeyboardMouse:
 		windowTitle = "Keyboard/Mouse Controls"
+		modifiedHandler = keyboardMouseHandler
 	case KeymapTypeGamepad:
 		windowTitle = "Gamepad Controls"
+		modifiedHandler = gamepadHandler
 	default:
 		log.Fatalf("unhandled KeymapType: %v", keymapType)
 	}
@@ -166,7 +179,7 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 
 	// add control binds for all actions
 	for action := range actionCount {
-		binder := addControlBind(g, m, page, action)
+		binder := addControlBind(g, m, page, action, keymapType)
 		if binder != nil {
 			content.AddChild(binder)
 		}
@@ -268,10 +281,22 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 	m.AddWindow(window)
 }
 
-func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *widget.Container {
+func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action, keymapType KeymapType) *widget.Container {
 	if action == ActionUnknown {
 		return nil
 	}
+
+	var keyScanner *keyScanHandler
+	var modifiedHandler *input.Handler
+	switch keymapType {
+	case KeymapTypeKeyboardMouse:
+		keyScanner = keyboardMouseScanner
+		modifiedHandler = keyboardMouseHandler
+	case KeymapTypeGamepad:
+		keyScanner = gamepadScanner
+		modifiedHandler = gamepadHandler
+	}
+
 	actionStr := actionString(action)
 	scanType := keyScanKeys
 	if strings.Contains(actionStr, "_axes") {
@@ -322,7 +347,7 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// open a modal window to wait for key/axes pressed update
 			log.Debugf("[%s] opening rebind window", actionStr)
-			openRebindWindow(m, action, scanType, keyScanCompleteFunc)
+			openRebindWindow(m, action, scanType, keymapType, keyScanCompleteFunc)
 		}),
 	)
 	c.AddChild(bindButton)
@@ -342,17 +367,15 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action) *w
 	return c
 }
 
-func openRebindWindow(m Menu, action input.Action, scanType keyScanType, rebindCompleteFunc func()) {
+func openRebindWindow(m Menu, action input.Action, scanType keyScanType, keymapType KeymapType, rebindCompleteFunc func()) {
 	var window *widget.Window
 
-	var scanLabelStr string
-	switch scanType {
-	case keyScanKeys:
-		scanLabelStr = "Press a Key or Button..."
-	case keyScanAxes:
-		scanLabelStr = "Move an Axes..."
-	default:
-		panic("unknown keyScanType: " + string(scanType))
+	var keyScanner *keyScanHandler
+	switch keymapType {
+	case KeymapTypeKeyboardMouse:
+		keyScanner = keyboardMouseScanner
+	case KeymapTypeGamepad:
+		keyScanner = gamepadScanner
 	}
 
 	game := m.Game()
@@ -360,6 +383,14 @@ func openRebindWindow(m Menu, action input.Action, scanType keyScanType, rebindC
 	res := m.Resources()
 	padding := m.Padding()
 	spacing := m.Spacing()
+
+	scanLabelStr := "Press any Key or Button..."
+	switch {
+	case scanType == keyScanKeys && keymapType == KeymapTypeGamepad:
+		scanLabelStr = "Press any Button..."
+	case scanType == keyScanAxes:
+		scanLabelStr = "Move any Axes..."
+	}
 
 	titleBar := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
