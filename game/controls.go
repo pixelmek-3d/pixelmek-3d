@@ -15,6 +15,13 @@ import (
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
+type KeymapType int
+
+const (
+	KeymapTypeKeyboardMouse KeymapType = iota
+	KeymapTypeGamepad
+)
+
 const (
 	ActionUnknown input.Action = iota
 	ActionMoveAxes
@@ -351,7 +358,7 @@ func restoreControls() (input.Keymap, input.Keymap, error) {
 func _loadKeymapFile(keymapFilePath string) (input.Keymap, error) {
 	keymap := input.Keymap{}
 
-	keymapFile, err := os.Open(resources.UserKeyboardMouseKeymapFile)
+	keymapFile, err := os.Open(keymapFilePath)
 	if err != nil {
 		return keymap, err
 	}
@@ -405,7 +412,7 @@ func _loadKeymapFile(keymapFilePath string) (input.Keymap, error) {
 }
 
 func (h *InputHandler) saveControls() error {
-	log.Debug("saving keymap file ", resources.UserKeyboardMouseKeymapFile)
+	log.Debugf("saving keymap files [%s, %s]", resources.UserKeyboardMouseKeymapFile, resources.UserGamepadKeymapFile)
 
 	var combinedErrs error
 	err := _saveKeymapFile(h.inputSystem, h.keyboardMouseMap, resources.UserKeyboardMouseKeymapFile)
@@ -459,4 +466,75 @@ func _saveKeymapFile(inputSystem input.System, keymap input.Keymap, keymapFilePa
 	}
 
 	return nil
+}
+
+type keyScanHandler struct {
+	handler          *input.Handler
+	keyScanner       *input.KeyScanner
+	key              input.Key
+	axes             input.Key
+	scanningKey      bool
+	scanningAxes     bool
+	scanCompleteFunc func()
+}
+
+func NewKeyScanHandler(keymapType KeymapType) *keyScanHandler {
+	var inputSystem input.System
+	var devices input.DeviceKind
+	switch keymapType {
+	case KeymapTypeKeyboardMouse:
+		devices = input.KeyboardDevice | input.MouseDevice
+	case KeymapTypeGamepad:
+		devices = input.GamepadDevice
+	default:
+		log.Fatalf("unhandled KeymapType: %v", keymapType)
+	}
+	inputSystem.Init(input.SystemConfig{DevicesEnabled: devices})
+	handler := inputSystem.NewHandler(0, input.Keymap{})
+	return &keyScanHandler{
+		handler:    handler,
+		keyScanner: input.NewKeyScanner(handler),
+	}
+
+}
+
+func (s *keyScanHandler) update() {
+	if !s.scanningKey && !s.scanningAxes {
+		return
+	}
+
+	if s.scanningKey {
+		s.handleRemapKey()
+	} else if s.scanningAxes {
+		s.handleRemapAxes()
+	}
+
+}
+
+func (s *keyScanHandler) handleRemapKey() {
+	key, status := s.keyScanner.Scan()
+	if status == input.KeyScanCompleted {
+		s.key = key
+		s.scanningKey = false
+		s.scanCompleteFunc()
+	}
+}
+
+func (s *keyScanHandler) handleRemapAxes() {
+	axes, status := s.keyScanner.ScanAxes()
+	if status == input.KeyScanCompleted {
+		s.axes = axes
+		s.scanningAxes = false
+		s.scanCompleteFunc()
+	}
+}
+
+func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc func()) {
+	s.scanCompleteFunc = scanCompleteFunc
+	switch scanType {
+	case keyScanKeys:
+		s.scanningKey = true
+	case keyScanAxes:
+		s.scanningAxes = true
+	}
 }

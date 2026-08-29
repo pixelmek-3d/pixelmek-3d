@@ -16,11 +16,8 @@ const (
 )
 
 var (
-	modifiedKeymap input.Keymap
-
-	keyboardMouseHandler *input.Handler
+	modifiedKeymap       input.Keymap
 	keyboardMouseScanner *keyScanHandler
-	gamepadHandler       *input.Handler
 	gamepadScanner       *keyScanHandler
 )
 
@@ -29,16 +26,9 @@ func controlsPage(m Menu) *settingsPage {
 	g := m.Game()
 	res := m.Resources()
 
-	// make separate handlers and scanners for only keyboard/mouse and only gamepad inputs
-	var keyboardMouseInputSys input.System
-	keyboardMouseInputSys.Init(input.SystemConfig{DevicesEnabled: input.KeyboardDevice | input.MouseDevice})
-	keyboardMouseHandler = g.input.inputSystem.NewHandler(0, input.Keymap{})
-	keyboardMouseScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(keyboardMouseHandler)}
-
-	var gamepadInputSys input.System
-	gamepadInputSys.Init(input.SystemConfig{DevicesEnabled: input.GamepadDevice})
-	gamepadHandler = g.input.inputSystem.NewHandler(0, input.Keymap{})
-	gamepadScanner = &keyScanHandler{keyScanner: input.NewKeyScanner(gamepadHandler)}
+	// make separate handlers and scanners for keyboard/mouse only and gamepad only inputs
+	keyboardMouseScanner = NewKeyScanHandler(KeymapTypeKeyboardMouse)
+	gamepadScanner = NewKeyScanHandler(KeymapTypeGamepad)
 
 	page := &settingsPage{
 		title:        "Controls",
@@ -67,56 +57,6 @@ func controlsPage(m Menu) *settingsPage {
 	return page
 }
 
-type keyScanHandler struct {
-	keyScanner       *input.KeyScanner
-	key              input.Key
-	axes             input.Key
-	scanningKey      bool
-	scanningAxes     bool
-	scanCompleteFunc func()
-}
-
-func (s *keyScanHandler) update() {
-	if !s.scanningKey && !s.scanningAxes {
-		return
-	}
-
-	if s.scanningKey {
-		s.handleRemapKey()
-	} else if s.scanningAxes {
-		s.handleRemapAxes()
-	}
-
-}
-
-func (s *keyScanHandler) handleRemapKey() {
-	key, status := s.keyScanner.Scan()
-	if status == input.KeyScanCompleted {
-		s.key = key
-		s.scanningKey = false
-		s.scanCompleteFunc()
-	}
-}
-
-func (s *keyScanHandler) handleRemapAxes() {
-	axes, status := s.keyScanner.ScanAxes()
-	if status == input.KeyScanCompleted {
-		s.axes = axes
-		s.scanningAxes = false
-		s.scanCompleteFunc()
-	}
-}
-
-func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc func()) {
-	s.scanCompleteFunc = scanCompleteFunc
-	switch scanType {
-	case keyScanKeys:
-		s.scanningKey = true
-	case keyScanAxes:
-		s.scanningAxes = true
-	}
-}
-
 func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, keymapType KeymapType) {
 	var window *widget.Window
 
@@ -125,12 +65,10 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 	switch keymapType {
 	case KeymapTypeKeyboardMouse:
 		windowTitle = "Keyboard/Mouse Controls"
-		modifiedHandler = keyboardMouseHandler
+		modifiedHandler = keyboardMouseScanner.handler
 	case KeymapTypeGamepad:
 		windowTitle = "Gamepad Controls"
-		modifiedHandler = gamepadHandler
-	default:
-		log.Fatalf("unhandled KeymapType: %v", keymapType)
+		modifiedHandler = gamepadScanner.handler
 	}
 
 	g := m.Game()
@@ -179,7 +117,7 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 
 	// add control binds for all actions
 	for action := range actionCount {
-		binder := addControlBind(g, m, page, action, keymapType)
+		binder := addControlBind(m, page, action, keymapType)
 		if binder != nil {
 			content.AddChild(binder)
 		}
@@ -281,7 +219,7 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 	m.AddWindow(window)
 }
 
-func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action, keymapType KeymapType) *widget.Container {
+func addControlBind(m Menu, page *settingsPage, action input.Action, keymapType KeymapType) *widget.Container {
 	if action == ActionUnknown {
 		return nil
 	}
@@ -291,10 +229,10 @@ func addControlBind(g *Game, m Menu, page *settingsPage, action input.Action, ke
 	switch keymapType {
 	case KeymapTypeKeyboardMouse:
 		keyScanner = keyboardMouseScanner
-		modifiedHandler = keyboardMouseHandler
+		modifiedHandler = keyboardMouseScanner.handler
 	case KeymapTypeGamepad:
 		keyScanner = gamepadScanner
-		modifiedHandler = gamepadHandler
+		modifiedHandler = gamepadScanner.handler
 	}
 
 	actionStr := actionString(action)

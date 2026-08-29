@@ -24,13 +24,6 @@ const (
 	MouseModeCursor
 )
 
-type KeymapType int
-
-const (
-	KeymapTypeKeyboardMouse KeymapType = iota
-	KeymapTypeGamepad
-)
-
 var debugProfFile *os.File
 
 type InputHandler struct {
