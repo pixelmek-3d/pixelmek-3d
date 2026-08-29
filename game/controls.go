@@ -360,6 +360,10 @@ func _loadKeymapFile(keymapFilePath string) (input.Keymap, error) {
 
 	keymapFile, err := os.Open(keymapFilePath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			// caller expected to handle non-existent keymap without error
+			return keymap, nil
+		}
 		return keymap, err
 	}
 	defer keymapFile.Close()
