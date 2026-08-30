@@ -109,21 +109,21 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 		),
 	)
 
-	content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
-		widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-		widget.RowLayoutOpts.Spacing(20),
-		widget.RowLayoutOpts.Padding(&widget.Insets{Top: 10, Bottom: 10}),
-	)))
-
-	// add control binds for all actions
+	// add control binds for all actions in a grid container
+	controlsGrid := widget.NewContainer(
+		widget.ContainerOpts.Layout(
+			widget.NewGridLayout(
+				widget.GridLayoutOpts.Columns(4),
+				widget.GridLayoutOpts.Stretch([]bool{true, false, false, false}, []bool{false}),
+				widget.GridLayoutOpts.Spacing(4, 4),
+			),
+		),
+	)
 	for action := range actionCount {
-		binder := addControlBind(m, page, action, keymapType)
-		if binder != nil {
-			content.AddChild(binder)
-		}
+		addControlBind(m, page, controlsGrid, action, keymapType)
 	}
 
-	scrollContainer := newScrollContainer(m, content)
+	scrollContainer := newScrollContainer(m, controlsGrid)
 	c.AddChild(scrollContainer)
 
 	//  add footer section buttons below scroll container to set defaults, save and cancel
@@ -219,9 +219,9 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 	m.AddWindow(window)
 }
 
-func addControlBind(m Menu, page *settingsPage, action input.Action, keymapType KeymapType) *widget.Container {
+func addControlBind(m Menu, page *settingsPage, gridContainer *widget.Container, action input.Action, keymapType KeymapType) {
 	if action == ActionUnknown {
-		return nil
+		return
 	}
 
 	var keyScanner *keyScanHandler
@@ -241,54 +241,48 @@ func addControlBind(m Menu, page *settingsPage, action input.Action, keymapType 
 		scanType = keyScanAxes
 	}
 
-	var bindButton *widget.Button
-	keyScanCompleteFunc := func() {
-		keyBind := keyScanner.key
-		if scanType == keyScanAxes {
-			keyBind = keyScanner.axes
-		}
-		log.Debugf("[%s] add keybind to '%s'", actionStr, keyBind.String())
-		err := AddKeyBind(modifiedKeymap, action, keyBind)
-		if err != nil {
-			log.Errorf("%v - TODO: display error on screen!", err)
-			return
-		}
-
-		keyNames := modifiedHandler.ActionKeyNames(action, input.AnyDevice)
-		bindButton.SetText(strings.Join(keyNames, ", "))
-		page.content.RequestRelayout()
-	}
-
 	res := m.Resources()
-	c := widget.NewContainer(
-		widget.ContainerOpts.Layout(
-			widget.NewGridLayout(
-				widget.GridLayoutOpts.Columns(4),
-				widget.GridLayoutOpts.Stretch([]bool{true, true, false, false}, []bool{false}),
-				widget.GridLayoutOpts.Spacing(4, 2),
-			),
-		),
-	)
-
 	label := widget.NewLabel(widget.LabelOpts.Text(actionStr, res.fonts.face, res.label.text))
-	c.AddChild(label)
+	gridContainer.AddChild(label)
 
-	c.AddChild(newBlankSeparator(res, m.Padding(), widget.RowLayoutData{
-		Stretch: true,
-	}))
-
+	// create exactly two bind buttons, regardless of number of keys currently bound
 	keyNames := modifiedHandler.ActionKeyNames(action, input.AnyDevice)
-	bindButton = widget.NewButton(
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.TextPadding(res.button.padding),
-		widget.ButtonOpts.Text(strings.Join(keyNames, ", "), res.button.face, res.button.text),
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// open a modal window to wait for key/axes pressed update
-			log.Debugf("[%s] opening rebind window", actionStr)
-			openRebindWindow(m, action, scanType, keymapType, keyScanCompleteFunc)
-		}),
-	)
-	c.AddChild(bindButton)
+	var bindButtonWidgets [2]*widget.Button
+	for i := range 2 {
+		var kName string
+		if i < len(keyNames) {
+			kName = keyNames[i]
+		}
+		var bindButton *widget.Button
+		keyScanCompleteFunc := func() {
+			keyBind := keyScanner.key
+			if scanType == keyScanAxes {
+				keyBind = keyScanner.axes
+			}
+			log.Debugf("[%s] add keybind to '%s'", actionStr, keyBind.String())
+			err := AddKeyBind(modifiedKeymap, action, keyBind)
+			if err != nil {
+				log.Errorf("%v - TODO: display error on screen!", err)
+				return
+			}
+
+			bindButton.SetText(keyBind.String())
+			page.content.RequestRelayout()
+		}
+
+		bindButton = widget.NewButton(
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.Text(kName, res.button.face, res.button.text),
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				// open a modal window to wait for key/axes pressed update
+				log.Debugf("[%s] opening rebind window", actionStr)
+				openRebindWindow(m, action, scanType, keymapType, keyScanCompleteFunc)
+			}),
+		)
+		gridContainer.AddChild(bindButton)
+		bindButtonWidgets[i] = bindButton
+	}
 
 	clearButton := widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
@@ -296,13 +290,13 @@ func addControlBind(m Menu, page *settingsPage, action input.Action, keymapType 
 		widget.ButtonOpts.Text("clear", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			ClearAction(modifiedKeymap, action)
-			bindButton.SetText("")
+			for _, bindButton := range bindButtonWidgets {
+				bindButton.SetText("")
+			}
 			page.content.RequestRelayout()
 		}),
 	)
-	c.AddChild(clearButton)
-
-	return c
+	gridContainer.AddChild(clearButton)
 }
 
 func openRebindWindow(m Menu, action input.Action, scanType keyScanType, keymapType KeymapType, rebindCompleteFunc func()) {
