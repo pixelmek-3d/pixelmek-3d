@@ -485,7 +485,8 @@ type keyScanHandler struct {
 }
 
 func NewKeyScanHandler(keymapType KeymapType) *keyScanHandler {
-	var inputSystem input.System
+	keyScanner := &keyScanHandler{keymapType: keymapType}
+
 	var devices input.DeviceKind
 	switch keymapType {
 	case KeymapTypeKeyboardMouse:
@@ -495,14 +496,11 @@ func NewKeyScanHandler(keymapType KeymapType) *keyScanHandler {
 	default:
 		log.Fatalf("unhandled KeymapType: %v", keymapType)
 	}
-	inputSystem.Init(input.SystemConfig{DevicesEnabled: devices})
-	handler := inputSystem.NewHandler(0, input.Keymap{})
-	return &keyScanHandler{
-		keymapType:  keymapType,
-		inputSystem: inputSystem,
-		handler:     handler,
-		keyScanner:  input.NewKeyScanner(handler),
-	}
+
+	keyScanner.inputSystem.Init(input.SystemConfig{DevicesEnabled: devices})
+	keyScanner.handler = keyScanner.inputSystem.NewHandler(0, input.Keymap{})
+	keyScanner.keyScanner = input.NewKeyScanner(keyScanner.handler)
+	return keyScanner
 
 }
 
@@ -510,7 +508,7 @@ func (s *keyScanHandler) update() {
 	if !s.scanningKey && !s.scanningAxes {
 		return
 	}
-	s.inputSystem.Update() // FIXME: gamepad rebinding shouldn't allow keyboard presses and vice versa
+	s.inputSystem.Update()
 	if s.scanningKey {
 		s.handleRemapKey()
 	} else if s.scanningAxes {
