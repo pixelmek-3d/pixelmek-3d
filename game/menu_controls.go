@@ -33,7 +33,7 @@ func controlsPage(m Menu) *settingsPage {
 	page := &settingsPage{
 		title:        "Controls",
 		content:      c,
-		tickUpdaters: []tickUpdater{keyboardMouseScanner},
+		tickUpdaters: []tickUpdater{keyboardMouseScanner, gamepadScanner},
 	}
 
 	keyboardMouseControls := widget.NewButton(
@@ -120,7 +120,7 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 		),
 	)
 	for action := range actionCount {
-		addControlBind(m, page, controlsGrid, action, keymapType)
+		addControlBind(m, controlsGrid, action, keymapType)
 	}
 
 	scrollContainer := newScrollContainer(m, controlsGrid)
@@ -219,7 +219,7 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 	m.AddWindow(window)
 }
 
-func addControlBind(m Menu, page *settingsPage, gridContainer *widget.Container, action input.Action, keymapType KeymapType) {
+func addControlBind(m Menu, gridContainer *widget.Container, action input.Action, keymapType KeymapType) {
 	if action == ActionUnknown {
 		return
 	}
@@ -267,7 +267,6 @@ func addControlBind(m Menu, page *settingsPage, gridContainer *widget.Container,
 			}
 
 			bindButton.SetText(keyBind.String())
-			page.content.RequestRelayout()
 		}
 
 		bindButton = widget.NewButton(
@@ -293,7 +292,6 @@ func addControlBind(m Menu, page *settingsPage, gridContainer *widget.Container,
 			for _, bindButton := range bindButtonWidgets {
 				bindButton.SetText("")
 			}
-			page.content.RequestRelayout()
 		}),
 	)
 	gridContainer.AddChild(clearButton)

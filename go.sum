@@ -55,8 +55,8 @@ github.com/hajimehoshi/ebiten/v2 v2.9.9/go.mod h1:DAt4tnkYYpCvu3x9i1X/nK/vOruNXI
 github.com/hajimehoshi/go-mp3 v0.3.4 h1:NUP7pBYH8OguP4diaTZ9wJbUbk3tC0KlfzsEpWmYj68=
 github.com/hajimehoshi/go-mp3 v0.3.4/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRSVop0eemFmo=
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
-github.com/harbdog/ebitengine-input v0.0.0-20260809040905-6d2e778bb29f h1:IorAFe3wydoaiB54ZljWbWMT7ZYyUJB8k+gM+0FPrJo=
-github.com/harbdog/ebitengine-input v0.0.0-20260809040905-6d2e778bb29f/go.mod h1:JBkPX8QoJYaqYIBwj11OkfRQY3O/yjyZHuP4jy2nIzw=
+github.com/harbdog/ebitengine-input v0.0.0-20260904223736-3a9234c928fd h1:a9xTsU260TAMnLyC9pnO2WrvpkWQcmfz84Z/+BJUTR4=
+github.com/harbdog/ebitengine-input v0.0.0-20260904223736-3a9234c928fd/go.mod h1:JBkPX8QoJYaqYIBwj11OkfRQY3O/yjyZHuP4jy2nIzw=
 github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482 h1:lBhe6Ofq8B6sPx7R7XUKXNkHBZRWOBIaL5wWZ06++wk=
 github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482/go.mod h1:hc+X8igKbuo0/eTFMPLnU4HKkQBrkhjdY7NHyhwSeug=
 github.com/harbdog/raycaster-go v1.12.0 h1:Vb9wR2h6EmI4Qf+AwRwbGIGZukgSrYj/V6NEeI+hoco=

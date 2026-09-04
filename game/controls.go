@@ -473,6 +473,8 @@ func _saveKeymapFile(inputSystem input.System, keymap input.Keymap, keymapFilePa
 }
 
 type keyScanHandler struct {
+	keymapType       KeymapType
+	inputSystem      input.System
 	handler          *input.Handler
 	keyScanner       *input.KeyScanner
 	key              input.Key
@@ -496,8 +498,10 @@ func NewKeyScanHandler(keymapType KeymapType) *keyScanHandler {
 	inputSystem.Init(input.SystemConfig{DevicesEnabled: devices})
 	handler := inputSystem.NewHandler(0, input.Keymap{})
 	return &keyScanHandler{
-		handler:    handler,
-		keyScanner: input.NewKeyScanner(handler),
+		keymapType:  keymapType,
+		inputSystem: inputSystem,
+		handler:     handler,
+		keyScanner:  input.NewKeyScanner(handler),
 	}
 
 }
@@ -506,13 +510,12 @@ func (s *keyScanHandler) update() {
 	if !s.scanningKey && !s.scanningAxes {
 		return
 	}
-
+	s.inputSystem.Update() // FIXME: gamepad rebinding shouldn't allow keyboard presses and vice versa
 	if s.scanningKey {
 		s.handleRemapKey()
 	} else if s.scanningAxes {
 		s.handleRemapAxes()
 	}
-
 }
 
 func (s *keyScanHandler) handleRemapKey() {
