@@ -20,7 +20,6 @@ type weaponGroupsMenuConfig struct {
 
 func openWeaponGroupsWindow(g *Game, res *uiResources) {
 	var window *widget.Window
-	var rmWindow widget.RemoveWindowFunc
 	_weaponGroupsMenuConfig = &weaponGroupsMenuConfig{
 		wg:    make([][]model.Weapon, len(g.player.weaponGroups)),
 		audio: g.audio,
@@ -103,7 +102,7 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Cancel", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			rmWindow()
+			window.Close()
 		}),
 	)
 	footerContainer.AddChild(cancelButton)
@@ -123,7 +122,7 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 			if err := saveUserWeaponGroups(); err != nil {
 				log.Error("failed to save user weapon groups: " + err.Error())
 			}
-			rmWindow()
+			window.Close()
 		}),
 	)
 	footerContainer.AddChild(acceptButton)
@@ -137,8 +136,7 @@ func openWeaponGroupsWindow(g *Game, res *uiResources) {
 	wRect := uiRect.Inset(padding)
 	window.SetLocation(wRect)
 
-	rmWindow = m.UI().AddWindow(window)
-	m.SetWindow(window)
+	m.AddWindow(window)
 }
 
 func createWeaponGroupsSelector(res *uiResources, w model.Weapon) *widget.Container {

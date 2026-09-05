@@ -1,14 +1,9 @@
 package game
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
 	"image/color"
-	"io"
 	"math"
 	"os"
-	"path/filepath"
 	"runtime/pprof"
 	"slices"
 	"strconv"
@@ -17,10 +12,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
-	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 type MouseMode int
@@ -31,333 +24,30 @@ const (
 	MouseModeCursor
 )
 
-const (
-	ActionUnknown input.Action = iota
-	ActionUp
-	ActionDown
-	ActionLeft
-	ActionRight
-	ActionMoveAxes
-	ActionTurretUp
-	ActionTurretDown
-	ActionTurretLeft
-	ActionTurretRight
-	ActionTurretAxes
-	ActionMenu
-	ActionBack
-	ActionThrottleReverse
-	ActionThrottle0
-	ActionJumpJet
-	ActionDescend
-	ActionWeaponFire
-	ActionWeaponCycle
-	ActionWeaponGroupFireToggle
-	ActionWeaponGroupSetModifier
-	ActionWeaponGroup1
-	ActionWeaponGroup2
-	ActionWeaponGroup3
-	ActionWeaponGroup4
-	ActionWeaponGroup5
-	ActionWeaponFireGroup1
-	ActionWeaponFireGroup2
-	ActionWeaponFireGroup3
-	ActionWeaponFireGroup4
-	ActionWeaponFireGroup5
-	ActionNavCycle
-	ActionRadarRangeCycle
-	ActionTargetCrosshairs
-	ActionTargetNearest
-	ActionTargetNext
-	ActionTargetPrevious
-	ActionZoomToggle
-	ActionLightAmpToggle
-	ActionPowerToggle
-	ActionCameraCycle
-	actionCount
-)
+var debugProfFile *os.File
 
-var (
-	stringToAction map[string]input.Action
-
-	debugProfFile *os.File
-)
-
-func stringAction(aName string) input.Action {
-	a, ok := stringToAction[aName]
-	if !ok {
-		return ActionUnknown
-	}
-	return a
+type InputHandler struct {
+	handler          *input.Handler
+	inputSystem      input.System
+	keyboardMouseMap input.Keymap
+	gamepadMap       input.Keymap
 }
 
-func actionString(a input.Action) string {
-	switch a {
-	case ActionUp:
-		return "up"
-	case ActionDown:
-		return "down"
-	case ActionLeft:
-		return "left"
-	case ActionRight:
-		return "right"
-	case ActionMoveAxes:
-		return "move_axes"
-	case ActionTurretUp:
-		return "turret_up"
-	case ActionTurretDown:
-		return "turret_down"
-	case ActionTurretLeft:
-		return "turret_left"
-	case ActionTurretRight:
-		return "turret_right"
-	case ActionTurretAxes:
-		return "turret_axes"
-	case ActionMenu:
-		return "menu"
-	case ActionBack:
-		return "back"
-	case ActionThrottleReverse:
-		return "throttle_reverse"
-	case ActionThrottle0:
-		return "throttle_0"
-	case ActionJumpJet:
-		return "jump_jet"
-	case ActionDescend:
-		return "descend"
-	case ActionWeaponFire:
-		return "weapon_fire"
-	case ActionWeaponCycle:
-		return "weapon_cycle"
-	case ActionWeaponGroupFireToggle:
-		return "weapon_group_toggle"
-	case ActionWeaponGroupSetModifier:
-		return "weapon_group_set"
-	case ActionWeaponGroup1:
-		return "weapon_group_1"
-	case ActionWeaponGroup2:
-		return "weapon_group_2"
-	case ActionWeaponGroup3:
-		return "weapon_group_3"
-	case ActionWeaponGroup4:
-		return "weapon_group_4"
-	case ActionWeaponGroup5:
-		return "weapon_group_5"
-	case ActionWeaponFireGroup1:
-		return "weapon_fire_group_1"
-	case ActionWeaponFireGroup2:
-		return "weapon_fire_group_2"
-	case ActionWeaponFireGroup3:
-		return "weapon_fire_group_3"
-	case ActionWeaponFireGroup4:
-		return "weapon_fire_group_4"
-	case ActionWeaponFireGroup5:
-		return "weapon_fire_group_5"
-	case ActionNavCycle:
-		return "nav_cycle"
-	case ActionRadarRangeCycle:
-		return "radar_range_cycle"
-	case ActionTargetCrosshairs:
-		return "target_crosshairs"
-	case ActionTargetNearest:
-		return "target_nearest"
-	case ActionTargetNext:
-		return "target_next"
-	case ActionTargetPrevious:
-		return "target_prev"
-	case ActionZoomToggle:
-		return "zoom_toggle"
-	case ActionLightAmpToggle:
-		return "light_amplification"
-	case ActionPowerToggle:
-		return "power_toggle"
-	case ActionCameraCycle:
-		return "camera_cycle"
-	default:
-		panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
-	}
-}
-
-func (g *Game) initControls() {
-	// Build a reverse index to get an action by its name
-	stringToAction = map[string]input.Action{}
-	for a := ActionUnknown + 1; a < actionCount; a++ {
-		stringToAction[actionString(a)] = a
-	}
-
-	// import from keymap file if exists
-	var keymap input.Keymap
-	if _, err := os.Stat(resources.UserKeymapFile); err == nil {
-		keymap, err = g.restoreControls()
-		if err != nil {
-			panic(fmt.Errorf("error loading keymap file %s: %v", resources.UserKeymapFile, err))
-		}
-	}
-
-	// TODO: initialize default for new controls even if not first time?
-
-	if len(keymap) == 0 {
-		// first time intitialize defaults into file
-		g.setDefaultControls()
-		g.saveControls()
-	}
-}
-
-func (g *Game) setDefaultControls() {
-	keymap := input.Keymap{
-		ActionUp:       {input.KeyW, input.KeyUp},
-		ActionDown:     {input.KeyS, input.KeyDown},
-		ActionLeft:     {input.KeyA, input.KeyLeft},
-		ActionRight:    {input.KeyD, input.KeyRight},
-		ActionMoveAxes: {input.KeyGamepadLStickMotion},
-
-		ActionTurretUp:    {},
-		ActionTurretDown:  {},
-		ActionTurretLeft:  {},
-		ActionTurretRight: {},
-		ActionTurretAxes:  {input.KeyGamepadRStickMotion},
-
-		ActionMenu: {input.KeyEscape, input.KeyF1, input.KeyGamepadStart},
-		ActionBack: {input.KeyEscape, input.KeyGamepadBack},
-
-		ActionThrottleReverse: {input.KeyBackspace},
-		ActionThrottle0:       {input.KeyX},
-		ActionJumpJet:         {input.KeySpace, input.KeyGamepadLStick},
-		ActionDescend:         {input.KeyControl},
-
-		ActionWeaponFire:             {input.KeyMouseLeft, input.KeyGamepadR2},
-		ActionWeaponCycle:            {input.KeyMouseRight, input.KeyGamepadR1},
-		ActionWeaponGroupFireToggle:  {input.KeyBackslash, input.KeyGamepadY},
-		ActionWeaponGroupSetModifier: {input.KeyShift},
-		ActionWeaponGroup1:           {input.Key1},
-		ActionWeaponGroup2:           {input.Key2},
-		ActionWeaponGroup3:           {input.Key3},
-		ActionWeaponGroup4:           {input.Key4},
-		ActionWeaponGroup5:           {input.Key5},
-		ActionWeaponFireGroup1:       {input.KeyMouseBack},
-		ActionWeaponFireGroup2:       {input.KeyMouseForward},
-
-		ActionNavCycle:         {input.KeyN, input.KeyGamepadDown},
-		ActionRadarRangeCycle:  {input.KeySlash},
-		ActionTargetCrosshairs: {input.KeyQ, input.KeyGamepadL2},
-		ActionTargetNearest:    {input.KeyE, input.KeyGamepadUp},
-		ActionTargetNext:       {input.KeyT, input.KeyGamepadRight},
-		ActionTargetPrevious:   {input.KeyR, input.KeyGamepadLeft},
-
-		ActionZoomToggle:     {input.KeyZ, input.KeyGamepadRStick},
-		ActionLightAmpToggle: {input.KeyL, input.KeyGamepadDown},
-		ActionPowerToggle:    {input.KeyP},
-		ActionCameraCycle:    {input.KeyF3},
-	}
-
-	g.inputSystem.Init(input.SystemConfig{
+func NewInputHandler() *InputHandler {
+	h := &InputHandler{}
+	h.inputSystem.Init(input.SystemConfig{
 		DevicesEnabled: input.AnyDevice,
 	})
-	g.input = g.inputSystem.NewHandler(0, keymap)
+	h.handler = h.inputSystem.NewHandler(0, input.Keymap{})
+	return h
 }
 
-func (g *Game) restoreControls() (input.Keymap, error) {
-	log.Debug("restoring keymap file ", resources.UserKeymapFile)
-	keymap := input.Keymap{}
-
-	keymapFile, err := os.Open(resources.UserKeymapFile)
-	if err != nil {
-		log.Error(err)
-		return keymap, err
-	}
-	defer keymapFile.Close()
-
-	fileBytes, err := io.ReadAll(keymapFile)
-	if err != nil {
-		log.Error(err)
-		return keymap, err
-	}
-
-	if len(fileBytes) == 0 {
-		// caller expected to handle empty keymap without error
-		return keymap, nil
-	}
-
-	var keymapConfig map[string][]string
-	err = json.Unmarshal(fileBytes, &keymapConfig)
-	if err != nil {
-		log.Error(err)
-		return keymap, err
-	}
-
-	// Parse our config file into a keymap object.
-	var actionErrorString string
-	var actionWarningString string
-
-	for actionName, keyNames := range keymapConfig {
-		a := stringAction(actionName)
-		if a == ActionUnknown {
-			actionWarningString += fmt.Sprintf("unexpected action name: %s\n", actionName)
-		}
-		keys := make([]input.Key, len(keyNames))
-		for i, keyString := range keyNames {
-			k, err := input.ParseKey(keyString)
-			if err != nil {
-				actionErrorString += err.Error() + "\n"
-			}
-			keys[i] = k
-		}
-		keymap[a] = keys
-	}
-
-	if len(actionWarningString) > 0 {
-		log.Warning(actionWarningString)
-	}
-
-	if len(actionErrorString) > 0 {
-		err = errors.New(actionErrorString)
-		log.Error(err)
-		return keymap, err
-	}
-
-	g.inputSystem.Init(input.SystemConfig{
-		DevicesEnabled: input.AnyDevice,
-	})
-	g.input = g.inputSystem.NewHandler(0, keymap)
-
-	return keymap, nil
-}
-
-func (g *Game) saveControls() error {
-	log.Debug("saving keymap file ", resources.UserKeymapFile)
-
-	userConfigPath := filepath.Dir(resources.UserKeymapFile)
-	if _, err := os.Stat(userConfigPath); os.IsNotExist(err) {
-		err = os.MkdirAll(userConfigPath, os.ModePerm)
-		if err != nil {
-			log.Error(err)
-			return err
-		}
-	}
-
-	keymapFile, err := os.Create(resources.UserKeymapFile)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	defer keymapFile.Close()
-
-	keymapConfig := orderedmap.New[string, []string]()
-	for a := ActionUnknown + 1; a < actionCount; a++ {
-		actionKey := actionString(a)
-		keymapConfig.Set(actionKey, g.input.ActionKeyNames(a, input.AnyDevice))
-	}
-	keymapJson, _ := json.MarshalIndent(keymapConfig, "", "    ")
-	_, err = keymapFile.Write(keymapJson)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	return nil
+func (h *InputHandler) Update() {
+	h.inputSystem.Update()
 }
 
 func (g *Game) handleInput() {
-	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenu)
+	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenuBack)
 	if menuKeyPressed {
 		if g.menu.Active() {
 			if g.osType == osTypeBrowser && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
@@ -401,10 +91,9 @@ func (g *Game) handleInput() {
 
 	var moveDx, moveDy float64
 	var turretDx, turretDy float64
-	cursorX, cursorY := ebiten.CursorPosition()
 
 	if moveAxes, ok := g.input.PressedActionInfo(ActionMoveAxes); ok {
-		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
+		// TODO: configurable deadzone and sensitivity
 		if math.Abs(moveAxes.Pos.X) >= 0.2 {
 			moveDx = 10 * -moveAxes.Pos.X
 		}
@@ -414,6 +103,19 @@ func (g *Game) handleInput() {
 	} // else {
 	// TODO: handle mouse mode body
 	//}
+
+	if turnAxes, ok := g.input.PressedActionInfo(ActionTurnAxes); ok {
+		// TODO: configurable deadzone and sensitivity
+		if math.Abs(turnAxes.Pos.X) >= 0.2 {
+			moveDx = 10 * -turnAxes.Pos.X
+		}
+	}
+	if throttleAxes, ok := g.input.PressedActionInfo(ActionThrottleAxes); ok {
+		// TODO: configurable deadzone and sensitivity
+		if math.Abs(throttleAxes.Pos.Y) >= 0.2 {
+			moveDy = 5 * -throttleAxes.Pos.Y
+		}
+	}
 
 	if moveDx != 0 {
 		turnAmount := 0.01 * float64(moveDx) / g.zoomFovDepth
@@ -430,24 +132,28 @@ func (g *Game) handleInput() {
 
 	if turretAxes, ok := g.input.PressedActionInfo(ActionTurretAxes); ok {
 		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
-		if math.Abs(turretAxes.Pos.X) >= 0.2 {
-			turretDx = 10 * -turretAxes.Pos.X
-		}
-		if math.Abs(turretAxes.Pos.Y) >= 0.2 {
-			turretDy = 5 * -turretAxes.Pos.Y
-		}
-	} else {
-		// handle mouse mode turret
-		switch {
-		case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
-			// initialize first position to establish delta
-			if cursorX != 0 && cursorY != 0 {
+		if turretAxes.IsMouseMotionEvent() {
+			cursorX, cursorY := int(turretAxes.Pos.X), int(turretAxes.Pos.Y)
+			// handle mouse mode turret
+			switch {
+			case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
+				// initialize first position to establish delta
+				if cursorX != 0 && cursorY != 0 {
+					g.mouseX, g.mouseY = cursorX, cursorY
+				}
+
+			default:
+				turretDx, turretDy = float64(g.mouseX-cursorX), float64(g.mouseY-cursorY)
 				g.mouseX, g.mouseY = cursorX, cursorY
 			}
 
-		default:
-			turretDx, turretDy = float64(g.mouseX-cursorX), float64(g.mouseY-cursorY)
-			g.mouseX, g.mouseY = cursorX, cursorY
+		} else {
+			if math.Abs(turretAxes.Pos.X) >= 0.2 {
+				turretDx = 10 * -turretAxes.Pos.X
+			}
+			if math.Abs(turretAxes.Pos.Y) >= 0.2 {
+				turretDy = 5 * -turretAxes.Pos.Y
+			}
 		}
 	}
 
@@ -559,7 +265,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionWeaponCycle) {
+	if g.input.ActionIsJustPressed(ActionWeaponCycle) { // TODO: implement ActionWeaponCyclePrevious
 		playerPrevGroup := g.player.selectedGroup
 		playerPrevWeapon := g.player.selectedWeapon
 
@@ -759,18 +465,13 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionZoomToggle) {
-		// toggle zoom
-		if g.camera.FovDepth() != g.zoomFovDepth {
-			// zoom in
-			zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
-			g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		} else {
-			// zoom out
-			g.camera.SetFovAngle(g.fovDegrees, 1.0)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		}
+	switch {
+	case g.input.ActionIsJustPressed(ActionZoomToggle):
+		g.zoomToggle()
+	case g.input.ActionIsJustPressed(ActionZoomIn):
+		g.zoomIn()
+	case g.input.ActionIsJustPressed(ActionZoomOut):
+		g.zoomOut()
 	}
 
 	if g.input.ActionIsJustPressed(ActionLightAmpToggle) {
@@ -837,7 +538,8 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	var stop, forward, backward bool
+	var forward, backward bool
+	var throttlePercent float64 = -math.MaxFloat64
 	var rotLeft, rotRight bool
 	var lookUp, lookDown, lookLeft, lookRight bool
 
@@ -867,8 +569,29 @@ func (g *Game) handleInput() {
 		backward = true
 	}
 
-	if g.input.ActionIsPressed(ActionThrottle0) {
-		stop = true
+	switch {
+	case g.input.ActionIsPressed(ActionThrottle0):
+		throttlePercent = 0
+	case g.input.ActionIsPressed(ActionThrottle10):
+		throttlePercent = 0.1
+	case g.input.ActionIsPressed(ActionThrottle20):
+		throttlePercent = 0.2
+	case g.input.ActionIsPressed(ActionThrottle30):
+		throttlePercent = 0.3
+	case g.input.ActionIsPressed(ActionThrottle40):
+		throttlePercent = 0.4
+	case g.input.ActionIsPressed(ActionThrottle50):
+		throttlePercent = 0.5
+	case g.input.ActionIsPressed(ActionThrottle60):
+		throttlePercent = 0.6
+	case g.input.ActionIsPressed(ActionThrottle70):
+		throttlePercent = 0.7
+	case g.input.ActionIsPressed(ActionThrottle80):
+		throttlePercent = 0.8
+	case g.input.ActionIsPressed(ActionThrottle90):
+		throttlePercent = 0.9
+	case g.input.ActionIsPressed(ActionThrottle100):
+		throttlePercent = 1.0
 	}
 
 	switch {
@@ -917,8 +640,8 @@ func (g *Game) handleInput() {
 		if math.Abs(moveDy) >= 0.2 {
 			deltaV *= math.Abs(moveDy)
 		}
-		if stop {
-			g.player.SetTargetVelocity(0)
+		if throttlePercent >= 0 {
+			g.player.SetTargetVelocity(throttlePercent * g.player.MaxVelocity())
 		} else if forward {
 			g.player.SetTargetVelocity(g.player.TargetVelocity() + deltaV)
 		} else if backward {

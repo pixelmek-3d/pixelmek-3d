@@ -16,7 +16,7 @@ type Menu interface {
 	Closing() bool
 	UI() *ebitenui.UI
 	Root() *widget.Container
-	SetWindow(*widget.Window)
+	AddWindow(*widget.Window)
 	CloseWindow() *widget.Window
 	Resources() *uiResources
 	Game() *Game
@@ -44,11 +44,11 @@ type MenuModel struct {
 	active  bool
 	closing bool
 
-	ui     *ebitenui.UI
-	root   *widget.Container
-	window *widget.Window
-	res    *uiResources
-	game   *Game
+	ui      *ebitenui.UI
+	root    *widget.Container
+	windows []*widget.Window
+	res     *uiResources
+	game    *Game
 
 	dynamicFontScale float64
 	fontScale        float64
@@ -77,17 +77,37 @@ func (m *MenuModel) Root() *widget.Container {
 	return m.root
 }
 
-func (m *MenuModel) SetWindow(window *widget.Window) {
-	m.window = window
+func (m *MenuModel) AddWindow(window *widget.Window) {
+	rmWindow := m.UI().AddWindow(window)
+	window.SetCloseFunction(func() {
+		m.popWindow()
+		rmWindow()
+	})
+	m.windows = append(m.windows, window)
 }
 
 func (m *MenuModel) CloseWindow() *widget.Window {
-	if m.window == nil {
+	if window := m.peekWindow(); window != nil {
+		window.Close()
+		return window
+	}
+	return nil
+}
+
+func (m *MenuModel) peekWindow() *widget.Window {
+	numWindows := len(m.windows)
+	if numWindows == 0 {
 		return nil
 	}
-	window := m.window
-	m.window = nil
-	window.Close()
+	return m.windows[numWindows-1]
+}
+
+func (m *MenuModel) popWindow() *widget.Window {
+	window := m.peekWindow()
+	if window == nil {
+		return nil
+	}
+	m.windows = m.windows[:len(m.windows)-1]
 	return window
 }
 
@@ -207,10 +227,13 @@ func (g *Game) closeMenu() {
 
 	switch {
 	case gameMenu != nil:
-		g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
-		gameMenu.active = false
-		gameMenu.closing = true
-		g.Resume()
+		closedWindow := gameMenu.CloseWindow()
+		if closedWindow == nil {
+			g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
+			gameMenu.active = false
+			gameMenu.closing = true
+			g.Resume()
+		}
 	case settingsMenu != nil:
 		menuScene, ok := g.scene.(*MainMenuScene)
 		if ok {
