@@ -53,6 +53,7 @@ const (
 	ActionDescend
 	ActionWeaponFire
 	ActionWeaponCycle
+	ActionWeaponCyclePrevious
 	ActionWeaponGroupFireToggle
 	ActionWeaponGroupSetModifier
 	ActionWeaponGroup1
@@ -72,6 +73,8 @@ const (
 	ActionTargetNext
 	ActionTargetPrevious
 	ActionZoomToggle
+	ActionZoomIn
+	ActionZoomOut
 	ActionLightAmpToggle
 	ActionPowerToggle
 	ActionCameraCycle
@@ -114,6 +117,7 @@ func init() {
 		ActionDescend:                "descend",
 		ActionWeaponFire:             "weapon_fire",
 		ActionWeaponCycle:            "weapon_cycle",
+		ActionWeaponCyclePrevious:    "weapon_cycle_prev",
 		ActionWeaponGroupFireToggle:  "weapon_group_toggle",
 		ActionWeaponGroupSetModifier: "weapon_group_set",
 		ActionWeaponGroup1:           "weapon_group_1",
@@ -133,6 +137,8 @@ func init() {
 		ActionTargetNext:             "target_next",
 		ActionTargetPrevious:         "target_prev",
 		ActionZoomToggle:             "zoom_toggle",
+		ActionZoomIn:                 "zoom_in",
+		ActionZoomOut:                "zoom_out",
 		ActionLightAmpToggle:         "light_amplification",
 		ActionPowerToggle:            "power_toggle",
 		ActionCameraCycle:            "camera_cycle",

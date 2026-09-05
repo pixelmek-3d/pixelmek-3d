@@ -265,7 +265,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionWeaponCycle) {
+	if g.input.ActionIsJustPressed(ActionWeaponCycle) { // TODO: implement ActionWeaponCyclePrevious
 		playerPrevGroup := g.player.selectedGroup
 		playerPrevWeapon := g.player.selectedWeapon
 
@@ -465,18 +465,13 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionZoomToggle) {
-		// toggle zoom
-		if g.camera.FovDepth() != g.zoomFovDepth {
-			// zoom in
-			zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
-			g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		} else {
-			// zoom out
-			g.camera.SetFovAngle(g.fovDegrees, 1.0)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		}
+	switch {
+	case g.input.ActionIsJustPressed(ActionZoomToggle):
+		g.zoomToggle()
+	case g.input.ActionIsJustPressed(ActionZoomIn):
+		g.zoomIn()
+	case g.input.ActionIsJustPressed(ActionZoomOut):
+		g.zoomOut()
 	}
 
 	if g.input.ActionIsJustPressed(ActionLightAmpToggle) {

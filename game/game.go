@@ -675,6 +675,25 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 	return newTarget.Entity
 }
 
+func (g *Game) zoomIn() {
+	zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
+	g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
+	g.camera.SetPitchAngle(g.player.Pitch())
+}
+
+func (g *Game) zoomOut() {
+	g.camera.SetFovAngle(g.fovDegrees, 1.0)
+	g.camera.SetPitchAngle(g.player.Pitch())
+}
+
+func (g *Game) zoomToggle() {
+	if g.camera.FovDepth() != g.zoomFovDepth {
+		g.zoomIn()
+	} else {
+		g.zoomOut()
+	}
+}
+
 func (g *Game) updateWeaponCooldowns(unit model.Unit) {
 	if unit == nil {
 		return
