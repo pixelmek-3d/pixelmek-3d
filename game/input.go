@@ -265,45 +265,15 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionWeaponCycle) {
+	weaponCycleNext, weaponCyclePrev := g.input.ActionIsJustPressed(ActionWeaponCycle), g.input.ActionIsJustPressed(ActionWeaponCyclePrevious)
+	if weaponCycleNext || weaponCyclePrev {
 		playerPrevGroup := g.player.selectedGroup
 		playerPrevWeapon := g.player.selectedWeapon
 
-		switch g.player.fireMode {
-		case model.GROUP_FIRE:
-			g.player.selectedGroup++
-			if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
-				g.player.selectedGroup = model.WEAPON_GROUP_NONE
-			}
-
-			// set next selectedGroup only if >0 weapons in it
-			weaponsInGroup := len(g.player.GetWeaponsForGroup(g.player.selectedGroup))
-			for weaponsInGroup == 0 {
-				g.player.selectedGroup++
-				if int(g.player.selectedGroup) >= len(g.player.weaponGroups) {
-					g.player.selectedGroup = model.WEAPON_GROUP_NONE
-				}
-				weaponsInGroup = len(g.player.GetWeaponsForGroup(g.player.selectedGroup))
-			}
-
-		case model.CHAIN_FIRE:
-			g.player.selectedWeapon++
-			if int(g.player.selectedWeapon) >= len(g.player.Armament()) {
-				g.player.selectedWeapon = 0
-			}
-
-			// set selectedGroup if the newly selected weapon is in different group
-			newSelectedWeapon := g.player.Armament()[g.player.selectedWeapon]
-			groups := g.player.GetGroupsForWeapon(newSelectedWeapon)
-			if len(groups) == 0 {
-				g.player.selectedGroup = model.WEAPON_GROUP_NONE
-			} else if !g.player.IsWeaponInGroup(newSelectedWeapon, g.player.selectedGroup) {
-				g.player.selectedGroup = groups[0]
-			}
-		}
+		g.player.CycleWeaponSelection(!weaponCycleNext)
 
 		if playerPrevGroup != g.player.selectedGroup || playerPrevWeapon != g.player.selectedWeapon {
-			// play interface sound on weapon/group cycle
+			// play interface sound on weapon/group cycle if changed
 			go g.audio.PlayButtonAudio(AUDIO_BUTTON_AFF)
 		}
 	}
@@ -465,18 +435,13 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionZoomToggle) {
-		// toggle zoom
-		if g.camera.FovDepth() != g.zoomFovDepth {
-			// zoom in
-			zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
-			g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		} else {
-			// zoom out
-			g.camera.SetFovAngle(g.fovDegrees, 1.0)
-			g.camera.SetPitchAngle(g.player.Pitch())
-		}
+	switch {
+	case g.input.ActionIsJustPressed(ActionZoomToggle):
+		g.zoomToggle()
+	case g.input.ActionIsJustPressed(ActionZoomIn):
+		g.zoomIn()
+	case g.input.ActionIsJustPressed(ActionZoomOut):
+		g.zoomOut()
 	}
 
 	if g.input.ActionIsJustPressed(ActionLightAmpToggle) {

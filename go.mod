@@ -26,7 +26,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/quasilyte/ebitengine-input v0.9.1 => github.com/harbdog/ebitengine-input v0.0.0-20260904223736-3a9234c928fd
+replace github.com/quasilyte/ebitengine-input => github.com/harbdog/ebitengine-input v0.0.0-20260905002606-e19622889998
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
