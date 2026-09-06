@@ -270,9 +270,9 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 		}
 
 		bindButton = widget.NewButton(
-			widget.ButtonOpts.Image(res.button.image),
-			widget.ButtonOpts.TextPadding(res.button.padding),
-			widget.ButtonOpts.Text(kName, res.button.face, res.button.text),
+			widget.ButtonOpts.Image(res.squareButton.image),
+			widget.ButtonOpts.TextPadding(res.squareButton.padding),
+			widget.ButtonOpts.Text(kName, res.squareButton.face, res.squareButton.text),
 			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 				// open a modal window to wait for key/axes pressed update
 				log.Debugf("[%s] opening rebind window", actionStr)
@@ -284,9 +284,9 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 	}
 
 	clearButton := widget.NewButton(
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.TextPadding(res.button.padding),
-		widget.ButtonOpts.Text("clear", res.button.face, res.button.text),
+		widget.ButtonOpts.Image(res.squareButton.image),
+		widget.ButtonOpts.TextPadding(res.squareButton.padding),
+		widget.ButtonOpts.Text("clear", res.squareButton.face, res.squareButton.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			ClearAction(modifiedKeymap, action)
 			for _, bindButton := range bindButtonWidgets {
