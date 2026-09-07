@@ -204,7 +204,8 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	for weaponGroup, actionGroup := range weaponFireGroups {
+	for i, actionGroup := range weaponFireGroups {
+		weaponGroup := i + 1
 		if g.input.ActionIsPressed(actionGroup) {
 			g.firePlayerWeapon(weaponGroup)
 		}
