@@ -16,7 +16,7 @@ type Menu interface {
 	Closing() bool
 	UI() *ebitenui.UI
 	Root() *widget.Container
-	AddWindow(*widget.Window)
+	AddWindow(*widget.Window, func())
 	CloseWindow() *widget.Window
 	Resources() *uiResources
 	Game() *Game
@@ -77,9 +77,12 @@ func (m *MenuModel) Root() *widget.Container {
 	return m.root
 }
 
-func (m *MenuModel) AddWindow(window *widget.Window) {
+func (m *MenuModel) AddWindow(window *widget.Window, closeFunc func()) {
 	rmWindow := m.UI().AddWindow(window)
 	window.SetCloseFunction(func() {
+		if closeFunc != nil {
+			closeFunc()
+		}
 		m.popWindow()
 		rmWindow()
 	})

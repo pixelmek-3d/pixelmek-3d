@@ -216,7 +216,7 @@ func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, k
 	wRect := uiRect.Inset(padding)
 	window.SetLocation(wRect)
 
-	m.AddWindow(window)
+	m.AddWindow(window, nil)
 }
 
 func addControlBind(m Menu, gridContainer *widget.Container, action input.Action, keymapType KeymapType) {
@@ -370,9 +370,13 @@ func openRebindWindow(m Menu, action input.Action, scanType keyScanType, keymapT
 	wRect := uiRect.Inset(uiRect.Dy() / 6)
 	window.SetLocation(wRect)
 
+	// scan complete function completes the binding and closes the window
 	keyScanner.startKeyScan(scanType, func() {
 		rebindCompleteFunc()
 		window.Close()
 	})
-	m.AddWindow(window)
+	// always reset the scanner state when the window is closed
+	m.AddWindow(window, func() {
+		keyScanner.reset()
+	})
 }

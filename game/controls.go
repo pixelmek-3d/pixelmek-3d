@@ -587,3 +587,12 @@ func (s *keyScanHandler) startKeyScan(scanType keyScanType, scanCompleteFunc fun
 		s.scanningAxes = true
 	}
 }
+
+// reset key scanner to initial state
+func (s *keyScanHandler) reset() {
+	s.key = input.Key{}
+	s.axes = input.Key{}
+	s.scanningKey = false
+	s.scanningAxes = false
+	s.scanCompleteFunc = nil
+}

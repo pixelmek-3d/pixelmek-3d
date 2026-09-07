@@ -582,5 +582,5 @@ func openMissionMapWindow(g *Game, res *uiResources, mission *model.Mission) {
 	wRect := uiRect.Inset(padding)
 	window.SetLocation(wRect)
 
-	m.AddWindow(window)
+	m.AddWindow(window, nil)
 }
