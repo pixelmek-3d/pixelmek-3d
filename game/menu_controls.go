@@ -223,6 +223,7 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 	if action == ActionUnknown {
 		return
 	}
+	actionStr := actionDisplayName(action)
 
 	var keyScanner *keyScanHandler
 	var modifiedHandler *input.Handler
@@ -235,9 +236,8 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 		modifiedHandler = gamepadScanner.handler
 	}
 
-	actionStr := actionDisplayName(action)
 	scanType := keyScanKeys
-	if strings.Contains(actionStr, "_axes") {
+	if strings.Contains(actionString(action), "_axes") {
 		scanType = keyScanAxes
 	}
 
@@ -266,7 +266,7 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 				return
 			}
 
-			bindButton.SetText(keyBind.String())
+			bindButton.SetText(keyDisplayName(keyBind.String()))
 		}
 
 		bindButton = widget.NewButton(
