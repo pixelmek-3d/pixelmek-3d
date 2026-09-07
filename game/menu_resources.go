@@ -448,8 +448,10 @@ func newSquareButtonResources(fonts *menuFonts) (*buttonResources, error) {
 		face: fonts.toolTipFace,
 
 		padding: &widget.Insets{
-			Left:  8,
-			Right: 6,
+			Top:    4,
+			Bottom: 4,
+			Left:   4,
+			Right:  4,
 		},
 	}, nil
 }

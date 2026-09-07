@@ -241,7 +241,10 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 		scanType = keyScanAxes
 	}
 
+	g := m.Game()
+	uiRect := g.uiRect()
 	res := m.Resources()
+
 	label := widget.NewLabel(widget.LabelOpts.Text(actionStr, res.fonts.face, res.label.text))
 	gridContainer.AddChild(label)
 
@@ -273,6 +276,7 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 			widget.ButtonOpts.Image(res.squareButton.image),
 			widget.ButtonOpts.TextPadding(res.squareButton.padding),
 			widget.ButtonOpts.Text(kName, res.squareButton.face, res.squareButton.text),
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(uiRect.Dx()/5, uiRect.Dy()/20)),
 			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 				// open a modal window to wait for key/axes pressed update
 				log.Debugf("[%s] opening rebind window", actionStr)
