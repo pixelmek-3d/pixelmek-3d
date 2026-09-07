@@ -255,6 +255,16 @@ func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) 
 	)
 }
 
+func newTextWithBackground(bg *image.NineSlice, padding *widget.Insets, opts ...widget.TextOpt) widget.PreferredSizeLocateableWidget {
+	c := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(bg),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.DefaultStretch(true, true),
+			widget.GridLayoutOpts.Padding(padding))))
+	c.AddChild(widget.NewText(opts...))
+	return c
+}
+
 func newSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
 	res := m.Resources()
 	c := widget.NewContainer(

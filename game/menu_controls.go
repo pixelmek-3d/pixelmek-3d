@@ -245,7 +245,11 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 	uiRect := g.uiRect()
 	res := m.Resources()
 
-	label := widget.NewLabel(widget.LabelOpts.Text(actionStr, res.fonts.face, res.label.text))
+	// decorate action name label to make it easier to see its row of control binds
+	label := newTextWithBackground(
+		res.header.background,
+		res.squareButton.padding,
+		widget.TextOpts.Text(actionStr, res.fonts.face, res.text.idleColor))
 	gridContainer.AddChild(label)
 
 	// create exactly two bind buttons, regardless of number of keys currently bound
@@ -358,7 +362,7 @@ func openRebindWindow(m Menu, action input.Action, scanType keyScanType, keymapT
 		Stretch: true,
 	}))
 
-	label := widget.NewLabel(widget.LabelOpts.Text(scanLabelStr, res.fonts.face, res.label.text))
+	label := widget.NewText(widget.TextOpts.Text(scanLabelStr, res.fonts.face, res.text.idleColor))
 	c.AddChild(label)
 
 	c.AddChild(newBlankSeparator(res, 12, widget.RowLayoutData{
