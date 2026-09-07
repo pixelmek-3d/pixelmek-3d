@@ -223,7 +223,15 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 	if action == ActionUnknown {
 		return
 	}
+	g := m.Game()
+	uiRect := g.uiRect()
+	res := m.Resources()
+
 	actionStr := actionDisplayName(action)
+	if strings.HasPrefix(actionStr, "~") && !g.debug {
+		// ~ prefix indicates actions only used in debug mode
+		return
+	}
 
 	var keyScanner *keyScanHandler
 	var modifiedHandler *input.Handler
@@ -240,10 +248,6 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 	if strings.Contains(actionString(action), "_axes") {
 		scanType = keyScanAxes
 	}
-
-	g := m.Game()
-	uiRect := g.uiRect()
-	res := m.Resources()
 
 	// decorate action name label to make it easier to see its row of control binds
 	label := newTextWithBackground(

@@ -146,7 +146,8 @@ func init() {
 		ActionZoomOut:                {"zoom_out", "Zoom Out"},
 		ActionLightAmpToggle:         {"light_amplification", "Light Amplification"},
 		ActionPowerToggle:            {"power_toggle", "Power Toggle"},
-		ActionCameraCycle:            {"camera_cycle", "Camera Cycle"},
+		// ~ prefix indicates actions only used in debug mode:
+		ActionCameraCycle: {"camera_cycle", "~Camera Cycle"},
 	}
 
 	// Build a reverse index to get an action by its name
