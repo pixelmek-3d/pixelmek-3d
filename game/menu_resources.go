@@ -50,19 +50,20 @@ type uiResources struct {
 	backgroundColor color.Color
 	separatorColor  color.Color
 
-	text        *textResources
-	button      *buttonResources
-	miniButton  *buttonResources
-	label       *labelResources
-	checkbox    *checkboxResources
-	comboButton *comboButtonResources
-	list        *listResources
-	slider      *sliderResources
-	panel       *panelResources
-	tabBook     *tabBookResources
-	header      *headerResources
-	textArea    *textAreaResources
-	toolTip     *toolTipResources
+	text         *textResources
+	button       *buttonResources
+	squareButton *buttonResources
+	miniButton   *buttonResources
+	label        *labelResources
+	checkbox     *checkboxResources
+	comboButton  *comboButtonResources
+	list         *listResources
+	slider       *sliderResources
+	panel        *panelResources
+	tabBook      *tabBookResources
+	header       *headerResources
+	textArea     *textAreaResources
+	toolTip      *toolTipResources
 }
 
 type textResources struct {
@@ -171,6 +172,11 @@ func NewUIResources(menuSize int, fonts *menuFonts) (*uiResources, error) {
 		return nil, err
 	}
 
+	squareButton, err := newSquareButtonResources(fonts)
+	if err != nil {
+		return nil, err
+	}
+
 	miniButton, err := newMiniButtonResources(fonts)
 	if err != nil {
 		return nil, err
@@ -238,18 +244,19 @@ func NewUIResources(menuSize int, fonts *menuFonts) (*uiResources, error) {
 			smallFace:     fonts.toolTipFace,
 		},
 
-		button:      button,
-		miniButton:  miniButton,
-		label:       newLabelResources(fonts),
-		checkbox:    checkbox,
-		comboButton: comboButton,
-		list:        list,
-		slider:      slider,
-		panel:       panel,
-		tabBook:     tabBook,
-		header:      header,
-		textArea:    textArea,
-		toolTip:     toolTip,
+		button:       button,
+		squareButton: squareButton,
+		miniButton:   miniButton,
+		label:        newLabelResources(fonts),
+		checkbox:     checkbox,
+		comboButton:  comboButton,
+		list:         list,
+		slider:       slider,
+		panel:        panel,
+		tabBook:      tabBook,
+		header:       header,
+		textArea:     textArea,
+		toolTip:      toolTip,
 	}, nil
 }
 
@@ -392,6 +399,59 @@ func newButtonResources(fonts *menuFonts) (*buttonResources, error) {
 		padding: &widget.Insets{
 			Left:  30,
 			Right: 30,
+		},
+	}, nil
+}
+
+func newSquareButtonResources(fonts *menuFonts) (*buttonResources, error) {
+	cH := centerHeightFromFontScale(fonts.scale)
+	rS := resourceScaleFromFontScale(fonts.scale)
+	idle, err := loadImageNineSlice("menu/square-button-idle.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+
+	hover, err := loadImageNineSlice("menu/square-button-hover.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	pressed_hover, err := loadImageNineSlice("menu/square-button-selected-hover.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	pressed, err := loadImageNineSlice("menu/square-button-pressed.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+
+	disabled, err := loadImageNineSlice("menu/square-button-disabled.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+
+	i := &widget.ButtonImage{
+		Idle:         idle,
+		Hover:        hover,
+		Pressed:      pressed,
+		PressedHover: pressed_hover,
+		Disabled:     disabled,
+	}
+
+	return &buttonResources{
+		image: i,
+
+		text: &widget.ButtonTextColor{
+			Idle:     hexToColor(buttonIdleColor),
+			Disabled: hexToColor(buttonDisabledColor),
+		},
+
+		face: fonts.toolTipFace,
+
+		padding: &widget.Insets{
+			Top:    4,
+			Bottom: 4,
+			Left:   4,
+			Right:  4,
 		},
 	}, nil
 }

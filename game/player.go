@@ -343,6 +343,66 @@ func (p *Player) IsWeaponInGroup(w model.Weapon, g model.WeaponGroup) bool {
 	return model.IsWeaponInGroup(w, g, p.weaponGroups)
 }
 
+func (p *Player) CycleWeaponSelection(reverse bool) {
+	doWeaponCycle := func() {
+		numWeapons := uint(len(p.Armament()))
+		if reverse {
+			p.selectedWeapon--
+			if p.selectedWeapon >= numWeapons {
+				p.selectedWeapon = numWeapons - 1
+			}
+		} else {
+			p.selectedWeapon++
+			if p.selectedWeapon >= numWeapons {
+				p.selectedWeapon = 0
+			}
+		}
+	}
+
+	doGroupCycle := func() {
+		if reverse {
+			p.selectedGroup--
+			if p.selectedGroup > model.WEAPON_GROUP_MAX {
+				p.selectedGroup = model.WEAPON_GROUP_MAX
+			}
+		} else {
+			p.selectedGroup++
+			if p.selectedGroup > model.WEAPON_GROUP_MAX {
+				p.selectedGroup = model.WEAPON_GROUP_NONE
+			}
+		}
+	}
+
+	switch p.fireMode {
+	case model.GROUP_FIRE:
+		prevGroup := p.selectedGroup
+		doGroupCycle()
+
+		// set next selectedGroup only if >0 weapons in it
+		weaponsInGroup := len(p.GetWeaponsForGroup(p.selectedGroup))
+		for weaponsInGroup == 0 {
+			if p.selectedGroup == prevGroup {
+				// break potential infinite loop
+				break
+			}
+			doGroupCycle()
+			weaponsInGroup = len(p.GetWeaponsForGroup(p.selectedGroup))
+		}
+
+	case model.CHAIN_FIRE:
+		doWeaponCycle()
+
+		// set selectedGroup if the newly selected weapon is in different group
+		newSelectedWeapon := p.Armament()[p.selectedWeapon]
+		groups := p.GetGroupsForWeapon(newSelectedWeapon)
+		if len(groups) == 0 {
+			p.selectedGroup = model.WEAPON_GROUP_NONE
+		} else if !p.IsWeaponInGroup(newSelectedWeapon, p.selectedGroup) {
+			p.selectedGroup = groups[0]
+		}
+	}
+}
+
 func (p *Player) Eject(g *Game) bool {
 	if p.ejectionPod != nil {
 		return false

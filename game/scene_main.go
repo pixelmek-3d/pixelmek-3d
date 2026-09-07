@@ -48,7 +48,7 @@ func (s *MainMenuScene) SetMenu(m Menu) {
 func (s *MainMenuScene) Update() error {
 	g := s.Game
 
-	if g.input.ActionIsJustPressed(ActionBack) {
+	if g.input.ActionIsJustPressed(ActionMenuBack) {
 		// if exit window is open, close it
 		closedWindow := g.menu.CloseWindow()
 		if closedWindow == nil {

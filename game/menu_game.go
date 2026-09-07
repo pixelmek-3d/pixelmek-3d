@@ -56,6 +56,11 @@ func (m *GameMenu) Update() {
 	for _, updater := range m.tickUpdaters {
 		updater.update()
 	}
+	if pageList != nil {
+		if page, isSettingsPage := pageList.SelectedEntry().(*settingsPage); isSettingsPage {
+			page.update()
+		}
+	}
 	m.ui.Update()
 }
 

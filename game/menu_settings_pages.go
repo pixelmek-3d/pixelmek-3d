@@ -14,14 +14,14 @@ import (
 )
 
 type settingsPageContainer struct {
-	widget    widget.PreferredSizeLocateableWidget
+	widget    *widget.Container
 	titleText *widget.Text
 	flipBook  *widget.FlipBook
 }
 
 type settingsPage struct {
 	title           string
-	content         widget.PreferredSizeLocateableWidget
+	content         *widget.Container
 	contentUpdaters []contentUpdater
 	tickUpdaters    []tickUpdater
 }
