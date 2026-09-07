@@ -8,11 +8,14 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type KeymapType int
@@ -82,66 +85,68 @@ const (
 )
 
 var (
-	actionToString map[input.Action]string
+	// actionToString maps actions to their action string and display name
+	actionToString map[input.Action][2]string
+	// stringToAction maps the action names to their action string
 	stringToAction map[string]input.Action
 )
 
 func init() {
-	actionToString = map[input.Action]string{
-		ActionUp:                     "up",
-		ActionDown:                   "down",
-		ActionLeft:                   "left",
-		ActionRight:                  "right",
-		ActionMoveAxes:               "move_axes",
-		ActionTurnAxes:               "turn_axes",
-		ActionThrottleAxes:           "throttle_axes",
-		ActionTurretUp:               "turret_up",
-		ActionTurretDown:             "turret_down",
-		ActionTurretLeft:             "turret_left",
-		ActionTurretRight:            "turret_right",
-		ActionTurretAxes:             "turret_axes",
-		ActionMenuBack:               "menu_back",
-		ActionThrottleReverse:        "throttle_reverse",
-		ActionThrottle0:              "throttle_0",
-		ActionThrottle10:             "throttle_10",
-		ActionThrottle20:             "throttle_20",
-		ActionThrottle30:             "throttle_30",
-		ActionThrottle40:             "throttle_40",
-		ActionThrottle50:             "throttle_50",
-		ActionThrottle60:             "throttle_60",
-		ActionThrottle70:             "throttle_70",
-		ActionThrottle80:             "throttle_80",
-		ActionThrottle90:             "throttle_90",
-		ActionThrottle100:            "throttle_100",
-		ActionJumpJet:                "jump_jet",
-		ActionDescend:                "descend",
-		ActionWeaponFire:             "weapon_fire",
-		ActionWeaponCycle:            "weapon_cycle",
-		ActionWeaponCyclePrevious:    "weapon_cycle_prev",
-		ActionWeaponGroupFireToggle:  "weapon_group_toggle",
-		ActionWeaponGroupSetModifier: "weapon_group_set",
-		ActionWeaponGroup1:           "weapon_group_1",
-		ActionWeaponGroup2:           "weapon_group_2",
-		ActionWeaponGroup3:           "weapon_group_3",
-		ActionWeaponGroup4:           "weapon_group_4",
-		ActionWeaponGroup5:           "weapon_group_5",
-		ActionWeaponFireGroup1:       "weapon_fire_group_1",
-		ActionWeaponFireGroup2:       "weapon_fire_group_2",
-		ActionWeaponFireGroup3:       "weapon_fire_group_3",
-		ActionWeaponFireGroup4:       "weapon_fire_group_4",
-		ActionWeaponFireGroup5:       "weapon_fire_group_5",
-		ActionNavCycle:               "nav_cycle",
-		ActionRadarRangeCycle:        "radar_range_cycle",
-		ActionTargetCrosshairs:       "target_crosshairs",
-		ActionTargetNearest:          "target_nearest",
-		ActionTargetNext:             "target_next",
-		ActionTargetPrevious:         "target_prev",
-		ActionZoomToggle:             "zoom_toggle",
-		ActionZoomIn:                 "zoom_in",
-		ActionZoomOut:                "zoom_out",
-		ActionLightAmpToggle:         "light_amplification",
-		ActionPowerToggle:            "power_toggle",
-		ActionCameraCycle:            "camera_cycle",
+	actionToString = map[input.Action][2]string{
+		ActionUp:                     {"up", "Forward"},
+		ActionDown:                   {"down", "Backward"},
+		ActionLeft:                   {"left", "Rotate Left"},
+		ActionRight:                  {"right", "Rotate Right"},
+		ActionMoveAxes:               {"move_axes", "Move Axes"},
+		ActionTurnAxes:               {"turn_axes", "Turn Axes"},
+		ActionTurretUp:               {"turret_up", "Throttle Up"},
+		ActionTurretDown:             {"turret_down", "Throttle Down"},
+		ActionTurretLeft:             {"turret_left", "Turret Left"},
+		ActionTurretRight:            {"turret_right", "Turret Right"},
+		ActionTurretAxes:             {"turret_axes", "Turret Axes"},
+		ActionMenuBack:               {"menu_back", "Back"},
+		ActionThrottleAxes:           {"throttle_axes", "Throttle Axes"},
+		ActionThrottleReverse:        {"throttle_reverse", "Throttle Reverse"},
+		ActionThrottle0:              {"throttle_0", "Throttle Stop"},
+		ActionThrottle10:             {"throttle_10", "Throttle 10%"},
+		ActionThrottle20:             {"throttle_20", "Throttle 20%"},
+		ActionThrottle30:             {"throttle_30", "Throttle 30%"},
+		ActionThrottle40:             {"throttle_40", "Throttle 40%"},
+		ActionThrottle50:             {"throttle_50", "Throttle 50%"},
+		ActionThrottle60:             {"throttle_60", "Throttle 60%"},
+		ActionThrottle70:             {"throttle_70", "Throttle 70%"},
+		ActionThrottle80:             {"throttle_80", "Throttle 80%"},
+		ActionThrottle90:             {"throttle_90", "Throttle 90%"},
+		ActionThrottle100:            {"throttle_100", "Throttle 100%"},
+		ActionJumpJet:                {"jump_jet", "Jump Jets/Ascend"},
+		ActionDescend:                {"descend", "Descend"},
+		ActionWeaponFire:             {"weapon_fire", "Fire Weapon/Group"},
+		ActionWeaponCycle:            {"weapon_cycle", "Weapon Cycle Next"},
+		ActionWeaponCyclePrevious:    {"weapon_cycle_prev", "Weapon Cycle Previous"},
+		ActionWeaponGroupFireToggle:  {"weapon_group_toggle", "Group Fire Toggle"},
+		ActionWeaponGroupSetModifier: {"weapon_group_set", "Set Weapon Group"},
+		ActionWeaponGroup1:           {"weapon_group_1", "Select Weapon Group 1"},
+		ActionWeaponGroup2:           {"weapon_group_2", "Select Weapon Group 2"},
+		ActionWeaponGroup3:           {"weapon_group_3", "Select Weapon Group 3"},
+		ActionWeaponGroup4:           {"weapon_group_4", "Select Weapon Group 4"},
+		ActionWeaponGroup5:           {"weapon_group_5", "Select Weapon Group 5"},
+		ActionWeaponFireGroup1:       {"weapon_fire_group_1", "Fire Weapon Group 1"},
+		ActionWeaponFireGroup2:       {"weapon_fire_group_2", "Fire Weapon Group 2"},
+		ActionWeaponFireGroup3:       {"weapon_fire_group_3", "Fire Weapon Group 3"},
+		ActionWeaponFireGroup4:       {"weapon_fire_group_4", "Fire Weapon Group 4"},
+		ActionWeaponFireGroup5:       {"weapon_fire_group_5", "Fire Weapon Group 5"},
+		ActionNavCycle:               {"nav_cycle", "Cycle Nav Point"},
+		ActionRadarRangeCycle:        {"radar_range_cycle", "Cycle Radar Range"},
+		ActionTargetCrosshairs:       {"target_crosshairs", "Target Crosshairs"},
+		ActionTargetNearest:          {"target_nearest", "Target Nearest"},
+		ActionTargetNext:             {"target_next", "Target Next"},
+		ActionTargetPrevious:         {"target_prev", "Target Previous"},
+		ActionZoomToggle:             {"zoom_toggle", "Zoom Toggle"},
+		ActionZoomIn:                 {"zoom_in", "Zoom In"},
+		ActionZoomOut:                {"zoom_out", "Zoom Out"},
+		ActionLightAmpToggle:         {"light_amplification", "Light Amplification"},
+		ActionPowerToggle:            {"power_toggle", "Power Toggle"},
+		ActionCameraCycle:            {"camera_cycle", "Camera Cycle"},
 	}
 
 	// Build a reverse index to get an action by its name
@@ -237,9 +242,42 @@ func stringAction(aName string) input.Action {
 
 func actionString(a input.Action) string {
 	if s, ok := actionToString[a]; ok {
-		return s
+		return s[0]
 	}
 	panic(fmt.Errorf("currently unable to handle actionString for input.Action: %v", a))
+}
+
+func actionDisplayName(a input.Action) string {
+	if s, ok := actionToString[a]; ok {
+		return s[1]
+	}
+	panic(fmt.Errorf("currently unable to handle actionDisplayName for input.Action: %v", a))
+}
+
+// keyDisplayName converts a key name into a display name (Capitalize, remove underscores, etc)
+// key names are defined by ebitengine-input: https://github.com/quasilyte/ebitengine-input/blob/master/key.go
+func keyDisplayName(keyName string) string {
+	isGamepad := strings.HasPrefix(keyName, "gamepad")
+	isMouse := strings.HasPrefix(keyName, "mouse")
+
+	displayName := strings.ReplaceAll(keyName, "_", " ")
+
+	switch {
+	case isGamepad:
+		// remove "gamepad" prefix and replace gamepad "lstick/rstick" with "Left Stick/Right Stick"
+		displayName = strings.TrimPrefix(displayName, "gamepad")
+		displayName = strings.Replace(displayName, "lstick", "left stick", 1)
+		displayName = strings.Replace(displayName, "rstick", "right stick", 1)
+	case isMouse:
+		// remove "button" suffix
+		displayName = strings.TrimSuffix(displayName, "button")
+	}
+
+	// trim hanging spaces and use Title Case
+	displayName = strings.Trim(displayName, " ")
+	titleCaser := cases.Title(language.Und)
+	displayName = titleCaser.String(displayName)
+	return displayName
 }
 
 func AddKeyBind(keymap input.Keymap, action input.Action, key input.Key) error {

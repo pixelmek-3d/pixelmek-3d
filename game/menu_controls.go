@@ -235,7 +235,7 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 		modifiedHandler = gamepadScanner.handler
 	}
 
-	actionStr := actionString(action)
+	actionStr := actionDisplayName(action)
 	scanType := keyScanKeys
 	if strings.Contains(actionStr, "_axes") {
 		scanType = keyScanAxes
@@ -251,7 +251,7 @@ func addControlBind(m Menu, gridContainer *widget.Container, action input.Action
 	for i := range 2 {
 		var kName string
 		if i < len(keyNames) {
-			kName = keyNames[i]
+			kName = keyDisplayName(keyNames[i])
 		}
 		var bindButton *widget.Button
 		keyScanCompleteFunc := func() {
@@ -334,7 +334,7 @@ func openRebindWindow(m Menu, action input.Action, scanType keyScanType, keymapT
 			}))))
 
 	titleBar.AddChild(widget.NewText(
-		widget.TextOpts.Text("Action: "+actionString(action), res.text.titleFace, res.text.idleColor),
+		widget.TextOpts.Text("Action: "+actionDisplayName(action), res.text.titleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
