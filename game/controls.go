@@ -280,6 +280,7 @@ func keyDisplayName(keyName string) string {
 	return displayName
 }
 
+// AddKeyBind binds the given action and key, returning an error if it is not successful.
 func AddKeyBind(keymap input.Keymap, action input.Action, key input.Key) error {
 	keyList, exists := keymap[action]
 	if !exists {
@@ -287,7 +288,7 @@ func AddKeyBind(keymap input.Keymap, action input.Action, key input.Key) error {
 	}
 	if slices.Contains(keyList, key) {
 		// the key is already bound to this action
-		return nil
+		return fmt.Errorf("key '%s' already bound to same action '%s'", key.String(), actionString(action))
 	}
 
 	if action == ActionMenuBack {
