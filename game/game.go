@@ -22,7 +22,6 @@ import (
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
 
-	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -50,10 +49,9 @@ type Game struct {
 	ai             *AIHandler
 	aiIgnorePlayer bool
 
-	resources   *model.ModelResources
-	audio       *AudioHandler
-	input       *input.Handler
-	inputSystem input.System
+	resources *model.ModelResources
+	audio     *AudioHandler
+	input     *InputHandler
 
 	//--create slicer and declare slices--//
 	tex                *texture.TextureHandler
@@ -266,7 +264,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update - Allows the game to run logic such as updating the world, gathering input, and playing audio.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
-	g.inputSystem.Update()
+	g.input.Update()
 
 	if g.initSceneFunc != nil {
 		g.scene = g.initSceneFunc(g)
@@ -279,6 +277,10 @@ func (g *Game) Update() error {
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.scene.Draw(screen)
+}
+
+func (g *Game) screenRect() image.Rectangle {
+	return image.Rect(0, 0, g.screenWidth, g.screenHeight)
 }
 
 // Gets the inner screen rect for UI space to account for ultra-wide resolutions
@@ -420,9 +422,8 @@ func (g *Game) updatePlayer() {
 			g.audio.PlayPowerOffSequence()
 		} else {
 			// check if power on sound needs to be started
-			switch g.player.Unit.(type) {
+			switch m := g.player.Unit.(type) {
 			case *model.Mech:
-				m := g.player.Unit.(*model.Mech)
 				if m.PowerOffTimer <= 0 && m.PowerOnTimer > 0 && engAmbience != _SFX_HINT_POWER_ON {
 					// play power on sequence if not already playing
 					g.audio.PlayPowerOnSequence()
@@ -675,6 +676,25 @@ func (g *Game) targetCycle(cycleType TargetCycleType) model.Entity {
 
 	g.player.SetTarget(newTarget.Entity)
 	return newTarget.Entity
+}
+
+func (g *Game) zoomIn() {
+	zoomFovDegrees := g.fovDegrees / g.zoomFovDepth
+	g.camera.SetFovAngle(zoomFovDegrees, g.zoomFovDepth)
+	g.camera.SetPitchAngle(g.player.Pitch())
+}
+
+func (g *Game) zoomOut() {
+	g.camera.SetFovAngle(g.fovDegrees, 1.0)
+	g.camera.SetPitchAngle(g.player.Pitch())
+}
+
+func (g *Game) zoomToggle() {
+	if g.camera.FovDepth() != g.zoomFovDepth {
+		g.zoomIn()
+	} else {
+		g.zoomOut()
+	}
 }
 
 func (g *Game) updateWeaponCooldowns(unit model.Unit) {

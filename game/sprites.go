@@ -23,9 +23,8 @@ type proximityUnit struct {
 }
 
 func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
-	switch interfaceType := unit.(type) {
+	switch u := unit.(type) {
 	case *model.Mech:
-		u := unit.(*model.Mech)
 		uKey := u.Resource.File
 		unitSprite, found := g.sprites.MechSpriteTemplates[uKey]
 		if !found {
@@ -39,7 +38,6 @@ func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
 		return unitSprite.Clone(u)
 
 	case *model.Vehicle:
-		u := unit.(*model.Vehicle)
 		uKey := u.Resource.File
 		unitSprite, found := g.sprites.VehicleSpriteTemplates[uKey]
 		if !found {
@@ -53,7 +51,6 @@ func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
 		return unitSprite.Clone(u)
 
 	case *model.VTOL:
-		u := unit.(*model.VTOL)
 		uKey := u.Resource.File
 		unitSprite, found := g.sprites.VTOLSpriteTemplates[uKey]
 		if !found {
@@ -67,7 +64,6 @@ func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
 		return unitSprite.Clone(u)
 
 	case *model.Infantry:
-		u := unit.(*model.Infantry)
 		uKey := u.Resource.File
 		unitSprite, found := g.sprites.InfantrySpriteTemplates[uKey]
 		if !found {
@@ -81,7 +77,6 @@ func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
 		return unitSprite.Clone(u)
 
 	case *model.Emplacement:
-		u := unit.(*model.Emplacement)
 		uKey := u.Resource.File
 		unitSprite, found := g.sprites.EmplacementSpriteTemplates[uKey]
 		if !found {
@@ -95,7 +90,7 @@ func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
 		return unitSprite.Clone(u)
 
 	default:
-		panic(fmt.Errorf("create unit sprite from type not implemented: %v", interfaceType))
+		panic(fmt.Errorf("create unit sprite from type not implemented: %v", u.UnitType()))
 	}
 }
 

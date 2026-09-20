@@ -45,7 +45,7 @@ func (g *Game) StopSceneTransition() {
 	}
 	switch g.scene.(type) {
 	case *MainMenuScene:
-		g.scene.(*MainMenuScene).transition = nil
+		g.scene.(*MainMenuScene).splash.transition = nil
 	case *GameScene:
 		g.scene.(*GameScene).transition = nil
 	}
