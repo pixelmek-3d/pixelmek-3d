@@ -53,6 +53,7 @@ type uiResources struct {
 
 	text         *textResources
 	button       *buttonResources
+	darkButton   *buttonResources
 	squareButton *buttonResources
 	miniButton   *buttonResources
 	label        *labelResources
@@ -173,6 +174,11 @@ func NewUIResources(menuSize int, fonts *menuFonts) (*uiResources, error) {
 		return nil, err
 	}
 
+	darkButton, err := newDarkButtonResources(fonts)
+	if err != nil {
+		return nil, err
+	}
+
 	squareButton, err := newSquareButtonResources(fonts)
 	if err != nil {
 		return nil, err
@@ -246,6 +252,7 @@ func NewUIResources(menuSize int, fonts *menuFonts) (*uiResources, error) {
 		},
 
 		button:       button,
+		darkButton:   darkButton,
 		squareButton: squareButton,
 		miniButton:   miniButton,
 		label:        newLabelResources(fonts),
@@ -360,7 +367,6 @@ func newButtonResources(fonts *menuFonts) (*buttonResources, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	hover, err := loadImageNineSlice("menu/button-hover.png", 12, cH, rS)
 	if err != nil {
 		return nil, err
@@ -373,8 +379,56 @@ func newButtonResources(fonts *menuFonts) (*buttonResources, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	disabled, err := loadImageNineSlice("menu/button-disabled.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+
+	i := &widget.ButtonImage{
+		Idle:         idle,
+		Hover:        hover,
+		Pressed:      pressed,
+		PressedHover: pressed_hover,
+		Disabled:     disabled,
+	}
+
+	return &buttonResources{
+		image: i,
+
+		text: &widget.ButtonTextColor{
+			Idle:     hexToColor(buttonIdleColor),
+			Disabled: hexToColor(buttonDisabledColor),
+		},
+
+		face: fonts.face,
+
+		padding: &widget.Insets{
+			Left:  30,
+			Right: 30,
+		},
+	}, nil
+}
+
+func newDarkButtonResources(fonts *menuFonts) (*buttonResources, error) {
+	cH := centerHeightFromFontScale(fonts.scale)
+	rS := resourceScaleFromFontScale(fonts.scale)
+	idle, err := loadImageNineSlice("menu/dark-button-idle.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	hover, err := loadImageNineSlice("menu/dark-button-hover.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	pressed_hover, err := loadImageNineSlice("menu/dark-button-selected-hover.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	pressed, err := loadImageNineSlice("menu/dark-button-pressed.png", 12, cH, rS)
+	if err != nil {
+		return nil, err
+	}
+	disabled, err := loadImageNineSlice("menu/dark-button-disabled.png", 12, cH, rS)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +465,6 @@ func newSquareButtonResources(fonts *menuFonts) (*buttonResources, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	hover, err := loadImageNineSlice("menu/square-button-hover.png", 12, cH, rS)
 	if err != nil {
 		return nil, err
@@ -424,7 +477,6 @@ func newSquareButtonResources(fonts *menuFonts) (*buttonResources, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	disabled, err := loadImageNineSlice("menu/square-button-disabled.png", 12, cH, rS)
 	if err != nil {
 		return nil, err

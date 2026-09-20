@@ -93,9 +93,9 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: false,
 		})),
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.button.text),
-		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Image(res.darkButton.image),
+		widget.ButtonOpts.Text("Instant Action", res.text.titleFace, res.darkButton.text),
+		widget.ButtonOpts.TextPadding(res.darkButton.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			game.scene = NewInstantActionScene(game)
 		}),
@@ -106,9 +106,9 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: false,
 		})),
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.Text("Missions", res.text.titleFace, res.button.text),
-		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Image(res.darkButton.image),
+		widget.ButtonOpts.Text("Missions", res.text.titleFace, res.darkButton.text),
+		widget.ButtonOpts.TextPadding(res.darkButton.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			game.scene = NewMissionScene(game)
 		}),
@@ -119,9 +119,9 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: false,
 		})),
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.Text("Settings", res.button.face, res.button.text),
-		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Image(res.darkButton.image),
+		widget.ButtonOpts.Text("Settings", res.darkButton.face, res.darkButton.text),
+		widget.ButtonOpts.TextPadding(res.darkButton.padding),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			mScene, ok := game.scene.(*MainMenuScene)
 			if ok {
@@ -143,9 +143,9 @@ func mainMenuItemsContainer(m *MainMenu) *widget.Container {
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: false,
 			})),
-			widget.ButtonOpts.Image(res.button.image),
-			widget.ButtonOpts.Text("Exit", res.button.face, res.button.text),
-			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.Image(res.darkButton.image),
+			widget.ButtonOpts.Text("Exit", res.darkButton.face, res.darkButton.text),
+			widget.ButtonOpts.TextPadding(res.darkButton.padding),
 			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 				openExitWindow(m)
 			}),
