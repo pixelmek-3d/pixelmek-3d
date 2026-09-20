@@ -421,6 +421,12 @@ func displayPage(m Menu) *settingsPage {
 	})
 	c.AddChild(vsCheckbox)
 
+	// CRT shader checkbox
+	crtCheckbox := newCheckbox(m, "CRT Shader", game.crtShader, func(args *widget.CheckboxChangedEventArgs) {
+		game.crtShader = args.State == widget.WidgetChecked
+	})
+	c.AddChild(crtCheckbox)
+
 	// fps checkbox
 	fpsCheckbox := newCheckbox(m, "Show FPS", game.fpsEnabled, func(args *widget.CheckboxChangedEventArgs) {
 		game.fpsEnabled = args.State == widget.WidgetChecked
@@ -603,12 +609,6 @@ func renderPage(m Menu) *settingsPage {
 		game.initRenderFloorTex = game.tex.RenderFloorTex()
 	})
 	c.AddChild(floorCheckbox)
-
-	// CRT shader checkbox
-	crtCheckbox := newCheckbox(m, "CRT Shader", game.crtShader, func(args *widget.CheckboxChangedEventArgs) {
-		game.crtShader = args.State == widget.WidgetChecked
-	})
-	c.AddChild(crtCheckbox)
 
 	return &settingsPage{
 		title:   "Render",
