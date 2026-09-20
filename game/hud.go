@@ -191,9 +191,8 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 	default:
 		// handle player shutting down or powering up
 		isOverHeated := g.player.OverHeated()
-		switch unitType := g.player.Unit.(type) {
+		switch m := g.player.Unit.(type) {
 		case *model.Mech:
-			m := g.player.Unit.(*model.Mech)
 			switch {
 			case m.PowerOffTimer > 0:
 				powerTime := model.TICKS_PER_SECOND * model.UNIT_POWER_OFF_SECONDS
@@ -250,7 +249,7 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 			}
 
 		default:
-			panic(fmt.Sprintf("unhandled player HUD power off for unit type %s", unitType))
+			panic(fmt.Sprintf("unhandled player HUD power off for unit type %v", m.UnitType()))
 		}
 	}
 

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image"
 	"image/color"
 	"path"
 	"path/filepath"
@@ -14,6 +15,11 @@ import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	introPath              = "textures/intro"
+	introAnimationRate int = 6
 )
 
 type IntroScene struct {
@@ -31,17 +37,49 @@ type IntroScene struct {
 
 func NewIntroScene(g *Game) Scene {
 	// PixelMek 3D intro animation
+	images := loadIntroImages()
 
-	// load all intro image frames
-	introPath := "textures/intro"
+	// load font
+	fontFile, err := resources.FileAt(fontFaceTitle)
+	if err != nil {
+		panic(err)
+	}
+	textFace, err := text.NewGoTextFaceSource(fontFile)
+	if err != nil {
+		panic(err)
+	}
+
+	splash := NewSplashScreen(g)
+	splash.geoM = introGeoM(images[0], g.screenRect())
+	splash.shader = renderFx.NewCRT()
+	splash.transitionOpts = &transitions.TransitionOptions{
+		InDuration:   SPLASH_TIMEOUT * 2 / 5,
+		HoldDuration: -1,
+		OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
+	}
+	splash.transition = transitions.NewPixelize(splash.screen, splash.transitionOpts, ebiten.GeoM{})
+
+	return &IntroScene{
+		Game:          g,
+		textFace:      textFace,
+		bufferScreen:  ebiten.NewImage(g.screenWidth, g.screenHeight),
+		animation:     images,
+		animationRate: introAnimationRate,
+		numFrames:     len(images),
+		splash:        splash,
+	}
+}
+
+func loadIntroImages() []*ebiten.Image {
+	// load all intro animation image frames
 	introFiles, err := resources.ReadDir(introPath, false)
 	if err != nil {
 		panic(err)
 	}
 
-	var geoM *ebiten.GeoM
+	var iW, iH int
 
-	// import files into image array
+	// import intro animation files into image array
 	images := make([]*ebiten.Image, 0, 10)
 	for _, f := range introFiles {
 		if f.IsDir() {
@@ -57,52 +95,36 @@ func NewIntroScene(g *Game) Scene {
 				continue
 			}
 
-			images = append(images, img)
-
-			if geoM == nil {
-				sW, sH := float64(g.screenWidth), float64(g.screenHeight)
-				iW, iH := float64(img.Bounds().Dx()), float64(img.Bounds().Dy())
-
-				iScale := sH / iH
-				iX, iY := (sW-iW*iScale)/2, (sH-iH*iScale)/2
-
-				geoM = &ebiten.GeoM{}
-				geoM.Scale(iScale, iScale)
-				geoM.Translate(iX, iY)
+			if iW == 0 || iH == 0 {
+				iW, iH = img.Bounds().Dx(), img.Bounds().Dy()
 			}
+
+			// normalize image as 3:2 aspect ratio
+			nW := int((3.0 / 2.0) * float64(iH))
+			nOff := (iW - nW) / 2
+			rect := image.Rect(nOff, 0, iW-nOff, iH)
+			normalImg := img.SubImage(rect).(*ebiten.Image)
+
+			images = append(images, normalImg)
 		}
 	}
+	return images
+}
 
-	// load font
-	fontFile, err := resources.FileAt("fonts/broken-machine.ttf")
-	if err != nil {
-		panic(err)
-	}
-	textFace, err := text.NewGoTextFaceSource(fontFile)
-	if err != nil {
-		panic(err)
-	}
+func introGeoM(introImg *ebiten.Image, screenRect image.Rectangle) ebiten.GeoM {
+	sW, sH := float64(screenRect.Dx()), float64(screenRect.Dy())
+	iW, iH := float64(introImg.Bounds().Dx()), float64(introImg.Bounds().Dy())
 
-	splash := NewSplashScreen(g)
-	splash.shader = renderFx.NewCRT()
-	splash.transitionOpts = &transitions.TransitionOptions{
-		InDuration:   SPLASH_TIMEOUT * 2 / 5,
-		HoldDuration: -1,
-		OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
-	}
-	splash.transition = transitions.NewPixelize(splash.screen, splash.transitionOpts, ebiten.GeoM{})
+	iScale := sH / iH
+	iX, iY := (sW-iW*iScale)/2, (sH-iH*iScale)/2
 
-	splash.geoM = *geoM
+	geoM := &ebiten.GeoM{}
+	geoM.Scale(iScale, iScale)
+	geoM.Translate(iX, iY)
 
-	return &IntroScene{
-		Game:          g,
-		textFace:      textFace,
-		bufferScreen:  ebiten.NewImage(g.screenWidth, g.screenHeight),
-		animation:     images,
-		animationRate: 5, // TODO: define intro animation rate in a file that can be modded
-		numFrames:     len(images),
-		splash:        splash,
-	}
+	// TODO: crop intro image to 3:2 aspect ratio maximum?
+
+	return *geoM
 }
 
 func (s *IntroScene) Update() error {

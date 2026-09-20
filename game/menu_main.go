@@ -4,6 +4,7 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 type MainMenu struct {
@@ -30,7 +31,7 @@ func createMainMenu(g *Game) *MainMenu {
 
 func (m *MainMenu) initMenu() {
 	m.MenuModel.initMenu()
-	m.root.SetBackgroundImage(m.Resources().background)
+	//m.root.SetBackgroundImage(m.Resources().background)
 
 	// menu title
 	titleBar := mainMenuTitleContainer(m)
@@ -56,19 +57,25 @@ func (m *MainMenu) Draw(screen *ebiten.Image) {
 func mainMenuTitleContainer(m *MainMenu) *widget.Container {
 	res := m.Resources()
 
+	// load font
+	titleFace, err := resources.LoadFont(fontFaceTitle, 48.0*m.dynamicFontScale)
+	if err != nil {
+		panic(err)
+	}
+
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(1),
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
 			widget.GridLayoutOpts.Padding(&widget.Insets{
-				Left:   m.Padding(),
-				Right:  m.Padding(),
-				Top:    m.Padding(),
-				Bottom: m.Padding(),
+				Left:   24,
+				Right:  0,
+				Top:    0,
+				Bottom: 0,
 			}))))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text(title, res.text.bigTitleFace, res.text.idleColor),
+		widget.TextOpts.Text(title, &titleFace, res.text.idleColor),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
@@ -160,6 +167,6 @@ func mainMenuFooterContainer(m *MainMenu) *widget.Container {
 		}),
 	)))
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("github.com/pixelmek-3d/pixelmek-3d", res.text.smallFace, res.text.disabledColor)))
+		widget.TextOpts.Text("github.com/pixelmek-3d", res.text.smallFace, res.text.idleColor)))
 	return c
 }

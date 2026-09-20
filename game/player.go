@@ -268,17 +268,17 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		pH = g.player.Heading()
 	}
 
-	switch unitType := unit.(type) {
+	switch u := unit.(type) {
 	case *model.Mech:
 		unitSprite = g.CreateUnitSprite(unit).(*sprites.MechSprite).Sprite
 
-		mechStompFile, err := StompSFXForMech(unit.(*model.Mech))
+		mechStompFile, err := StompSFXForMech(u)
 		if err != nil {
 			log.Error("error loading mech stomp sfx:", err)
 		}
 		g.audio.SetStompSFX(mechStompFile)
 
-		jumpJetFile, err := JumpJetSFXForMech(unit.(*model.Mech))
+		jumpJetFile, err := JumpJetSFXForMech(u)
 		if err != nil {
 			log.Error("error loading mech jump jet sfx:", err)
 		}
@@ -298,7 +298,7 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		unitSprite = g.CreateUnitSprite(unit).(*sprites.InfantrySprite).Sprite
 
 	default:
-		log.Fatalf("unable to set player unit, resource type %s not handled", unitType)
+		log.Fatalf("unable to set player unit, resource type %v not handled", u.UnitType())
 		return
 	}
 

@@ -279,6 +279,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.scene.Draw(screen)
 }
 
+func (g *Game) screenRect() image.Rectangle {
+	return image.Rect(0, 0, g.screenWidth, g.screenHeight)
+}
+
 // Gets the inner screen rect for UI space to account for ultra-wide resolutions
 func (g *Game) uiRect() image.Rectangle {
 	minUiAspectRatio, maxUiAspectRatio := 1.0, 1.5
@@ -418,9 +422,8 @@ func (g *Game) updatePlayer() {
 			g.audio.PlayPowerOffSequence()
 		} else {
 			// check if power on sound needs to be started
-			switch g.player.Unit.(type) {
+			switch m := g.player.Unit.(type) {
 			case *model.Mech:
-				m := g.player.Unit.(*model.Mech)
 				if m.PowerOffTimer <= 0 && m.PowerOnTimer > 0 && engAmbience != _SFX_HINT_POWER_ON {
 					// play power on sequence if not already playing
 					g.audio.PlayPowerOnSequence()

@@ -37,6 +37,7 @@ const (
 )
 
 const (
+	fontFaceTitle   = "fonts/broken-machine.ttf"
 	fontFaceRegular = "fonts/pixeloid-sans.otf"
 	fontFaceBold    = "fonts/pixeloid-bold.otf"
 	fontFaceMono    = "fonts/pixeloid.otf"
