@@ -149,11 +149,6 @@ func (m *MenuModel) Resolutions() []MenuResolution {
 	return m.resolutions
 }
 
-func (m *MenuModel) handleResolutionChange() {
-	m.initResources()
-	m.initMenu()
-}
-
 func (m *MenuModel) initResources() {
 	// adjust menu and resource sizes based on window size
 	menuRect := m.game.uiRect()

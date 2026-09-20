@@ -42,6 +42,11 @@ func (m *GameMenu) initMenu() {
 	m.root.AddChild(settings)
 }
 
+func (m *GameMenu) handleResolutionChange() {
+	m.initResources()
+	m.initMenu()
+}
+
 func (m *GameMenu) refreshContent() {
 	for _, updater := range m.contentUpdaters {
 		updater.updateContent(m.game)
