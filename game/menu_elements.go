@@ -265,14 +265,13 @@ func newTextWithBackground(bg *image.NineSlice, padding *widget.Insets, opts ...
 	return c
 }
 
-func newSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
-	res := m.Resources()
+func newSeparator(res *uiResources, spacing int, ld any) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(&widget.Insets{
-				Top:    m.Spacing(),
-				Bottom: m.Spacing(),
+				Top:    spacing,
+				Bottom: spacing,
 			}))),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(ld)))
 
@@ -287,7 +286,7 @@ func newSeparator(m Menu, ld any) widget.PreferredSizeLocateableWidget {
 	return c
 }
 
-func newBlankSeparator(res *uiResources, spacing int, ld any) widget.PreferredSizeLocateableWidget {
+func newBlankSeparator(_ *uiResources, spacing int, ld any) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -302,7 +301,7 @@ func newBlankSeparator(res *uiResources, spacing int, ld any) widget.PreferredSi
 			Stretch:   true,
 			MaxHeight: 4,
 		})),
-		widget.GraphicOpts.ImageNineSlice(image.NewNineSliceColor(res.backgroundColor)),
+		widget.GraphicOpts.ImageNineSlice(image.NewNineSliceColor(nil)),
 	))
 
 	return c
@@ -381,7 +380,7 @@ func openExitWindow(m Menu) {
 	)
 	c.AddChild(cancel)
 
-	c.AddChild(newSeparator(m, widget.RowLayoutData{
+	c.AddChild(newSeparator(m.Resources(), m.Spacing(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 

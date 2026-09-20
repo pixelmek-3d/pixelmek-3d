@@ -30,7 +30,7 @@ func NewMainMenuScene(g *Game) Scene {
 	settings := createSettingsMenu(g)
 
 	// PixelMek 3D intro animation behind menu
-	images := loadIntroImages()
+	images := loadIntroImages(false)
 
 	splash := NewSplashScreen(g)
 	splash.geoM = introGeoM(images[0], g.screenRect())

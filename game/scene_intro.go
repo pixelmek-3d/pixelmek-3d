@@ -37,7 +37,7 @@ type IntroScene struct {
 
 func NewIntroScene(g *Game) Scene {
 	// PixelMek 3D intro animation
-	images := loadIntroImages()
+	images := loadIntroImages(true)
 
 	// load font
 	fontFile, err := resources.FileAt(fontFaceTitle)
@@ -70,7 +70,7 @@ func NewIntroScene(g *Game) Scene {
 	}
 }
 
-func loadIntroImages() []*ebiten.Image {
+func loadIntroImages(centered bool) []*ebiten.Image {
 	// load all intro animation image frames
 	introFiles, err := resources.ReadDir(introPath, false)
 	if err != nil {
@@ -102,8 +102,13 @@ func loadIntroImages() []*ebiten.Image {
 			// normalize image as 3:2 aspect ratio
 			nW := int((3.0 / 2.0) * float64(iH))
 			nOff := (iW - nW) / 2
-			rect := image.Rect(nOff, 0, iW-nOff, iH)
-			normalImg := img.SubImage(rect).(*ebiten.Image)
+			var nRect image.Rectangle
+			if centered {
+				nRect = image.Rect(nOff, 0, iW-nOff, iH)
+			} else {
+				nRect = image.Rect(0, 0, iW-nOff*2, iH)
+			}
+			normalImg := img.SubImage(nRect).(*ebiten.Image)
 
 			images = append(images, normalImg)
 		}
