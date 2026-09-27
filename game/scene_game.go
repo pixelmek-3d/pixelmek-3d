@@ -91,7 +91,7 @@ func (s *GameScene) Update() error {
 	}
 
 	// handle input (when paused making sure only to allow input for closing menu so it can be unpaused)
-	g.handleInput()
+	g.input.handleInput()
 
 	if !g.paused {
 		// Perform logical updates

@@ -27,14 +27,15 @@ const (
 var debugProfFile *os.File
 
 type InputHandler struct {
+	game             *Game
 	handler          *input.Handler
 	inputSystem      input.System
 	keyboardMouseMap input.Keymap
 	gamepadMap       input.Keymap
 }
 
-func NewInputHandler() *InputHandler {
-	h := &InputHandler{}
+func NewInputHandler(g *Game) *InputHandler {
+	h := &InputHandler{game: g}
 	h.inputSystem.Init(input.SystemConfig{
 		DevicesEnabled: input.AnyDevice,
 	})
@@ -46,8 +47,9 @@ func (h *InputHandler) Update() {
 	h.inputSystem.Update()
 }
 
-func (g *Game) handleInput() {
-	menuKeyPressed := g.input.ActionIsJustPressed(ActionMenuBack)
+func (h *InputHandler) handleInput() {
+	g := h.game
+	menuKeyPressed := h.ActionIsJustPressed(ActionMenuBack)
 	if menuKeyPressed {
 		if g.menu.Active() {
 			if g.osType == osTypeBrowser && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
@@ -67,13 +69,13 @@ func (g *Game) handleInput() {
 		return
 	}
 
-	g.handleDebugInput()
+	h.handleDebugInput()
 
 	_, isInfantry := g.player.Unit.(*model.Infantry)
 	//_, isMech := g.player.Unit.(*model.Mech)
 	_, isVTOL := g.player.Unit.(*model.VTOL)
 
-	if g.input.ActionIsJustPressed(ActionPowerToggle) {
+	if h.ActionIsJustPressed(ActionPowerToggle) {
 		switch g.player.Powered() {
 		case model.POWER_ON:
 			g.player.SetPowered(model.POWER_OFF_MANUAL)
@@ -92,7 +94,7 @@ func (g *Game) handleInput() {
 	var moveDx, moveDy float64
 	var turretDx, turretDy float64
 
-	if moveAxes, ok := g.input.PressedActionInfo(ActionMoveAxes); ok {
+	if moveAxes, ok := h.PressedActionInfo(ActionMoveAxes); ok {
 		// TODO: configurable deadzone and sensitivity
 		if math.Abs(moveAxes.Pos.X) >= 0.2 {
 			moveDx = 10 * -moveAxes.Pos.X
@@ -104,13 +106,13 @@ func (g *Game) handleInput() {
 	// TODO: handle mouse mode body
 	//}
 
-	if turnAxes, ok := g.input.PressedActionInfo(ActionTurnAxes); ok {
+	if turnAxes, ok := h.PressedActionInfo(ActionTurnAxes); ok {
 		// TODO: configurable deadzone and sensitivity
 		if math.Abs(turnAxes.Pos.X) >= 0.2 {
 			moveDx = 10 * -turnAxes.Pos.X
 		}
 	}
-	if throttleAxes, ok := g.input.PressedActionInfo(ActionThrottleAxes); ok {
+	if throttleAxes, ok := h.PressedActionInfo(ActionThrottleAxes); ok {
 		// TODO: configurable deadzone and sensitivity
 		if math.Abs(throttleAxes.Pos.Y) >= 0.2 {
 			moveDy = 5 * -throttleAxes.Pos.Y
@@ -130,7 +132,7 @@ func (g *Game) handleInput() {
 	// handled in throttle section below
 	// }
 
-	if turretAxes, ok := g.input.PressedActionInfo(ActionTurretAxes); ok {
+	if turretAxes, ok := h.PressedActionInfo(ActionTurretAxes); ok {
 		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
 		if turretAxes.IsMouseMotionEvent() {
 			cursorX, cursorY := int(turretAxes.Pos.X), int(turretAxes.Pos.Y)
@@ -185,11 +187,11 @@ func (g *Game) handleInput() {
 	if g.player.Target() == nil {
 		// auto-target on crosshairs if just fired weapon without a target selected
 		justFired := false
-		if g.input.ActionIsJustPressed(ActionWeaponFire) {
+		if h.ActionIsJustPressed(ActionWeaponFire) {
 			justFired = true
 		} else {
 			for _, actionGroup := range weaponFireGroups {
-				if g.input.ActionIsJustPressed(actionGroup) {
+				if h.ActionIsJustPressed(actionGroup) {
 					justFired = true
 					break
 				}
@@ -206,16 +208,16 @@ func (g *Game) handleInput() {
 
 	for i, actionGroup := range weaponFireGroups {
 		weaponGroup := i + 1
-		if g.input.ActionIsPressed(actionGroup) {
+		if h.ActionIsPressed(actionGroup) {
 			g.firePlayerWeapon(weaponGroup)
 		}
 	}
 
-	if g.input.ActionIsPressed(ActionWeaponFire) {
+	if h.ActionIsPressed(ActionWeaponFire) {
 		g.firePlayerWeapon(-1)
 	}
 
-	isFireButtonJustReleased := g.input.ActionIsJustReleased(ActionWeaponFire)
+	isFireButtonJustReleased := h.ActionIsJustReleased(ActionWeaponFire)
 	if isFireButtonJustReleased {
 		if g.player.fireMode == model.CHAIN_FIRE {
 			// cycle to next weapon only in same group (g.player.selectedGroup)
@@ -266,7 +268,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	weaponCycleNext, weaponCyclePrev := g.input.ActionIsJustPressed(ActionWeaponCycle), g.input.ActionIsJustPressed(ActionWeaponCyclePrevious)
+	weaponCycleNext, weaponCyclePrev := h.ActionIsJustPressed(ActionWeaponCycle), h.ActionIsJustPressed(ActionWeaponCyclePrevious)
 	if weaponCycleNext || weaponCyclePrev {
 		playerPrevGroup := g.player.selectedGroup
 		playerPrevWeapon := g.player.selectedWeapon
@@ -279,19 +281,19 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsPressed(ActionWeaponGroupSetModifier) {
+	if h.ActionIsPressed(ActionWeaponGroupSetModifier) {
 		// set group for selected weapon
 		setGroupIndex := model.WEAPON_GROUP_NONE
 		switch {
-		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
+		case h.ActionIsJustPressed(ActionWeaponGroup1):
 			setGroupIndex = model.WEAPON_GROUP_1
-		case g.input.ActionIsJustPressed(ActionWeaponGroup2):
+		case h.ActionIsJustPressed(ActionWeaponGroup2):
 			setGroupIndex = model.WEAPON_GROUP_2
-		case g.input.ActionIsJustPressed(ActionWeaponGroup3):
+		case h.ActionIsJustPressed(ActionWeaponGroup3):
 			setGroupIndex = model.WEAPON_GROUP_3
-		case g.input.ActionIsJustPressed(ActionWeaponGroup4):
+		case h.ActionIsJustPressed(ActionWeaponGroup4):
 			setGroupIndex = model.WEAPON_GROUP_4
-		case g.input.ActionIsJustPressed(ActionWeaponGroup5):
+		case h.ActionIsJustPressed(ActionWeaponGroup5):
 			setGroupIndex = model.WEAPON_GROUP_5
 		}
 
@@ -330,15 +332,15 @@ func (g *Game) handleInput() {
 		// set currently selected weapon/group if weapon group number key pressed
 		selectGroupIndex := model.WEAPON_GROUP_NONE
 		switch {
-		case g.input.ActionIsJustPressed(ActionWeaponGroup1):
+		case h.ActionIsJustPressed(ActionWeaponGroup1):
 			selectGroupIndex = model.WEAPON_GROUP_1
-		case g.input.ActionIsJustPressed(ActionWeaponGroup2):
+		case h.ActionIsJustPressed(ActionWeaponGroup2):
 			selectGroupIndex = model.WEAPON_GROUP_2
-		case g.input.ActionIsJustPressed(ActionWeaponGroup3):
+		case h.ActionIsJustPressed(ActionWeaponGroup3):
 			selectGroupIndex = model.WEAPON_GROUP_3
-		case g.input.ActionIsJustPressed(ActionWeaponGroup4):
+		case h.ActionIsJustPressed(ActionWeaponGroup4):
 			selectGroupIndex = model.WEAPON_GROUP_4
-		case g.input.ActionIsJustPressed(ActionWeaponGroup5):
+		case h.ActionIsJustPressed(ActionWeaponGroup5):
 			selectGroupIndex = model.WEAPON_GROUP_5
 		}
 
@@ -359,7 +361,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionWeaponGroupFireToggle) {
+	if h.ActionIsJustPressed(ActionWeaponGroupFireToggle) {
 		// toggle group fire mode
 		if g.player.fireMode == model.CHAIN_FIRE {
 			g.player.fireMode = model.GROUP_FIRE
@@ -394,17 +396,17 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionNavCycle) {
+	if h.ActionIsJustPressed(ActionNavCycle) {
 		// cycle nav points
 		g.navPointCycle(true)
 	}
 
-	if g.input.ActionIsJustPressed(ActionRadarRangeCycle) {
+	if h.ActionIsJustPressed(ActionRadarRangeCycle) {
 		// cycle radar HUD range
 		g.cycleRadarRange()
 	}
 
-	if g.input.ActionIsJustPressed(ActionTargetCrosshairs) {
+	if h.ActionIsJustPressed(ActionTargetCrosshairs) {
 		// target on crosshairs
 		targetEntity := g.targetCrosshairs()
 		if targetEntity != nil {
@@ -412,7 +414,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionTargetNearest) {
+	if h.ActionIsJustPressed(ActionTargetNearest) {
 		// target nearest to player
 		targetEntity := g.targetCycle(TARGET_NEAREST)
 		if targetEntity != nil {
@@ -420,7 +422,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionTargetNext) {
+	if h.ActionIsJustPressed(ActionTargetNext) {
 		// cycle player targets
 		targetEntity := g.targetCycle(TARGET_NEXT)
 		if targetEntity != nil {
@@ -428,7 +430,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsJustPressed(ActionTargetPrevious) {
+	if h.ActionIsJustPressed(ActionTargetPrevious) {
 		// cycle player targets in reverse order
 		targetEntity := g.targetCycle(TARGET_PREVIOUS)
 		if targetEntity != nil {
@@ -437,15 +439,15 @@ func (g *Game) handleInput() {
 	}
 
 	switch {
-	case g.input.ActionIsJustPressed(ActionZoomToggle):
+	case h.ActionIsJustPressed(ActionZoomToggle):
 		g.zoomToggle()
-	case g.input.ActionIsJustPressed(ActionZoomIn):
+	case h.ActionIsJustPressed(ActionZoomIn):
 		g.zoomIn()
-	case g.input.ActionIsJustPressed(ActionZoomOut):
+	case h.ActionIsJustPressed(ActionZoomOut):
 		g.zoomOut()
 	}
 
-	if g.input.ActionIsJustPressed(ActionLightAmpToggle) {
+	if h.ActionIsJustPressed(ActionLightAmpToggle) {
 		// toggle light amplification
 		if g.lightAmpEngaged {
 			// disable light amplification
@@ -467,7 +469,7 @@ func (g *Game) handleInput() {
 		g.audio.PlayButtonAudio(AUDIO_CLICK_AFF)
 	}
 
-	if g.input.ActionIsJustPressed(ActionThrottleReverse) {
+	if h.ActionIsJustPressed(ActionThrottleReverse) {
 		// toggle reverse throttle
 		if g.player.TargetVelocity() > 0 {
 			// switch to reverse
@@ -480,7 +482,7 @@ func (g *Game) handleInput() {
 		}
 	}
 
-	if g.input.ActionIsPressed(ActionJumpJet) {
+	if h.ActionIsPressed(ActionJumpJet) {
 		switch {
 		case isVTOL:
 			// TODO: use unit tonnage and gravity to determine ascent speed
@@ -502,7 +504,7 @@ func (g *Game) handleInput() {
 		// reset jump jet active status
 		g.player.SetJumpJetsActive(false)
 
-	} else if g.input.ActionIsPressed(ActionDescend) {
+	} else if h.ActionIsPressed(ActionDescend) {
 		if isVTOL {
 			// TODO: use unit tonnage and gravity to determine descent speed
 			g.player.SetTargetVelocityZ(-g.player.MaxVelocity() / 2)
@@ -514,59 +516,59 @@ func (g *Game) handleInput() {
 	var rotLeft, rotRight bool
 	var lookUp, lookDown, lookLeft, lookRight bool
 
-	if g.input.ActionIsPressed(ActionTurretLeft) {
+	if h.ActionIsPressed(ActionTurretLeft) {
 		lookLeft = true
-	} else if g.input.ActionIsPressed(ActionTurretRight) {
+	} else if h.ActionIsPressed(ActionTurretRight) {
 		lookRight = true
 	}
 
-	if g.input.ActionIsPressed(ActionTurretUp) {
+	if h.ActionIsPressed(ActionTurretUp) {
 		lookUp = true
-	} else if g.input.ActionIsPressed(ActionTurretDown) {
+	} else if h.ActionIsPressed(ActionTurretDown) {
 		lookDown = true
 	}
 
-	if g.input.ActionIsPressed(ActionLeft) {
+	if h.ActionIsPressed(ActionLeft) {
 		rotLeft = true
 	}
-	if g.input.ActionIsPressed(ActionRight) {
+	if h.ActionIsPressed(ActionRight) {
 		rotRight = true
 	}
 
-	if g.input.ActionIsPressed(ActionUp) || moveDy >= 0.2 {
+	if h.ActionIsPressed(ActionUp) || moveDy >= 0.2 {
 		forward = true
 	}
-	if g.input.ActionIsPressed(ActionDown) || moveDy <= -0.2 {
+	if h.ActionIsPressed(ActionDown) || moveDy <= -0.2 {
 		backward = true
 	}
 
 	switch {
-	case g.input.ActionIsPressed(ActionThrottle0):
+	case h.ActionIsPressed(ActionThrottle0):
 		throttlePercent = 0
-	case g.input.ActionIsPressed(ActionThrottle10):
+	case h.ActionIsPressed(ActionThrottle10):
 		throttlePercent = 0.1
-	case g.input.ActionIsPressed(ActionThrottle20):
+	case h.ActionIsPressed(ActionThrottle20):
 		throttlePercent = 0.2
-	case g.input.ActionIsPressed(ActionThrottle30):
+	case h.ActionIsPressed(ActionThrottle30):
 		throttlePercent = 0.3
-	case g.input.ActionIsPressed(ActionThrottle40):
+	case h.ActionIsPressed(ActionThrottle40):
 		throttlePercent = 0.4
-	case g.input.ActionIsPressed(ActionThrottle50):
+	case h.ActionIsPressed(ActionThrottle50):
 		throttlePercent = 0.5
-	case g.input.ActionIsPressed(ActionThrottle60):
+	case h.ActionIsPressed(ActionThrottle60):
 		throttlePercent = 0.6
-	case g.input.ActionIsPressed(ActionThrottle70):
+	case h.ActionIsPressed(ActionThrottle70):
 		throttlePercent = 0.7
-	case g.input.ActionIsPressed(ActionThrottle80):
+	case h.ActionIsPressed(ActionThrottle80):
 		throttlePercent = 0.8
-	case g.input.ActionIsPressed(ActionThrottle90):
+	case h.ActionIsPressed(ActionThrottle90):
 		throttlePercent = 0.9
-	case g.input.ActionIsPressed(ActionThrottle100):
+	case h.ActionIsPressed(ActionThrottle100):
 		throttlePercent = 1.0
 	}
 
 	switch {
-	case g.input.ActionIsPressed(ActionJumpJet) && (forward || backward || rotLeft || rotRight):
+	case h.ActionIsPressed(ActionJumpJet) && (forward || backward || rotLeft || rotRight):
 		// set jump jets as directional with desired heading
 		if g.player.JumpJetsActive() {
 			jumpJetHeading := g.player.cameraAngle
@@ -666,7 +668,8 @@ func (g *Game) handleInput() {
 // debug mode only input flags
 var debugProfCPU bool
 
-func (g *Game) handleDebugInput() {
+func (h *InputHandler) handleDebugInput() {
+	g := h.game
 	if !g.debug {
 		return
 	}
@@ -695,7 +698,7 @@ func (g *Game) handleDebugInput() {
 		}
 	}
 
-	if ctrl_test && alt_test && g.input.ActionIsJustPressed(ActionCameraCycle) {
+	if ctrl_test && alt_test && h.ActionIsJustPressed(ActionCameraCycle) {
 		// debug only: start/stop CPU profiler
 		if debugProfCPU {
 			pprof.StopCPUProfile()
@@ -705,7 +708,7 @@ func (g *Game) handleDebugInput() {
 			pprof.StartCPUProfile(debugProfFile)
 			debugProfCPU = true
 		}
-	} else if g.input.ActionIsJustPressed(ActionCameraCycle) {
+	} else if h.ActionIsJustPressed(ActionCameraCycle) {
 		// debug only: camera swap with player target or cycle back to player unit
 		debugCamTgt := g.player.DebugCameraTarget()
 		if debugCamTgt == nil && g.player.Target() != nil {

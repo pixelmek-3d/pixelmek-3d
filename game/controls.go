@@ -353,7 +353,7 @@ func (h *InputHandler) GamepadControls() input.Keymap {
 }
 
 func (g *Game) initControls() {
-	g.input = NewInputHandler()
+	g.input = NewInputHandler(g)
 
 	// import from keymap files if exists
 	var keyboardMouseMap input.Keymap
