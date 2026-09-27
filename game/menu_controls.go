@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ebitenui/ebitenui/widget"
@@ -36,6 +37,8 @@ func controlsPage(m Menu) *settingsPage {
 		tickUpdaters: []tickUpdater{keyboardMouseScanner, gamepadScanner},
 	}
 
+	// mouse sensitivity sliders and controls
+	mouseSensitivity := sensitivitySliderControls(res, "Mouse Sensitivity", g.input.sensitivities.mouse, 1, 30, 10)
 	keyboardMouseControls := widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
 		widget.ButtonOpts.TextPadding(res.button.padding),
@@ -44,6 +47,11 @@ func controlsPage(m Menu) *settingsPage {
 			openModifyControlsWindow(m, page, g.input.KeyboardMouseControls(), KeymapTypeKeyboardMouse)
 		}),
 	)
+	c.AddChild(keyboardMouseControls)
+	c.AddChild(mouseSensitivity)
+
+	// gamepad sensitivy sliders and controls
+	gamepadSensitivity := sensitivitySliderControls(res, "Gamepad Sensitivity", g.input.sensitivities.gamepad, 1, 20, 1)
 	gamepadControls := widget.NewButton(
 		widget.ButtonOpts.Image(res.button.image),
 		widget.ButtonOpts.TextPadding(res.button.padding),
@@ -52,9 +60,80 @@ func controlsPage(m Menu) *settingsPage {
 			openModifyControlsWindow(m, page, g.input.GamepadControls(), KeymapTypeGamepad)
 		}),
 	)
-	c.AddChild(keyboardMouseControls)
 	c.AddChild(gamepadControls)
+	c.AddChild(gamepadSensitivity)
+
 	return page
+}
+
+func sensitivitySliderControls(res *uiResources, label string, sensitivity *AxesSensitivity, min, max int, mult float64) widget.PreferredSizeLocateableWidget {
+	sensitivityRow := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+	)
+
+	sensitivityLabel := widget.NewLabel(widget.LabelOpts.Text(label, res.label.face, res.label.text))
+	sensitivityRow.AddChild(sensitivityLabel)
+
+	var xValueText, yValueText *widget.Label
+	var xSlider, ySlider *widget.Slider
+	xLabelFormat, yLabelFormat := "x=%0.1f", "y=%0.1f"
+
+	xSlider = widget.NewSlider(
+		widget.SliderOpts.InitialCurrent(int(sensitivity.X*mult)),
+		widget.SliderOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			}),
+			widget.WidgetOpts.MinSize(100, 6),
+		),
+		widget.SliderOpts.MinMax(min, max),
+		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+		widget.SliderOpts.TrackOffset(5),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			xValueText.Label = fmt.Sprintf(xLabelFormat, float64(args.Current)/mult)
+			sensitivity.X = float64(args.Current) / mult
+		}),
+	)
+	sensitivityRow.AddChild(xSlider)
+
+	xValueText = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf(xLabelFormat, float64(xSlider.Current)/mult), res.label.face, res.label.text),
+	)
+	sensitivityRow.AddChild(xValueText)
+
+	ySlider = widget.NewSlider(
+		widget.SliderOpts.InitialCurrent(int(sensitivity.Y*mult)),
+		widget.SliderOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			}),
+			widget.WidgetOpts.MinSize(100, 6),
+		),
+		widget.SliderOpts.MinMax(min, max),
+		widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+		widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+		widget.SliderOpts.TrackOffset(5),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			yValueText.Label = fmt.Sprintf(yLabelFormat, float64(args.Current)/mult)
+			sensitivity.Y = float64(args.Current) / mult
+		}),
+	)
+	sensitivityRow.AddChild(ySlider)
+
+	yValueText = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf(yLabelFormat, float64(ySlider.Current)/mult), res.label.face, res.label.text),
+	)
+	sensitivityRow.AddChild(yValueText)
+	return sensitivityRow
 }
 
 func openModifyControlsWindow(m Menu, page *settingsPage, keymap input.Keymap, keymapType KeymapType) {
