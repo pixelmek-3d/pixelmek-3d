@@ -53,7 +53,9 @@ const (
 	CONFIG_KEY_AUDIO_SFX_VOL      = "audio.sfx_volume"
 	CONFIG_KEY_AUDIO_SFX_CHANNELS = "audio.sfx_channels"
 
-	CONFIG_KEY_CONTROL_DECAY = "controls.throttle_decay"
+	CONFIG_KEY_CONTROL_DECAY               = "controls.throttle_decay"
+	CONFIG_KEY_CONTROL_MOUSE_SENSITIVITY   = "controls.mouse.sensitivity"
+	CONFIG_KEY_CONTROL_GAMEPAD_SENSITIVITY = "controls.gamepad.sensitivity"
 )
 
 func (g *Game) initConfig() {
@@ -121,6 +123,8 @@ func (g *Game) initConfig() {
 
 	// control defaults
 	viper.SetDefault(CONFIG_KEY_CONTROL_DECAY, false)
+	viper.SetDefault(CONFIG_KEY_CONTROL_MOUSE_SENSITIVITY, AxesSensitivity{X: 1.0, Y: 1.0})
+	viper.SetDefault(CONFIG_KEY_CONTROL_GAMEPAD_SENSITIVITY, AxesSensitivity{X: 9.0, Y: 3.0})
 
 	// game default
 	viper.SetDefault(CONFIG_KEY_GAME_DIFFICULTY, 1)
@@ -209,6 +213,8 @@ func (g *Game) saveConfig() error {
 	viper.Set(CONFIG_KEY_HUD_CROSSHAIR_INDEX, g.hudCrosshairIndex)
 
 	viper.Set(CONFIG_KEY_CONTROL_DECAY, g.throttleDecay)
+	viper.Set(CONFIG_KEY_CONTROL_MOUSE_SENSITIVITY, g.input.sensitivities.mouse)
+	viper.Set(CONFIG_KEY_CONTROL_GAMEPAD_SENSITIVITY, g.input.sensitivities.gamepad)
 
 	viper.Set(CONFIG_KEY_AUDIO_BGM_VOL, bgmVolume)
 	viper.Set(CONFIG_KEY_AUDIO_SFX_VOL, sfxVolume)

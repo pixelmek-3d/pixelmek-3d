@@ -1,17 +1,20 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 	"os"
 	"runtime/pprof"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	input "github.com/quasilyte/ebitengine-input"
 	log "github.com/sirupsen/logrus"
 )
@@ -26,16 +29,80 @@ const (
 
 var debugProfFile *os.File
 
+type InputEvent struct {
+	input.EventInfo
+	Dx, Dy float64
+}
+
+type InputSensitivities struct {
+	mouse   *AxesSensitivity
+	gamepad *AxesSensitivity
+}
+
+type AxesSensitivity struct {
+	X, Y float64
+}
+
+// convertToAxesSensitivity handles loading AxesSensitivity settings from viper config interface
+func convertToAxesSensitivity(input any) (*AxesSensitivity, error) {
+	if sensitivities, ok := input.(AxesSensitivity); ok {
+		return &sensitivities, nil
+	}
+	sensitivities := &AxesSensitivity{}
+	if rawMap, ok := input.(map[string]any); ok {
+		for k, v := range rawMap {
+			var vFloat float64
+			switch val := v.(type) {
+			case float64:
+				vFloat = val
+			default:
+				return sensitivities, fmt.Errorf("Axes sensitivity key %q has unsupported value type: %T", k, v)
+			}
+
+			switch {
+			case strings.ToUpper(k) == `X`:
+				sensitivities.X = vFloat
+			case strings.ToUpper(k) == `Y`:
+				sensitivities.Y = vFloat
+			default:
+				return sensitivities, fmt.Errorf("Aaxes sensitivity unknown key: %q", k)
+			}
+		}
+		return sensitivities, nil
+	}
+	return sensitivities, fmt.Errorf("Axes sensitivity invalid type: %T", input)
+}
+
 type InputHandler struct {
 	game             *Game
 	handler          *input.Handler
 	inputSystem      input.System
 	keyboardMouseMap input.Keymap
 	gamepadMap       input.Keymap
+	sensitivities    *InputSensitivities
 }
 
 func NewInputHandler(g *Game) *InputHandler {
-	h := &InputHandler{game: g}
+	// restore mouse sensitivity from config
+	viper := resources.Viper
+	mouseSensitivity, err := convertToAxesSensitivity(viper.Get(CONFIG_KEY_CONTROL_MOUSE_SENSITIVITY))
+	if err != nil {
+		log.Error(err)
+	}
+
+	// restore gamepad sensitivity from config
+	gamepadSensitivity, err := convertToAxesSensitivity(viper.Get(CONFIG_KEY_CONTROL_GAMEPAD_SENSITIVITY))
+	if err != nil {
+		log.Error(err)
+	}
+
+	h := &InputHandler{
+		game: g,
+		sensitivities: &InputSensitivities{
+			mouse:   mouseSensitivity,
+			gamepad: gamepadSensitivity,
+		},
+	}
 	h.inputSystem.Init(input.SystemConfig{
 		DevicesEnabled: input.AnyDevice,
 	})
@@ -45,6 +112,41 @@ func NewInputHandler(g *Game) *InputHandler {
 
 func (h *InputHandler) Update() {
 	h.inputSystem.Update()
+}
+
+func (h *InputHandler) ActionIsPressed(action input.Action) bool {
+	return h.handler.ActionIsPressed(action)
+}
+
+func (h *InputHandler) ActionIsJustPressed(action input.Action) bool {
+	return h.handler.ActionIsJustPressed(action)
+}
+
+func (h *InputHandler) ActionIsJustReleased(action input.Action) bool {
+	return h.handler.ActionIsJustReleased(action)
+}
+
+func (h *InputHandler) PressedActionInfo(action input.Action) (InputEvent, bool) {
+	info, activated := h.handler.PressedActionInfo(action)
+	if !activated {
+		return InputEvent{EventInfo: info}, activated
+	}
+
+	var dX, dY float64
+	src := info.Source()
+	switch {
+	case src.IsMouse():
+		dX = -info.DeltaPos.X * h.sensitivities.mouse.X
+		dY = -info.DeltaPos.Y * h.sensitivities.mouse.Y
+	case src.IsGamepad():
+		dX = -info.Pos.X * h.sensitivities.gamepad.X
+		dY = -info.Pos.Y * h.sensitivities.gamepad.Y
+	}
+	return InputEvent{EventInfo: info, Dx: dX, Dy: dY}, activated
+}
+
+func (h *InputHandler) JustReleasedActionInfo(action input.Action) (input.EventInfo, bool) {
+	return h.handler.JustReleasedActionInfo(action)
 }
 
 func (h *InputHandler) handleInput() {
@@ -133,30 +235,8 @@ func (h *InputHandler) handleInput() {
 	// }
 
 	if turretAxes, ok := h.PressedActionInfo(ActionTurretAxes); ok {
-		// TODO: configurable deadzone and sensitivity (for mouse and gamepad)
-		if turretAxes.IsMouseMotionEvent() {
-			cursorX, cursorY := int(turretAxes.Pos.X), int(turretAxes.Pos.Y)
-			// handle mouse mode turret
-			switch {
-			case g.mouseX == math.MinInt32 && g.mouseY == math.MinInt32:
-				// initialize first position to establish delta
-				if cursorX != 0 && cursorY != 0 {
-					g.mouseX, g.mouseY = cursorX, cursorY
-				}
-
-			default:
-				turretDx, turretDy = float64(g.mouseX-cursorX), float64(g.mouseY-cursorY)
-				g.mouseX, g.mouseY = cursorX, cursorY
-			}
-
-		} else {
-			if math.Abs(turretAxes.Pos.X) >= 0.2 {
-				turretDx = 10 * -turretAxes.Pos.X
-			}
-			if math.Abs(turretAxes.Pos.Y) >= 0.2 {
-				turretDy = 5 * -turretAxes.Pos.Y
-			}
-		}
+		turretDx = turretAxes.Dx
+		turretDy = turretAxes.Dy
 	}
 
 	if turretDx != 0 {
