@@ -27,8 +27,11 @@ func (s *MissionDebriefScene) SetMenu(m Menu) {
 func (s *MissionDebriefScene) Update() error {
 	g := s.Game
 
-	if g.input.ActionIsJustPressed(ActionBack) {
-		s.back()
+	if g.input.ActionIsJustPressed(ActionMenuBack) {
+		// go back only if no open windows
+		if w := s.Game.menu.CloseWindow(); w == nil {
+			s.back()
+		}
 	}
 
 	// update the menu

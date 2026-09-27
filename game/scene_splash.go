@@ -89,6 +89,11 @@ func NewSplashScreen(g *Game) *SplashScreen {
 	}
 }
 
+func (s *SplashScreen) handleResolutionChange(screenRect image.Rectangle, geoM ebiten.GeoM) {
+	s.screen = ebiten.NewImage(screenRect.Dx(), screenRect.Dy())
+	s.geoM = geoM
+}
+
 func splashGeoM(splash *ebiten.Image, splashRect image.Rectangle) ebiten.GeoM {
 	sW, sH := float64(splash.Bounds().Dx()), float64(splash.Bounds().Dy())
 	bX, bY, bW, bH := splashRect.Min.X, splashRect.Min.Y, splashRect.Dx(), splashRect.Dy()

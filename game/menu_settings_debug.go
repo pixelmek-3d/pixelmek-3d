@@ -15,7 +15,7 @@ func debugOptionsPage(m Menu) *settingsPage {
 	// options for debug mode only
 	debugLabel := widget.NewLabel(widget.LabelOpts.Text("~Debug Mode Only", res.label.face, res.label.text))
 	c.AddChild(debugLabel)
-	c.AddChild(newSeparator(m, widget.RowLayoutData{
+	c.AddChild(newSeparator(m.Resources(), m.Spacing(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -62,7 +62,7 @@ func debugLightingPage(m Menu) *settingsPage {
 	// raycaster lighting options for debug mode only
 	debugLabel := widget.NewLabel(widget.LabelOpts.Text("~Debug Mode Only", res.label.face, res.label.text))
 	c.AddChild(debugLabel)
-	c.AddChild(newSeparator(m, widget.RowLayoutData{
+	c.AddChild(newSeparator(m.Resources(), m.Spacing(), widget.RowLayoutData{
 		Stretch: true,
 	}))
 

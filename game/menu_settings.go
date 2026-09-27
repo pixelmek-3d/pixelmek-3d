@@ -21,6 +21,8 @@ var displayWidthList = []int{
 	1920,
 }
 
+var pageList *widget.List
+
 type SettingsMenu struct {
 	*MenuModel
 	preSelectedPage int
@@ -57,6 +59,11 @@ func (m *SettingsMenu) initMenu() {
 }
 
 func (m *SettingsMenu) Update() {
+	if pageList != nil {
+		if page, isSettingsPage := pageList.SelectedEntry().(*settingsPage); isSettingsPage {
+			page.update()
+		}
+	}
 	m.ui.Update()
 }
 
@@ -178,6 +185,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 
 	displaySettings := displayPage(m)
 	renderSettings := renderPage(m)
+	controlSettings := controlsPage(m)
 	hudSettings := hudPage(m)
 	audioSettings := audioPage(m)
 
@@ -193,6 +201,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	}
 	pages = append(pages, displaySettings)
 	pages = append(pages, renderSettings)
+	pages = append(pages, controlSettings)
 	pages = append(pages, hudSettings)
 	pages = append(pages, audioSettings)
 
@@ -215,7 +224,7 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 	// prevent infinite relayout issue caused by toggling background shown only in certain tabs
 	missionSettingsShowBackground := false
 
-	pageList := widget.NewList(
+	pageList = widget.NewList(
 		widget.ListOpts.Entries(pages),
 		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*settingsPage).title
@@ -240,15 +249,15 @@ func settingsContainer(m Menu) widget.PreferredSizeLocateableWidget {
 				if missionSettingsShowBackground {
 					// for in-game HUD and lighting setting, apply transparent background so we can see behind while adjusting
 					m.Root().SetBackgroundImage(nil)
-					pageContainer.widget.(*widget.Container).SetBackgroundImage(nil)
-					nextPage.content.(*widget.Container).SetBackgroundImage(res.panel.filled)
+					pageContainer.widget.SetBackgroundImage(nil)
+					nextPage.content.SetBackgroundImage(res.panel.filled)
 					missionSettingsShowBackground = false
 				}
 			} else {
 				if !missionSettingsShowBackground {
 					m.Root()
 					m.Root().SetBackgroundImage(res.background)
-					pageContainer.widget.(*widget.Container).SetBackgroundImage(res.panel.image)
+					pageContainer.widget.SetBackgroundImage(res.panel.image)
 					missionSettingsShowBackground = true
 				}
 			}
