@@ -783,6 +783,9 @@ func hudPage(m Menu) *settingsPage {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			if game.hudCrosshairIndex > 0 {
 				game.hudCrosshairIndex--
+			} else {
+				// loop back to last crosshair index
+				game.hudCrosshairIndex = resources.CrosshairsSheet.Columns*resources.CrosshairsSheet.Rows - 1
 			}
 			crosshairLabel.Label = fmt.Sprintf("Crosshair: %d/%d", game.hudCrosshairIndex+1, numCrosshairs)
 			crosshairs := render.NewCrosshairs(
@@ -808,6 +811,9 @@ func hudPage(m Menu) *settingsPage {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			if game.hudCrosshairIndex+1 < resources.CrosshairsSheet.Columns*resources.CrosshairsSheet.Rows {
 				game.hudCrosshairIndex++
+			} else {
+				// loop back to first crosshair index
+				game.hudCrosshairIndex = 0
 			}
 			crosshairLabel.Label = fmt.Sprintf("Crosshair: %d/%d", game.hudCrosshairIndex+1, numCrosshairs)
 			crosshairs := render.NewCrosshairs(
