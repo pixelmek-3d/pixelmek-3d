@@ -197,28 +197,17 @@ func (h *InputHandler) handleInput() {
 	var turretDx, turretDy float64
 
 	if moveAxes, ok := h.PressedActionInfo(ActionMoveAxes); ok {
-		// TODO: configurable deadzone and sensitivity
-		if math.Abs(moveAxes.Pos.X) >= 0.2 {
-			moveDx = 10 * -moveAxes.Pos.X
-		}
-		if math.Abs(moveAxes.Pos.Y) >= 0.2 {
-			moveDy = 5 * -moveAxes.Pos.Y
-		}
+		moveDx = 10 * -moveAxes.Pos.X
+		moveDy = 5 * -moveAxes.Pos.Y
 	} // else {
 	// TODO: handle mouse mode body
 	//}
 
 	if turnAxes, ok := h.PressedActionInfo(ActionTurnAxes); ok {
-		// TODO: configurable deadzone and sensitivity
-		if math.Abs(turnAxes.Pos.X) >= 0.2 {
-			moveDx = 10 * -turnAxes.Pos.X
-		}
+		moveDx = 10 * -turnAxes.Pos.X
 	}
 	if throttleAxes, ok := h.PressedActionInfo(ActionThrottleAxes); ok {
-		// TODO: configurable deadzone and sensitivity
-		if math.Abs(throttleAxes.Pos.Y) >= 0.2 {
-			moveDy = 5 * -throttleAxes.Pos.Y
-		}
+		moveDy = 5 * -throttleAxes.Pos.Y
 	}
 
 	if moveDx != 0 {
@@ -689,7 +678,7 @@ func (h *InputHandler) handleInput() {
 		}
 
 	case !g.throttleDecay:
-		deltaV := 0.0004 // FIXME: testing
+		deltaV := 0.0004 // FIXME: something else not randomly hardcoded?
 		if math.Abs(moveDy) >= 0.2 {
 			deltaV *= math.Abs(moveDy)
 		}
