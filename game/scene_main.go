@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	renderFx "github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 
@@ -147,4 +148,7 @@ func (s *MainMenuScene) Draw(screen *ebiten.Image) {
 
 	// draw menu
 	g.menu.Draw(screen)
+
+	// draw FPS display
+	g.drawFPS(&render.DrawHudOptions{Screen: screen})
 }

@@ -5,6 +5,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
@@ -297,28 +298,35 @@ func (g *Game) drawHUD(screen *ebiten.Image) {
 }
 
 func (g *Game) drawFPS(hudOpts *render.DrawHudOptions) {
-	fps := g.GetHUDElement(HUD_FPS).(*render.FPSIndicator)
-	if fps == nil || !g.fpsEnabled {
+	if !g.fpsEnabled || hudOpts == nil || hudOpts.Screen == nil {
 		return
 	}
-
 	fpsText := fmt.Sprintf("FPS: %0.1f | TPS: %0.1f/%d", ebiten.ActualFPS(), ebiten.ActualTPS(), ebiten.TPS())
 	if debugProfCPU {
 		fpsText += " | CPU Profiling Enabled"
 	}
-	fps.SetFPSText(fpsText)
+
+	if hudOpts.HudRect.Dx() == 0 || hudOpts.HudRect.Dy() == 0 {
+		// render basic FPS display instead of HUD styled one
+		ebitenutil.DebugPrint(hudOpts.Screen, fpsText)
+		return
+	}
+
+	// render HUD styled FPS display
+	fpsHUD := g.GetHUDElement(HUD_FPS).(*render.FPSIndicator)
+	fpsHUD.SetFPSText(fpsText)
 
 	marginY := hudOpts.MarginY
 	hudRect := hudOpts.HudRect
 
-	fScale := fps.Scale() * g.hudScale
+	fScale := fpsHUD.Scale() * g.hudScale
 	fWidth, fHeight := int(fScale*float64(hudRect.Dx())/5), int(fScale*float64(marginY))
 
 	fX, fY := 0, 0
 	fBounds := image.Rect(
 		fX, fY, fX+fWidth, fY+fHeight,
 	)
-	fps.Draw(fBounds, hudOpts)
+	fpsHUD.Draw(fBounds, hudOpts)
 }
 
 func (g *Game) drawPlayerStatus(hudOpts *render.DrawHudOptions) {

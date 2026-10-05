@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 )
 
 type MissionScene struct {
@@ -67,6 +68,9 @@ func (s *MissionScene) Draw(screen *ebiten.Image) {
 
 	// draw menu
 	g.menu.Draw(screen)
+
+	// draw FPS display
+	g.drawFPS(&render.DrawHudOptions{Screen: screen})
 }
 
 func (s *MissionScene) back() {
