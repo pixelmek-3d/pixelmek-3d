@@ -44,18 +44,20 @@ type Player struct {
 	reticleLead       *sprites.ReticleLead
 	currentNav        *sprites.NavSprite
 	ejectionPod       *sprites.ProjectileSprite
+	turretLock        bool
 
 	debugCameraTgt model.Unit
 	debugCameraMu  sync.Mutex
 }
 
-func NewPlayer(unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch float64) *Player {
+func NewPlayer(game *Game, unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch float64) *Player {
 	p := &Player{
 		Unit:        unit,
 		sprite:      sprite,
 		cameraAngle: angle,
 		cameraPitch: pitch,
 		moved:       false,
+		turretLock:  game.turretLock,
 	}
 
 	p.SetAsPlayer(true)
@@ -166,7 +168,7 @@ func (p *Player) RotateCamera(rSpeed float64) {
 	// TODO: add difficulty option to allow 360 degree torso rotation
 	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
 
-	if p.HasTurret() {
+	if p.HasTurret() && !p.turretLock {
 		heading := p.Heading()
 		aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
 		aExtent := p.MaxTurretExtentAngle()
@@ -302,15 +304,9 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		return
 	}
 
-	g.player = NewPlayer(unit, unitSprite, pX, pY, pZ, pH, 0)
+	g.player = NewPlayer(g, unit, unitSprite, pX, pY, pZ, pH, 0)
 	g.player.SetCollisionRadius(unit.CollisionRadius())
 	g.player.SetCollisionHeight(unit.CollisionHeight())
-
-	if unit.HasTurret() {
-		g.mouseMode = MouseModeTurret
-	} else {
-		g.mouseMode = MouseModeBody
-	}
 }
 
 func (p *Player) getSelectedWeapons() []model.Weapon {

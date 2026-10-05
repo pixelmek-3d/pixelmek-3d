@@ -117,10 +117,16 @@ func gameOptionsPage(m Menu) *settingsPage {
 	}))
 
 	// throttle decay setting toggle
-	decayCheckbox := newCheckbox(m, "Throttle Decay", game.throttleDecay, func(args *widget.CheckboxChangedEventArgs) {
+	throttleDecayCheckbox := newCheckbox(m, "Throttle Decay", game.throttleDecay, func(args *widget.CheckboxChangedEventArgs) {
 		game.throttleDecay = args.State == widget.WidgetChecked
 	})
-	c.AddChild(decayCheckbox)
+	c.AddChild(throttleDecayCheckbox)
+
+	// turret lock setting toggle
+	turretLockCheckbox := newCheckbox(m, "Turret Lock", game.turretLock, func(args *widget.CheckboxChangedEventArgs) {
+		game.setTurretLock(args.State == widget.WidgetChecked)
+	})
+	c.AddChild(turretLockCheckbox)
 
 	return &settingsPage{
 		title:   "Game",

@@ -22,8 +22,7 @@ import (
 type MouseMode int
 
 const (
-	MouseModeTurret MouseMode = iota
-	MouseModeBody
+	MouseModeCaptured MouseMode = iota
 	MouseModeCursor
 )
 
@@ -186,7 +185,7 @@ func (h *InputHandler) handleInput() {
 		}
 	}
 
-	if (g.mouseMode == MouseModeTurret || g.mouseMode == MouseModeBody) && ebiten.CursorMode() != ebiten.CursorModeCaptured {
+	if g.mouseMode == MouseModeCaptured && ebiten.CursorMode() != ebiten.CursorModeCaptured {
 		ebiten.SetCursorMode(ebiten.CursorModeCaptured)
 
 		// reset initial mouse capture position
@@ -199,9 +198,7 @@ func (h *InputHandler) handleInput() {
 	if moveAxes, ok := h.PressedActionInfo(ActionMoveAxes); ok {
 		moveDx = 10 * -moveAxes.Pos.X
 		moveDy = 5 * -moveAxes.Pos.Y
-	} // else {
-	// TODO: handle mouse mode body
-	//}
+	}
 
 	if turnAxes, ok := h.PressedActionInfo(ActionTurnAxes); ok {
 		moveDx = 10 * -turnAxes.Pos.X
@@ -215,13 +212,10 @@ func (h *InputHandler) handleInput() {
 		g.player.SetTargetRelativeHeading(turnAmount)
 	} else {
 		if !g.player.HasTurret() {
-			// reset relative heading target when mouse stops
+			// reset relative heading target when movement stops
 			g.player.SetTargetRelativeHeading(0)
 		}
 	}
-	// if moveDy != 0 {
-	// handled in throttle section below
-	// }
 
 	if turretAxes, ok := h.PressedActionInfo(ActionTurretAxes); ok {
 		turretDx = turretAxes.Dx
@@ -237,7 +231,7 @@ func (h *InputHandler) handleInput() {
 		}
 	} else {
 		if !g.player.HasTurret() {
-			// reset relative heading target when mouse stops
+			// reset relative heading target when movement stops
 			g.player.SetTargetRelativeHeading(0)
 		}
 	}

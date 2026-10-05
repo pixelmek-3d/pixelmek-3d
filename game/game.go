@@ -122,6 +122,7 @@ type Game struct {
 
 	// control options
 	throttleDecay bool
+	turretLock    bool
 
 	osType     osType
 	benchmark  bool
@@ -237,7 +238,7 @@ func (g *Game) Pause() {
 	g.audio.PauseMusic()
 	g.audio.PauseSFX()
 
-	g.mouseMode = MouseModeTurret
+	g.mouseMode = MouseModeCaptured
 	ebiten.SetCursorMode(ebiten.CursorModeVisible)
 }
 
@@ -694,6 +695,13 @@ func (g *Game) zoomToggle() {
 		g.zoomIn()
 	} else {
 		g.zoomOut()
+	}
+}
+
+func (g *Game) setTurretLock(turretLock bool) {
+	g.turretLock = turretLock
+	if g.player != nil {
+		g.player.turretLock = turretLock
 	}
 }
 
