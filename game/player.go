@@ -166,21 +166,16 @@ func (p *Player) RotateCamera(rSpeed float64) {
 	var angle float64
 
 	// TODO: add difficulty option to allow 360 degree torso rotation
-	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
+	aExtent := geom.HalfPi
 
-	if p.HasTurret() && !p.turretLock {
-		heading := p.Heading()
-		aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
-		aExtent := p.MaxTurretExtentAngle()
-		switch {
-		case aDist < -aExtent:
-			angle = model.ClampAngle2Pi(heading - aExtent)
-		case aDist > aExtent:
-			angle = model.ClampAngle2Pi(heading + aExtent)
-		default:
-			angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
-		}
-	} else {
+	heading := p.Heading()
+	aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
+	switch {
+	case aDist < -aExtent:
+		angle = model.ClampAngle2Pi(heading - aExtent)
+	case aDist > aExtent:
+		angle = model.ClampAngle2Pi(heading + aExtent)
+	default:
 		angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
 	}
 
@@ -410,7 +405,7 @@ func (p *Player) Eject(g *Game) bool {
 
 func (p *Player) Update() bool {
 	// handle player specific updates
-	if p.HasTurret() {
+	if p.HasTurret() && !p.turretLock {
 		// camera angle/pitch leads turret angle/pitch
 		p.SetTargetTurretAngle(p.cameraAngle)
 		p.SetTargetPitch(p.cameraPitch)
@@ -527,5 +522,10 @@ func (p *Player) Update() bool {
 		}
 	}
 
-	return p.Unit.Update()
+	updated := p.Unit.Update()
+	if p.turretLock {
+		// set turret angle to same as heading to lock them together
+		p.SetTurretAngle(p.Heading())
+	}
+	return updated
 }

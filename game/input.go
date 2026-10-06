@@ -210,11 +210,6 @@ func (h *InputHandler) handleInput() {
 	if moveDx != 0 {
 		turnAmount := 0.01 * float64(moveDx) / g.zoomFovDepth
 		g.player.SetTargetRelativeHeading(turnAmount)
-	} else {
-		if !g.player.HasTurret() {
-			// reset relative heading target when movement stops
-			g.player.SetTargetRelativeHeading(0)
-		}
 	}
 
 	if turretAxes, ok := h.PressedActionInfo(ActionTurretAxes); ok {
@@ -223,17 +218,7 @@ func (h *InputHandler) handleInput() {
 	}
 
 	if turretDx != 0 {
-		if g.player.HasTurret() {
-			g.player.RotateCamera(0.005 * turretDx / g.zoomFovDepth)
-		} else {
-			turnAmount := 0.01 * turretDx / g.zoomFovDepth
-			g.player.SetTargetRelativeHeading(turnAmount)
-		}
-	} else {
-		if !g.player.HasTurret() {
-			// reset relative heading target when movement stops
-			g.player.SetTargetRelativeHeading(0)
-		}
+		g.player.RotateCamera(0.005 * turretDx / g.zoomFovDepth)
 	}
 	if turretDy != 0 {
 		g.player.PitchCamera(0.005 * turretDy)

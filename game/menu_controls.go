@@ -63,6 +63,22 @@ func controlsPage(m Menu) *settingsPage {
 	c.AddChild(gamepadControls)
 	c.AddChild(gamepadSensitivity)
 
+	c.AddChild(newSeparator(m.Resources(), m.Spacing(), widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	// throttle decay setting toggle
+	throttleDecayCheckbox := newCheckbox(m, "Throttle Decay", g.throttleDecay, func(args *widget.CheckboxChangedEventArgs) {
+		g.throttleDecay = args.State == widget.WidgetChecked
+	})
+	c.AddChild(throttleDecayCheckbox)
+
+	// turret lock setting toggle
+	turretLockCheckbox := newCheckbox(m, "Turret Lock", g.turretLock, func(args *widget.CheckboxChangedEventArgs) {
+		g.setTurretLock(args.State == widget.WidgetChecked)
+	})
+	c.AddChild(turretLockCheckbox)
+
 	return page
 }
 

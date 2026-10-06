@@ -99,12 +99,12 @@ type Unit interface {
 	SetTargetVelocity(float64)
 	TargetVelocityZ() float64
 	SetTargetVelocityZ(float64)
-	Update() bool
 
 	HasTurret() bool
 	TurretAngle() float64
 	SetTurretAngle(float64)
 	TurretRate() float64
+	TargetTurretAngle() float64
 	SetTargetTurretAngle(float64)
 	MaxTurretExtentAngle() float64
 
@@ -144,6 +144,7 @@ type Unit interface {
 	SetAsPlayer(bool)
 	IsPlayer() bool
 
+	Update() bool
 	CloneUnit() Unit
 }
 
@@ -414,47 +415,6 @@ func (e *UnitModel) HasLockOnWeapon() bool {
 	return *e.hasLockOnWeapon
 }
 
-func (e *UnitModel) HasTurret() bool {
-	return e.hasTurret
-}
-
-func (e *UnitModel) TurretAngle() float64 {
-	if e.hasTurret {
-		return e.turretAngle
-	}
-	return e.heading
-}
-
-func (e *UnitModel) SetTurretAngle(angle float64) {
-	if e.hasTurret {
-		e.turretAngle = angle
-	} else {
-		e.SetHeading(angle)
-	}
-}
-
-func (e *UnitModel) SetTargetTurretAngle(angle float64) {
-	if e.hasTurret {
-		e.targetTurretAngle = angle
-	} else {
-		e.SetTargetHeading(angle)
-	}
-}
-
-func (e *UnitModel) TurretRate() float64 {
-	if e.hasTurret {
-		return e.maxTurretRate
-	}
-	return e.maxTurnRate
-}
-
-func (e *UnitModel) MaxTurretExtentAngle() float64 {
-	if e.hasTurret {
-		return e.maxTurretExtent
-	}
-	return 0
-}
-
 func (e *UnitModel) Ammunition() *Ammo {
 	return e.ammunition
 }
@@ -489,6 +449,54 @@ func (e *UnitModel) Anchor() raycaster.SpriteAnchor {
 
 func (e *UnitModel) SetAnchor(anchor raycaster.SpriteAnchor) {
 	e.anchor = anchor
+}
+
+func (e *UnitModel) HasTurret() bool {
+	return e.hasTurret
+}
+
+func (e *UnitModel) TurretAngle() float64 {
+	if e.hasTurret {
+		return e.turretAngle
+	}
+	return e.heading
+}
+
+func (e *UnitModel) SetTurretAngle(angle float64) {
+	if e.hasTurret {
+		e.turretAngle = angle
+	} else {
+		e.SetHeading(angle)
+	}
+}
+
+func (e *UnitModel) TargetTurretAngle() float64 {
+	if e.hasTurret {
+		return e.targetTurretAngle
+	}
+	return e.targetHeading
+}
+
+func (e *UnitModel) SetTargetTurretAngle(angle float64) {
+	if e.hasTurret {
+		e.targetTurretAngle = angle
+	} else {
+		e.SetTargetHeading(angle)
+	}
+}
+
+func (e *UnitModel) TurretRate() float64 {
+	if e.hasTurret {
+		return e.maxTurretRate
+	}
+	return e.maxTurnRate
+}
+
+func (e *UnitModel) MaxTurretExtentAngle() float64 {
+	if e.hasTurret {
+		return e.maxTurretExtent
+	}
+	return 0
 }
 
 func (e *UnitModel) Heading() float64 {
