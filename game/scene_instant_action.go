@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -55,8 +56,11 @@ func (s *InstantActionScene) getMenu() Menu {
 func (s *InstantActionScene) Update() error {
 	g := s.Game
 
-	if g.input.ActionIsJustPressed(ActionBack) {
-		s.back()
+	if g.input.ActionIsJustPressed(ActionMenuBack) {
+		// go back only if no open windows
+		if w := s.Game.menu.CloseWindow(); w == nil {
+			s.back()
+		}
 	}
 
 	// update the menu
@@ -70,6 +74,9 @@ func (s *InstantActionScene) Draw(screen *ebiten.Image) {
 
 	// draw menu
 	g.menu.Draw(screen)
+
+	// draw FPS display
+	g.drawFPS(&render.DrawHudOptions{Screen: screen})
 }
 
 func (s *InstantActionScene) back() {

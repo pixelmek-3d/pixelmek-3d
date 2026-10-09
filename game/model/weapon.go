@@ -47,7 +47,7 @@ const (
 	GROUP_FIRE
 )
 
-type WeaponGroup int
+type WeaponGroup uint
 
 const (
 	WEAPON_GROUP_NONE WeaponGroup = iota
@@ -56,6 +56,7 @@ const (
 	WEAPON_GROUP_3
 	WEAPON_GROUP_4
 	WEAPON_GROUP_5
+	WEAPON_GROUP_MAX = WEAPON_GROUP_5
 )
 
 const (

@@ -44,18 +44,20 @@ type Player struct {
 	reticleLead       *sprites.ReticleLead
 	currentNav        *sprites.NavSprite
 	ejectionPod       *sprites.ProjectileSprite
+	turretLock        bool
 
 	debugCameraTgt model.Unit
 	debugCameraMu  sync.Mutex
 }
 
-func NewPlayer(unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch float64) *Player {
+func NewPlayer(game *Game, unit model.Unit, sprite *sprites.Sprite, x, y, z, angle, pitch float64) *Player {
 	p := &Player{
 		Unit:        unit,
 		sprite:      sprite,
 		cameraAngle: angle,
 		cameraPitch: pitch,
 		moved:       false,
+		turretLock:  game.turretLock,
 	}
 
 	p.SetAsPlayer(true)
@@ -164,21 +166,16 @@ func (p *Player) RotateCamera(rSpeed float64) {
 	var angle float64
 
 	// TODO: add difficulty option to allow 360 degree torso rotation
-	// angle := model.ClampAngle2Pi(p.cameraAngle + rSpeed)
+	aExtent := geom.HalfPi
 
-	if p.HasTurret() {
-		heading := p.Heading()
-		aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
-		aExtent := p.MaxTurretExtentAngle()
-		switch {
-		case aDist < -aExtent:
-			angle = model.ClampAngle2Pi(heading - aExtent)
-		case aDist > aExtent:
-			angle = model.ClampAngle2Pi(heading + aExtent)
-		default:
-			angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
-		}
-	} else {
+	heading := p.Heading()
+	aDist := model.AngleDistance(heading, p.cameraAngle+rSpeed)
+	switch {
+	case aDist < -aExtent:
+		angle = model.ClampAngle2Pi(heading - aExtent)
+	case aDist > aExtent:
+		angle = model.ClampAngle2Pi(heading + aExtent)
+	default:
 		angle = model.ClampAngle2Pi(p.cameraAngle + rSpeed)
 	}
 
@@ -268,17 +265,17 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		pH = g.player.Heading()
 	}
 
-	switch unitType := unit.(type) {
+	switch u := unit.(type) {
 	case *model.Mech:
 		unitSprite = g.CreateUnitSprite(unit).(*sprites.MechSprite).Sprite
 
-		mechStompFile, err := StompSFXForMech(unit.(*model.Mech))
+		mechStompFile, err := StompSFXForMech(u)
 		if err != nil {
 			log.Error("error loading mech stomp sfx:", err)
 		}
 		g.audio.SetStompSFX(mechStompFile)
 
-		jumpJetFile, err := JumpJetSFXForMech(unit.(*model.Mech))
+		jumpJetFile, err := JumpJetSFXForMech(u)
 		if err != nil {
 			log.Error("error loading mech jump jet sfx:", err)
 		}
@@ -298,19 +295,13 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		unitSprite = g.CreateUnitSprite(unit).(*sprites.InfantrySprite).Sprite
 
 	default:
-		log.Fatalf("unable to set player unit, resource type %s not handled", unitType)
+		log.Fatalf("unable to set player unit, resource type %v not handled", u.UnitType())
 		return
 	}
 
-	g.player = NewPlayer(unit, unitSprite, pX, pY, pZ, pH, 0)
+	g.player = NewPlayer(g, unit, unitSprite, pX, pY, pZ, pH, 0)
 	g.player.SetCollisionRadius(unit.CollisionRadius())
 	g.player.SetCollisionHeight(unit.CollisionHeight())
-
-	if unit.HasTurret() {
-		g.mouseMode = MouseModeTurret
-	} else {
-		g.mouseMode = MouseModeBody
-	}
 }
 
 func (p *Player) getSelectedWeapons() []model.Weapon {
@@ -343,6 +334,66 @@ func (p *Player) IsWeaponInGroup(w model.Weapon, g model.WeaponGroup) bool {
 	return model.IsWeaponInGroup(w, g, p.weaponGroups)
 }
 
+func (p *Player) CycleWeaponSelection(reverse bool) {
+	doWeaponCycle := func() {
+		numWeapons := uint(len(p.Armament()))
+		if reverse {
+			p.selectedWeapon--
+			if p.selectedWeapon >= numWeapons {
+				p.selectedWeapon = numWeapons - 1
+			}
+		} else {
+			p.selectedWeapon++
+			if p.selectedWeapon >= numWeapons {
+				p.selectedWeapon = 0
+			}
+		}
+	}
+
+	doGroupCycle := func() {
+		if reverse {
+			p.selectedGroup--
+			if p.selectedGroup > model.WEAPON_GROUP_MAX {
+				p.selectedGroup = model.WEAPON_GROUP_MAX
+			}
+		} else {
+			p.selectedGroup++
+			if p.selectedGroup > model.WEAPON_GROUP_MAX {
+				p.selectedGroup = model.WEAPON_GROUP_NONE
+			}
+		}
+	}
+
+	switch p.fireMode {
+	case model.GROUP_FIRE:
+		prevGroup := p.selectedGroup
+		doGroupCycle()
+
+		// set next selectedGroup only if >0 weapons in it
+		weaponsInGroup := len(p.GetWeaponsForGroup(p.selectedGroup))
+		for weaponsInGroup == 0 {
+			if p.selectedGroup == prevGroup {
+				// break potential infinite loop
+				break
+			}
+			doGroupCycle()
+			weaponsInGroup = len(p.GetWeaponsForGroup(p.selectedGroup))
+		}
+
+	case model.CHAIN_FIRE:
+		doWeaponCycle()
+
+		// set selectedGroup if the newly selected weapon is in different group
+		newSelectedWeapon := p.Armament()[p.selectedWeapon]
+		groups := p.GetGroupsForWeapon(newSelectedWeapon)
+		if len(groups) == 0 {
+			p.selectedGroup = model.WEAPON_GROUP_NONE
+		} else if !p.IsWeaponInGroup(newSelectedWeapon, p.selectedGroup) {
+			p.selectedGroup = groups[0]
+		}
+	}
+}
+
 func (p *Player) Eject(g *Game) bool {
 	if p.ejectionPod != nil {
 		return false
@@ -354,7 +405,7 @@ func (p *Player) Eject(g *Game) bool {
 
 func (p *Player) Update() bool {
 	// handle player specific updates
-	if p.HasTurret() {
+	if p.HasTurret() && !p.turretLock {
 		// camera angle/pitch leads turret angle/pitch
 		p.SetTargetTurretAngle(p.cameraAngle)
 		p.SetTargetPitch(p.cameraPitch)
@@ -471,5 +522,10 @@ func (p *Player) Update() bool {
 		}
 	}
 
-	return p.Unit.Update()
+	updated := p.Unit.Update()
+	if p.turretLock {
+		// set turret angle to same as heading to lock them together
+		p.SetTurretAngle(p.Heading())
+	}
+	return updated
 }

@@ -91,7 +91,7 @@ func (s *GameScene) Update() error {
 	}
 
 	// handle input (when paused making sure only to allow input for closing menu so it can be unpaused)
-	g.handleInput()
+	g.input.handleInput()
 
 	if !g.paused {
 		// Perform logical updates
@@ -178,7 +178,7 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 
 	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
 		// use CRT shader over raycasted scene when in ejection pod
-		showCurve := (g.lightAmpEngaged || g.player.ejectionPod != nil)
+		showCurve := true
 		crtShader.DrawWithOptions(g.overlayScreen, g.renderScreen, showCurve)
 	} else {
 		g.overlayScreen.DrawImage(g.renderScreen, nil)

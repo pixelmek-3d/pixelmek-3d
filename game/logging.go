@@ -22,8 +22,9 @@ func (f *LogFormat) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	b.WriteString(entry.Time.Format(f.TimestampFormat))
-
-	b.WriteString(" [" + strings.ToUpper(entry.Level.String()) + "] ")
+	b.WriteString(" [")
+	b.WriteString(strings.ToUpper(entry.Level.String()))
+	b.WriteString("] ")
 
 	if entry.Message != "" {
 		b.WriteString(entry.Message)

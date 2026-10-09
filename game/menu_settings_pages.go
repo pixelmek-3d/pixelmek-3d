@@ -14,14 +14,14 @@ import (
 )
 
 type settingsPageContainer struct {
-	widget    widget.PreferredSizeLocateableWidget
+	widget    *widget.Container
 	titleText *widget.Text
 	flipBook  *widget.FlipBook
 }
 
 type settingsPage struct {
 	title           string
-	content         widget.PreferredSizeLocateableWidget
+	content         *widget.Container
 	contentUpdaters []contentUpdater
 	tickUpdaters    []tickUpdater
 }
@@ -306,26 +306,20 @@ func displayPage(m Menu) *settingsPage {
 				// pre-select ideal FOV for the aspect ratio
 				game.setFovAngle(float64(r.aspectRatio.fov))
 
-				gameMenu, _ := m.(*GameMenu)
-				settingsMenu, _ := m.(*SettingsMenu)
-				switch {
-				case gameMenu != nil:
-					// stop any scene transitions that may panic when resolution is changed before completion
-					game.StopSceneTransition()
+				// stop any scene transitions that may panic when resolution is changed before completion
+				game.StopSceneTransition()
 
+				switch tMenu := m.(type) {
+				case *GameMenu:
 					// re-initialize the in-game menu with the Display settings pre-selected
-					gameMenu.preSelectedPage = 2
-					gameMenu.initResources()
-					gameMenu.initMenu()
-				case settingsMenu != nil:
+					tMenu.preSelectedPage = 2
+					tMenu.handleResolutionChange()
+				case *SettingsMenu:
 					menuScene, ok := game.scene.(*MainMenuScene)
 					if ok {
 						// re-initialize the in-game menu with the Display settings pre-selected
 						menuScene.settings.preSelectedPage = 1
-						menuScene.settings.initResources()
-						menuScene.settings.initMenu()
-						menuScene.main.initResources()
-						menuScene.main.initMenu()
+						menuScene.handleResolutionChange()
 					}
 				}
 			}
@@ -426,6 +420,12 @@ func displayPage(m Menu) *settingsPage {
 		game.setVsyncEnabled(args.State == widget.WidgetChecked)
 	})
 	c.AddChild(vsCheckbox)
+
+	// CRT shader checkbox
+	crtCheckbox := newCheckbox(m, "CRT Shader", game.crtShader, func(args *widget.CheckboxChangedEventArgs) {
+		game.crtShader = args.State == widget.WidgetChecked
+	})
+	c.AddChild(crtCheckbox)
 
 	// fps checkbox
 	fpsCheckbox := newCheckbox(m, "Show FPS", game.fpsEnabled, func(args *widget.CheckboxChangedEventArgs) {
@@ -610,12 +610,6 @@ func renderPage(m Menu) *settingsPage {
 	})
 	c.AddChild(floorCheckbox)
 
-	// CRT shader checkbox
-	crtCheckbox := newCheckbox(m, "CRT Shader", game.crtShader, func(args *widget.CheckboxChangedEventArgs) {
-		game.crtShader = args.State == widget.WidgetChecked
-	})
-	c.AddChild(crtCheckbox)
-
 	return &settingsPage{
 		title:   "Render",
 		content: c,
@@ -789,6 +783,9 @@ func hudPage(m Menu) *settingsPage {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			if game.hudCrosshairIndex > 0 {
 				game.hudCrosshairIndex--
+			} else {
+				// loop back to last crosshair index
+				game.hudCrosshairIndex = resources.CrosshairsSheet.Columns*resources.CrosshairsSheet.Rows - 1
 			}
 			crosshairLabel.Label = fmt.Sprintf("Crosshair: %d/%d", game.hudCrosshairIndex+1, numCrosshairs)
 			crosshairs := render.NewCrosshairs(
@@ -814,6 +811,9 @@ func hudPage(m Menu) *settingsPage {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			if game.hudCrosshairIndex+1 < resources.CrosshairsSheet.Columns*resources.CrosshairsSheet.Rows {
 				game.hudCrosshairIndex++
+			} else {
+				// loop back to first crosshair index
+				game.hudCrosshairIndex = 0
 			}
 			crosshairLabel.Label = fmt.Sprintf("Crosshair: %d/%d", game.hudCrosshairIndex+1, numCrosshairs)
 			crosshairs := render.NewCrosshairs(
