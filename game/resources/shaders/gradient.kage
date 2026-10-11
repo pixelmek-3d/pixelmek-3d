@@ -1,0 +1,12 @@
+//kage:unit pixels
+package main
+
+var StartColor vec4
+var EndColor vec4
+var CanvasSize vec2
+
+func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
+	// Calculate a ratio (0.0 to 1.0) based on the Y position (Top to Bottom)
+	ratio := dstPos.y / CanvasSize.y
+	return mix(StartColor, EndColor, ratio)
+}

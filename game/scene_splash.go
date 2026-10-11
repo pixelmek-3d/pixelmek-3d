@@ -2,7 +2,9 @@ package game
 
 import (
 	"image"
+	"image/color"
 
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -40,7 +42,8 @@ func NewSplashScene(g *Game) Scene {
 	splashRect := g.uiRect()
 
 	// Ebitengine splash
-	im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
+	//im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
+	im, err := colors.NewGradient(g.screenWidth, g.screenHeight, color.NRGBA{255, 0, 0, 0}, color.NRGBA{0, 0, 255, 255})
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
 		tOpts := &transitions.TransitionOptions{
