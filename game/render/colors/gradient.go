@@ -1,29 +1,31 @@
 package colors
 
 import (
-	"fmt"
 	"image/color"
+	"math"
 
+	"github.com/erparts/go-shapes"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
-const SHADER_GRADIENT = "shaders/gradient.kage"
+const (
+	SHADER_GRADIENT = "shaders/gradient.kage"
+)
 
-func NewGradient(width, height int, startColor, endColor color.NRGBA) (*ebiten.Image, error) {
-	shader, err := resources.NewShaderFromFile(SHADER_GRADIENT)
-	if err != nil {
-		return nil, fmt.Errorf("error loading gradient shader: %w", err)
-	}
+var shapesRenderer = shapes.NewRenderer()
 
+func NewGradient(width, height int, startColor, endColor color.NRGBA) *ebiten.Image {
 	img := ebiten.NewImage(width, height)
-	uniforms := map[string]any{
-		"StartColor": colorToVec4(startColor),
-		"EndColor":   colorToVec4(endColor),
-		"CanvasSize": []float32{float32(width), float32(height)},
-	}
-	op := &ebiten.DrawRectShaderOptions{}
-	op.Uniforms = uniforms
-	img.DrawRectShader(width, height, shader, op)
-	return img, nil
+	startRGBA := color.RGBAModel.Convert(startColor).(color.RGBA)
+	endRGBA := color.RGBAModel.Convert(endColor).(color.RGBA)
+	shapesRenderer.SimpleGradient(img, startRGBA, endRGBA, math.Pi/2)
+	return img
+}
+
+func NewRadialGradient(width, height, centerX, centerY int, innerColor, outerColor color.NRGBA, radius int) *ebiten.Image {
+	img := ebiten.NewImage(width, height)
+	innerRGBA := color.RGBAModel.Convert(innerColor).(color.RGBA)
+	outerRGBA := color.RGBAModel.Convert(outerColor).(color.RGBA)
+	shapesRenderer.GradientRadial(img, float32(centerX), float32(centerY), innerRGBA, outerRGBA, 0.0, float32(radius), float32(radius*2), -1, 1.0)
+	return img
 }
