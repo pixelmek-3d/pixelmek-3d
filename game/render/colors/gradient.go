@@ -23,7 +23,6 @@ func NewVerticalGradient(width, height int, topColor, bottomColor color.NRGBA) *
 	uniforms := map[string]any{
 		"TopColor":    colorToVec4(topColor),
 		"BottomColor": colorToVec4(bottomColor),
-		"CanvasSize":  []float32{float32(width), float32(height)},
 	}
 	op := &ebiten.DrawRectShaderOptions{}
 	op.Uniforms = uniforms
