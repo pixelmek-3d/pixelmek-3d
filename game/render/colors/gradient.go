@@ -2,30 +2,50 @@ package colors
 
 import (
 	"image/color"
-	"math"
+	"log"
 
-	"github.com/erparts/go-shapes"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 )
 
 const (
-	SHADER_GRADIENT = "shaders/gradient.kage"
+	SHADER_GRADIENT_VERTICAL = "shaders/gradient_vertical.kage"
+	SHADER_GRADIENT_RADIAL   = "shaders/gradient_radial.kage"
 )
 
-var shapesRenderer = shapes.NewRenderer()
-
-func NewGradient(width, height int, startColor, endColor color.NRGBA) *ebiten.Image {
+func NewGradient(width, height int, topColor, bottomColor color.NRGBA) *ebiten.Image {
 	img := ebiten.NewImage(width, height)
-	startRGBA := color.RGBAModel.Convert(startColor).(color.RGBA)
-	endRGBA := color.RGBAModel.Convert(endColor).(color.RGBA)
-	shapesRenderer.SimpleGradient(img, startRGBA, endRGBA, math.Pi/2)
+	shader, err := resources.NewShaderFromFile(SHADER_GRADIENT_VERTICAL)
+	if err != nil {
+		log.Fatalf("error loading gradient shader: %s", err)
+	}
+
+	uniforms := map[string]any{
+		"TopColor":    colorToVec4(topColor),
+		"BottomColor": colorToVec4(bottomColor),
+		"CanvasSize":  []float32{float32(width), float32(height)},
+	}
+	op := &ebiten.DrawRectShaderOptions{}
+	op.Uniforms = uniforms
+	img.DrawRectShader(width, height, shader, op)
 	return img
 }
 
 func NewRadialGradient(width, height, centerX, centerY int, innerColor, outerColor color.NRGBA, radius int) *ebiten.Image {
 	img := ebiten.NewImage(width, height)
-	innerRGBA := color.RGBAModel.Convert(innerColor).(color.RGBA)
-	outerRGBA := color.RGBAModel.Convert(outerColor).(color.RGBA)
-	shapesRenderer.GradientRadial(img, float32(centerX), float32(centerY), innerRGBA, outerRGBA, 0.0, float32(radius), float32(radius*2), -1, 1.0)
+	shader, err := resources.NewShaderFromFile(SHADER_GRADIENT_RADIAL)
+	if err != nil {
+		log.Fatalf("error loading gradient radial shader: %s", err)
+	}
+
+	uniforms := map[string]any{
+		"InnerColor": colorToVec4(innerColor),
+		"OuterColor": colorToVec4(outerColor),
+		"Center":     []float32{float32(centerX), float32(centerY)},
+		"Radius":     float32(radius),
+	}
+	op := &ebiten.DrawRectShaderOptions{}
+	op.Uniforms = uniforms
+	img.DrawRectShader(width, height, shader, op)
 	return img
 }
