@@ -7,6 +7,7 @@ import (
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 	"github.com/pixelmek-3d/pixelmek-3d/game/texture"
 )
@@ -71,16 +72,19 @@ func (g *Game) initMission() {
 	g.mouseX, g.mouseY = math.MinInt32, math.MinInt32
 
 	//--init camera and renderer--//
-	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, resources.TexSize, g.mission.Map(), g.tex)
+	texSize := resources.TexSize
+	g.camera = raycaster.NewCamera(g.renderWidth, g.renderHeight, texSize, g.mission.Map(), g.tex)
 	g.camera.SetRenderDistance(g.renderDistance)
 	g.camera.SetAlwaysSetSpriteScreenRect(true)
 
-	if len(g.mission.Map().FloorBox.Image) > 0 {
-		g.camera.SetFloorTexture(resources.GetTextureFromFile(g.mission.Map().FloorBox.Image))
-	}
-	if len(g.mission.Map().SkyBox.Image) > 0 {
-		g.camera.SetSkyTexture(resources.GetTextureFromFile(g.mission.Map().SkyBox.Image))
-	}
+	// set floor/sky box images from gradient color specifications in the map/mission files
+	floorFromColor, floorToColor := g.mission.Map().FloorBox.FromNRGBA(), g.mission.Map().FloorBox.ToNRGBA()
+	floorbox := colors.NewRadialGradient(texSize, texSize, texSize/2, texSize, floorFromColor, floorToColor, texSize)
+	g.camera.SetFloorTexture(floorbox)
+
+	skyFromColor, skyToColor := g.mission.Map().SkyBox.FromNRGBA(), g.mission.Map().SkyBox.ToNRGBA()
+	skybox := colors.NewVerticalGradient(texSize, texSize, skyToColor, skyFromColor)
+	g.camera.SetSkyTexture(skybox)
 
 	// init camera lighting from map settings
 	g.lightFalloff = g.mission.Map().Lighting.Falloff

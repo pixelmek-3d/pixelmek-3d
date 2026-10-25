@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/go-playground/validator/v10"
@@ -83,8 +84,8 @@ type Map struct {
 	GenerateLevels   MapGenerateLevels  `yaml:"generateLevels"`
 	Lighting         MapLighting        `yaml:"lighting" validate:"required"`
 	Textures         map[int]MapTexture `yaml:"textures" validate:"gt=0"`
-	FloorBox         MapTexture         `yaml:"floorBox" validate:"required"`
-	SkyBox           MapTexture         `yaml:"skyBox" validate:"required"`
+	FloorBox         GradientTexture    `yaml:"floorBox" validate:"required"`
+	SkyBox           GradientTexture    `yaml:"skyBox" validate:"required"`
 	Flooring         MapFlooring        `yaml:"flooring" validate:"required"`
 	Clutter          []MapClutter       `yaml:"clutter"`
 	Sprites          []MapSprite        `yaml:"sprites"`
@@ -98,9 +99,22 @@ type Map struct {
 }
 
 type MapTexture struct {
-	Image string `yaml:"image"`
+	Image string `yaml:"image" validate:"required"`
 	SideX string `yaml:"sideX"`
 	SideY string `yaml:"sideY"`
+}
+
+type GradientTexture struct {
+	FromRGB [3]uint8 `yaml:"fromRGB" validate:"required"`
+	ToRGB   [3]uint8 `yaml:"toRGB" validate:"required"`
+}
+
+func (g GradientTexture) FromNRGBA() color.NRGBA {
+	return colors.RGBArrayToNRGBA(g.FromRGB)
+}
+
+func (g GradientTexture) ToNRGBA() color.NRGBA {
+	return colors.RGBArrayToNRGBA(g.ToRGB)
 }
 
 func (m MapTexture) GetImage(side int) string {
@@ -210,13 +224,9 @@ type MapLighting struct {
 }
 
 func (m MapLighting) LightRGB() (*color.NRGBA, *color.NRGBA) {
-	min := &color.NRGBA{
-		R: m.MinLightRGB[0], G: m.MinLightRGB[1], B: m.MinLightRGB[2], A: 255,
-	}
-	max := &color.NRGBA{
-		R: m.MaxLightRGB[0], G: m.MaxLightRGB[1], B: m.MaxLightRGB[2], A: 255,
-	}
-	return min, max
+	min := colors.RGBArrayToNRGBA(m.MinLightRGB)
+	max := colors.RGBArrayToNRGBA(m.MaxLightRGB)
+	return &min, &max
 }
 
 type MapGenerateLevels struct {

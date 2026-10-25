@@ -15,11 +15,17 @@ var (
 	NavPoint = DefaultYellow
 )
 
-func colorToVec4(clr color.NRGBA) [4]float32 {
+func ColorToVec4(clr color.NRGBA) [4]float32 {
 	return [4]float32{
 		float32(clr.R) / 255,
 		float32(clr.G) / 255,
 		float32(clr.B) / 255,
 		float32(clr.A) / 255,
+	}
+}
+
+func RGBArrayToNRGBA(rgbArray [3]uint8) color.NRGBA {
+	return color.NRGBA{
+		R: rgbArray[0], G: rgbArray[1], B: rgbArray[2], A: 255,
 	}
 }

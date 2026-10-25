@@ -10,11 +10,11 @@ import (
 
 var shapesRenderer = shapes.NewRenderer()
 
-func NewVerticalGradient(width, height int, startColor, endColor color.NRGBA) *ebiten.Image {
+func NewVerticalGradient(width, height int, topColor, bottomColor color.NRGBA) *ebiten.Image {
 	img := ebiten.NewImage(width, height)
-	startRGBA := color.RGBAModel.Convert(startColor).(color.RGBA)
-	endRGBA := color.RGBAModel.Convert(endColor).(color.RGBA)
-	shapesRenderer.SimpleGradient(img, startRGBA, endRGBA, math.Pi/2)
+	topRGBA := color.RGBAModel.Convert(topColor).(color.RGBA)
+	bottomRGBA := color.RGBAModel.Convert(bottomColor).(color.RGBA)
+	shapesRenderer.SimpleGradient(img, topRGBA, bottomRGBA, math.Pi/2)
 	return img
 }
 

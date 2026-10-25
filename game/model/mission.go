@@ -24,8 +24,8 @@ type Mission struct {
 	MusicPath    string              `yaml:"music"`
 	DropZone     *DropZone           `yaml:"dropZone"`
 	Lighting     *MapLighting        `yaml:"lighting,omitempty"`
-	FloorBox     *MapTexture         `yaml:"floorBox,omitempty"`
-	SkyBox       *MapTexture         `yaml:"skyBox,omitempty"`
+	FloorBox     *GradientTexture    `yaml:"floorBox,omitempty"`
+	SkyBox       *GradientTexture    `yaml:"skyBox,omitempty"`
 	NavPoints    []*NavPoint         `yaml:"navPoints"`
 	Objectives   *MissionObjectives  `yaml:"objectives" validate:"required"`
 	Mechs        []MissionUnit       `yaml:"mechs"`

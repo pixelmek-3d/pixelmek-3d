@@ -28,16 +28,13 @@ func NewMapImage(m *model.Map, tex *texture.TextureHandler, opts MapImageOptions
 		return nil, errors.New("map image called with nil map or texture handler")
 	}
 	pxPerCell := max(opts.PxPerCell, 1)
-	texScale := float64(pxPerCell) / float64(resources.TexSize)
+	texSize := resources.TexSize
+	texScale := float64(pxPerCell) / float64(texSize)
 	mapWidth, mapHeight := m.Size()
 	mapImage := ebiten.NewImage(mapWidth*pxPerCell, mapHeight*pxPerCell)
 
-	// fill with basic floor color layer based on static floor image
-	floorImg := resources.GetTextureFromFile(m.FloorBox.Image)
-	if floorImg != nil {
-		centerX, centerY := floorImg.Bounds().Dx()/2, floorImg.Bounds().Dy()/2
-		mapImage.Fill(floorImg.At(centerX, centerY))
-	}
+	// fill with basic floor color layer using starting color of floorBox gradient
+	mapImage.Fill(m.FloorBox.FromNRGBA())
 
 	if opts.RenderDefaultFloorTexture {
 		if opts.FilterDefaultFloorTexture {
