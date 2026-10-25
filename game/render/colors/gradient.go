@@ -13,7 +13,7 @@ const (
 	SHADER_GRADIENT_RADIAL   = "shaders/gradient_radial.kage"
 )
 
-func NewGradient(width, height int, topColor, bottomColor color.NRGBA) *ebiten.Image {
+func NewVerticalGradient(width, height int, topColor, bottomColor color.NRGBA) *ebiten.Image {
 	img := ebiten.NewImage(width, height)
 	shader, err := resources.NewShaderFromFile(SHADER_GRADIENT_VERTICAL)
 	if err != nil {

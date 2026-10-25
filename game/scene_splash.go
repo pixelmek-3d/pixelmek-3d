@@ -2,9 +2,7 @@ package game
 
 import (
 	"image"
-	"image/color"
 
-	"github.com/pixelmek-3d/pixelmek-3d/game/render/colors"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
@@ -42,26 +40,24 @@ func NewSplashScene(g *Game) Scene {
 	splashRect := g.uiRect()
 
 	// Ebitengine splash
-	//im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
-	//im := colors.NewGradient(g.screenWidth, g.screenHeight, color.NRGBA{255, 0, 0, 255}, color.NRGBA{0, 0, 255, 255})
-	im := colors.NewRadialGradient(g.screenWidth, g.screenHeight, g.screenWidth/2, g.screenHeight, color.NRGBA{255, 0, 0, 255}, color.NRGBA{0, 0, 255, 255}, g.screenHeight)
-	// if err == nil {
-	geoM := splashGeoM(im, splashRect)
-	tOpts := &transitions.TransitionOptions{
-		InDuration:   SPLASH_TIMEOUT * 2 / 5,
-		HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
-		OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
+	im, _, err := resources.NewImageFromFile("textures/ebitengine_splash.png")
+	if err == nil {
+		geoM := splashGeoM(im, splashRect)
+		tOpts := &transitions.TransitionOptions{
+			InDuration:   SPLASH_TIMEOUT * 2 / 5,
+			HoldDuration: SPLASH_TIMEOUT * 1.5 / 5,
+			OutDuration:  SPLASH_TIMEOUT * 1.5 / 5,
+		}
+
+		splash := NewSplashScreen(g)
+		splash.img = im
+		splash.transition = transitions.NewDissolve(splash.screen, tOpts, ebiten.GeoM{})
+		splash.geoM = geoM
+		splashes = append(splashes, splash)
 	}
 
-	splash := NewSplashScreen(g)
-	splash.img = im
-	splash.transition = transitions.NewDissolve(splash.screen, tOpts, ebiten.GeoM{})
-	splash.geoM = geoM
-	splashes = append(splashes, splash)
-	// }
-
 	// Golang Gopher splash
-	im, _, err := resources.NewImageFromFile("textures/gopher_space.png")
+	im, _, err = resources.NewImageFromFile("textures/gopher_space.png")
 	if err == nil {
 		geoM := splashGeoM(im, splashRect)
 		tOpts := &transitions.TransitionOptions{
