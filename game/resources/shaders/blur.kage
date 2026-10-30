@@ -1,0 +1,33 @@
+//kage:unit pixels
+package main
+
+var Direction vec2
+var Dither float
+
+func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
+    var result vec4
+    result += imageSrc0At(texCoord) * 0.227027
+    result += imageSrc0At(texCoord + Direction) * 0.194595
+    result += imageSrc0At(texCoord - Direction) * 0.194595
+    result += imageSrc0At(texCoord + Direction * 2.0) * 0.121622
+    result += imageSrc0At(texCoord - Direction * 2.0) * 0.121622
+    result += imageSrc0At(texCoord + Direction * 3.0) * 0.054054
+    result += imageSrc0At(texCoord - Direction * 3.0) * 0.054054
+    result += imageSrc0At(texCoord + Direction * 4.0) * 0.016216
+    result += imageSrc0At(texCoord - Direction * 4.0) * 0.016216
+
+    result = result * color
+
+    if Dither > 0.5 {
+        var p vec2
+        p = floor(position.xy)
+        var noise float
+        noise = sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453
+        noise = noise - floor(noise)
+        var offset float
+        offset = (noise - 0.5) * (1.0 / 255.0) * result.a
+        result.rgb = result.rgb + vec3(offset)
+    }
+
+    return result
+}
