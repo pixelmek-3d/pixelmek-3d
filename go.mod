@@ -9,9 +9,9 @@ require (
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/go-youtils/stopwatch v1.0.0
 	github.com/google/uuid v1.6.0
-	github.com/hajimehoshi/ebiten/v2 v2.9.9
+	github.com/hajimehoshi/ebiten/v2 v2.9.11
 	github.com/harbdog/go-astar v0.0.0-20200827232313-4ecf9e304482
-	github.com/harbdog/raycaster-go v1.12.0
+	github.com/harbdog/raycaster-go v1.13.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/joeycumines/go-behaviortree v1.8.1-0.20240127010207-f46a6748b8c0
 	github.com/mattn/go-isatty v0.0.20
@@ -35,7 +35,7 @@ require (
 	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/ebitengine/gomobile v0.0.0-20250923094054-ea854a63cce1 // indirect
 	github.com/ebitengine/hideconsole v1.0.0 // indirect
-	github.com/ebitengine/oto/v3 v3.4.0 // indirect
+	github.com/ebitengine/oto/v3 v3.4.1 // indirect
 	github.com/ebitengine/purego v0.9.0 // indirect
 	github.com/frustra/bbcode v0.0.0-20201127003707-6ef347fbe1c8 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
