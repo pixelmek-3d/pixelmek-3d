@@ -5,6 +5,9 @@ briefing: |
   And do stuff.
 map: "debug_land"
 music: "icy_wastes.mp3"
+floorBox: # test sim flooring
+  fromRGB: [0, 220, 211] # teal
+  toRGB: [31, 91, 54] # green
 dropZone:
   position: [40, 60]
   heading: 90

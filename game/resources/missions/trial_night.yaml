@@ -10,10 +10,12 @@ lighting:
   illumination: 0
   minLightRGB: [16, 24, 30]
   maxLightRGB: [255, 255, 255]
-floorBox:
-  image: "floors/floor_green_night.png"
-skyBox:
-  image: "skies/sky_blue_night.png"
+floorBox: # grassy plains at night
+  fromRGB: [8, 14, 0] # dark green
+  toRGB: [0, 4, 0] # pretty much black
+skyBox: # dark blue sky
+  fromRGB: [4, 10, 14] # dark blue
+  toRGB: [2, 2, 13] # really dark blue
 dropZone:
   position: [60, 60]
   heading: 270
