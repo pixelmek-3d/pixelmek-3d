@@ -87,7 +87,7 @@ func (g *Game) initConfig() {
 	viper.SetDefault(CONFIG_KEY_VSYNC, true)
 	viper.SetDefault(CONFIG_KEY_RENDER_FLOOR, true)
 	viper.SetDefault(CONFIG_KEY_RENDER_DISTANCE, 2000)
-	viper.SetDefault(CONFIG_KEY_CLUTTER_DISTANCE, 500)
+	viper.SetDefault(CONFIG_KEY_CLUTTER_DISTANCE, 250)
 
 	viper.SetDefault(CONFIG_KEY_CRT_SHADER, false)
 

@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/harbdog/raycaster-go"
 	"github.com/harbdog/raycaster-go/geom"
@@ -44,13 +45,43 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 	// determine which cells are in view for clutter consideration
 	camPos, _, camHeading, _ := g.player.CameraPosition()
 	camX, camY := camPos.X, camPos.Y
-	viewFOV := geom.Radians(g.fovDegrees)
-	for a := camHeading - viewFOV/2; a <= camHeading+viewFOV/2; a += viewFOV / 20 {
-		for d := 0.0; d <= g.clutterDistance; d++ {
-			line := geom.LineFromAngle(camX, camY, a, d)
-			x, y := int64(line.X2), int64(line.Y2)
-			if x < 0 || y < 0 || x >= int64(g.mapWidth) || y >= int64(g.mapHeight) {
+
+	cellRadius := math.Sqrt(0.5)
+	halfFOV := geom.Radians(g.fovDegrees) / 2
+	minX := int64(math.Floor(camX-g.clutterDistance)) - 1
+	maxX := int64(math.Ceil(camX+g.clutterDistance)) + 1
+	minY := int64(math.Floor(camY-g.clutterDistance)) - 1
+	maxY := int64(math.Ceil(camY+g.clutterDistance)) + 1
+
+	if minX < 0 {
+		minX = 0
+	}
+	if minY < 0 {
+		minY = 0
+	}
+	if maxX >= int64(g.mapWidth) {
+		maxX = int64(g.mapWidth - 1)
+	}
+	if maxY >= int64(g.mapHeight) {
+		maxY = int64(g.mapHeight - 1)
+	}
+
+	for y := minY; y <= maxY; y++ {
+		for x := minX; x <= maxX; x++ {
+			dx := float64(x) + 0.5 - camX
+			dy := float64(y) + 0.5 - camY
+			dist := math.Hypot(dx, dy)
+			if dist > g.clutterDistance+cellRadius {
 				continue
+			}
+
+			if dist > cellRadius {
+				angle := math.Atan2(dy, dx)
+				delta := math.Remainder(angle-camHeading, 2*math.Pi)
+				anglePadding := math.Asin(cellRadius / dist)
+				if math.Abs(delta) > halfFOV+anglePadding {
+					continue
+				}
 			}
 
 			// make sure there's not a wall here
