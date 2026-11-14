@@ -17,6 +17,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20
 	github.com/nlepage/go-tarfs v1.2.1
 	github.com/quasilyte/ebitengine-input v0.9.1
+	github.com/setanarut/apng v1.0.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/solarlune/resound v0.4.0
 	github.com/spf13/cobra v1.10.2

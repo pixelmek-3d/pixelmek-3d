@@ -7,8 +7,11 @@ import (
 	"image/gif"
 	"image/png"
 	"os"
+	"path"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/setanarut/apng"
+	log "github.com/sirupsen/logrus"
 )
 
 func SaveImageAsPNG(img *ebiten.Image, filename string) error {
@@ -25,7 +28,18 @@ func SaveImageAsPNG(img *ebiten.Image, filename string) error {
 	return png.Encode(f, nrgba)
 }
 
+func SaveAnimation(imgs []*ebiten.Image, bounds image.Rectangle, filename string) error {
+	extension := path.Ext(filename)
+	switch extension {
+	case ".apng", ".png":
+		return SaveAnimatedPNG(imgs, bounds, filename)
+	default:
+		return SaveAnimatedGIF(imgs, bounds, filename)
+	}
+}
+
 func SaveAnimatedGIF(imgs []*ebiten.Image, bounds image.Rectangle, filename string) error {
+	log.Debug("export as animated GIF...")
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -63,4 +77,30 @@ func SaveAnimatedGIF(imgs []*ebiten.Image, bounds image.Rectangle, filename stri
 		return err
 	}
 	return nil
+}
+
+func SaveAnimatedPNG(imgs []*ebiten.Image, bounds image.Rectangle, filename string) error {
+	log.Debug("export as animated PNG...")
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	frames := make([]image.Image, len(imgs))
+	delays := make([]uint16, len(imgs))
+	frameBounds := image.Rect(0, 0, bounds.Dx(), bounds.Dy())
+
+	for i, img := range imgs {
+		frame := image.NewRGBA(frameBounds)
+		img.ReadPixels(frame.Pix)
+		frames[i] = frame
+		delays[i] = 2 // 2 centiseconds = 20 ms
+	}
+
+	return apng.EncodeAll(f, &apng.APNG{
+		Images:    frames,
+		Delays:    delays,
+		LoopCount: 0,
+	})
 }

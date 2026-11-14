@@ -105,8 +105,7 @@ func doUnitExport() {
 		os.Exit(1)
 	}
 
-	log.Debug("export animation to file...")
-	err = render.SaveAnimatedGIF(frames, bounds, outImagePath)
+	err = render.SaveAnimation(frames, bounds, outImagePath)
 	if err != nil {
 		log.Error("error exporting unit animation: ", err)
 		os.Exit(1)

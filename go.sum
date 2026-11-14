@@ -106,6 +106,8 @@ github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/f
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagikazarmark/locafero v0.11.0 h1:1iurJgmM9G3PA/I+wWYIOw/5SyBtxapeHDcg+AAIFXc=
 github.com/sagikazarmark/locafero v0.11.0/go.mod h1:nVIGvgyzw595SUSUE6tvCp3YYTeHs15MvlmU87WwIik=
+github.com/setanarut/apng v1.0.6 h1:3u5KzgUSn3NEoTdqpnGQckmYSPA7na2oHFOStMlYv2U=
+github.com/setanarut/apng v1.0.6/go.mod h1:vsT7/yC9w9noWN/9Fkv36r1nU/vieKJY5HXe0k+kRD4=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/solarlune/resound v0.4.0 h1:J70vQ2GrsFb15SMsWMiWRbzU2/HX7E2AuagBGibYUgo=
