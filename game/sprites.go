@@ -26,6 +26,7 @@ func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
 	switch u := unit.(type) {
 	case *model.Mech:
 		uKey := u.Resource.File
+		// TODO: store camo (if provided) as part of key so they can be unique combination
 		unitSprite, found := g.sprites.MechSpriteTemplates[uKey]
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.MechResourceType, u.Resource.Image)
