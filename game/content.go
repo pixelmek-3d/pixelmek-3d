@@ -105,13 +105,15 @@ func (g *Game) loadMissionSprites() {
 		return
 	}
 
+	opts := UnitSpriteOptions{}
+
 	for _, missionMech := range g.mission.Mechs {
 		modelMech, err := createMissionUnitModel[model.Mech](g, missionMech)
 		if err != nil {
 			log.Errorf("error creating mission mech: %v", err)
 			continue
 		}
-		mech := g.CreateUnitSprite(modelMech).(*sprites.MechSprite)
+		mech := g.CreateUnitSprite(modelMech, opts).(*sprites.MechSprite)
 		g.sprites.AddMechSprite(mech)
 	}
 
@@ -121,7 +123,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission vehicle: %v", err)
 			continue
 		}
-		vehicle := g.CreateUnitSprite(modelVehicle).(*sprites.VehicleSprite)
+		vehicle := g.CreateUnitSprite(modelVehicle, opts).(*sprites.VehicleSprite)
 		g.sprites.AddVehicleSprite(vehicle)
 	}
 
@@ -131,7 +133,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission infantry: %v", err)
 			continue
 		}
-		infantry := g.CreateUnitSprite(modelInfantry).(*sprites.InfantrySprite)
+		infantry := g.CreateUnitSprite(modelInfantry, opts).(*sprites.InfantrySprite)
 		g.sprites.AddInfantrySprite(infantry)
 	}
 
@@ -141,7 +143,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission VTOL: %v", err)
 			continue
 		}
-		vtol := g.CreateUnitSprite(modelVTOL).(*sprites.VTOLSprite)
+		vtol := g.CreateUnitSprite(modelVTOL, opts).(*sprites.VTOLSprite)
 		g.sprites.AddVTOLSprite(vtol)
 	}
 
@@ -151,7 +153,7 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission emplacement: %v", err)
 			continue
 		}
-		emplacement := g.CreateUnitSprite(modelEmplacement).(*sprites.EmplacementSprite)
+		emplacement := g.CreateUnitSprite(modelEmplacement, opts).(*sprites.EmplacementSprite)
 		g.sprites.AddEmplacementSprite(emplacement)
 	}
 }

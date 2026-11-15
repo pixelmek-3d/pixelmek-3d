@@ -20,14 +20,19 @@ import (
 )
 
 func init() {
-	animationCmd.Flags().StringVarP(&outImagePath, "output", "o", "", "[required] output animated gif image path")
+	animationCmd.Flags().StringVarP(&outImagePath, "output", "o", "", "[required] output animated image path (gif, apng)")
+	animationCmd.MarkFlagRequired("output")
+
 	animationCmd.Flags().IntVarP(&animationIndex, "index", "i", 0, "unit animation index")
+
+	animationCmd.Flags().StringVarP(&camoMaskPath, "camo", "c", "", "camo mask image resource path")
 }
 
 var (
 	g              *game.Game
 	animationIndex int
 	outImagePath   string
+	camoMaskPath   string
 	animationCmd   = &cobra.Command{
 		Use:   "animation [UNIT_FILE]",
 		Short: "Export unit animation image",
@@ -72,6 +77,8 @@ func doUnitExport() {
 	var frames []*ebiten.Image
 	var bounds image.Rectangle
 
+	opts := game.UnitSpriteOptions{Camo: camoMaskPath}
+
 	switch unitTypePrefix {
 	case model.MechResourceType:
 		r := &model.ModelMechResource{}
@@ -81,7 +88,7 @@ func doUnitExport() {
 		}
 
 		unit := model.NewMech(r)
-		sprite := g.CreateUnitSprite(unit).(*sprites.MechSprite)
+		sprite := g.CreateUnitSprite(unit, opts).(*sprites.MechSprite)
 		bounds = sprite.Texture().Bounds()
 
 		if animationIndex >= int(sprites.NUM_MECH_ANIMATIONS) {

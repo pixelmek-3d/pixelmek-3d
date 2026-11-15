@@ -494,9 +494,10 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 
 	// show unit image graphic
 	var sprite *sprites.Sprite
+	opts := UnitSpriteOptions{}
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
-		mSprite := g.CreateUnitSprite(unit).(*sprites.MechSprite)
+		mSprite := g.CreateUnitSprite(unit, opts).(*sprites.MechSprite)
 		sprite = mSprite.Sprite
 
 		// TODO: create interface for Sprite like was done for Unit to make things better

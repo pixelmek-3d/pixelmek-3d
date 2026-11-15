@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/harbdog/raycaster-go/geom"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 )
@@ -39,7 +38,7 @@ type mechAnimatePart struct {
 }
 
 // NewMechAnimationSheetFromImage creates a new image sheet with generated image frames for mech sprite animation
-func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
+func NewMechAnimationSheetFromImage(srcImage, camoMask *ebiten.Image) *MechSpriteAnimate {
 	// all mech sprite sheets have 6 columns of images in the sheet:
 	// [full, torso, left arm, right arm, left leg, right leg]
 	srcWidth, srcHeight := srcImage.Bounds().Dx(), srcImage.Bounds().Dy()
@@ -57,23 +56,20 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 	// maxCols will be determined later based on how many frames needed by any single animation row
 	maxRows, maxCols := int(NUM_MECH_ANIMATIONS), 1
 
-	// TODO: apply optional camo overlay image via func param
-	camoMask, _, err := ebitenutil.NewImageFromFile(`C:\Users\harbd\tmp\jade_falcon_alpha_galaxy.png`)
-	if err != nil {
-		panic(err)
-	}
-
 	// separate out each limb part from source image
 	srcParts := make([]*mechAnimatePart, int(NUM_MECH_PARTS))
-	for c := 0; c < int(NUM_MECH_PARTS); c++ {
+	for c := range int(NUM_MECH_PARTS) {
 		x, y := c*uWidth, 0
 		cellRect := image.Rect(x, y, x+uWidth, y+uHeight)
 		cellImg := srcImage.SubImage(cellRect).(*ebiten.Image)
 
-		// TODO: apply optional camo overlay to each individual image part
-		camoImg := effects.MaskImage(cellImg, camoMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.5)
+		// apply optional camo overlay to individual image parts
+		if camoMask != nil {
+			camoImg := effects.MaskImage(cellImg, camoMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+			cellImg = camoImg
+		}
 
-		srcParts[c] = &mechAnimatePart{image: camoImg, travelY: 0}
+		srcParts[c] = &mechAnimatePart{image: cellImg, travelY: 0}
 	}
 
 	// calculate number of animations (rows) and frames for each animation (cols)

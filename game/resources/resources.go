@@ -244,34 +244,31 @@ func GetRGBAFromFile(texFile string) *image.RGBA {
 	return rgba
 }
 
-func GetTextureFromFile(texFile string) *ebiten.Image {
-	resourcePath := path.Join("textures", texFile)
-	if eImg, ok := imageByPath[resourcePath]; ok {
-		return eImg
+func getResourceImageFromFile(resourcePath string) *ebiten.Image {
+	if img, ok := imageByPath[resourcePath]; ok {
+		return img
 	}
-
-	eImg, _, err := NewImageFromFile(resourcePath)
+	img, _, err := NewImageFromFile(resourcePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if eImg != nil {
-		imageByPath[resourcePath] = eImg
+	if img != nil {
+		imageByPath[resourcePath] = img
 	}
-	return eImg
+	return img
+}
+
+func GetTextureFromFile(texFile string) *ebiten.Image {
+	resourcePath := path.Join("textures", texFile)
+	return getResourceImageFromFile(resourcePath)
 }
 
 func GetSpriteFromFile(sFile string) *ebiten.Image {
 	resourcePath := path.Join("sprites", sFile)
-	if eImg, ok := imageByPath[resourcePath]; ok {
-		return eImg
-	}
+	return getResourceImageFromFile(resourcePath)
+}
 
-	eImg, _, err := NewImageFromFile(resourcePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if eImg != nil {
-		imageByPath[resourcePath] = eImg
-	}
-	return eImg
+func GetCamoFromFile(camoFile string) *ebiten.Image {
+	resourcePath := path.Join("textures/camo", camoFile)
+	return getResourceImageFromFile(resourcePath)
 }

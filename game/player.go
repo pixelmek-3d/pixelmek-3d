@@ -265,9 +265,11 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		pH = g.player.Heading()
 	}
 
+	opts := UnitSpriteOptions{}
+
 	switch u := unit.(type) {
 	case *model.Mech:
-		unitSprite = g.CreateUnitSprite(unit).(*sprites.MechSprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit, opts).(*sprites.MechSprite).Sprite
 
 		mechStompFile, err := StompSFXForMech(u)
 		if err != nil {
@@ -282,17 +284,17 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		g.audio.SetJumpJetSFX(jumpJetFile)
 
 	case *model.Vehicle:
-		unitSprite = g.CreateUnitSprite(unit).(*sprites.VehicleSprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit, opts).(*sprites.VehicleSprite).Sprite
 
 	case *model.VTOL:
-		unitSprite = g.CreateUnitSprite(unit).(*sprites.VTOLSprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit, opts).(*sprites.VTOLSprite).Sprite
 		if pZ < unit.CollisionHeight() {
 			// for VTOL, adjust Z position to not be stuck in the ground
 			pZ = unit.CollisionHeight()
 		}
 
 	case *model.Infantry:
-		unitSprite = g.CreateUnitSprite(unit).(*sprites.InfantrySprite).Sprite
+		unitSprite = g.CreateUnitSprite(unit, opts).(*sprites.InfantrySprite).Sprite
 
 	default:
 		log.Fatalf("unable to set player unit, resource type %v not handled", u.UnitType())

@@ -131,7 +131,7 @@ func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.
 
 		relPath := fmt.Sprintf("%s/%s", model.MechResourceType, r.Image)
 		img := resources.GetSpriteFromFile(relPath)
-		s = sprites.NewMechSprite(u, u.PixelScale(), img).Sprite
+		s = sprites.NewMechSprite(u, img, sprites.SpriteOptions{Scale: u.PixelScale()}).Sprite
 	case model.Vehicle:
 		r, err := m.res.GetVehicleResource(missionUnit.GetUnit())
 		if err != nil {

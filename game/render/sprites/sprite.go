@@ -38,6 +38,11 @@ type Sprite struct {
 	screenRect        *image.Rectangle
 }
 
+type SpriteOptions struct {
+	Scale     float64
+	MaskImage string
+}
+
 type facingAngleOverride struct {
 	angle float64
 }

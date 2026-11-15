@@ -52,7 +52,7 @@ func spawnUnit[T model.AnyUnitModel](g *Game, u model.Unit) *T {
 	g.ai.NewUnitAI(unit)
 
 	// add sprite to game
-	sprite := g.CreateUnitSprite(unit)
+	sprite := g.CreateUnitSprite(unit, UnitSpriteOptions{})
 
 	var t T
 	switch interfaceType := any(t).(type) {

@@ -22,18 +22,25 @@ type proximityUnit struct {
 	distance float64
 }
 
-func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
+type UnitSpriteOptions struct {
+	Camo string
+}
+
+func (g *Game) CreateUnitSprite(unit model.Unit, opts UnitSpriteOptions) raycaster.Sprite {
 	switch u := unit.(type) {
 	case *model.Mech:
 		uKey := u.Resource.File
-		// TODO: store camo (if provided) as part of key so they can be unique combination
+		if opts.Camo != "" {
+			// store camo as part of sprite template key for unique combination
+			uKey = fmt.Sprintf("%s[camo=%s]", uKey, opts.Camo)
+		}
 		unitSprite, found := g.sprites.MechSpriteTemplates[uKey]
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.MechResourceType, u.Resource.Image)
 			img := resources.GetSpriteFromFile(relPath)
 			scale := convertUnitHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
-			unitSprite = sprites.NewMechSprite(u, scale, img)
+			unitSprite = sprites.NewMechSprite(u, img, sprites.SpriteOptions{Scale: scale, MaskImage: opts.Camo})
 			g.sprites.MechSpriteTemplates[uKey] = unitSprite
 		}
 		return unitSprite.Clone(u)

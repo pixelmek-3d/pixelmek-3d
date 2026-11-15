@@ -2,6 +2,7 @@ package sprites
 
 import (
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
@@ -31,13 +32,18 @@ const (
 )
 
 func NewMechSprite(
-	mech *model.Mech, scale float64, img *ebiten.Image,
+	mech *model.Mech, img *ebiten.Image, opts SpriteOptions,
 ) *MechSprite {
+	var camoMask *ebiten.Image
+	if opts.MaskImage != "" {
+		camoMask = resources.GetCamoFromFile(opts.MaskImage)
+	}
+
 	// all mech sprite sheets have 6 columns of images in the sheet:
 	// [full, torso, left arm, right arm, left leg, right leg]
-	mechAnimate := NewMechAnimationSheetFromImage(img)
+	mechAnimate := NewMechAnimationSheetFromImage(img, camoMask)
 	p := NewAnimatedSprite(
-		mech, scale, mechAnimate.sheet,
+		mech, opts.Scale, mechAnimate.sheet,
 		mechAnimate.maxCols, mechAnimate.maxRows, 0,
 	)
 	s := &MechSprite{
