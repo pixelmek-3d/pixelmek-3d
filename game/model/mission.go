@@ -18,21 +18,22 @@ import (
 type Mission struct {
 	missionMap   *Map
 	missionTimer *stopwatch.Stopwatch
-	Title        string              `yaml:"title" validate:"required"`
-	Briefing     string              `yaml:"briefing" validate:"required"`
-	MapPath      string              `yaml:"map" validate:"required"`
-	MusicPath    string              `yaml:"music"`
-	DropZone     *DropZone           `yaml:"dropZone"`
-	Lighting     *MapLighting        `yaml:"lighting,omitempty"`
-	FloorBox     *GradientTexture    `yaml:"floorBox,omitempty"`
-	SkyBox       *GradientTexture    `yaml:"skyBox,omitempty"`
-	NavPoints    []*NavPoint         `yaml:"navPoints"`
-	Objectives   *MissionObjectives  `yaml:"objectives" validate:"required"`
-	Mechs        []MissionUnit       `yaml:"mechs"`
-	Vehicles     []MissionUnit       `yaml:"vehicles"`
-	Infantry     []MissionUnit       `yaml:"infantry"`
-	VTOLs        []MissionFlyingUnit `yaml:"vtols"`
-	Emplacements []MissionStaticUnit `yaml:"emplacements"`
+	Title        string               `yaml:"title" validate:"required"`
+	Briefing     string               `yaml:"briefing" validate:"required"`
+	MapPath      string               `yaml:"map" validate:"required"`
+	MusicPath    string               `yaml:"music"`
+	DropZone     *DropZone            `yaml:"dropZone"`
+	Lighting     *MapLighting         `yaml:"lighting,omitempty"`
+	FloorBox     *GradientTexture     `yaml:"floorBox,omitempty"`
+	SkyBox       *GradientTexture     `yaml:"skyBox,omitempty"`
+	NavPoints    []*NavPoint          `yaml:"navPoints"`
+	Objectives   *MissionObjectives   `yaml:"objectives" validate:"required"`
+	Teams        map[int]*MissionTeam `yaml:"teams,omitempty"`
+	Mechs        []MissionUnit        `yaml:"mechs"`
+	Vehicles     []MissionUnit        `yaml:"vehicles"`
+	Infantry     []MissionUnit        `yaml:"infantry"`
+	VTOLs        []MissionFlyingUnit  `yaml:"vtols"`
+	Emplacements []MissionStaticUnit  `yaml:"emplacements"`
 
 	// AI Pathing is initialized after map is loaded
 	Pathing *Pathing `yaml:"-"`
@@ -131,6 +132,17 @@ type MissionNavDustoff struct {
 type MissionGuardArea struct {
 	Position [2]float64 `yaml:"position"`
 	Radius   float64    `yaml:"radius"`
+}
+
+type MissionTeam struct {
+	Camo string `yaml:"camo"`
+}
+
+func (m *Mission) TeamCamo(team int) string {
+	if missionTeam, ok := m.Teams[team]; ok && missionTeam != nil {
+		return missionTeam.Camo
+	}
+	return ""
 }
 
 type MissionUnitInterface interface {
