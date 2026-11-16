@@ -17,17 +17,15 @@ type InfantrySprite struct {
 }
 
 func NewInfantrySprite(
-	infantry *model.Infantry, scale float64, img *ebiten.Image,
+	infantry *model.Infantry, img *ebiten.Image, opts SpriteOptions,
 ) *InfantrySprite {
 	var p *Sprite
 	sheet := infantry.Resource.ImageSheet
 
 	if sheet == nil {
-		p = NewSprite(
-			infantry, scale, img,
-		)
+		p = NewSprite(infantry, img, opts)
 	} else {
-		p = NewAnimatedSprite(infantry, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(infantry, img, sheet.Columns, sheet.Rows, sheet.AnimationRate, opts)
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {

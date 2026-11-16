@@ -6,6 +6,8 @@ import (
 	"sort"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -96,53 +98,38 @@ func (s *Sprite) IsFocusable() bool {
 }
 
 func NewSprite(
-	modelEntity model.Entity, scale float64, img *ebiten.Image,
+	modelEntity model.Entity, img *ebiten.Image, opts SpriteOptions,
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
 		focusable: true,
-		scale:     scale,
+		scale:     opts.Scale,
 	}
 
 	s.w, s.h = img.Bounds().Dx(), img.Bounds().Dy()
 	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
 	s.lenTex = 1
 
-	return s
-}
-
-func NewSpriteFromSheet(
-	modelEntity model.Entity, scale float64, img *ebiten.Image,
-	columns, rows, spriteIndex int,
-) *Sprite {
-	s := &Sprite{
-		Entity:    modelEntity,
-		focusable: true,
-		scale:     scale,
+	if opts.MaskImage != "" {
+		// apply optional mask overlay to each texture
+		spriteMask := resources.GetCamoFromFile(opts.MaskImage)
+		for i := range s.lenTex {
+			texImg := effects.MaskImage(s.textures[i], spriteMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+			s.textures[i] = texImg
+		}
 	}
-
-	s.texNum = spriteIndex
-	s.columns, s.rows = columns, rows
-
-	// crop sheet by given number of columns and rows into a single dimension array
-	w, h := img.Bounds().Dx(), img.Bounds().Dy()
-	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
-	s.w, s.h = int(wFloat), int(hFloat)
-
-	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
-	s.lenTex = len(s.textures)
 
 	return s
 }
 
 func NewAnimatedSprite(
-	modelEntity model.Entity, scale float64, img *ebiten.Image,
-	columns, rows, animationRate int,
+	modelEntity model.Entity, img *ebiten.Image,
+	columns, rows, animationRate int, opts SpriteOptions,
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
 		focusable: true,
-		scale:     scale,
+		scale:     opts.Scale,
 	}
 
 	s.animationRate = animationRate
@@ -159,6 +146,15 @@ func NewAnimatedSprite(
 
 	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
 	s.lenTex = len(s.textures)
+
+	if opts.MaskImage != "" {
+		// apply optional mask overlay to each texture
+		spriteMask := resources.GetCamoFromFile(opts.MaskImage)
+		for i := range s.lenTex {
+			texImg := effects.MaskImage(s.textures[i], spriteMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+			s.textures[i] = texImg
+		}
+	}
 
 	return s
 }

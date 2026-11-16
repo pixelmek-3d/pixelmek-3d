@@ -63,8 +63,8 @@ func NewMechAnimationSheetFromImage(srcImage, camoMask *ebiten.Image) *MechSprit
 		cellRect := image.Rect(x, y, x+uWidth, y+uHeight)
 		cellImg := srcImage.SubImage(cellRect).(*ebiten.Image)
 
-		// apply optional camo overlay to individual image parts
 		if camoMask != nil {
+			// apply optional camo overlay to individual image parts
 			camoImg := effects.MaskImage(cellImg, camoMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
 			cellImg = camoImg
 		}

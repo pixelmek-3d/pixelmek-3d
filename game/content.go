@@ -72,8 +72,8 @@ func (g *Game) loadMapSprites() {
 
 			sprite := sprites.NewSprite(
 				model.BasicCollisionEntity(x, y, z, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight, hitPoints),
-				scale,
 				spriteImg,
+				sprites.SpriteOptions{Scale: scale},
 			)
 
 			g.sprites.AddMapSprite(sprite)

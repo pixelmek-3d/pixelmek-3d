@@ -129,8 +129,8 @@ func (c *ClutterHandler) Update(g *Game, forceUpdate bool) {
 						0,
 						raycaster.AnchorBottom,
 					),
-					clutterScale,
 					clutterImg,
+					sprites.SpriteOptions{Scale: clutterScale},
 				)
 
 				// store clutter sprites and which coordinate position id they are in

@@ -13,17 +13,15 @@ type EmplacementSprite struct {
 }
 
 func NewEmplacementSprite(
-	emplacement *model.Emplacement, scale float64, img *ebiten.Image,
+	emplacement *model.Emplacement, img *ebiten.Image, opts SpriteOptions,
 ) *EmplacementSprite {
 	var p *Sprite
 	sheet := emplacement.Resource.ImageSheet
 
 	if sheet == nil {
-		p = NewSprite(
-			emplacement, scale, img,
-		)
+		p = NewSprite(emplacement, img, opts)
 	} else {
-		p = NewAnimatedSprite(emplacement, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(emplacement, img, sheet.Columns, sheet.Rows, sheet.AnimationRate, opts)
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {

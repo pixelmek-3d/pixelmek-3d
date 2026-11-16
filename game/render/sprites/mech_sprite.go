@@ -43,8 +43,9 @@ func NewMechSprite(
 	// [full, torso, left arm, right arm, left leg, right leg]
 	mechAnimate := NewMechAnimationSheetFromImage(img, camoMask)
 	p := NewAnimatedSprite(
-		mech, opts.Scale, mechAnimate.sheet,
+		mech, mechAnimate.sheet,
 		mechAnimate.maxCols, mechAnimate.maxRows, 0,
+		SpriteOptions{Scale: opts.Scale}, // camo mask applied before animation, no need to apply again
 	)
 	s := &MechSprite{
 		Sprite:       p,

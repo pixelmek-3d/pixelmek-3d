@@ -16,7 +16,7 @@ func NewReticleLead(pos geom3d.Vector3) *ReticleLead {
 	leadImg := ebiten.NewImage(2, 2)
 	leadEntity := model.BasicVisualEntity(pos.X, pos.Y, pos.Z, raycaster.AnchorCenter)
 	r := &ReticleLead{
-		Sprite: NewSprite(leadEntity, 0.25, leadImg),
+		Sprite: NewSprite(leadEntity, leadImg, SpriteOptions{Scale: 0.25}),
 	}
 
 	// reticle lead cannot be focused upon by player reticle

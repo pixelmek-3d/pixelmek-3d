@@ -17,16 +17,14 @@ type VTOLSprite struct {
 }
 
 func NewVTOLSprite(
-	vtol *model.VTOL, scale float64, img *ebiten.Image,
+	vtol *model.VTOL, img *ebiten.Image, opts SpriteOptions,
 ) *VTOLSprite {
 	var p *Sprite
 	sheet := vtol.Resource.ImageSheet
 	if sheet == nil {
-		p = NewSprite(
-			vtol, scale, img,
-		)
+		p = NewSprite(vtol, img, opts)
 	} else {
-		p = NewAnimatedSprite(vtol, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(vtol, img, sheet.Columns, sheet.Rows, sheet.AnimationRate, opts)
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {

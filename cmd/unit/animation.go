@@ -76,11 +76,17 @@ func doUnitExport() {
 
 	var frames []*ebiten.Image
 	var bounds image.Rectangle
+	var msFrameDelay int = 200
 
 	opts := game.UnitSpriteOptions{Camo: camoMaskPath}
 
 	switch unitTypePrefix {
 	case model.MechResourceType:
+		if animationIndex >= int(sprites.NUM_MECH_ANIMATIONS) {
+			log.Errorf("input animation index (%d) is higher than the number of animations present (%d)", animationIndex, sprites.NUM_MECH_ANIMATIONS)
+			os.Exit(1)
+		}
+
 		r := &model.ModelMechResource{}
 		err = yaml.Unmarshal(unitYaml, r)
 		if err != nil {
@@ -91,10 +97,7 @@ func doUnitExport() {
 		sprite := g.CreateUnitSprite(unit, opts).(*sprites.MechSprite)
 		bounds = sprite.Texture().Bounds()
 
-		if animationIndex >= int(sprites.NUM_MECH_ANIMATIONS) {
-			log.Errorf("input animation index (%d) is higher than the number of animations present (%d)", animationIndex, sprites.NUM_MECH_ANIMATIONS)
-			os.Exit(1)
-		}
+		msFrameDelay = 20 // shorter frame delay for mech animations
 		sprite.SetMechAnimation(sprites.MechAnimationIndex(animationIndex), false)
 
 		// collect sprite animation frames
@@ -102,6 +105,24 @@ func doUnitExport() {
 			frames = append(frames, sprite.Texture())
 			sprite.Update(nil)
 		}
+
+	case model.VehicleResourceType:
+		r := &model.ModelVehicleResource{}
+		err = yaml.Unmarshal(unitYaml, r)
+		if err != nil {
+			log.Error("error loading unit resource", unitFile, err.Error())
+		}
+
+		unit := model.NewVehicle(r)
+		sprite := g.CreateUnitSprite(unit, opts).(*sprites.VehicleSprite)
+		bounds = sprite.Texture().Bounds()
+
+		// collect sprite animation frames
+		for sprite.LoopCounter() < 1 {
+			frames = append(frames, sprite.Texture())
+			sprite.Update(nil)
+		}
+
 	default:
 		log.Error("unit type not currently supported: ", unitTypePrefix)
 		os.Exit(1)
@@ -112,7 +133,7 @@ func doUnitExport() {
 		os.Exit(1)
 	}
 
-	err = render.SaveAnimation(frames, bounds, outImagePath)
+	err = render.SaveAnimation(frames, bounds, outImagePath, msFrameDelay)
 	if err != nil {
 		log.Error("error exporting unit animation: ", err)
 		os.Exit(1)
