@@ -14,6 +14,11 @@ objectives:
     - unit: "destroy_me_3"
     - unit: "destroy_me_4"
 navPoints: []
+teams:
+  0:
+    camo: "jade_falcon_turkina_keshik.png"
+  -1:
+    camo: "wolf_golden_keshik.png"
 mechs:
   - id: "destroy_me"
     unit: "jenner_iic"

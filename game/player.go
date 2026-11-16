@@ -265,7 +265,10 @@ func (g *Game) SetPlayerUnit(unit model.Unit) {
 		pH = g.player.Heading()
 	}
 
-	opts := UnitSpriteOptions{}
+	var opts UnitSpriteOptions
+	if g.mission != nil {
+		opts = UnitSpriteOptions{Camo: g.mission.TeamCamo(-1)}
+	}
 
 	switch u := unit.(type) {
 	case *model.Mech:
