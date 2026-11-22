@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 
@@ -82,6 +83,13 @@ func (s *InstantActionScene) Draw(screen *ebiten.Image) {
 func (s *InstantActionScene) back() {
 	g := s.Game
 
+	// check actions for current menu
+	currentMenu := s.getMenu()
+	switch currentMenu {
+	case s.mapSelect:
+		g.mission = nil
+	}
+
 	s.menuIndex -= 1
 
 	prevMenu := s.getMenu()
@@ -99,7 +107,38 @@ func (s *InstantActionScene) next() {
 
 	// check actions for current menu
 	currentMenu := s.getMenu()
-	if currentMenu == s.launchBriefing {
+	switch currentMenu {
+	case s.mapSelect:
+		opts := &InstantActionMissionOpts{enemies: make([]model.Unit, 0, 1)}
+
+		// set random camo selections
+		camoFiles, _ := model.ListCamoFilenames()
+		if len(camoFiles) > 0 {
+			var enemyCamo, friendlyCamo string
+			enemyCamo, camoFiles = common.PopRandom(camoFiles)
+			if len(camoFiles) > 0 {
+				friendlyCamo, _ = common.PopRandom(camoFiles)
+			}
+			opts.teams = map[int]*model.MissionTeam{
+				0:  {Camo: enemyCamo},
+				-1: {Camo: friendlyCamo},
+			}
+		}
+
+		if s.enemyUnitSelect.selectedUnit != nil {
+			// set enemy unit for mission spawning
+			opts.enemies = append(opts.enemies, s.enemyUnitSelect.selectedUnit)
+		}
+
+		mission, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, opts)
+		if err != nil {
+			log.Error("Error loading mission from map: ", s.mapSelect.selectedMap.Name)
+			log.Error(err)
+			exit(1)
+		}
+		g.mission = mission
+
+	case s.launchBriefing:
 		// launch game scene into map mission
 		if g.player == nil {
 			// pick player unit at random
@@ -112,7 +151,8 @@ func (s *InstantActionScene) next() {
 
 	// check actions for next menu
 	nextMenu := s.getMenu()
-	if nextMenu == s.launchBriefing {
+	switch nextMenu {
+	case s.launchBriefing:
 		// prepare briefing menu for display
 		if s.playerUnitSelect.selectedUnit == nil {
 			// set player unit nil to indicate randomized pick for launch briefing
@@ -121,19 +161,7 @@ func (s *InstantActionScene) next() {
 			g.SetPlayerUnit(s.playerUnitSelect.selectedUnit)
 		}
 
-		opts := &InstantActionMissionOpts{enemies: make([]model.Unit, 0, 1)}
-		if s.enemyUnitSelect.selectedUnit != nil {
-			// set enemy unit for mission spawning
-			opts.enemies = append(opts.enemies, s.enemyUnitSelect.selectedUnit)
-		}
-
-		mission, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, opts)
-		if err != nil {
-			log.Error("Error loading mission from map: ", s.mapSelect.selectedMap.Name)
-			log.Error(err)
-			exit(1)
-		}
-		s.launchBriefing.loadBriefing(mission)
+		s.launchBriefing.loadBriefing(g.mission)
 	}
 
 	if s.menuIndex < 0 {
