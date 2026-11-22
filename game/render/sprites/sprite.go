@@ -107,17 +107,16 @@ func NewSprite(
 	}
 
 	s.w, s.h = img.Bounds().Dx(), img.Bounds().Dy()
-	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
-	s.lenTex = 1
 
 	if opts.MaskImage != "" {
-		// apply optional mask overlay to each texture
+		// apply optional mask overlay to the image
 		spriteMask := resources.GetCamoFromFile(opts.MaskImage)
-		for i := range s.lenTex {
-			texImg := effects.MaskImage(s.textures[i], spriteMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
-			s.textures[i] = texImg
-		}
+		texImg := effects.MaskImage(img, spriteMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+		img = texImg
 	}
+
+	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
+	s.lenTex = 1
 
 	return s
 }
@@ -144,17 +143,26 @@ func NewAnimatedSprite(
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
 	s.w, s.h = int(wFloat), int(hFloat)
 
+	if opts.MaskImage != "" {
+		// apply optional mask overlay to each texture in the sheet
+		spriteMask := resources.GetCamoFromFile(opts.MaskImage)
+		spriteMaskSheet := ebiten.NewImage(w, h)
+
+		for col := range columns {
+			for row := range rows {
+				offX, offY := float64(col)*wFloat, float64(row)*hFloat
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(offX, offY)
+				spriteMaskSheet.DrawImage(spriteMask, op)
+			}
+		}
+
+		texImg := effects.MaskImage(img, spriteMaskSheet, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+		img = texImg
+	}
+
 	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
 	s.lenTex = len(s.textures)
-
-	if opts.MaskImage != "" {
-		// apply optional mask overlay to each texture
-		spriteMask := resources.GetCamoFromFile(opts.MaskImage)
-		for i := range s.lenTex {
-			texImg := effects.MaskImage(s.textures[i], spriteMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
-			s.textures[i] = texImg
-		}
-	}
 
 	return s
 }
