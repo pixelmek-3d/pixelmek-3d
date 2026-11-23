@@ -139,7 +139,7 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionVTOL := range g.mission.VTOLs {
-		modelVTOL, err := createMissionFlyingUnitModel[model.VTOL](g, missionVTOL)
+		modelVTOL, err := createMissionFlyingUnitModel(g, missionVTOL)
 		if err != nil {
 			log.Errorf("error creating mission VTOL: %v", err)
 			continue
@@ -150,12 +150,13 @@ func (g *Game) loadMissionSprites() {
 	}
 
 	for _, missionEmplacement := range g.mission.Emplacements {
-		modelEmplacement, err := createMissionStaticUnitModel[model.Emplacement](g, missionEmplacement)
+		modelEmplacement, err := createMissionStaticUnitModel(g, missionEmplacement)
 		if err != nil {
 			log.Errorf("error creating mission emplacement: %v", err)
 			continue
 		}
-		opts := UnitSpriteOptions{Camo: g.mission.TeamCamo(missionEmplacement.Team)}
+		// camo masking not supported for emplacements
+		opts := UnitSpriteOptions{}
 		emplacement := g.CreateUnitSprite(modelEmplacement, opts).(*sprites.EmplacementSprite)
 		g.sprites.AddEmplacementSprite(emplacement)
 	}

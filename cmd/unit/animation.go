@@ -123,6 +123,23 @@ func doUnitExport() {
 			sprite.Update(nil)
 		}
 
+	case model.VTOLResourceType:
+		r := &model.ModelVTOLResource{}
+		err = yaml.Unmarshal(unitYaml, r)
+		if err != nil {
+			log.Error("error loading unit resource", unitFile, err.Error())
+		}
+
+		unit := model.NewVTOL(r)
+		sprite := g.CreateUnitSprite(unit, opts).(*sprites.VTOLSprite)
+		bounds = sprite.Texture().Bounds()
+
+		// collect sprite animation frames
+		for sprite.LoopCounter() < 1 {
+			frames = append(frames, sprite.Texture())
+			sprite.Update(nil)
+		}
+
 	default:
 		log.Error("unit type not currently supported: ", unitTypePrefix)
 		os.Exit(1)
