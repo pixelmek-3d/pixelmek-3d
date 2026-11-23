@@ -111,17 +111,22 @@ func (s *InstantActionScene) next() {
 	case s.mapSelect:
 		opts := &InstantActionMissionOpts{enemies: make([]model.Unit, 0, 1)}
 
-		// set random camo selections
-		camoFiles, _ := model.ListCamoFilenames()
-		if len(camoFiles) > 0 {
-			var enemyCamo, friendlyCamo string
-			enemyCamo, camoFiles = common.PopRandom(camoFiles)
+		if g.mission != nil && len(g.mission.Teams) > 0 {
+			// set previously selected camo
+			opts.teams = g.mission.Teams
+		} else {
+			// set random camo selections
+			camoFiles, _ := model.ListCamoFilenames()
 			if len(camoFiles) > 0 {
-				friendlyCamo, _ = common.PopRandom(camoFiles)
-			}
-			opts.teams = map[int]*model.MissionTeam{
-				0:  {Camo: enemyCamo},
-				-1: {Camo: friendlyCamo},
+				var enemyCamo, friendlyCamo string
+				enemyCamo, camoFiles = common.PopRandom(camoFiles)
+				if len(camoFiles) > 0 {
+					friendlyCamo, _ = common.PopRandom(camoFiles)
+				}
+				opts.teams = map[int]*model.MissionTeam{
+					0:  {Camo: enemyCamo},
+					-1: {Camo: friendlyCamo},
+				}
 			}
 		}
 
