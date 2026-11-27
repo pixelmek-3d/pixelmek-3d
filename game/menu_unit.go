@@ -223,6 +223,9 @@ func unitMenuSelectionContainer(m *UnitMenu) widget.PreferredSizeLocateableWidge
 			chassisMap[chassis] = make([]model.Unit, 0, 4)
 		}
 		unit := game.createModelMechFromResource(unitResource)
+		if m.purpose == PlayerUnitMenu || m.purpose == FriendlyUnitMenu {
+			unit.SetTeam(-1)
+		}
 		chassisMap[chassis] = append(chassisMap[chassis], unit)
 	}
 
@@ -494,9 +497,14 @@ func createUnitCard(g *Game, res *uiResources, unit model.Unit, style UnitCardSt
 
 	// show unit image graphic
 	var sprite *sprites.Sprite
+	var opts UnitSpriteOptions
+	if g.mission != nil && unit != nil {
+		opts = UnitSpriteOptions{Camo: g.mission.TeamCamo(unit.Team())}
+	}
+
 	switch interfaceType := unit.(type) {
 	case *model.Mech:
-		mSprite := g.CreateUnitSprite(unit).(*sprites.MechSprite)
+		mSprite := g.CreateUnitSprite(unit, opts).(*sprites.MechSprite)
 		sprite = mSprite.Sprite
 
 		// TODO: create interface for Sprite like was done for Unit to make things better

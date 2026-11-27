@@ -30,6 +30,11 @@ navPoints:
     position: [50, 60]
   - name: "ByeBye"
     position: [50, 70]
+teams:
+  0:
+    camo: "jade_falcon_turkina_keshik.png"
+  -1:
+    camo: "wolf_golden_keshik.png"
 mechs:
   - id: "destroy_me"
     unit: "fire_moth_prime"

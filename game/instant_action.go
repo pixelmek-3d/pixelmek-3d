@@ -6,6 +6,7 @@ import (
 
 type InstantActionMissionOpts struct {
 	enemies []model.Unit
+	teams   map[int]*model.MissionTeam
 }
 
 func (g *Game) LoadInstantActionFromMapPath(mapPath string, opts *InstantActionMissionOpts) (*model.Mission, error) {
@@ -32,6 +33,7 @@ func initInstantActionMission(mission *model.Mission, opts *InstantActionMission
 	missionMap := mission.Map()
 	mission.Title = "Instant Action\n" + missionMap.Name
 	mission.Briefing = "Destroy never-ending waves of enemies."
+	mission.Teams = opts.teams
 
 	var enemies []model.Unit
 	if opts != nil {

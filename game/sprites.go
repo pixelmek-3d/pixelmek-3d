@@ -22,69 +22,89 @@ type proximityUnit struct {
 	distance float64
 }
 
-func (g *Game) CreateUnitSprite(unit model.Unit) raycaster.Sprite {
+type UnitSpriteOptions struct {
+	Camo string
+}
+
+func (g *Game) CreateUnitSprite(unit model.Unit, opts UnitSpriteOptions) raycaster.Sprite {
 	switch u := unit.(type) {
 	case *model.Mech:
 		uKey := u.Resource.File
+		if opts.Camo != "" {
+			// store camo as part of sprite template key for unique combination
+			uKey = fmt.Sprintf("%s[camo=%s]", uKey, opts.Camo)
+		}
 		unitSprite, found := g.sprites.MechSpriteTemplates[uKey]
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.MechResourceType, u.Resource.Image)
 			img := resources.GetSpriteFromFile(relPath)
 			scale := convertUnitHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
-			unitSprite = sprites.NewMechSprite(u, scale, img)
+			unitSprite = sprites.NewMechSprite(u, img, sprites.SpriteOptions{Scale: scale, MaskImage: opts.Camo})
 			g.sprites.MechSpriteTemplates[uKey] = unitSprite
 		}
 		return unitSprite.Clone(u)
 
 	case *model.Vehicle:
 		uKey := u.Resource.File
+		if opts.Camo != "" {
+			uKey = fmt.Sprintf("%s[camo=%s]", uKey, opts.Camo)
+		}
 		unitSprite, found := g.sprites.VehicleSpriteTemplates[uKey]
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, u.Resource.Image)
 			img := resources.GetSpriteFromFile(relPath)
 			scale := convertUnitHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
-			unitSprite = sprites.NewVehicleSprite(u, scale, img)
+			unitSprite = sprites.NewVehicleSprite(u, img, sprites.SpriteOptions{Scale: scale, MaskImage: opts.Camo})
 			g.sprites.VehicleSpriteTemplates[uKey] = unitSprite
 		}
 		return unitSprite.Clone(u)
 
 	case *model.VTOL:
 		uKey := u.Resource.File
+		if opts.Camo != "" {
+			uKey = fmt.Sprintf("%s[camo=%s]", uKey, opts.Camo)
+		}
 		unitSprite, found := g.sprites.VTOLSpriteTemplates[uKey]
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, u.Resource.Image)
 			img := resources.GetSpriteFromFile(relPath)
 			scale := convertUnitHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
-			unitSprite = sprites.NewVTOLSprite(u, scale, img)
+			unitSprite = sprites.NewVTOLSprite(u, img, sprites.SpriteOptions{Scale: scale, MaskImage: opts.Camo})
 			g.sprites.VTOLSpriteTemplates[uKey] = unitSprite
 		}
 		return unitSprite.Clone(u)
 
 	case *model.Infantry:
 		uKey := u.Resource.File
+		if opts.Camo != "" {
+			uKey = fmt.Sprintf("%s[camo=%s]", uKey, opts.Camo)
+		}
 		unitSprite, found := g.sprites.InfantrySpriteTemplates[uKey]
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, u.Resource.Image)
 			img := resources.GetSpriteFromFile(relPath)
 			scale := convertUnitHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
-			unitSprite = sprites.NewInfantrySprite(u, scale, img)
+			unitSprite = sprites.NewInfantrySprite(u, img, sprites.SpriteOptions{Scale: scale, MaskImage: opts.Camo})
 			g.sprites.InfantrySpriteTemplates[uKey] = unitSprite
 		}
 		return unitSprite.Clone(u)
 
 	case *model.Emplacement:
 		uKey := u.Resource.File
+		if opts.Camo != "" {
+			uKey = fmt.Sprintf("%s[camo=%s]", uKey, opts.Camo)
+		}
 		unitSprite, found := g.sprites.EmplacementSpriteTemplates[uKey]
 		if !found {
 			relPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, u.Resource.Image)
 			img := resources.GetSpriteFromFile(relPath)
 			scale := convertUnitHeightToScale(u.Resource.Height, img.Bounds().Dy(), u.Resource.HeightPxGap)
 
-			unitSprite = sprites.NewEmplacementSprite(u, scale, img)
+			unitSprite = sprites.NewEmplacementSprite(u, img, sprites.SpriteOptions{Scale: scale, MaskImage: opts.Camo})
 			g.sprites.EmplacementSpriteTemplates[uKey] = unitSprite
 		}
 		return unitSprite.Clone(u)

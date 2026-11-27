@@ -34,6 +34,11 @@ navPoints:
     position: [30, 20]
   - name: "Charlie"
     position: [60, 40]
+teams:
+  0:
+    camo: "jade_falcon_gamma.png"
+  -1:
+    camo: "wolf_beta_2nd_assault.png"
 mechs:
   - unit: "fire_moth_prime"
     position: [15, 55]

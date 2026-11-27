@@ -76,6 +76,13 @@ func (s *MissionScene) Draw(screen *ebiten.Image) {
 func (s *MissionScene) back() {
 	g := s.Game
 
+	// check actions for current menu
+	currentMenu := s.getMenu()
+	switch currentMenu {
+	case s.missionSelect:
+		g.mission = nil
+	}
+
 	s.menuIndex -= 1
 
 	prevMenu := s.getMenu()
@@ -93,14 +100,15 @@ func (s *MissionScene) next() {
 
 	// check actions for current menu
 	currentMenu := s.getMenu()
-	if currentMenu == s.launchBriefing {
+	switch currentMenu {
+	case s.missionSelect:
+		g.mission = s.missionSelect.selectedMission
+	case s.launchBriefing:
 		// launch game scene into mission
 		if g.player == nil {
 			// pick player unit at random
 			g.SetPlayerUnit(g.RandomUnit(model.MechResourceType))
 		}
-
-		g.mission = s.missionSelect.selectedMission
 		g.scene = NewGameScene(g)
 	}
 
@@ -108,7 +116,8 @@ func (s *MissionScene) next() {
 
 	// check actions for next menu
 	nextMenu := s.getMenu()
-	if nextMenu == s.launchBriefing {
+	switch nextMenu {
+	case s.launchBriefing:
 		// prepare briefing menu for display
 		if s.playerUnitSelect.selectedUnit == nil {
 			// set player unit nil to indicate randomized pick for launch briefing

@@ -31,7 +31,8 @@ func NewAnimatedEffect(
 	e := &EffectSprite{
 		Sprite: NewAnimatedSprite(
 			model.BasicVisualEntity(0, 0, 0, raycaster.AnchorCenter),
-			scale, img, r.ImageSheet.Columns, r.ImageSheet.Rows, r.ImageSheet.AnimationRate,
+			img, r.ImageSheet.Columns, r.ImageSheet.Rows, r.ImageSheet.AnimationRate,
+			SpriteOptions{Scale: scale},
 		),
 		LoopCount: loopCount,
 	}

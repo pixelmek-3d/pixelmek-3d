@@ -131,7 +131,7 @@ func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.
 
 		relPath := fmt.Sprintf("%s/%s", model.MechResourceType, r.Image)
 		img := resources.GetSpriteFromFile(relPath)
-		s = sprites.NewMechSprite(u, u.PixelScale(), img).Sprite
+		s = sprites.NewMechSprite(u, img, sprites.SpriteOptions{Scale: u.PixelScale()}).Sprite
 	case model.Vehicle:
 		r, err := m.res.GetVehicleResource(missionUnit.GetUnit())
 		if err != nil {
@@ -143,7 +143,7 @@ func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.
 
 		relPath := fmt.Sprintf("%s/%s", model.VehicleResourceType, r.Image)
 		img := resources.GetSpriteFromFile(relPath)
-		s = sprites.NewVehicleSprite(u, u.PixelScale(), img).Sprite
+		s = sprites.NewVehicleSprite(u, img, sprites.SpriteOptions{Scale: u.PixelScale()}).Sprite
 	case model.Infantry:
 		r, err := m.res.GetInfantryResource(missionUnit.GetUnit())
 		if err != nil {
@@ -155,7 +155,7 @@ func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.
 
 		relPath := fmt.Sprintf("%s/%s", model.InfantryResourceType, r.Image)
 		img := resources.GetSpriteFromFile(relPath)
-		s = sprites.NewInfantrySprite(u, u.PixelScale(), img).Sprite
+		s = sprites.NewInfantrySprite(u, img, sprites.SpriteOptions{Scale: u.PixelScale()}).Sprite
 	case model.VTOL:
 		r, err := m.res.GetVTOLResource(missionUnit.GetUnit())
 		if err != nil {
@@ -167,7 +167,7 @@ func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.
 
 		relPath := fmt.Sprintf("%s/%s", model.VTOLResourceType, r.Image)
 		img := resources.GetSpriteFromFile(relPath)
-		s = sprites.NewVTOLSprite(u, u.PixelScale(), img).Sprite
+		s = sprites.NewVTOLSprite(u, img, sprites.SpriteOptions{Scale: u.PixelScale()}).Sprite
 	case model.Emplacement:
 		r, err := m.res.GetEmplacementResource(missionUnit.GetUnit())
 		if err != nil {
@@ -179,7 +179,7 @@ func renderMissionUnit[T model.AnyUnitModel](m *missionImage, missionUnit model.
 
 		relPath := fmt.Sprintf("%s/%s", model.EmplacementResourceType, r.Image)
 		img := resources.GetSpriteFromFile(relPath)
-		s = sprites.NewEmplacementSprite(u, u.PixelScale(), img).Sprite
+		s = sprites.NewEmplacementSprite(u, img, sprites.SpriteOptions{Scale: u.PixelScale()}).Sprite
 	default:
 		return fmt.Errorf("mission unit model type not implemented: %T", t)
 	}

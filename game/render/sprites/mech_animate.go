@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
 )
 
 type MechAnimationIndex int
@@ -37,7 +38,7 @@ type mechAnimatePart struct {
 }
 
 // NewMechAnimationSheetFromImage creates a new image sheet with generated image frames for mech sprite animation
-func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
+func NewMechAnimationSheetFromImage(srcImage, camoMask *ebiten.Image) *MechSpriteAnimate {
 	// all mech sprite sheets have 6 columns of images in the sheet:
 	// [full, torso, left arm, right arm, left leg, right leg]
 	srcWidth, srcHeight := srcImage.Bounds().Dx(), srcImage.Bounds().Dy()
@@ -57,10 +58,17 @@ func NewMechAnimationSheetFromImage(srcImage *ebiten.Image) *MechSpriteAnimate {
 
 	// separate out each limb part from source image
 	srcParts := make([]*mechAnimatePart, int(NUM_MECH_PARTS))
-	for c := 0; c < int(NUM_MECH_PARTS); c++ {
+	for c := range int(NUM_MECH_PARTS) {
 		x, y := c*uWidth, 0
 		cellRect := image.Rect(x, y, x+uWidth, y+uHeight)
 		cellImg := srcImage.SubImage(cellRect).(*ebiten.Image)
+
+		if camoMask != nil {
+			// apply optional camo overlay to individual image parts
+			camoImg := effects.MaskImage(cellImg, camoMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+			cellImg = camoImg
+		}
+
 		srcParts[c] = &mechAnimatePart{image: cellImg, travelY: 0}
 	}
 

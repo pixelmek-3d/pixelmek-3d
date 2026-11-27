@@ -7,8 +7,11 @@ import (
 	"image/gif"
 	"image/png"
 	"os"
+	"path"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/setanarut/apng"
+	log "github.com/sirupsen/logrus"
 )
 
 func SaveImageAsPNG(img *ebiten.Image, filename string) error {
@@ -25,7 +28,18 @@ func SaveImageAsPNG(img *ebiten.Image, filename string) error {
 	return png.Encode(f, nrgba)
 }
 
-func SaveAnimatedGIF(imgs []*ebiten.Image, bounds image.Rectangle, filename string) error {
+func SaveAnimation(imgs []*ebiten.Image, bounds image.Rectangle, filename string, msDelay int) error {
+	extension := path.Ext(filename)
+	switch extension {
+	case ".apng", ".png":
+		return SaveAnimatedPNG(imgs, bounds, filename, msDelay)
+	default:
+		return SaveAnimatedGIF(imgs, bounds, filename, msDelay)
+	}
+}
+
+func SaveAnimatedGIF(imgs []*ebiten.Image, bounds image.Rectangle, filename string, msDelay int) error {
+	log.Debug("export as animated GIF...")
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -53,9 +67,8 @@ func SaveAnimatedGIF(imgs []*ebiten.Image, bounds image.Rectangle, filename stri
 		LoopCount: 0,
 	}
 
-	// Set delay for each frame (1/60s = approx 1.67 centiseconds, use 2 for delay value)
 	for i := range len(frames) {
-		gifOptions.Delay[i] = 2 // 2*1/100 second = 20ms delay per frame
+		gifOptions.Delay[i] = msDelay / 10 // 1 centisecond = 10 ms
 	}
 
 	err = gif.EncodeAll(f, &gifOptions)
@@ -63,4 +76,30 @@ func SaveAnimatedGIF(imgs []*ebiten.Image, bounds image.Rectangle, filename stri
 		return err
 	}
 	return nil
+}
+
+func SaveAnimatedPNG(imgs []*ebiten.Image, bounds image.Rectangle, filename string, msDelay int) error {
+	log.Debug("export as animated PNG...")
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	frames := make([]image.Image, len(imgs))
+	delays := make([]uint16, len(imgs))
+	frameBounds := image.Rect(0, 0, bounds.Dx(), bounds.Dy())
+
+	for i, img := range imgs {
+		frame := image.NewRGBA(frameBounds)
+		img.ReadPixels(frame.Pix)
+		frames[i] = frame
+		delays[i] = uint16(msDelay / 10) // 1 centisecond = 10 ms
+	}
+
+	return apng.EncodeAll(f, &apng.APNG{
+		Images:    frames,
+		Delays:    delays,
+		LoopCount: 0,
+	})
 }

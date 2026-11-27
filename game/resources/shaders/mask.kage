@@ -1,0 +1,22 @@
+//kage:unit pixels
+package main
+
+var TargetColor vec3
+var Threshold float
+var TintStrength float
+
+func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
+	base := imageSrc0At(texCoord)
+	overlay := imageSrc1At(texCoord)
+
+	var matches float
+	if base.a > 0.0 && length(base.rgb/base.a-TargetColor) <= Threshold {
+		matches = 1.0
+		sourceColor := base.rgb / base.a
+		overlay.rgb = mix(overlay.rgb, sourceColor*overlay.a, TintStrength)
+	}
+
+	overlay *= matches
+	result := overlay + base*(1.0-overlay.a)
+	return result * color
+}

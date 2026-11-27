@@ -24,7 +24,7 @@ func NewNavSprite(
 	navPos := navPoint.Pos()
 	navEntity := model.BasicVisualEntity(navPos.X, navPos.Y, 0.5, raycaster.AnchorCenter)
 	n := &NavSprite{
-		Sprite:   NewSprite(navEntity, scale, navPoint.Image()),
+		Sprite:   NewSprite(navEntity, navPoint.Image(), SpriteOptions{Scale: scale}),
 		NavPoint: navPoint,
 	}
 

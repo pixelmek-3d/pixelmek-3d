@@ -17,17 +17,15 @@ type VehicleSprite struct {
 }
 
 func NewVehicleSprite(
-	vehicle *model.Vehicle, scale float64, img *ebiten.Image,
+	vehicle *model.Vehicle, img *ebiten.Image, opts SpriteOptions,
 ) *VehicleSprite {
 	var p *Sprite
 	sheet := vehicle.Resource.ImageSheet
 
 	if sheet == nil {
-		p = NewSprite(
-			vehicle, scale, img,
-		)
+		p = NewSprite(vehicle, img, opts)
 	} else {
-		p = NewAnimatedSprite(vehicle, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(vehicle, img, sheet.Columns, sheet.Rows, sheet.AnimationRate, opts)
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {

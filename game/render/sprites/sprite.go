@@ -6,6 +6,8 @@ import (
 	"sort"
 
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render/effects"
+	"github.com/pixelmek-3d/pixelmek-3d/game/resources"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/harbdog/raycaster-go"
@@ -36,6 +38,11 @@ type Sprite struct {
 	texRects          []image.Rectangle
 	textures          []*ebiten.Image
 	screenRect        *image.Rectangle
+}
+
+type SpriteOptions struct {
+	Scale     float64
+	MaskImage string
 }
 
 type facingAngleOverride struct {
@@ -91,53 +98,37 @@ func (s *Sprite) IsFocusable() bool {
 }
 
 func NewSprite(
-	modelEntity model.Entity, scale float64, img *ebiten.Image,
+	modelEntity model.Entity, img *ebiten.Image, opts SpriteOptions,
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
 		focusable: true,
-		scale:     scale,
+		scale:     opts.Scale,
 	}
 
 	s.w, s.h = img.Bounds().Dx(), img.Bounds().Dy()
+
+	if opts.MaskImage != "" {
+		// apply optional mask overlay to the image
+		spriteMask := resources.GetCamoFromFile(opts.MaskImage)
+		texImg := effects.MaskImage(img, spriteMask, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+		img = texImg
+	}
+
 	s.textures, s.texRects = GetSpriteSheetSlices(img, 1, 1)
 	s.lenTex = 1
 
 	return s
 }
 
-func NewSpriteFromSheet(
-	modelEntity model.Entity, scale float64, img *ebiten.Image,
-	columns, rows, spriteIndex int,
-) *Sprite {
-	s := &Sprite{
-		Entity:    modelEntity,
-		focusable: true,
-		scale:     scale,
-	}
-
-	s.texNum = spriteIndex
-	s.columns, s.rows = columns, rows
-
-	// crop sheet by given number of columns and rows into a single dimension array
-	w, h := img.Bounds().Dx(), img.Bounds().Dy()
-	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
-	s.w, s.h = int(wFloat), int(hFloat)
-
-	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
-	s.lenTex = len(s.textures)
-
-	return s
-}
-
 func NewAnimatedSprite(
-	modelEntity model.Entity, scale float64, img *ebiten.Image,
-	columns, rows, animationRate int,
+	modelEntity model.Entity, img *ebiten.Image,
+	columns, rows, animationRate int, opts SpriteOptions,
 ) *Sprite {
 	s := &Sprite{
 		Entity:    modelEntity,
 		focusable: true,
-		scale:     scale,
+		scale:     opts.Scale,
 	}
 
 	s.animationRate = animationRate
@@ -151,6 +142,24 @@ func NewAnimatedSprite(
 	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 	wFloat, hFloat := float64(w)/float64(columns), float64(h)/float64(rows)
 	s.w, s.h = int(wFloat), int(hFloat)
+
+	if opts.MaskImage != "" {
+		// apply optional mask overlay to each texture in the sheet
+		spriteMask := resources.GetCamoFromFile(opts.MaskImage)
+		spriteMaskSheet := ebiten.NewImage(w, h)
+
+		for col := range columns {
+			for row := range rows {
+				offX, offY := float64(col)*wFloat, float64(row)*hFloat
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(offX, offY)
+				spriteMaskSheet.DrawImage(spriteMask, op)
+			}
+		}
+
+		texImg := effects.MaskImage(img, spriteMaskSheet, [3]float32{1.0, 1.0, 1.0}, 1.0, 0.33)
+		img = texImg
+	}
 
 	s.textures, s.texRects = GetSpriteSheetSlices(img, columns, rows)
 	s.lenTex = len(s.textures)

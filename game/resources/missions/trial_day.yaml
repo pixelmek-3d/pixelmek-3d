@@ -18,6 +18,11 @@ navPoints: # https://en.wikipedia.org/wiki/NATO_phonetic_alphabet
     position: [60, 50]
   - name: "Charlie"
     position: [60, 10]
+teams:
+  0:
+    camo: "jade_falcon_gamma.png"
+  -1:
+    camo: "wolf_beta_2nd_assault.png"
 mechs:
   # - unit: "jenner_iic"
   #   position: [80, 20]

@@ -26,11 +26,9 @@ func NewAnimatedProjectile(
 	sheet := projectile.Resource.ImageSheet
 
 	if sheet == nil {
-		p = NewSprite(
-			projectile, scale, img,
-		)
+		p = NewSprite(projectile, img, SpriteOptions{Scale: scale})
 	} else {
-		p = NewAnimatedSprite(projectile, scale, img, sheet.Columns, sheet.Rows, sheet.AnimationRate)
+		p = NewAnimatedSprite(projectile, img, sheet.Columns, sheet.Rows, sheet.AnimationRate, SpriteOptions{Scale: scale})
 		if len(sheet.AngleFacingRow) > 0 {
 			facingMap := make(map[float64]int, len(sheet.AngleFacingRow))
 			for degrees, index := range sheet.AngleFacingRow {

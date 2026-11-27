@@ -28,6 +28,11 @@ navPoints:
     position: [25, 25]
   - name: "Zulu"
     position: [75, 75]
+teams:
+  0:
+    camo: "jade_falcon_gamma.png"
+  -1:
+    camo: "wolf_beta_2nd_assault.png"
 mechs:
   - unit: "warhawk_prime"
     position: [13, 14]

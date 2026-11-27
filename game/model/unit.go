@@ -226,6 +226,23 @@ func ListUnitFilenames() ([]string, error) {
 	return unitFilenames, nil
 }
 
+func ListCamoFilenames() ([]string, error) {
+	camoFilenames := make([]string, 0, 64)
+	camoFiles, err := resources.ReadDir("textures/camo", true)
+	if err != nil {
+		return camoFilenames, err
+	}
+
+	for _, f := range camoFiles {
+		if f.IsDir() {
+			continue
+		}
+		camoFilenames = append(camoFilenames, f.Name())
+	}
+
+	return camoFilenames, nil
+}
+
 func EntityUnit(entity Entity) Unit {
 	if unit, ok := entity.(Unit); ok {
 		return unit

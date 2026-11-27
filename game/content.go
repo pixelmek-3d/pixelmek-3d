@@ -72,8 +72,8 @@ func (g *Game) loadMapSprites() {
 
 			sprite := sprites.NewSprite(
 				model.BasicCollisionEntity(x, y, z, s.Anchor.SpriteAnchor, collisionRadius, collisionHeight, hitPoints),
-				scale,
 				spriteImg,
+				sprites.SpriteOptions{Scale: scale},
 			)
 
 			g.sprites.AddMapSprite(sprite)
@@ -111,7 +111,8 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission mech: %v", err)
 			continue
 		}
-		mech := g.CreateUnitSprite(modelMech).(*sprites.MechSprite)
+		opts := UnitSpriteOptions{Camo: g.mission.TeamCamo(missionMech.Team)}
+		mech := g.CreateUnitSprite(modelMech, opts).(*sprites.MechSprite)
 		g.sprites.AddMechSprite(mech)
 	}
 
@@ -121,7 +122,8 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission vehicle: %v", err)
 			continue
 		}
-		vehicle := g.CreateUnitSprite(modelVehicle).(*sprites.VehicleSprite)
+		opts := UnitSpriteOptions{Camo: g.mission.TeamCamo(missionVehicle.Team)}
+		vehicle := g.CreateUnitSprite(modelVehicle, opts).(*sprites.VehicleSprite)
 		g.sprites.AddVehicleSprite(vehicle)
 	}
 
@@ -131,27 +133,31 @@ func (g *Game) loadMissionSprites() {
 			log.Errorf("error creating mission infantry: %v", err)
 			continue
 		}
-		infantry := g.CreateUnitSprite(modelInfantry).(*sprites.InfantrySprite)
+		opts := UnitSpriteOptions{Camo: g.mission.TeamCamo(missionInfantry.Team)}
+		infantry := g.CreateUnitSprite(modelInfantry, opts).(*sprites.InfantrySprite)
 		g.sprites.AddInfantrySprite(infantry)
 	}
 
 	for _, missionVTOL := range g.mission.VTOLs {
-		modelVTOL, err := createMissionFlyingUnitModel[model.VTOL](g, missionVTOL)
+		modelVTOL, err := createMissionFlyingUnitModel(g, missionVTOL)
 		if err != nil {
 			log.Errorf("error creating mission VTOL: %v", err)
 			continue
 		}
-		vtol := g.CreateUnitSprite(modelVTOL).(*sprites.VTOLSprite)
+		opts := UnitSpriteOptions{Camo: g.mission.TeamCamo(missionVTOL.Team)}
+		vtol := g.CreateUnitSprite(modelVTOL, opts).(*sprites.VTOLSprite)
 		g.sprites.AddVTOLSprite(vtol)
 	}
 
 	for _, missionEmplacement := range g.mission.Emplacements {
-		modelEmplacement, err := createMissionStaticUnitModel[model.Emplacement](g, missionEmplacement)
+		modelEmplacement, err := createMissionStaticUnitModel(g, missionEmplacement)
 		if err != nil {
 			log.Errorf("error creating mission emplacement: %v", err)
 			continue
 		}
-		emplacement := g.CreateUnitSprite(modelEmplacement).(*sprites.EmplacementSprite)
+		// camo masking not supported for emplacements
+		opts := UnitSpriteOptions{}
+		emplacement := g.CreateUnitSprite(modelEmplacement, opts).(*sprites.EmplacementSprite)
 		g.sprites.AddEmplacementSprite(emplacement)
 	}
 }
