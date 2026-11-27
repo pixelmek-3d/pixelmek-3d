@@ -88,7 +88,8 @@ type Game struct {
 	renderScreen  *ebiten.Image
 	overlayScreen *ebiten.Image
 
-	crtShader bool
+	crtShader     bool
+	renderCockpit bool
 
 	mouseMode      MouseMode
 	mouseX, mouseY int

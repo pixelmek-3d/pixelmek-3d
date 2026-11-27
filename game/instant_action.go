@@ -33,10 +33,12 @@ func initInstantActionMission(mission *model.Mission, opts *InstantActionMission
 	missionMap := mission.Map()
 	mission.Title = "Instant Action\n" + missionMap.Name
 	mission.Briefing = "Destroy never-ending waves of enemies."
-	mission.Teams = opts.teams
 
 	var enemies []model.Unit
+
 	if opts != nil {
+		// load mission options
+		mission.Teams = opts.teams
 		enemies = opts.enemies
 	}
 

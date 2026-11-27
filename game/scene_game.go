@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render/transitions"
 )
 
@@ -176,8 +177,13 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 		g.renderScreen.DrawImage(g.rayScreen, rayOp)
 	}
 
+	// draw cockpit on render scene
+	if g.renderCockpit && g.player.ejectionPod == nil {
+		render.DrawCockpit(g.renderScreen, render.DefaultCockpit)
+	}
+
 	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
-		// use CRT shader over raycasted scene when in ejection pod
+		// use CRT shader over raycasted scene
 		showCurve := true
 		crtShader.DrawWithOptions(g.overlayScreen, g.renderScreen, showCurve)
 	} else {
