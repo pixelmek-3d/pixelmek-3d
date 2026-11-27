@@ -24,10 +24,14 @@ var (
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			mapPath = args[0]
+			g := game.NewGame()
+
+			// set random camo selections
+			opts := &game.InstantActionMissionOpts{}
+			game.LoadInstantActionRandomCamo(opts)
 
 			// load the map path specified
-			g := game.NewGame()
-			_, err := g.LoadInstantActionFromMapPath(mapPath, nil)
+			_, err := g.LoadInstantActionFromMapPath(mapPath, opts)
 			if err != nil {
 				log.Error("Error loading map file: ", mapPath)
 				log.Error(err)

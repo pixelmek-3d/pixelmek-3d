@@ -2,7 +2,6 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 	"github.com/pixelmek-3d/pixelmek-3d/game/render"
 
@@ -113,21 +112,10 @@ func (s *InstantActionScene) next() {
 	case s.mapSelect:
 		if g.mission != nil && len(g.mission.Teams) > 0 {
 			// set previously selected camo
-			s.missionOpts.teams = g.mission.Teams
-		} else if len(s.missionOpts.teams) == 0 {
+			s.missionOpts.Teams = g.mission.Teams
+		} else if len(s.missionOpts.Teams) == 0 {
 			// set random camo selections
-			camoFiles, _ := model.ListCamoFilenames()
-			if len(camoFiles) > 0 {
-				var enemyCamo, friendlyCamo string
-				enemyCamo, camoFiles = common.PopRandom(camoFiles)
-				if len(camoFiles) > 0 {
-					friendlyCamo, _ = common.PopRandom(camoFiles)
-				}
-				s.missionOpts.teams = map[int]*model.MissionTeam{
-					0:  {Camo: enemyCamo},
-					-1: {Camo: friendlyCamo},
-				}
-			}
+			LoadInstantActionRandomCamo(s.missionOpts)
 		}
 
 		_, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, s.missionOpts)
@@ -140,7 +128,7 @@ func (s *InstantActionScene) next() {
 	case s.enemyUnitSelect:
 		if s.enemyUnitSelect.selectedUnit != nil {
 			// set enemy unit for mission spawning
-			s.missionOpts.enemies = []model.Unit{s.enemyUnitSelect.selectedUnit}
+			s.missionOpts.Enemies = []model.Unit{s.enemyUnitSelect.selectedUnit}
 		}
 
 	case s.launchBriefing:
