@@ -12,6 +12,7 @@ import (
 type InstantActionScene struct {
 	Game             *Game
 	mapSelect        *MapMenu
+	missionOpts      *InstantActionMissionOpts
 	playerUnitSelect *UnitMenu
 	enemyUnitSelect  *UnitMenu
 	launchBriefing   *LaunchMenu
@@ -29,6 +30,7 @@ func NewInstantActionScene(g *Game) Scene {
 	scene := &InstantActionScene{
 		Game:             g,
 		mapSelect:        mapSelect,
+		missionOpts:      &InstantActionMissionOpts{},
 		playerUnitSelect: unitSelect,
 		enemyUnitSelect:  enemySelect,
 		launchBriefing:   launchBriefing,
@@ -109,12 +111,10 @@ func (s *InstantActionScene) next() {
 	currentMenu := s.getMenu()
 	switch currentMenu {
 	case s.mapSelect:
-		opts := &InstantActionMissionOpts{enemies: make([]model.Unit, 0, 1)}
-
 		if g.mission != nil && len(g.mission.Teams) > 0 {
 			// set previously selected camo
-			opts.teams = g.mission.Teams
-		} else {
+			s.missionOpts.teams = g.mission.Teams
+		} else if len(s.missionOpts.teams) == 0 {
 			// set random camo selections
 			camoFiles, _ := model.ListCamoFilenames()
 			if len(camoFiles) > 0 {
@@ -123,25 +123,25 @@ func (s *InstantActionScene) next() {
 				if len(camoFiles) > 0 {
 					friendlyCamo, _ = common.PopRandom(camoFiles)
 				}
-				opts.teams = map[int]*model.MissionTeam{
+				s.missionOpts.teams = map[int]*model.MissionTeam{
 					0:  {Camo: enemyCamo},
 					-1: {Camo: friendlyCamo},
 				}
 			}
 		}
 
-		if s.enemyUnitSelect.selectedUnit != nil {
-			// set enemy unit for mission spawning
-			opts.enemies = append(opts.enemies, s.enemyUnitSelect.selectedUnit)
-		}
-
-		mission, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, opts)
+		_, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, s.missionOpts)
 		if err != nil {
 			log.Error("Error loading mission from map: ", s.mapSelect.selectedMap.Name)
 			log.Error(err)
 			exit(1)
 		}
-		g.mission = mission
+
+	case s.enemyUnitSelect:
+		if s.enemyUnitSelect.selectedUnit != nil {
+			// set enemy unit for mission spawning
+			s.missionOpts.enemies = []model.Unit{s.enemyUnitSelect.selectedUnit}
+		}
 
 	case s.launchBriefing:
 		// launch game scene into map mission
@@ -166,6 +166,13 @@ func (s *InstantActionScene) next() {
 			g.SetPlayerUnit(s.playerUnitSelect.selectedUnit)
 		}
 
+		// load mission from map again to refresh changes from previous menus
+		_, err := g.LoadInstantActionFromMap(s.mapSelect.selectedMap, s.missionOpts)
+		if err != nil {
+			log.Error("Error loading mission from map: ", s.mapSelect.selectedMap.Name)
+			log.Error(err)
+			exit(1)
+		}
 		s.launchBriefing.loadBriefing(g.mission)
 	}
 
