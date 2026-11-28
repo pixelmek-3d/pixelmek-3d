@@ -87,24 +87,26 @@ func init() {
 }
 
 // converts all vector paths into path objects that ebitengine can render combined by color
-func (c Cockpit) getRenderPaths() map[color.Color]*vector.Path {
+func (c Cockpit) getRenderPaths(geom ebiten.GeoM) map[color.Color]*vector.Path {
 	renderPaths := make(map[color.Color]*vector.Path, len(c.vectorPaths))
 	for _, cvp := range c.vectorPaths {
 		if _, exists := renderPaths[cvp.Color]; !exists {
 			renderPaths[cvp.Color] = &vector.Path{}
 		}
 		path := renderPaths[cvp.Color]
-		path.AddPath(cvp.GetRenderPath(), &vector.AddPathOptions{})
+		path.AddPath(cvp.GetRenderPath(), &vector.AddPathOptions{GeoM: geom})
 	}
 	return renderPaths
 }
 
-func DrawCockpit(screen *ebiten.Image, cockpitVectors Cockpit) {
-	//w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
+func DrawCockpit(screen *ebiten.Image, cockpit Cockpit) {
+	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
 
-	// TODO: scale from 1024x768 default vector bounds to actual resolution
+	// scale from given vector bounds to actual resolution
+	geom := ebiten.GeoM{}
+	geom.Scale(float64(w)/float64(cockpit.vectorBounds.Dx()), float64(h)/float64(cockpit.vectorBounds.Dy()))
 
-	renderPaths := cockpitVectors.getRenderPaths()
+	renderPaths := cockpit.getRenderPaths(geom)
 	for clr, path := range renderPaths {
 		drawVectorPath(screen, path, clr)
 	}
