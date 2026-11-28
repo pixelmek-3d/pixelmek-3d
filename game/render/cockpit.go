@@ -6,7 +6,10 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/harbdog/raycaster-go/geom"
 )
+
+const cockpitScale float64 = 1.2
 
 var DefaultCockpit Cockpit
 
@@ -91,14 +94,14 @@ func init() {
 }
 
 // converts all vector paths into path objects that ebitengine can render combined by color
-func (c Cockpit) getRenderPaths(geom ebiten.GeoM) map[color.Color]*vector.Path {
+func (c Cockpit) getRenderPaths(geoM ebiten.GeoM) map[color.Color]*vector.Path {
 	renderPaths := make(map[color.Color]*vector.Path, len(c.vectorPaths))
 	for _, cvp := range c.vectorPaths {
 		if _, exists := renderPaths[cvp.Color]; !exists {
 			renderPaths[cvp.Color] = &vector.Path{}
 		}
 		path := renderPaths[cvp.Color]
-		path.AddPath(cvp.GetRenderPath(), &vector.AddPathOptions{GeoM: geom})
+		path.AddPath(cvp.GetRenderPath(), &vector.AddPathOptions{GeoM: geoM})
 	}
 	return renderPaths
 }
@@ -107,16 +110,20 @@ func DrawCockpit(screen *ebiten.Image, cockpit Cockpit, opts CockpitRenderOption
 	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
 
 	// scale from given vector bounds to actual resolution
-	geom := ebiten.GeoM{}
-	geom.Scale(float64(w)/float64(cockpit.vectorBounds.Dx()), float64(h)/float64(cockpit.vectorBounds.Dy()))
+	geoM := ebiten.GeoM{}
+	geoM.Scale(cockpitScale*float64(w)/float64(cockpit.vectorBounds.Dx()), cockpitScale*float64(h)/float64(cockpit.vectorBounds.Dy()))
+
+	// translate to center since cockpit is overscaled to allow for movement without ending before screen edges
+	maxOffX, maxOffY := float64(w)*(cockpitScale-1)/2, float64(h)*(cockpitScale-1)/2
+	geoM.Translate(-maxOffX, -maxOffY)
 
 	if opts.StrideZ != 0 {
-		// apply stride offsets to move cockpit around
-		strideY := opts.StrideZ * float64(h)
-		geom.Translate(0, -strideY)
+		// apply stride offsets to move cockpit around, clamp to max offsets to avoid ending before screen edges
+		strideY := geom.Clamp(opts.StrideZ*float64(h), -maxOffY, maxOffY)
+		geoM.Translate(0, -strideY)
 	}
 
-	renderPaths := cockpit.getRenderPaths(geom)
+	renderPaths := cockpit.getRenderPaths(geoM)
 	for clr, path := range renderPaths {
 		drawVectorPath(screen, path, clr)
 	}
