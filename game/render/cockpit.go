@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/harbdog/raycaster-go/geom"
+	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
 const cockpitScale float64 = 1.2
@@ -19,7 +20,8 @@ type Cockpit struct {
 }
 
 type CockpitRenderOptions struct {
-	StrideZ float64
+	StrideZ        float64
+	StrideStompDir model.StrideStomp
 }
 
 func init() {
@@ -120,7 +122,14 @@ func DrawCockpit(screen *ebiten.Image, cockpit Cockpit, opts CockpitRenderOption
 	if opts.StrideZ != 0 {
 		// apply stride offsets to move cockpit around, clamp to max offsets to avoid ending before screen edges
 		strideY := geom.Clamp(opts.StrideZ*float64(h), -maxOffY, maxOffY)
-		geoM.Translate(0, -strideY)
+		var strideX float64
+		switch opts.StrideStompDir {
+		case model.StrideStompLeft:
+			strideX = strideY / 2
+		case model.StrideStompRight:
+			strideX = -strideY / 2
+		}
+		geoM.Translate(strideX, -strideY)
 	}
 
 	renderPaths := cockpit.getRenderPaths(geoM)
