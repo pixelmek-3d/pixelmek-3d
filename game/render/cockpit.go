@@ -15,6 +15,10 @@ type Cockpit struct {
 	vectorPaths  []VectorPath
 }
 
+type CockpitRenderOptions struct {
+	StrideZ float64
+}
+
 func init() {
 	DefaultCockpit = Cockpit{
 		vectorBounds: image.Rect(0, 0, 1024, 768),
@@ -99,12 +103,18 @@ func (c Cockpit) getRenderPaths(geom ebiten.GeoM) map[color.Color]*vector.Path {
 	return renderPaths
 }
 
-func DrawCockpit(screen *ebiten.Image, cockpit Cockpit) {
+func DrawCockpit(screen *ebiten.Image, cockpit Cockpit, opts CockpitRenderOptions) {
 	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
 
 	// scale from given vector bounds to actual resolution
 	geom := ebiten.GeoM{}
 	geom.Scale(float64(w)/float64(cockpit.vectorBounds.Dx()), float64(h)/float64(cockpit.vectorBounds.Dy()))
+
+	if opts.StrideZ != 0 {
+		// apply stride offsets to move cockpit around
+		strideY := opts.StrideZ * float64(h)
+		geom.Translate(0, -strideY)
+	}
 
 	renderPaths := cockpit.getRenderPaths(geom)
 	for clr, path := range renderPaths {

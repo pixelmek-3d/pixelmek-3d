@@ -453,13 +453,13 @@ func (g *Game) updatePlayer() {
 	if g.player.strideStomp && !g.player.JumpJetsActive() {
 		// make stompy sound
 		switch g.player.strideStompDir {
-		case StrideStompLeft:
+		case model.StrideStompLeft:
 			stompy := g.audio.sfx.mainSources[AUDIO_STOMP_LEFT]
 			stompy.Play()
-		case StrideStompRight:
+		case model.StrideStompRight:
 			stompy := g.audio.sfx.mainSources[AUDIO_STOMP_RIGHT]
 			stompy.Play()
-		case StrideStompBoth:
+		case model.StrideStompBoth:
 			lStompy := g.audio.sfx.mainSources[AUDIO_STOMP_LEFT]
 			rStompy := g.audio.sfx.mainSources[AUDIO_STOMP_RIGHT]
 			lStompy.Play()

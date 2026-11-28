@@ -179,7 +179,8 @@ func (s *GameScene) Draw(screen *ebiten.Image) {
 
 	// draw cockpit on render scene
 	if g.renderCockpit && g.player.ejectionPod == nil {
-		render.DrawCockpit(g.renderScreen, render.DefaultCockpit)
+		opts := render.CockpitRenderOptions{StrideZ: g.player.strideZ}
+		render.DrawCockpit(g.renderScreen, render.DefaultCockpit, opts)
 	}
 
 	if g.crtShader || g.lightAmpEngaged || g.player.ejectionPod != nil {
