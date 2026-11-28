@@ -1,12 +1,13 @@
 package game
 
 import (
+	"github.com/pixelmek-3d/pixelmek-3d/game/common"
 	"github.com/pixelmek-3d/pixelmek-3d/game/model"
 )
 
 type InstantActionMissionOpts struct {
-	enemies []model.Unit
-	teams   map[int]*model.MissionTeam
+	Enemies []model.Unit
+	Teams   map[int]*model.MissionTeam
 }
 
 func (g *Game) LoadInstantActionFromMapPath(mapPath string, opts *InstantActionMissionOpts) (*model.Mission, error) {
@@ -29,15 +30,32 @@ func (g *Game) LoadInstantActionFromMap(missionMap *model.Map, opts *InstantActi
 	return mission, nil
 }
 
+func LoadInstantActionRandomCamo(opts *InstantActionMissionOpts) {
+	camoFiles, _ := model.ListCamoFilenames()
+	if len(camoFiles) > 0 {
+		var enemyCamo, friendlyCamo string
+		enemyCamo, camoFiles = common.PopRandom(camoFiles)
+		if len(camoFiles) > 0 {
+			friendlyCamo, _ = common.PopRandom(camoFiles)
+		}
+		opts.Teams = map[int]*model.MissionTeam{
+			0:  {Camo: enemyCamo},
+			-1: {Camo: friendlyCamo},
+		}
+	}
+}
+
 func initInstantActionMission(mission *model.Mission, opts *InstantActionMissionOpts) {
 	missionMap := mission.Map()
 	mission.Title = "Instant Action\n" + missionMap.Name
 	mission.Briefing = "Destroy never-ending waves of enemies."
-	mission.Teams = opts.teams
 
 	var enemies []model.Unit
+
 	if opts != nil {
-		enemies = opts.enemies
+		// load mission options
+		mission.Teams = opts.Teams
+		enemies = opts.Enemies
 	}
 
 	// initialize enemy spawns

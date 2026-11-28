@@ -39,6 +39,21 @@ type Mech struct {
 	PowerOnTimer  int
 }
 
+type StrideDirection uint
+
+const (
+	StrideUp StrideDirection = iota
+	StrideDown
+)
+
+type StrideStomp int
+
+const (
+	StrideStompLeft  StrideStomp = -1
+	StrideStompRight StrideStomp = 1
+	StrideStompBoth  StrideStomp = 0
+)
+
 func NewMech(r *ModelMechResource) *Mech {
 	m := &Mech{
 		Resource: r,

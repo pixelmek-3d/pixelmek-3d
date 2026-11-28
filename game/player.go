@@ -12,29 +12,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type StrideDirection uint
-
-const (
-	StrideUp StrideDirection = iota
-	StrideDown
-)
-
-const (
-	StrideStompLeft  = -1
-	StrideStompRight = 1
-	StrideStompBoth  = 0
-)
-
 type Player struct {
 	model.Unit
 	sprite            *sprites.Sprite
 	cameraAngle       float64
 	cameraPitch       float64
 	cameraZ           float64
-	strideDir         StrideDirection
+	strideDir         model.StrideDirection
 	strideZ           float64
 	strideStomp       bool
-	strideStompDir    int
+	strideStompDir    model.StrideStomp
 	moved             bool
 	convergenceSprite *sprites.Sprite
 	weaponGroups      [][]model.Weapon
@@ -436,15 +423,15 @@ func (p *Player) Update() bool {
 		if posZ > 0 {
 			if p.JumpJetsActive() {
 				// jump jets on, settle view down to 0
-				p.strideDir = StrideDown
+				p.strideDir = model.StrideDown
 			} else {
 				// jump jets off, raise view due so when it hits ground gets effect going back to 0
-				p.strideDir = StrideUp
+				p.strideDir = model.StrideUp
 			}
 		} else {
 
 			if velocity == 0 {
-				p.strideDir = StrideDown
+				p.strideDir = model.StrideDown
 			} else {
 				// cap stride height based on current velocity
 				maxStrideHeight = (maxStrideHeight / 2) + velocityMult*(maxStrideHeight/2)
@@ -457,9 +444,9 @@ func (p *Player) Update() bool {
 
 		// update player stride camera offset
 		switch p.strideDir {
-		case StrideUp:
+		case model.StrideUp:
 			p.strideZ += strideDelta
-		case StrideDown:
+		case model.StrideDown:
 			p.strideZ -= strideDelta
 		}
 
@@ -467,44 +454,44 @@ func (p *Player) Update() bool {
 		if p.strideZ > maxStrideHeight {
 			p.strideZ = maxStrideHeight
 			if posZ == 0 {
-				p.strideDir = StrideDown
+				p.strideDir = model.StrideDown
 			}
 		}
 		if p.strideZ < 0 && posZ == 0 {
 			p.strideZ = 0
 			if velocity != 0 {
-				p.strideDir = StrideUp
+				p.strideDir = model.StrideUp
 			}
 
 			// foot hit the ground, make stompy sound
 			p.strideStomp = true
 			if p.strideStompDir < 0 {
 				// stomp the right foot
-				p.strideStompDir = StrideStompRight
+				p.strideStompDir = model.StrideStompRight
 			} else {
 				// stomp the left foot
-				p.strideStompDir = StrideStompLeft
+				p.strideStompDir = model.StrideStompLeft
 			}
 		}
 
 		if posZ == 0 && velocity == 0 && p.strideZ != 0 {
 			// stomp foot when coming to full stop
 			p.strideZ = 0
-			p.strideDir = StrideDown
+			p.strideDir = model.StrideDown
 			p.strideStomp = true
 			if p.strideStompDir < 0 {
 				// stomp the right foot
-				p.strideStompDir = StrideStompRight
+				p.strideStompDir = model.StrideStompRight
 			} else {
 				// stomp the left foot
-				p.strideStompDir = StrideStompLeft
+				p.strideStompDir = model.StrideStompLeft
 			}
 		} else if posZ == 0 && p.JumpJetVelocityZ() > 0 {
 			// stomp both feet on jump jet landing
 			p.strideZ = 0
-			p.strideDir = StrideDown
+			p.strideDir = model.StrideDown
 			p.strideStomp = true
-			p.strideStompDir = StrideStompBoth
+			p.strideStompDir = model.StrideStompBoth
 		}
 
 	}
